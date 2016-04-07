@@ -1,0 +1,503 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/PROY
+   $Id: contenido_impuestos_ubigeo_modificar.xml,v 1.1 2009/12/03 18:43:52 pecbazalar Exp $
+   DESC
+
+   DRUIDATARGET=/../../config/scripts/iniciales
+-->
+
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_impuestos_ubigeo_modificar" cod="" titulo="" estilos="estilosB3.css" colorf="#F0F0F0"
+        msgle="Modificar Impuestos por Ubigeo" onload="onLoadPag();" xml:lang="es">
+        
+<!-- Caso de uso Consultar Impuestos por Ubigeo: cod="0400"
+     Caso de uso Eliminar Impuestos por Ubigeo: cod="0399" 
+     Caso de uso Crear Cliente Básico MAE: cod="172"
+     Caso de uso Insertar Cliente MAE: cod="116"
+     Caso de uso Modificar Cliente MAE: cod="117" -->
+<JS src="sicc_util.js"/>          
+<JS src="PaginacionSicc.js"/>    
+<JS src="DruidaTransactionMare.js"/>
+    
+<JAVASCRIPT>
+  <![CDATA[ 
+  var vaNoLimpiarSICC = true;
+
+  function onLoadPag()   {
+    
+     DrdEnsanchaConMargenDcho('listado1',12);
+     configurarMenuSecundario("frmFormulario");
+ 
+     document.all["Cplistado1"].style.visibility='hidden';
+     document.all["CpLin1listado1"].style.visibility='hidden';
+     document.all["CpLin2listado1"].style.visibility='hidden';
+     document.all["CpLin3listado1"].style.visibility='hidden';
+     document.all["CpLin4listado1"].style.visibility='hidden';
+     document.all["ava1Div"].style.visibility='hidden';
+     document.all["ret1Div"].style.visibility='hidden';
+     document.all["primera1Div"].style.visibility='hidden';
+     document.all["separa1Div"].style.visibility='hidden';
+     document.all["ModificarDiv"].style.visibility='hidden';
+     document.all["DetalleDiv"].style.visibility='hidden';
+     
+     focaliza('frmFormulario.txtCodigoSap');
+
+     habilitarBotonEliminar();
+
+    eval (ON_RSZ);  
+
+   }
+
+   //---------------------recarga de acceso---------------------------//
+  function canalOnChange(){
+     var combo=window.event.srcElement.getAttribute("NAME");
+	   var option=window.event.srcElement.options;
+	   for(var i=0;i<option.length;i++){
+		   if(option.item(i).getAttribute("selected")){
+			   set('frmFormulario.nameComboSelected',combo);
+			   set('frmFormulario.valueComboSelected',option.item(i).getAttribute("value"));
+         borrarCombo();
+			   cargarComboEditable();
+		   }
+	   }
+   }
+
+   function habilitarBotonEliminar(){
+      if(get('frmFormulario.hidCasodeUso') == 'eliminar'){
+         btnProxy(4, '1');
+      }
+
+   }
+
+   function cargarComboEditable(){
+	    var name = get('frmFormulario.nameComboSelected');
+      var cad = new String();
+	    cad=name;
+      var largo = cad.length;
+
+      var Lista = document.getElementById("cbAcceso");
+      for(var k=0;k<Lista1.datos.longitud;k++) {
+         if ( Lista1.datos.ij(k,2) == get('frmFormulario.valueComboSelected')) {
+   	 	      var option =  document.createElement("OPTION");
+            Lista.options.add(option);
+        		option.innerText=Lista1.datos.ij(k,1);
+			      option.value= Lista1.datos.ij(k,0);
+		     }
+	    }
+   }
+
+
+   function borrarCombo(){    
+
+      var aCombo = new Array(new Array("",""));
+      set_combo('frmFormulario.cbAcceso',aCombo, []);
+      set_combo('frmFormulario.cbSubacceso',aCombo, []);
+    }
+   //-----------------------------------------------------------//
+   //--------------------------recarga de subacceso--------------//
+
+   function accesoOnChange(){
+     var combo=window.event.srcElement.getAttribute("NAME");
+	   var option=window.event.srcElement.options;
+	   for(var i=0;i<option.length;i++){
+   		 if(option.item(i).getAttribute("selected")){
+     
+			   set('frmFormulario.nameComboSelected2',combo);
+			   set('frmFormulario.valueComboSelected2',option.item(i).getAttribute("value"));
+         borrarCombo2();
+			   cargarComboEditable2();
+		   }
+	   }
+   }
+
+   
+
+   function cargarComboEditable2(){
+	    var name = get('frmFormulario.nameComboSelected2');
+      var cad = new String();
+	    cad=name;
+      var largo = cad.length;
+      //alert('entro a cargar');
+
+      var Lista = document.getElementById("cbSubacceso");
+      for(var k=0;k<Lista2.datos.longitud;k++) {
+         if ( Lista2.datos.ij(k,2) == get('frmFormulario.valueComboSelected2')) {
+     	 	    var option =  document.createElement("OPTION");
+            Lista.options.add(option);
+        		option.innerText=Lista2.datos.ij(k,1);
+			      option.value= Lista2.datos.ij(k,0);
+		     }
+	    }
+   }
+
+
+   function borrarCombo2(){
+	    var aCombo = new Array(new Array("",""));
+      set_combo('frmFormulario.cbSubacceso',aCombo, []);
+   }
+   //-----------------------------------------------------------//
+
+   function accionBuscar(){
+	 var continuar = true;
+	  if(get('frmFormulario.hidCasodeUso')=='modificar' || get('frmFormulario.hidCasodeUso') == 'eliminar' ){ 
+                continuar = sicc_validaciones_generales();
+      }
+	 if(continuar){
+      var arr = new Array();
+
+		arr[arr.length] = new Array("oidPais", get("formulario.oidPais")); 
+		arr[arr.length] = new Array("oidIdioma", get("formulario.oidIdioma")); 
+
+		if( get("frmFormulario.txtCodigoSap")!="" && get("frmFormulario.txtCodigoSap") != null)	 {
+			arr[arr.length] = new Array("material", get("frmFormulario.txtCodigoSap"));
+		}
+      if( get("frmFormulario.cbIndicadorImpuesto")!="" && get("frmFormulario.cbIndicadorImpuesto") != null)	 {
+			 arr[arr.length] = new Array("tasaImpuesto", get("frmFormulario.cbIndicadorImpuesto"));
+		}
+		if( get("frmFormulario.cbCanal")!="" && get("frmFormulario.cbCanal") != null)	 {
+			arr[arr.length] = new Array("canal", get("frmFormulario.cbCanal"));
+		}
+		if( get("frmFormulario.cbAcceso")!="" && get("frmFormulario.cbAcceso") != null)	 {
+			arr[arr.length] = new Array("acceso", get("frmFormulario.cbAcceso"));
+		}
+     	if( get("frmFormulario.cbSubacceso")!="" && get("frmFormulario.cbSubacceso") != null)	 {
+			arr[arr.length] = new Array("subacceso", get("frmFormulario.cbSubacceso"));
+		}
+
+     // arr[arr.length] = new Array("subacceso", get("frmFormulario.cbSubacceso"));
+      configurarPaginado(mipgndo, "MAEBusquedaImpuestos", "ConectorBusquedaImpuestos", "es.indra.sicc.dtos.mae.DTOImpuestoUBIGEO", arr);  
+  	  }
+	}   
+
+   function fBorrar(){
+      if(listado1.numSelecc() < 1){
+          GestionarMensaje("4");
+      }else{
+          eliminarFilas(listado1.codSeleccionados(),"MAEEliminarImpuestos", mipgndo);
+      }
+   }
+
+ 
+
+   function accionModificar(){
+      if(listado1.numSelecc()== 1){
+          var arrAux = new Array();
+          arrAux = listado1.codSeleccionados();
+          var obj = new Object();
+          var posicion = obtenerPosicionListaEditable(listado1.codSeleccionados(),listado1);
+          var oid = listado1.datos[posicion][0];
+          var hidCasodeUso = get('frmFormulario.hidCasodeUso');
+          obj.oid = oid;
+          obj.hidCasodeUso = hidCasodeUso;
+          var vWnd = mostrarModalSICC('LPModificacionImpuestos','',obj);
+          accionBuscar();
+          
+      }else{
+          if(listado1.numSelecc() > 1){
+             cdos_mostrarAlert(GestionarMensaje("240"));
+          }else{
+             if(listado1.numSelecc() < 1){
+                 GestionarMensaje("4");
+             }
+
+          }
+      }
+   }
+
+   function accionConsultar(){
+      if(listado1.numSelecc()== 1){
+          var arrAux = new Array();
+          arrAux = listado1.codSeleccionados();
+          var obj = new Object();
+          var posicion = obtenerPosicionListaEditable(listado1.codSeleccionados(),listado1);
+          var oid = listado1.datos[posicion][0];
+          var hidCasodeUso = get('frmFormulario.hidCasodeUso');
+          obj.oid = oid;
+          obj.hidCasodeUso = hidCasodeUso;
+          var vWnd = mostrarModalSICC('LPConsultarImpuestosCampos','',obj);
+          accionBuscar();
+          
+      }else{
+          if(listado1.numSelecc() > 1){
+             cdos_mostrarAlert(GestionarMensaje("240"));
+          }else{
+             if(listado1.numSelecc() < 1){
+                 GestionarMensaje("4");
+             }
+
+          }
+      }
+   }
+
+   function fLimpiar(){
+     set('frmFormulario.txtCodigoSap', '');
+     focaliza('frmFormulario.txtCodigoSap');
+     set('frmFormulario.cbIndicadorImpuesto', '');
+     set('frmFormulario.cbCanal', '');
+     var aCombo = new Array(new Array("",""));
+     set_combo('frmFormulario.cbAcceso',aCombo, []);
+     set_combo('frmFormulario.cbSubacceso',aCombo, []);
+
+   }
+
+     function muestraLista(ultima, rowset) {
+
+         var tamano = rowset.length;
+
+         if (tamano > 0) {
+             document.all["Cplistado1"].style.visibility='visible';
+             document.all["CpLin1listado1"].style.visibility='visible';
+             document.all["CpLin2listado1"].style.visibility='visible';
+             document.all["CpLin3listado1"].style.visibility='visible';
+             document.all["CpLin4listado1"].style.visibility='visible';
+
+             document.all["primera1Div"].style.visibility='visible';
+             document.all["ret1Div"].style.visibility='visible';
+             document.all["ava1Div"].style.visibility='visible';
+              document.all["separa1Div"].style.visibility='visible';
+             //alert(get('frmFormulario.hidCasodeUso')); 
+             if(get('frmFormulario.hidCasodeUso')=='modificar'){ 
+                document.all["ModificarDiv"].style.visibility='visible';
+             }
+
+             if(get('frmFormulario.hidCasodeUso')=='consultar'){
+                document.all["DetalleDiv"].style.visibility='visible';
+             }
+			 return true; 
+         }else{
+             document.all["Cplistado1"].style.visibility='hidden';
+             document.all["CpLin1listado1"].style.visibility='hidden';
+             document.all["CpLin2listado1"].style.visibility='hidden';
+             document.all["CpLin3listado1"].style.visibility='hidden';
+             document.all["CpLin4listado1"].style.visibility='hidden';
+
+             document.all["primera1Div"].style.visibility='hidden';
+             document.all["ret1Div"].style.visibility='hidden';
+             document.all["ava1Div"].style.visibility='hidden';
+             document.all["separa1Div"].style.visibility='hidden';
+             document.all["ModificarDiv"].style.visibility='hidden';    
+             document.all["DetalleDiv"].style.visibility='hidden';  
+             set('frmFormulario.botonVisible','none');
+			 return false;
+
+         }
+    }
+
+    function foco(){
+       if(document.all["DetalleDiv"].style.visibility == 'visible'){
+          focalizaBotonHTML_XY('Detalle');
+       }else{
+          if(document.all["ModificarDiv"].style.visibility == 'visible'){
+             focalizaBotonHTML_XY('Modificar');
+          }else{
+            focalizaBotonHTML('botonContenido', 'btnBuscar');           
+          }
+       }
+    }
+
+    function foco2(){
+       if(document.all["DetalleDiv"].style.visibility == 'visible'){
+          focalizaBotonHTML_XY('Detalle');
+          
+       }else{
+          if(document.all["ModificarDiv"].style.visibility == 'visible'){
+             focalizaBotonHTML_XY('Modificar');
+          }else{
+             focaliza('frmFormulario.txtCodigoSap');
+   
+          }
+       }
+    }
+
+   
+  ]]> 
+   <VALIDACION>
+		<ELEMENTO name="txtCodigoSap"  required="true" cod="585"/>
+		<ELEMENTO name="cbCanal"  required="true" cod="7"/>
+		<ELEMENTO name="cbAcceso"  required="true" cod="10"/>
+		<ELEMENTO name="cbSubacceso"  required="true" cod="122"/>
+   </VALIDACION> 
+</JAVASCRIPT>
+
+<FORMULARIO nombre="frmFormulario">
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="accion" valor=""/>
+<VAR nombre="errCodigo" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="nameComboSelected" valor=""/>
+<VAR nombre="valueComboSelected" valor=""/>
+<VAR nombre="nameComboSelected2" valor=""/>
+<VAR nombre="valueComboSelected2" valor=""/>
+<VAR nombre="hidCasodeUso" valor=""/>
+<VAR nombre="oidIdioma" valor=""/>
+
+
+<CAPA nombre="capaEspacio" x="0" y="0">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblDatosAlta" alto="13" filas="1" valor="" id="legend" cod="00125"/></legend>
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr><td> 
+                <table width="698" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblCodigoSap" alto="13" filas="1" valor="" id="datosTitle" cod="585"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblIndicadorImpuesto" alto="13" filas="1" valor="" id="datosTitle" cod="1333"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblCanal" alto="13" filas="1" valor="" id="datosTitle" cod="7"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"><CTEXTO nombre="txtCodigoSap" id="datosCampos" max="20" tipo="" onchange="" req="S" size="27" valor="" validacion="" onshtab="foco();"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td>
+                      <COMBO nombre="cbIndicadorImpuesto" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                      	<ROWSET>
+                      	</ROWSET>
+                      </COMBO>
+                    </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap">
+                      <COMBO nombre="cbCanal" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onchange="canalOnChange();">
+                      	<ROWSET>
+                      	</ROWSET>
+                      </COMBO>
+                    </td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <table width="698" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblAcceso" alto="13" filas="1" valor="" id="datosTitle" cod="10"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblSubacceso" alto="13" filas="1" valor="" id="datosTitle" cod="122"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap">
+                      <COMBO nombre="cbAcceso" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onchange="accesoOnChange();">
+                      	<ROWSET>
+                      	</ROWSET>
+                      </COMBO>
+                    </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap">
+                      <COMBO nombre="cbSubacceso" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="">
+                      	<ROWSET>
+                      	</ROWSET>
+                      </COMBO>
+                    </td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+              </table>
+              </td></tr> 
+              </table>
+       <!---fin primera fila-->
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+         <td><IMG src="b.gif"/></td>
+         <td>
+           <fieldset>
+             <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">         
+                <tr>
+                  <td class="botonera">
+                    <BOTON nombre="btnBuscar" ID="botonContenido" tipo="html" alt = "Buscar" accion="accionBuscar();" estado="false" ontab="foco2()"/> 
+                  </td>
+                </tr>    
+             </table>         
+           </fieldset>
+         </td>
+         <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>        
+    <tr>
+         <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+         <td width="756" ><IMG src="b.gif"/></td>
+         <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA> 
+  
+<LISTAEDITABLE nombre="listado1" ancho="701" alto="317" x="12" y="169" colorFondo="#CECFCE" msgDebugJS="S">
+  <IMGBOTONES precarga="S" conROver="S">
+    <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+    <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+    <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+  </IMGBOTONES>
+  <LINEAS>
+    <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="1" horizTitulo="1" horizBase="1"/> 
+    <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+  </LINEAS>
+  <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00135" ID="datosTitle" />
+  <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+  <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+    	<COL ancho="80" minimizable="S" minimizada="N"/>
+    	<COL ancho="100" minimizable="S" minimizada="N"/>
+        <COL ancho="100" minimizable="S" minimizada="N"/>
+        <COL ancho="100" minimizable="S" minimizada="N"/>
+        <COL ancho="100" minimizable="S" minimizada="N"/>
+  </COLUMNAS>
+  <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+    	<COL colFondo="" ID="EstCab" cod="585"></COL> 
+    	<COL colFondo="" ID="EstCab" cod="1333"></COL> 
+	    <COL colFondo="" ID="EstCab" cod="7"></COL> 
+	    <COL colFondo="" ID="EstCab" cod="10"></COL> 
+	    <COL colFondo="" ID="EstCab" cod="122"></COL> 
+  </CABECERA>
+  <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+         coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" colorSelecc="#D0D9E8">
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat"/> 
+  </DATOS>
+  <ROWSET>
+	
+      </ROWSET>
+  <PAGINADO nombre="mipgndo" ancho="701" sep="$" x="12" class="botonera" y="463" control="|" conector="conector_prototipo_2" rowset="" cargainicial="N" onload="procesarPaginado(mipgndo,msgError,ultima,rowset,'muestraLista(ultima,rowset)');">
+    <BOTON nombre="ret1" x="37" y="467" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+    <BOTON nombre="ava1" x="52" y="467" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>        
+  </PAGINADO>
+</LISTAEDITABLE>
+    <BOTON nombre="primera1" x="20" y="467" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();"/>  
+    <BOTON nombre="separa1" x="59" y="463" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />      
+    <BOTON nombre="Modificar" x="80" y="464" ID="botonContenido" img="" tipo="html" estado="false" alt="" cod="2" accion="accionModificar();" ontab="focaliza('frmFormulario.txtCodigoSap');" onshtab="focalizaBotonHTML('botonContenido', 'btnBuscar');"/>      
+    <BOTON nombre="Detalle" x="80" y="464" ID="botonContenido" img="" tipo="html" estado="false" alt="" cod="3" accion="accionConsultar();" ontab="focaliza('frmFormulario.txtCodigoSap');" onshtab="focalizaBotonHTML('botonContenido', 'btnBuscar');"/>      
+
+<CAPA nombre="capaEspacio2" alto="18" ancho="100" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="486" zindex="">
+</CAPA>
+</FORMULARIO>
+</PAGINA>                                                                          

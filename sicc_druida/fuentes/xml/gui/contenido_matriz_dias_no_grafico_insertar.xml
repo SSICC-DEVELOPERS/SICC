@@ -1,0 +1,596 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+/**
+
+ * Copyright 2003 © por Indra Sistemas,S.A.. Todos los derechos reservados.
+ * Avda. de Bruselas, 35
+ * Parque Empresarial Arroyo de la Vega
+ * 28108 Alcobendas, Madrid
+ * España
+ *
+ * Privado y Confidencial.
+ * La información contenida en este documento es propiedad de Indra sistemas.
+ * Para uso exclusivo de empleados autorizados no permitiéndose
+ * la distribución de este código sin permiso expreso.
+ */
+-->
+<!--
+   INDRA/CDOS/SICC
+   $Id: contenido_matriz_dias_no_grafico_insertar.xml,v 1.1 2009/12/03 18:44:42 pecbazalar Exp $
+   DESC
+
+   DRUIDATARGET=/../../config/scripts/iniciales
+
+-->
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+<PAGINA nombre="contenido_matriz_dias_grafico_insertar"
+        estilos="estilos.css"
+        colorf="#F0F0F0" msgle="Contenido matriz dias grafico insertar"
+        onload="onLoadCargarBarra();" xml:lang="es" cod="056">
+  <ESTILO>#MA {font-family: Arial, Helvetica, sans-serif;background-color:#CED7E7;
+				 font-size:8pt;font-weight:bold;color:#526D84;}
+		#S  {font-family: Arial, Helvetica, sans-serif;background-color:#526D84;
+				 font-size:8pt;font-face:Arial;font-weight:bold;color:#FFFFFF;}
+		#DOFF {font-family: Arial, Helvetica, sans-serif;background-color:white;
+					 font-size:8pt;text-decoration:none;color:black;font-weight:bold;}
+		#DON {font-family: Arial, Helvetica, sans-serif;background-color:#292084;
+					font-size:8pt;text-decoration:none;color:white;font-weight:bold;}
+		#FDS {font-family: Arial, Helvetica, sans-serif;color:black;background-color:white;
+					font-size:8pt;text-decoration:none;font-weight:bold;}
+		#F {background-color:red;font-family: Arial, Helvetica, sans-serif;text-decoration:none;
+				font-size:8pt;font-weight:bold;}
+		#estcombo30F {width:355px} 
+		#estcombo40F {width:473px}</ESTILO>
+  <JS src="sicc_util.js"/>
+  <JS src="contenido_matriz_dias_no_grafico_insertar.js"/>
+  <JAVASCRIPT>
+    <![CDATA[
+										
+                
+              
+                
+                    //Se pulso el boton buscar y se obtienen de la LP
+                    //las actividades y los grupos de zonas
+                    //correspondientes a la seleccion Pais, Marca, Canal
+                    function buscar() {
+						setTimeout("buscar2()", 100);
+					}
+					
+					function buscar2(){
+
+					  if(//fValidarCOMBO('frmInsertarMatrizDiasMNG.cbPaises') &&
+                         fValidarCOMBO('frmInsertarMatrizDiasMNG.cbMarcas') &&
+                         fValidarCOMBO('frmInsertarMatrizDiasMNG.cbCanales')) {
+                            set('frmInsertarMatrizDiasMNG.accion', 'buscar');
+                            obtenerPaisMarcaCanal();
+                            enviaSICC('frmInsertarMatrizDiasMNG');
+                      }     
+                    }
+                
+                
+                    //Llama a la LP para que agregue un Grupo de Zonas a la matriz Dias
+                    function annadirGruposZonas(){
+                      if(	fValidarCOMBO('frmInsertarMatrizDiasMNG.cbGruposDeZonas')) {
+                        set('frmInsertarMatrizDiasMNG.accion', 'annadirGruposZonas');
+                        obtenerPaisMarcaCanal();
+                        set('frmInsertarMatrizDiasMNG.sGruposDeZonas', 'frmInsertarMatrizDiasMNG.cbGruposDeZonas');
+                        enviaSICC('frmInsertarMatrizDiasMNG');
+                      }
+                    }
+                
+                    //Llama a la LP para que agregue una Actividad a la matriz Dias
+                    function annadirActividad(){
+                      if(	fValidarCOMBO('frmInsertarMatrizDiasMNG.cbActividades') && get('frmInsertarMatrizDiasMNG.cbActividades','T') != '') {
+                        set('frmInsertarMatrizDiasMNG.accion', 'annadirActividad');
+                        obtenerPaisMarcaCanal();
+                        set('frmInsertarMatrizDiasMNG.sActividad', get('frmInsertarMatrizDiasMNG.cbActividades'));
+                        enviaSICC('frmInsertarMatrizDiasMNG');
+                      }
+                    }
+                
+                
+                    
+                    function comprobarPaisMarcaCanal(){
+                    	if(	
+                    		//get('frmInsertarMatrizDiasMNG.cbPaises')	!= "" && 
+                    		get('frmInsertarMatrizDiasMNG.cbMarcas')	!= "" && 
+                    		get('frmInsertarMatrizDiasMNG.cbCanales') != ""){
+                    
+                    		set('frmInsertarMatrizDiasMNG.accion', 'seleccionPaisMarcaCanal');
+                    		obtenerPaisMarcaCanal();
+                    		enviaSICC('frmInsertarMatrizDiasMNG');
+                    	}
+                    }
+                  // Se pulso el chk de todas en Grupos de Zonas
+                  function selecTodasZonas() {
+                      var checked = get('frmInsertarMatrizDiasMNG.chkTodasGrupoDeZonas','');
+                      if (checked == 'S') {
+                          // Se chequeo
+                          select_combo('frmInsertarMatrizDiasMNG.cbGruposDeZonas');
+                      } else {
+                          deselect_combo('frmInsertarMatrizDiasMNG.cbGruposDeZonas');
+                      }
+                  }
+
+                  // Se pulso el chk de todas en Marcas
+                  function selecTodasMarcas() {
+                      var checked = get('frmInsertarMatrizDiasMNG.chkTodasMarcas','');
+                      if (checked == 'S') {
+                          // Se chequeo
+                          select_combo('frmInsertarMatrizDiasMNG.cbMarcas');
+                      } else {
+                          deselect_combo('frmInsertarMatrizDiasMNG.cbMarcas');
+                      }
+                  }
+
+                    function onLoadCargarBarra() {    
+						
+			posicionarCombo();
+			configurarMenuSecundario("frmInsertarMatrizDiasMNG");
+
+                      var parametros = new Object();
+                      parametros.errCodigo = get('frmInsertarMatrizDiasMNG.errCodigo');
+                      parametros.errDescripcion = get('frmInsertarMatrizDiasMNG.errDescripcion');
+
+                      if (get('frmInsertarMatrizDiasMNG.errDescripcion')!=''){
+                        var wnd = fMostrarMensajeError(get('frmInsertarMatrizDiasMNG.errCodigo'),get('frmInsertarMatrizDiasMNG.errDescripcion'));
+                      }
+                      procesarCombo('frmInsertarMatrizDiasMNG.cbGruposDeZonas')
+                      procesarCombo('frmInsertarMatrizDiasMNG.cbActividades');
+                      
+		      focaliza('frmInsertarMatrizDiasMNG.cbMarcas','');
+                    }
+                    function deselect_combo(campo) {
+                      var l=combo_get(campo,'L');
+                      var arrai=new Array();
+                      /*for(var i=0;i<l;i++) {
+                        arrai[i]=combo_get(campo,'V',i);
+                      }*/
+                      set(campo,arrai);
+                    }
+                     
+                    function obtenerPaisMarcaCanal(){
+                    	//set('frmInsertarMatrizDiasMNG.sPais', get('frmInsertarMatrizDiasMNG.cbPaises'));
+                    	set('frmInsertarMatrizDiasMNG.sMarca', get('frmInsertarMatrizDiasMNG.cbMarcas'));
+                    	set('frmInsertarMatrizDiasMNG.sCanal', get('frmInsertarMatrizDiasMNG.cbCanales'));
+                    }
+                    
+                    function posicionarCombo() {
+                    	//alert ("posicionarCombo");
+                    	var iSeleccionado = new Array();
+                    	iSeleccionado[0] = get('frmInsertarMatrizDiasMNG.sCanal');
+                    	set('frmInsertarMatrizDiasMNG.cbCanales',iSeleccionado);
+                    
+                    	/*var iSeleccionadoP = new Array();
+                    	iSeleccionadoP[0] = get('frmInsertarMatrizDiasMNG.sPais');
+                    	set('frmInsertarMatrizDiasMNG.cbPaises',iSeleccionadoP);*/
+                    
+                    	var iSeleccionadoM = new Array();
+                    	iSeleccionadoM[0] = get('frmInsertarMatrizDiasMNG.sMarca');
+                    	set('frmInsertarMatrizDiasMNG.cbMarcas',iSeleccionadoM);
+                    
+                    	var iSeleccionadoA = new Array();
+                    	iSeleccionadoA[0] = get('frmInsertarMatrizDiasMNG.sActividad');
+                    	set('frmInsertarMatrizDiasMNG.cbActividades',iSeleccionadoA);
+                    
+                    	var iSeleccionadoGZ = new Array();
+                    	iSeleccionadoGZ[0] = get('frmInsertarMatrizDiasMNG.sGrupoDeZona');
+                    	set('frmInsertarMatrizDiasMNG.cbGrupoDeZonas',iSeleccionadoGZ);
+
+						
+                    }
+                    
+                     
+                
+                    function fModificar() {
+                    	set('frmInsertarMatrizDiasMNG.accion', 'modificar');
+                    	set('frmInsertarMatrizDiasMNG.sAnio', get('frmInsertarMatrizDiasMNG.txtAnio'));
+                     
+                    	obtenerPaisMarcaCanal();
+                     
+                    	set('frmInsertarMatrizDiasMNG.sActividad', get('frmInsertarMatrizDiasMNG.cbActividades'));
+                    	set('frmInsertarMatrizDiasMNG.sGrupoDeZona', get('frmInsertarMatrizDiasMNG.cbGrupoDeZonas'));
+                     
+                    	// Se obtiene la lista de festivos seleccionados y se guarda en un VAR para mandar a la LP Modificar
+                    	set('frmInsertarMatrizDiasMNG.listaFestivos', listaDeFestivos());
+                    
+                    	// Se activa la LP de Modificar para que se le pase los parametros de la pagina.
+                    	 
+                    	enviaSICC('frmInsertarMatrizDiasMNG');
+                    }
+                    
+
+	function fLimpiar() {
+	      //set('frmInsertarMatrizDiasMNG.cbPaises','');
+	      set('frmInsertarMatrizDiasMNG.cbMarcas','');
+	      set('frmInsertarMatrizDiasMNG.cbCanales','');
+	      set('frmInsertarMatrizDiasMNG.cbGruposDeZonas','');
+	      set('frmInsertarMatrizDiasMNG.cbActividades','');
+	      set('frmInsertarMatrizDiasMNG.chkTodasGrupoDeZonas','');
+	      focaliza('frmInsertarMatrizDiasMNG.cbMarcas','');
+         }
+    
+    
+	function fGuardar(){
+		if (get_visibilidad('capaMatriz')){
+			set('frmInsertarMatrizDiasMNG.accion', 'grabarMatrizDias');
+			enviaSICC('frmInsertarMatrizDiasMNG');
+		}
+	}
+	
+	function verTablaGrafica(){
+		set('frmInsertarMatrizDiasMNG.accion', 'MostrarMatrizModoGrafico');
+		enviaSICC('frmInsertarMatrizDiasMNG');
+	}
+
+
+        function obtenerCombo(campo) {
+          var len=combo_get(campo,'L','');
+          var arrai=new Array();
+          for( i = 0; i < len; i++){
+            var arrai2=new Array();
+            arrai2[0] = combo_get(campo,'V',i);
+            arrai2[1] = combo_get(campo,'T',i);
+            arrai[i] = arrai2;
+          }
+          return arrai;
+        }
+        
+
+        function combinarCombo(array) {
+          var array3 = new Array();
+          for(i = 0; i < array.length; i++){
+            var array2 = array[i];
+            if (array2[1] != '')
+              array2[1] = array2[1] + ' (' + array2[0] + ')';
+            array3[i] = array2;
+          }
+          //alert('post ' + array3);
+          return array3;
+        }
+
+        function procesarCombo(campo) {
+          var array = obtenerCombo(campo);
+          var array2 = combinarCombo(array);
+          //alert('array2 ' + array2);
+          set_combo(campo,array2,'');
+        }
+                    
+        function focalizaPostCanales(){
+          if (get_visibilidad('capaCargar')){
+            focaliza('frmInsertarMatrizDiasMNG.cbGruposDeZonas','');
+          } else {
+            focaliza('frmInsertarMatrizDiasMNG.cbMarcas','');
+          }
+
+        }
+        function focalizaPrePais(){
+          if (get_visibilidad('capaCargar')){
+            focaliza('frmInsertarMatrizDiasMNG.cbActividades','');
+          } else {
+            focaliza('frmInsertarMatrizDiasMNG.cbCanales','');
+          }
+        }
+
+	function sacaSelecTodas() {
+		set('frmInsertarMatrizDiasMNG.chkTodasGrupoDeZonas','N')
+	}
+
+                    ]]>
+  </JAVASCRIPT>
+  <FORMULARIO nombre="frmInsertarMatrizDiasMNG">
+    <VAR nombre="accion" valor=""/>
+    <VAR nombre="conectorAction" valor="LPCrearMatrizDiasModoNoGrafico"/>
+    <VAR nombre="errCodigo" valor=""/>
+    <VAR nombre="errDescripcion" valor=""/>
+    <VAR nombre="hCasoDeUso" valor=""/>
+    <VAR nombre="sPais" valor=""/>
+    <VAR nombre="sCanal" valor=""/>
+    <VAR nombre="sMarca" valor=""/>
+    <VAR nombre="sActividad" valor=""/>
+    <VAR nombre="sGruposDeZonas" valor=""/>
+    <VAR nombre="hEnableSave" valor=""/>
+
+	
+    <!-- CAPA Busqueda -->
+    <CAPA nombre="capaBusqueda" alto="310" ancho="592" colorf="" borde="0"
+          imagenf="" repeat="" padding="" visibilidad="visible" contravsb=""
+          x="8" y="8" zindex="">
+      <TABLE width="100%" border="1" cellpadding="0" cellspacing="1"
+             bordercolor="#CCCCCC">
+        <TR>
+          <TD>
+            <TABLE width="100%" border="0" cellpadding="0" cellspacing="0">
+                <TR>
+                    <TD colspan="5" align="center">
+						<IMG src="b.gif" width="8" height="8"/>
+					</TD>
+                </TR>
+                <TR>
+                    <TD width="20" rowspan="15"><IMG src="b.gif" width="8" height="8"/></TD>
+              </TR>
+              <TR>
+                <TD height="30" align="center">
+                  <TABLE width="35%" border="0" align="left"
+                         cellpadding="0" cellspacing="0">
+                    <TR>
+                      <TD width="89" nowrap="nowrap">
+                        <!-- LABEL Pais-->
+                        <LABELC nombre="lblPais" ancho="105" alto="30"
+                                filas="1" id="datosTitleRight" cod="5"
+                                valor="" enviaroculto="N"/>
+                        <!-- FIN LABEL Pais-->
+                      </TD>
+                      <TD width="8">
+                        <IMG src="b.gif" width="8" height="8"/>
+                      </TD>
+                      <TD colspan="3" width="200">
+                        <!-- COMBO Paises 
+                        <COMBO req="N" multiple="N" size="1" onshtab="focalizaPrePais();"
+                               id="estcombo30" nombre="cbPaises" textoinicial="" valorinicial="">
+                          <ROWSET>
+                          </ROWSET>
+                        </COMBO>
+                        < FIN COMBO Paises -->
+			<LABELC nombre="lblCodPais" ancho="105" alto="30"
+                                filas="1" id="datosCamposLeft"
+				valor="algo" enviaroculto="N"/>
+                      </TD>
+                      <TD width="8">
+                        <IMG src="b.gif" width="8" height="8"/>
+                      </TD>
+                    </TR>
+                    <TR>
+                      <TD width="89" nowrap="nowrap" valign="center">
+                        <!-- LABEL Marca -->
+                        <LABELC nombre="lblMarca" ancho="105" alto="30"
+                                filas="1" id="datosTitleRight" cod="6"
+                                valor="" enviaroculto="N"/>
+                        <!-- FIN LABEL Marca -->
+                      </TD>
+                      <TD width="8">
+                        <IMG src="b.gif" width="8" height="8"/>
+                      </TD>
+                      <TD colspan="3" width="200">
+                        <!-- COMBO Marcas -->
+                        <COMBO req="N" multiple="N" size="1" onshtab="focalizaPrePais();"
+                               id="estcombo30" nombre="cbMarcas" textoinicial="" valorinicial="">
+                          <ROWSET>
+                          </ROWSET>
+                        </COMBO>
+                        <!-- FIN COMBO Marcas -->
+                      </TD>
+                      <TD width="8">
+                        <IMG src="b.gif" width="8" height="8"/>
+                      </TD>
+                    </TR>
+                    <!--TR>
+                      <TD align="left">
+                        <IMG src="b.gif" witdh="8" height="8"/>
+                      </TD>
+                      <TD width="8">
+                        <IMG src="b.gif" witdh="8" height="8"/>
+                      </TD>
+                     <TD width="20">
+                        <CHECKBOX onfocus="" onclick="selecTodasMarcas();" id="estilos.css"
+                                  req="N" validacion="" check="N" texto=""
+                                  nombre="chkTodasMarcas"/>
+                      </TD>
+                      <TD width="100%">
+                        <LABELC nombre="lblTodasGrupoDeZonas" ancho="89"
+                                alto="27" filas="2" id="datosTitleLeft"
+                                cod="176" valor="" enviaroculto="N"/>
+                      </TD>
+                      <TD>
+                        <IMG src="b.gif" witdh="8" height="8"/>
+                      </TD>
+		      </TR-->
+		      <TR>
+                      <TD width="89" nowrap="nowrap">
+                        <!-- LABEL Canal -->
+                        <LABELC nombre="lblCanal" ancho="105" alto="30"
+                                filas="1" id="datosTitleRight" cod="7"
+                                valor="" enviaroculto="N"/>
+                        <!-- FIN LABEL Canal -->
+                      </TD>
+                      <TD rowspan="2" nowrap="nowrap">
+                        <IMG src="b.gif" width="8" height="8"/>
+                      </TD>
+                      <TD colspan="3" width="200">
+                        <!-- COMBO Canales -->
+                        <COMBO req="N" multiple="N" size="1"
+                               id="estcombo30" nombre="cbCanales" textoinicial="" valorinicial="" ontab="focalizaPostCanales();">
+                          <ROWSET>
+                          </ROWSET>
+                        </COMBO>
+                        <!-- FIN COMBO Canales -->
+                      </TD>
+                      <TD width="8">
+                        <IMG src="b.gif" width="8" height="8"/>
+                      </TD>
+                    </TR>
+                  </TABLE>
+                </TD>
+              </TR>
+              <TR>
+                <TD height="19">
+                  <IMG src="b.gif" witdh="8" height="8"/>
+                </TD>
+              </TR>
+            </TABLE>
+          </TD>
+        </TR>
+        <TR>
+          <TD bgcolor="#CCCCCC">
+            <!-- BOTON Buscar -->
+            <BOTON cod="1" estado="true" accion="javascript:buscar();" 
+                   tipo="html" ID="BotonContenido" nombre="btnBuscar" />
+            <!-- FIN BOTON Buscar -->
+          </TD>
+        </TR>
+      </TABLE>
+    </CAPA>
+    <!-- FIN CAPA Busqueda -->
+    <!-- CAPA Cargar -->
+    <CAPA nombre="capaCargar" alto="310" ancho="592" colorf="" borde="0"
+          imagenf="" repeat="" padding="" visibilidad="hidden" contravsb=""
+          x="8" y="190" zindex="">
+      <TABLE width="100%" border="1" cellpadding="0" cellspacing="1"
+             bordercolor="#CCCCCC">
+        <TR>
+          <TD>
+            <TABLE width="100%" border="0" cellpadding="0" cellspacing="0">
+              <TR>
+                <TD>
+                  <IMG src="b.gif" witdh="8" height="8"/>
+                </TD>
+              </TR>
+              <TR>
+                <TD height="30" align="center">
+                  <TABLE width="35%" border="0" align="left"
+                         cellpadding="0" cellspacing="0">
+                    <TR>
+                      <TD width="60" valign="center">
+                        <!-- LABEL GrupoDeZonas -->
+                        <LABELC nombre="lblGrupoDeZonas" ancho="105"
+                                alto="50" filas="4" id="datosTitleRight"
+                                cod="180" valor="" enviaroculto="N"/>
+                        <!-- FIN LABEL GrupoDeZonas -->
+                      </TD>
+                      <TD width="8">
+                        <IMG src="b.gif" width="8" height="8"/>
+                      </TD>
+                      <TD colspan="2" valign="top">
+                        <!-- COMBO GruposDeZonas -->
+                        <COMBO nombre="cbGruposDeZonas" size="3"
+                               multiple="S" req="N" id="estcombo30"
+                               onshtab="focaliza('frmInsertarMatrizDiasMNG.cbCanales','');"
+							   onchange="sacaSelecTodas();">
+                          <ROWSET>
+                          </ROWSET>
+                        </COMBO>
+                        <!-- FIN COMBO GruposDeZonas -->
+                      </TD>
+                    </TR>
+                    <TR>
+                      <TD align="left">
+                        <IMG src="b.gif" witdh="8" height="8"/>
+                      </TD>
+                      <TD width="8">
+                        <IMG src="b.gif" witdh="8" height="8"/>
+                      </TD>
+                      <TD width="20">
+                        <CHECKBOX onfocus="" onclick="selecTodasZonas();" id="estilos.css"
+                                  req="N" validacion="" check="N" texto=""
+                                  nombre="chkTodasGrupoDeZonas"/>
+                      </TD>
+                      <TD width="100%">
+                        <LABELC nombre="lblTodasGrupoDeZonas" ancho="89"
+                                alto="27" filas="2" id="datosTitleLeft"
+                                cod="176" valor="" enviaroculto="N"/>
+                      </TD>
+                      <TD>
+                        <IMG src="b.gif" witdh="8" height="8"/>
+                      </TD>
+                    </TR>
+                    <TR>
+                      <TD width="89">
+                        <!-- LABEL Actividad -->
+                        <LABELC nombre="lblActividad" ancho="105" alto="30"
+                                filas="1" id="datosTitleRight" cod="173"
+                                valor="" enviaroculto="N"/>
+                        <!-- FIN LABEL Actividad -->
+                      </TD>
+                      <TD width="8">
+                        <IMG src="b.gif" width="8" height="8"/>
+                      </TD>
+                      <TD colspan="3">
+                        <!-- COMBO Actividades -->
+                        <COMBO req="N" multiple="N" size="1"
+                               id="estcombo30" nombre="cbActividades"
+                               onchange="" textoinicial="" valorinicial=""
+                               ontab="focaliza('frmInsertarMatrizDiasMNG.cbMarcas','');">
+                          <ROWSET>
+                          </ROWSET>
+                        </COMBO>
+                        <!-- FIN COMBO Actividades -->
+                      </TD>
+                    </TR>
+                    
+                  </TABLE>
+                </TD>
+              </TR>
+              <TR>
+                <TD height="19">
+                  <IMG src="b.gif" witdh="8" height="8"/>
+                </TD>
+              </TR>
+            </TABLE>
+          </TD>
+        </TR>
+        <TR>
+	  <TD bgcolor="#CCCCCC">
+            <CAPA nombre="capaBotones" alto="" ancho="" colorf="" borde="" imagenf="" 
+                  repeat="" padding="" visibilidad="hidden" contravsb="" x="" y="" zindex="">
+            
+            <!-- BOTON AnnadirGruposZonas -->
+            <BOTON cod="255" estado="true"
+                   accion="javascript:annadirGruposZonas();" tipo="html"
+                   ID="BotonContenido" nombre="btnAnnadirGruposZonas"/>
+            <!-- FIN BOTON AnnadirGruposZonas -->
+            <!-- BOTON AnnadirActividad -->
+            <BOTON cod="256" estado="true"
+                   accion="javascript:annadirActividad();" tipo="html"
+                   ID="BotonContenido" nombre="btnAnnadirActivida" />
+            <!-- FIN BOTON AnnadirActividad -->
+	    </CAPA>
+          </TD>
+        </TR>
+      </TABLE>
+    </CAPA>
+    <!-- FIN CAPA Cargar -->
+    <!-- CAPA Matriz-->
+    <CAPA nombre="capaMatriz" alto="290" ancho="592" colorf="" borde="0"
+          imagenf="" repeat="" padding="" visibilidad="hidden" contravsb=""
+          x="8" y="390" zindex="">
+      <TABLE width="100%" border="1" cellspacing="1" height="277"
+             cellpadding="0" align="left" bordercolor="#CCCCCC">
+        <TR>
+          <TD class="tablaTitle" valign="middle" height="23">
+            <!-- LABEL TablaNoGrafica -->
+            <LABELC nombre="lblTablaNoGrafica" ancho="130" alto="23"
+                    filas="1" id="datosTitleLeft" cod="254" valor=""
+                    enviaroculto="N"/>
+            <!-- FIN LABEL TablaNoGrafica -->
+          </TD>
+        </TR>
+        <TR>
+          <TD valign="top">
+            <SCROLL nombre="miscroll" ancho="558" alto="200" colorf=""
+                    visibilidad="visible" incx="10" incy="10"
+                    colores="#DBE5E6,#BBCFD0,white,#9FBBBD,#9FBBBD,#EFF7FF,#000000">
+              <!--- si lo vemos en Netscape se usarán los atributos incx e incy, 
+                                                                        y si lo vemos en IE se usará colores -->
+              <REJILLA nombre="rejillaGrafica" alto="300" ancho="300"/>
+            </SCROLL>
+            <!--
+                                                                <TD valign="top">
+                                                                  <REJILLA nombre="rejillaGrafica" alto="300" ancho="300"/>
+                                                                </TD>
+                                                              -->
+          </TD>
+        </TR>
+        <TR>
+          <TD height="27" class="tablaTitle">
+            <!-- BOTON VerTablaGrafica -->
+            <BOTON cod="257" estado="true" tipo="html"
+                   ID="BotonContenido" nombre="btnVerTablaGrafica"
+		   accion="javascript:verTablaGrafica();"/>
+            <!-- FIN BOTON VerTablaGrafica -->
+          </TD>
+        </TR>
+      </TABLE>
+    </CAPA>
+    <!-- FIN CAPA Matriz-->
+  </FORMULARIO>
+</PAGINA>

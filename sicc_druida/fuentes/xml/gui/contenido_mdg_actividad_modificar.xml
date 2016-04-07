@@ -1,0 +1,488 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/PROY
+   $Id: contenido_mdg_actividad_modificar.xml,v 1.1 2009/12/03 18:44:56 pecbazalar Exp $
+   DESC
+
+   DRUIDATARGET=/../../config/scripts/iniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+
+<PAGINA nombre="contenido_mdg_actividad_modificar" titulo="" estilos="estilosB3.css" colorf="#F0F0F0" msgle="" 
+        onload="onLoadPag();" xml:lang="es" cod="0663">
+
+<!-- Caso de uso Crear matriz de días en modo gráfico: cod="0663"
+     Caso de uso Crear matriz de días en modo no gráfico: cod="0663"
+     Caso de uso Modificar matriz de días en modo gráfico: cod="0664"
+     Caso de uso Modificar matriz de días en modo no gráfico: cod="0664" -->
+
+<JS src="sicc_util.js"/>
+
+
+<JAVASCRIPT>
+  <![CDATA[ 
+
+
+	/*
+	* Inicializa la pagina
+	*/
+	function onLoadPag() {
+		configurarMenuSecundario("frmModificarActividad");
+		//actualizamos valores y relacion de los combos
+		actualizaRelacionCombos();
+		//actualizo estado cbTipoActividad
+		onChangeTipoActividad();
+		focaliza('frmModificarActividad.cbTipoActividad');
+		//muestra el texto de la activiad a modificar
+		txt_to('lblActividad1', get('frmModificarActividad.hTextoActividad'));
+		// deshabilitamos el manejo de requeridos por druida
+		setMV('frmModificarActividad.cbTipoActividad','N');
+		setMV('frmModificarActividad.txtDiasDeDesplazamiento','N');
+		//deshabilito limpiar generico
+		varNoLimpiarSICC = 'S';
+		//asignamos los valores iniciales
+		asignarValoresIniciales();
+		if (!validaReferenciaOtraCampana()){
+			accion('frmModificarActividad.txtCampDesp', '.disabled=true');
+		} else {
+			accion('frmModificarActividad.txtCampDesp', '.disabled=false');
+		}
+	        inicializarEstadoCampos();
+	}
+
+    /**
+     * Habilita o deshabilita algunos campos de acuerdo al estado que se le haya
+     * asignado desde la LP.
+     *
+	 * Sistema:     Belcorp
+	 * Modulo:      CRA
+	 * Fecha:       04/08/2005
+	 * @version     
+	 * @autor       mmaidana
+	 */
+    function inicializarEstadoCampos(){
+        var estadoChkRepetitivaEnabled = get('frmModificarActividad.hEstadoChkRepetitivaEnabled');
+        var estadoTxtCadaDia = get('frmModificarActividad.hEstadoTxtCadaDia');
+
+        if (estadoChkRepetitivaEnabled == 'S'){
+            accion('frmModificarActividad.chkRepetitiva', '.disabled=false');
+        } else {
+            accion('frmModificarActividad.chkRepetitiva', '.disabled=true');
+        }
+    
+        if (estadoTxtCadaDia == 'S'){
+            accion('frmModificarActividad.txtCadaCuantosDias', '.disabled=false');
+        } else {
+            accion('frmModificarActividad.txtCadaCuantosDias', '.disabled=true');
+        }
+
+	//enozigli 06/12/2007 brecha cra1 - el combo tipoactividad debe estar deshabilitado
+	accion('frmModificarActividad.cbTipoActividad', '.disabled=true');
+    }
+
+	/*
+	* 	
+	* Al pulsar sobre "Guardar" del menú.
+	* Validaciones generales y valida que la actividad facturacion sea no repetitiva.
+	* Llama a LPMantieneMatrizDias con accion = "guardaModificacion"
+	* function accionGuardar()
+	*/
+	function fGuardar() {
+		// validamos campos requeridos
+		if ( validaConActividadOrigen() ) {
+			// validamos con la seleccion de actividad origen
+			if( ! sicc_validaciones_generales('grupoConOrigen') ) {
+				return false;
+			}
+		//enozigli 06/12/2007 cra1
+		} else if ( validaReferenciaOtraCampana() ) {
+			// validamos con actividad referencia otra campaña
+			if( ! sicc_validaciones_generales('grupoRefOtrCamp') ) {
+				return false;
+			}		
+		//fin  enozigli 06/12/2007 cra1
+		} else {
+			// validamos sin la seleccion de actividad origen
+			if( ! sicc_validaciones_generales('grupoSinOrigen') ) {
+				return false;
+			}		
+		}
+
+		//Lo siguiente, debido a la incidencia 10015, no va mas.
+		// Valida que la actividad facturacion sea no repetitiva. Incidencia 6659.
+		//if ( (get('frmModificarActividad.hVarClaseActividad') == //get('frmModificarActividad.hVarCteActividadFacturacion'))
+		//	&& (get('frmModificarActividad.chkRepetitiva') == 'S') ) {
+		//	//Se genera un mensaje de error CRA001 
+		//	GestionarMensaje(514);
+		//	return false;
+		//}
+
+		//ejecutamos la accion guardaModificacion		
+		set('frmModificarActividad.hTextoActOrigen', get('frmModificarActividad.cbActividadDeOrigen','T'));
+		set('frmModificarActividad.accion', 'guardaModificacion');
+		enviaSICC('frmModificarActividad');
+	}
+
+
+    /*
+    * Ejecuta el cierre de la ventana modal luedo de guardar la modificacion.
+    */
+    function vueltaGuardaModificacion() {
+		//cerramos esta ventana modal
+		window.close();
+    }
+
+
+	/*
+	* Actualiza la relacion y valores de los combos cbTipoActividad y cbActividadDeOrigen.
+	* Equivalencias: sinActividadOrigen es lo mismo que Fija y referenciada es lo mismo que conActividadOrigen.
+	*/
+	function actualizaRelacionCombos() {
+		var sinActividadOrigen = GestionarMensaje(513);
+		var referenciada = GestionarMensaje(512);
+		var otracampana = GestionarMensaje(3380);
+		
+		var actividadOrigen = new Array();
+		actividadOrigen[0] = get('frmModificarActividad.hOrigen');
+		//enozigli 06/12/2007 brecha cra1
+		var tipoActividad = new Array();
+		tipoActividad[0] = get('frmModificarActividad.hCmbTipoActividad');
+		
+		if ( (tipoActividad[0] != null) && (tipoActividad[0] == 'con Origen') ) {
+			//seteo el cbTipoActividad con sus dos valores y selecciono el segundo
+			set_combo('frmModificarActividad.cbTipoActividad',[['0',sinActividadOrigen],['1',referenciada],['2',otracampana]] ,['1']);
+			//selecciona la actividad origen
+			set('frmModificarActividad.cbActividadDeOrigen',actividadOrigen);
+		} else if ( (tipoActividad[0] != null) && (tipoActividad[0] == 'Fija') ) {
+			//seteo el cbTipoActividad con sus dos valores y selecciono el primero
+			set_combo('frmModificarActividad.cbTipoActividad',[['0',sinActividadOrigen],['1',referenciada],['2',otracampana]],['0']);
+		} else if ( (tipoActividad[0] != null) && (tipoActividad[0] == 'Ref. Otra Camp.') ) {
+			//seteo el cbTipoActividad con sus dos valores y selecciono el segundo
+			set_combo('frmModificarActividad.cbTipoActividad',[['0',sinActividadOrigen],['1',referenciada],['2',otracampana]] ,['2']);
+			//selecciona la actividad origen
+			set('frmModificarActividad.cbActividadDeOrigen',actividadOrigen);
+		}
+		//fin enozigli 06/12/2007 brecha cra1
+	}
+
+
+	/*
+	* Este método se activa al seleccionar un valor en cbTipoActividad 
+	*/
+	function onChangeTipoActividad() {
+		// - Si el ítem seleccionado en cbTipoActividad es el primero ("Fija")
+		if (get('frmModificarActividad.cbTipoActividad') == '0') {
+			// se pone en blanco la actividad origen
+			set('frmModificarActividad.cbActividadDeOrigen','0');
+			// se desactiva cbActividadDeOrigen 
+			accion( 'frmModificarActividad.cbActividadDeOrigen', '.disabled=true');
+		}
+	
+		// - Si el ítem seleccionado en cbTipoActividad es el segundo ("con Actividad Origen") o Referencia otra campaña
+		if (get('frmModificarActividad.cbTipoActividad') == '1'||get('frmModificarActividad.cbTipoActividad') == '2') {
+			// se activa cbActividadDeOrigen 
+			accion( 'frmModificarActividad.cbActividadDeOrigen', '.disabled=false');
+		}
+	}
+
+
+	function fVolver() {
+		window.close();
+	}
+
+
+	// Limpia combos y pone valor por defecto en cbTipoActividad y rbMoverActividadesOrigen
+	function fLimpiar() { 
+		// seteamos los valores iniciales 
+		actualizaRelacionCombos();
+		onChangeTipoActividad();
+		set('frmModificarActividad.txtDiasDeDesplazamiento', get('frmModificarActividad.hDiasDesplazamiento')); 
+		set('frmModificarActividad.chkRepetitiva', get('frmModificarActividad.hRepetitiva')); 
+		set('frmModificarActividad.txtCadaCuantosDias', get('frmModificarActividad.hCadaDias')); 
+		set('frmModificarActividad.txtFechaFinal', get('frmModificarActividad.hDiasFinal')); 
+		set('frmModificarActividad.rbMoverActividadesOrigen', get('frmModificarActividad.hMover')); 
+		set('frmModificarActividad.txtCampDesp', get('frmModificarActividad.hCampDesp')); 
+		focaliza('frmModificarActividad.cbTipoActividad');
+	} 
+
+
+	/*
+	* Retorna true si es correcta hay que validar el combo de la actividad origen.
+	*/
+	function validaReferenciaOtraCampana() {
+		// - Si el ítem seleccionado en cbTipoActividad es el tercero referencia otra campaña
+		if (get('frmModificarActividad.cbTipoActividad') == '2') {
+			// - Tiene que seleccionar referencia otra campaña
+			return true;
+		}
+		return false;
+	}
+
+	/*
+	* Retorna true si es correcta referencia otra campaña
+	* enozigli 06/12/2007 cra1
+	*/
+	function validaConActividadOrigen() {
+		// - Si el ítem seleccionado en cbTipoActividad es el segundo ("Referenciada")
+		if (get('frmModificarActividad.cbTipoActividad') == '1') {
+			// - Tiene que seleccionar actividad origen
+			return true;
+		}
+		return false;
+	}
+
+
+	// focaliza rbMoverActividadesOrigen por tab
+	function focalizaTab() {
+		document.selection.empty();
+		focaliza('frmModificarActividad.cbTipoActividad');
+	}
+
+
+	// focaliza rbMoverActividadesOrigen por shiftTab 
+	function focalizaShiftTab() {
+		document.selection.empty();
+		focaliza('frmModificarActividad.rbMoverActividadesOrigen');
+	}
+
+
+	// muestra mensaje de validacion numerico con i18n
+	function mostrarMensajeNumerico(campo) {
+		var msg = sicc_obtenerDescripcion(campo);                
+		focaliza("frmModificarActividad."+campo);
+		cdos_mostrarAlert(GestionarMensaje("000000000000100" ,  "\""+msg+"\""));                
+	}
+
+
+	// validacion numerica sobre un nombre de campo		  
+	function saleDe(nombre) {
+		var validar = esNumeroVip(get('frmModificarActividad.'+nombre));
+		if( validar != 'OK'){
+			mostrarMensajeNumerico(nombre);
+			return false;
+		}            
+	}
+
+
+	// valida si es numero, considerando a los negativos
+	function esNumeroVip(orden){
+		var str=orden;
+		var s;
+		for(var i=0;i<str.length;i++){
+			s=str.charAt(i);
+			if (isNaN(parseInt(s))) {
+				if (!((i==0) && (s=='-'))) {
+					return '-1';
+				}
+			}
+		}
+		return 'OK';
+	}
+
+
+	//Asigna valores iniciales para usarlos al limpiar
+	function asignarValoresIniciales() {
+		set('frmModificarActividad.hOrigen', get('frmModificarActividad.cbActividadDeOrigen'));
+		set('frmModificarActividad.hTipoActividad', get('frmModificarActividad.cbTipoActividad'));
+		set('frmModificarActividad.hDiasDesplazamiento', get('frmModificarActividad.txtDiasDeDesplazamiento'));
+		set('frmModificarActividad.hRepetitiva', get('frmModificarActividad.chkRepetitiva'));
+		set('frmModificarActividad.hCadaDias', get('frmModificarActividad.txtCadaCuantosDias'));
+		set('frmModificarActividad.hDiasFinal', get('frmModificarActividad.txtFechaFinal'));
+		set('frmModificarActividad.hMover', get('frmModificarActividad.rbMoverActividadesOrigen'));
+		set('frmModificarActividad.hCampDesp', get('frmModificarActividad.txtCampDesp'));		
+	}
+
+
+
+  ]]> 
+</JAVASCRIPT>
+
+
+<VALIDACION>
+	<!-- Primer Grupo -->
+	<ELEMENTO name="cbTipoActividad" required="true" cod="152" group="grupoSinOrigen"/>
+	<ELEMENTO name="txtDiasDeDesplazamiento" required="true" cod="250" group="grupoSinOrigen"/>
+	<!-- Segundo Grupo -->
+	<ELEMENTO name="cbTipoActividad" required="true" cod="152" group="grupoConOrigen"/>
+	<ELEMENTO name="cbActividadDeOrigen" required="true" cod="155" group="grupoConOrigen"/>
+	<ELEMENTO name="txtDiasDeDesplazamiento" required="true" cod="250" group="grupoConOrigen"/>
+	<!-- Segundo Grupo -->
+	<ELEMENTO name="cbTipoActividad" required="true" cod="152" group="grupoRefOtrCamp"/>
+	<ELEMENTO name="cbActividadDeOrigen" required="true" cod="155" group="grupoRefOtrCamp"/>
+	<ELEMENTO name="txtDiasDeDesplazamiento" required="true" cod="250" group="grupoRefOtrCamp"/>
+	<ELEMENTO name="txtCampDesp" required="true" cod="3206" group="grupoRefOtrCamp"/>
+        <ELEMENTO name="txtCampDesp" required="false" cod="3206" format="t" chars="1-9\\-" min="0" max="3" group="grupoRefOtrCamp"/>
+	<!-- Solo Valida numerico -->
+	<ELEMENTO name="txtCadaCuantosDias" required="false" cod="1047"/>
+	<ELEMENTO name="txtFechaFinal" required="false" cod="193"/>
+</VALIDACION>
+
+
+<FORMULARIO nombre="frmModificarActividad" oculto="S">
+
+	<VAR nombre="varModo" valor=""/>
+	<VAR nombre="varTipo" valor=""/>
+	<VAR nombre="accion" valor=""/>
+	<VAR nombre="conectorAction" valor="LPMantieneMatrizDias"/>
+	<VAR nombre="errCodigo" valor=""/>
+	<VAR nombre="errDescripcion" valor=""/>
+	<VAR nombre="hIdioma" valor=""/>
+	<VAR nombre="hPais" valor=""/>
+	<VAR nombre="hPaisDescripcion" valor=""/> 
+	<VAR nombre="hMarca" valor=""/>
+	<VAR nombre="hCanal" valor=""/>
+	<VAR nombre="hVarActividad" valor=""/>
+	<VAR nombre="hVarGrupo" valor=""/>
+	<VAR nombre="hIdVistaActividad" valor=""/>
+	<VAR nombre="hTextoActividad" valor=""/>	
+	<VAR nombre="hOrigen" valor=""/>
+	<VAR nombre="hTipoActividad" valor=""/>
+	<VAR nombre="hDiasDesplazamiento" valor=""/>
+	<VAR nombre="hRepetitiva" valor=""/>
+	<VAR nombre="hCadaDias" valor=""/>
+	<VAR nombre="hDiasFinal" valor=""/>
+	<VAR nombre="hMover" valor=""/>
+	<VAR nombre="hVarClaseActividad" valor=""/>
+	<VAR nombre="hVarCteActividadFacturacion" valor=""/>
+	<VAR nombre="hCmbTipoActividad" valor=""/>	
+	<VAR nombre="hCampDesp" valor=""/>	
+	<VAR nombre="hTextoActOrigen" valor=""/>
+
+    <!--estados de campos-->
+	<VAR nombre="hEstadoChkRepetitivaEnabled" valor="S"/>
+	<VAR nombre="hEstadoTxtCadaDia" valor="S"/>
+
+
+<CAPA nombre="capaBusqueda" x="0" y="0">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primero formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblActividad1" alto="13" filas="1" valor="" id="legend" cod="173"/></legend>
+          <!---primera fila-->
+	          <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+	            <tr> 
+	              <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+	            </tr>
+	            <tr>
+	              <td><IMG src="b.gif" width="8" height="8"/></td>
+	              <td><LABELC nombre="lblGruposDeZonas" alto="13" filas="1" valor="" id="datosTitle" cod="180"/></td>
+	              <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	            </tr> 
+	            <tr>
+	              <td><IMG src="b.gif" width="8" height="8"/></td>
+	              <td><LABELC nombre="lblValorGrupoDeZonas" alto="13" filas="1" valor="" id="datosCampos"/></td>
+	              <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	            </tr> 
+	          </table>
+                  <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+	            <tr> 
+	              <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+	            </tr>
+	            <tr>
+	              <td><IMG src="b.gif" width="8" height="8"/></td>
+	              <td><LABELC nombre="lblTipoActividad" alto="13" filas="1" valor="" id="datosTitle" cod="152"/></td>
+	              <td><IMG src="b.gif" width="25" height="8"/></td>
+	              <td><LABELC nombre="lblActividadDeOrigen" alto="13" filas="1" valor="" id="datosTitle" cod="155"/></td>
+	              <td><IMG src="b.gif" width="25" height="8"/></td>
+	              <td><LABELC nombre="lblDiasDeDesplazamiento" alto="13" filas="1" valor="" id="datosTitle" cod="250"/></td>
+	              <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	              <td><LABELC nombre="lbl_campDesp" alto="13" filas="1" valor="" id="datosTitle" cod="3206"/></td>
+	              <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	            </tr> 
+	            <tr>
+	              <td><IMG src="b.gif" width="8" height="8"/></td>
+	              <td nowrap="nowrap">
+			<COMBO nombre="cbTipoActividad" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onchange="onChangeTipoActividad();" onshtab="focalizaShiftTab();">
+			  <ROWSET>
+			    <ROW ID="1">
+			      <CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="2"/>
+			      <CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="Fija"/>
+			    </ROW>
+			  </ROWSET>
+			</COMBO>
+		      </td>
+	              <td><IMG src="b.gif" width="25" height="8"/></td>
+	              <td nowrap="nowrap">
+			<COMBO nombre="cbActividadDeOrigen" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+			  <ROWSET>
+			  </ROWSET>
+			</COMBO>
+		      </td>
+		      <td><IMG src="b.gif" width="25" height="8"/></td>
+	              <td valign="top" nowrap="nowrap">
+				<CTEXTO nombre="txtDiasDeDesplazamiento" id="datosCampos" max="3" tipo="" onchange="" req="S" size="3" valor="" validacion="" onblur="saleDe('txtDiasDeDesplazamiento');"/>
+		      </td>
+		      <td><IMG src="b.gif" width="25" height="8"/></td>
+	              <td valign="top" nowrap="nowrap">
+			        <CTEXTO nombre="txtCampDesp" id="datosCampos" max="2" tipo="" onchange="" req="N" size="2" valor="" validacion=""  onblur="saleDe('txtCampDesp');" />
+		      </td>
+	             <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	            </tr> 
+	          </table>
+	          <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+	            <tr> 
+	              <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+	            </tr>
+	            <tr>
+	              <td><IMG src="b.gif" width="8" height="8"/></td>
+	              <td><LABELC nombre="lblRepetitiva" alto="13" filas="1" valor="" id="datosTitle" cod="330"/></td>
+	              <td><IMG src="b.gif" width="25" height="8"/></td>
+	              <td colspan="3"><LABELC nombre="lblCadaCuantosDias" alto="13" filas="1" valor="" id="datosTitle" cod="1047"/></td>
+	              <td><IMG src="b.gif" width="25" height="8"/></td>
+	              <td><LABELC nombre="lblFechaFinal" alto="13" filas="1" valor="" id="datosTitle" cod="193"/></td>
+	              <td><IMG src="b.gif" width="25" height="8"/></td>
+	              <td><LABELC nombre="lblMoverActividadesOrigen" alto="13" filas="1" valor="" id="datosTitle" cod="1046"/></td>
+	              <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	            </tr> 
+	            <tr>
+	              <td><IMG src="b.gif" width="8" height="8"/></td>
+	              <td>
+                        <CHECKBOX id="datosCampos" req="N" check="N" texto="" nombre="chkRepetitiva"/>
+                      </td>
+                      <td><IMG src="b.gif" width="25" height="8"/></td>
+	              <td>
+					<CTEXTO nombre="txtCadaCuantosDias" id="datosCampos" max="3" tipo="" onchange="" req="N" size="3" valor="" validacion="" onblur="saleDe('txtCadaCuantosDias');"/>
+				  </td>
+		      <td><IMG src="b.gif" width="8" height="8"/></td>
+	              <td><LABELC nombre="lblDias" alto="13" filas="1" valor="" id="datosCampos" cod="163"/></td>
+	              <td><IMG src="b.gif" width="25" height="8"/></td>
+	              <td>
+					<CTEXTO nombre="txtFechaFinal" id="datosCampos" max="3" tipo="" onchange="" req="N" size="3" valor="" validacion="" onblur="saleDe('txtFechaFinal');"/>
+				  </td>
+		      <td><IMG src="b.gif" width="25" height="8"/></td>
+		      <td class="datosCampos">
+                        <RADIOB nombre="rbMoverActividadesOrigen" tipo="H" req="N" ontab="focalizaTab();">
+                          <RBINPUT valor="S" check="S" class="datosCampos" onfocus="" cod="117">Sí</RBINPUT>
+                          <RBINPUT valor="N" class="datosCampos" onfocus="" cod="87">No</RBINPUT>
+                        </RADIOB>
+                      </td>
+                      <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	            </tr> 
+	            <tr>
+	              <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+	            </tr>
+	          </table>
+           <!---fin segunda fila-->
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr>
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+</FORMULARIO>
+</PAGINA>

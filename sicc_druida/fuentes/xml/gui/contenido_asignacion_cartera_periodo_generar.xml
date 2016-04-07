@@ -1,0 +1,490 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_asignacion_cartera_periodo_generar.xml,v 1.1 2009/12/03 18:45:25 pecbazalar Exp $
+   BEL
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="asignacion_cartera_periodo_generar" cod="0263" titulo="Generar asignación de cartera por período" estilos="estilosB3.css" colorf="#F0F0F0"
+        msgle="Generar asignación de cartera por período" onload="onLoadPag();" xml:lang="es" >
+
+  <JS src="sicc_util.js"/>
+  <JS src="PaginacionSicc.js"/>  
+  <JS src="DruidaTransactionMare.js"/>
+
+<JAVASCRIPT>
+  <![CDATA[ 
+
+    var listadoVisible = false;
+
+  function onLoadPag()   {
+      fMostrarMensajeError();
+      configurarMenuSecundario("frmUnico");
+  
+	    DrdEnsanchaConMargenDcho('listado1',12);
+
+      if (get('frmUnico.hoidMarca')==""){	
+          ocultarLista();
+      }
+      
+	    eval (ON_RSZ);  
+      
+      posicionarCombos();
+      
+      focaliza('frmUnico.cbMarca');
+   }
+
+  function posicionarCombos(){
+      array = new Array();                
+      if (get('frmUnico.hoidMarca')!=""){
+        array[0] = get('frmUnico.hoidMarca');
+        set('frmUnico.cbMarca',array);
+      }     
+      if (get('frmUnico.hoidCanal')!=""){
+        array[0] = get('frmUnico.hoidCanal');
+        set('frmUnico.cbCanal',array);
+      }
+      canalOnChange();
+      if (get('frmUnico.hoidPeriodo')!=""){
+        array[0] = get('frmUnico.hoidPeriodo');
+        set('frmUnico.cbPeriodo',array);
+      }
+  }
+
+  function fLimpiar(){   
+    set('frmUnico.cbCanal','');
+    set('frmUnico.cbMarca','');
+    set('frmUnico.hoidCanal','');
+    set('frmUnico.hoidMarca','');
+    set('frmUnico.hoidPeriodo','');
+    accion('frmUnico.cbPeriodo','.disabled=true');    
+    set_combo('frmUnico.cbPeriodo',['','']);
+  }
+  function ocultarLista() {
+      document.all["Cplistado1"].style.visibility='hidden';
+      document.all["CpLin1listado1"].style.visibility='hidden';
+      document.all["CpLin2listado1"].style.visibility='hidden';
+      document.all["CpLin3listado1"].style.visibility='hidden';
+      document.all["CpLin4listado1"].style.visibility='hidden';
+      //document.all["primera1Div"].style.visibility='hidden';
+      //document.all["ret1Div"].style.visibility='hidden';
+      //document.all["ava1Div"].style.visibility='hidden';
+      //document.all["separaDiv"].style.visibility='hidden';
+      document.all["btnAsignarDiv"].style.visibility='hidden';
+  }
+  function mostrarLista() {
+      document.all["Cplistado1"].style.visibility='';
+      document.all["CpLin1listado1"].style.visibility='';
+      document.all["CpLin2listado1"].style.visibility='';
+      document.all["CpLin3listado1"].style.visibility='';
+      document.all["CpLin4listado1"].style.visibility='';
+      //document.all["primera1Div"].style.visibility='';
+      //document.all["ret1Div"].style.visibility='';
+      //document.all["ava1Div"].style.visibility='';
+      //document.all["separaDiv"].style.visibility='';
+      document.all["btnAsignarDiv"].style.visibility='';
+  }   
+  function arrayComponentes(){
+    var arr = new Array();
+    arr[arr.length]= new Array("cbMarca","");
+    arr[arr.length]= new Array("cbCanal","");
+    arr[arr.length]= new Array("cbPeriodo","");    
+  
+    arr[arr.length]= new Array("btnBuscar","BOTON");  
+    arr[arr.length]= new Array("btnAsignar","BOTONXY");  
+    
+    return arr;
+  }
+
+  
+  function onClickBuscar(){
+    if(!sicc_validaciones_generales("gr")){
+       return false;
+    }  
+    ocultarLista();
+    
+    set('frmUnico.accion','buscar');         
+    set('frmUnico.conectorAction','LPGenerarAsignacionCarteraPeriodo');
+    
+    //eval("frmUnico").oculto="S";
+    enviaSICC('frmUnico', '', '', 'N');       
+  }
+  
+  function onClickAsignar() {
+    if(!sicc_validaciones_generales("gr")){
+       return false;
+    }    
+    var cantElementosL1 = listado1.codSeleccionados();		
+    if ( cantElementosL1.length == 0){
+      GestionarMensaje("4", null, null, null);
+      return;
+    }
+	document.all.tags("INPUT")["btnBuscar"].disabled=true;
+	document.all.tags("INPUT")["btnAsignar"].disabled=true;
+    set('frmUnico.listString',extraeDatosSeleccionados());         
+    set('frmUnico.accion','asignar');         
+    set('frmUnico.conectorAction','LPGenerarAsignacionCarteraPeriodo');
+    
+    eval("frmUnico").oculto="S";
+    enviaSICC('frmUnico', '', '', 'N');       
+  }  
+  
+  function quitaOculto(){
+    eval("frmUnico").oculto="N";
+
+	 // Agregado por ssantana, 19/9/2005, a pedido de Hugo Mansi (Peru)
+	 // Se llama al paginado de nuevo, para recargar la lista Editable. 
+	 onClickBuscar();
+	 // Fin Agregado por ssantana, 19/9/2005
+
+  }  
+
+  function extraeDatosSeleccionados(){
+      var toAdd = "";	
+      var total = "";
+      codigo = listado1.codSeleccionados();
+      for(var a = 0; a < codigo.length ; a++){ 
+        toAdd = listado1.extraeDato(codigo[a], 0);
+        toAdd = toAdd + "|" + listado1.extraeDato(codigo[a], 1);
+        toAdd = toAdd + "|" + dejaEsp(listado1.extraeDato(codigo[a], 2));
+        toAdd = toAdd + "|" + dejaEsp(listado1.extraeDato(codigo[a], 3));
+        toAdd = toAdd + "|" + dejaEsp(listado1.extraeDato(codigo[a], 4));
+        toAdd = toAdd + "|" + dejaEsp(listado1.extraeDato(codigo[a], 5));
+        toAdd = toAdd + "|" + dejaEsp(listado1.extraeDato(codigo[a], 6));
+        toAdd = toAdd + "|" + dejaEsp(listado1.extraeDato(codigo[a], 7));
+        toAdd = toAdd + "|" + dejaEsp(listado1.extraeDato(codigo[a], 8));
+        toAdd = toAdd + "|" + dejaEsp(listado1.extraeDato(codigo[a], 9));
+        toAdd = toAdd + "|" + dejaEsp(listado1.extraeDato(codigo[a], 10));
+        toAdd = toAdd + "|" + dejaEsp(listado1.extraeDato(codigo[a], 11));
+        toAdd = toAdd + "|" + dejaEsp(listado1.extraeDato(codigo[a], 12));
+        toAdd = toAdd + "|" + dejaEsp(listado1.extraeDato(codigo[a], 13));
+        toAdd = toAdd + "|" + dejaEsp(listado1.extraeDato(codigo[a], 14));
+        toAdd = toAdd + "|" + dejaEsp(listado1.extraeDato(codigo[a], 15));
+        toAdd = toAdd + "|" + dejaEsp(listado1.extraeDato(codigo[a], 16));
+        toAdd = toAdd + "|" + dejaEsp(listado1.extraeDato(codigo[a], 17));
+        toAdd = toAdd + "|" + dejaEsp(listado1.extraeDato(codigo[a], 18));
+        toAdd = toAdd + "|" + dejaEsp(listado1.extraeDato(codigo[a], 19));
+        toAdd = toAdd + "|" + dejaEsp(listado1.extraeDato(codigo[a], 20));
+        toAdd = toAdd + "|" + dejaEsp(listado1.extraeDato(codigo[a], 21));
+        toAdd = toAdd + "|" + dejaEsp(listado1.extraeDato(codigo[a], 22));
+        toAdd = toAdd + "|" + dejaEsp(listado1.extraeDato(codigo[a], 23));        
+        toAdd = toAdd + "|" + dejaEsp(listado1.extraeDato(codigo[a], 24));     
+        total = total + "$" + toAdd;
+      }
+      return total;
+  }
+  
+  function dejaEsp(a){
+    if (a.length == 0){
+        return ' ';
+    }else{
+        return a;
+    }
+  }   
+    function recargarCombos(){
+        accion('frmUnico.cbPeriodo','.disabled=false');
+        var arr = new Array();
+        arr[arr.length]=new Array("canal", get("frmUnico.cbCanal"));
+        arr[arr.length]=new Array("marca", get("frmUnico.cbMarca"));
+        arr[arr.length]=new Array("oidIdioma", get('frmUnico.hoidIdioma'));
+        arr[arr.length]=new Array("pais", get('frmUnico.hoidPais'));
+        arr[arr.length]=new Array("oidPais", get('frmUnico.hoidPais'));
+        recargaCombo('frmUnico.cbPeriodo', 'CRAObtienePeriodos', 'es.indra.sicc.dtos.cra.DTOPeriodo',arr,'cargarPeriodos(datos)');
+  }
+
+
+  function cargarPeriodos(datos){
+    if (datos!=''){   
+      var arrRes = new Array();   
+      arrRes[arrRes.length] = new Array();   
+      for(var i=0; i<datos.length;i++){   
+           arrRes[arrRes.length] = datos[i];   
+      }         
+      set_combo('frmUnico.cbPeriodo',arrRes, []);   
+         
+      if (get('frmUnico.hoidPeriodo')!=''){   
+         iSeleccionadob = new Array();             
+         iSeleccionadob[0] = get('frmUnico.hoidPeriodo');         
+         set('frmUnico.cbPeriodo',iSeleccionadob);               
+      }   
+    }  
+  }
+  
+  function marcaOnChange(){
+    if ((get("frmUnico.cbMarca")=='')&&
+        (get("frmUnico.cbCanal")=='')){
+        accion('frmUnico.cbPeriodo','.disabled=true');    
+        set_combo('frmUnico.cbPeriodo',['','']);        
+    } else {
+        recargarCombos();
+    }
+  }
+  
+  function canalOnChange(){
+    if ((get("frmUnico.cbMarca")=='')&&
+        (get("frmUnico.cbCanal")=='')){
+        accion('frmUnico.cbPeriodo','.disabled=true');    
+        set_combo('frmUnico.cbPeriodo',['','']);        
+    } else {  
+        recargarCombos();
+    }
+  }
+
+  
+    function ontab_Asignar(){
+        focaliza('frmUnico.cbMarca','');
+    }
+    
+    function onshtab_Asignar(){
+        focalizaBotonHTML('botonContenido', 'btnBuscar');
+    }
+   
+
+    function ontab_Buscar(){
+          if (listadoVisible == false){
+               focaliza('frmUnico.cbMarca','');
+          } else {
+               focalizaBotonHTML('botonContenido', 'btnAsignar');
+          }    
+    }
+    
+    function onshtab_Marca(){
+          if (listadoVisible == false){
+               focalizaBotonHTML('botonContenido', 'btnBuscar');
+          } else {
+               focalizaBotonHTML('botonContenido', 'btnAsignar');
+          }
+    }
+
+
+  ]]> 
+</JAVASCRIPT>
+    <VALIDACION>
+      <ELEMENTO name="cbCanal" required="true" cod="7" group="gr" />
+      <ELEMENTO name="cbPeriodo" required="true" cod="276" group="gr"/>
+      <ELEMENTO name="cbMarca" required="true" cod="6" group="gr"/>
+	</VALIDACION>     
+<FORMULARIO nombre="frmUnico">
+    <VAR nombre="accion" valor=""/>
+    <VAR nombre="casoDeUso" valor=""/>
+    <VAR nombre="errCodigo" valor=""/>
+    <VAR nombre="errDescripcion" valor=""/>
+    <VAR nombre="conectorAction" valor="LPGenerarAsignacionCarteraPeriodo"/>
+    <VAR nombre="hoidPais" valor=""/>
+    <VAR nombre="hoidIdioma" valor=""/>        
+    <VAR nombre="listString" valor=""/>  
+    <VAR nombre="hoidMarca" valor=""/>
+    <VAR nombre="hoidCanal" valor=""/>
+    <VAR nombre="hoidPeriodo" valor=""/>
+
+    <CAPA nombre="capaUnica" x="0" y="0" ancho="100%" alto="100%">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+      <tr>
+        <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+        <td width="750"><IMG src="b.gif"/></td>
+        <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+      </tr>
+      <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset><legend class="legend"><LABELC nombre="lblCriteriosBusqueda" alto="13" filas="1" valor="" cod="0075" id="legend" /></legend>
+            <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+             <tr><td>
+
+              <table width="500" border="0" align="left" cellspacing="0" cellpadding="0">
+              <tr> 
+                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr>
+              <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td><LABELC nombre="lblMarca" alto="13" filas="1" valor="" id="datosTitle" cod="6"/></td>
+                <td><IMG src="b.gif" width="25" height="8"/></td>
+                <td><LABELC nombre="lblCanal" alto="13" filas="1" valor="" id="datosTitle" cod="7"/></td>
+                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr> 
+              <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td nowrap="nowrap">
+                  <COMBO nombre="cbMarca" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial=""  onchange="marcaOnChange();" onshtab="onshtab_Marca();">
+                    <ROWSET>
+			<ROW>
+			   <CAMPO NOMBRE="cabecera" TIPO="STRING" VALOR="0"/>
+			   <CAMPO NOMBRE="contenido" TIPO="STRING" VALOR=""/>
+		        </ROW>                    
+                    </ROWSET>
+                  </COMBO> 
+                </td>                 
+                <td><IMG src="b.gif" width="25" height="8"/></td>
+                <td nowrap="nowrap">
+                  <COMBO nombre="cbCanal" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial=""   onchange="canalOnChange();">
+                    <ROWSET>
+			<ROW>
+			   <CAMPO NOMBRE="cabecera" TIPO="STRING" VALOR="0"/>
+			   <CAMPO NOMBRE="contenido" TIPO="STRING" VALOR=""/>
+		        </ROW>                    
+                    </ROWSET>
+                  </COMBO> 
+                </td>   
+                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td> 
+              </tr>
+              <tr> 
+                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr>              
+            </table>
+            </td></tr>
+           <tr><td>
+            <table width="500" border="0" align="left" cellspacing="0" cellpadding="0">
+              <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td><LABELC nombre="lblPeriodo" alto="13" filas="1" valor="" id="datosTitle" cod="276"/></td>
+                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr> 
+              <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td nowrap="nowrap">
+                  <COMBO nombre="cbPeriodo" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="">
+                    <ROWSET>                
+                    </ROWSET>
+                  </COMBO> 
+                </td>   
+                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td> 
+              </tr>
+              <tr> 
+                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr>              
+            </table> 
+             </td></tr>
+           </table>           
+          </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr> 
+      <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnBuscar" ID="botonContenido" tipo="html" accion="onClickBuscar()" estado="false" cod="1" ontab="ontab_Buscar();"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>    
+      <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750"><IMG src="b.gif"/></td>
+      	<td width="12"><IMG src="b.gif" width="12" height="12"/></td>
+      </tr>
+    </table> 
+    </CAPA>
+    
+   <LISTAEDITABLE nombre="listado1" ancho="504" alto="317" x="12" y="168" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+	<BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+	<BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+	<BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+      <LINEAS>
+	<GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="1" horizTitulo="1" horizBase="1"/> 
+	<COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00135" ID="datosTitle" />
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+        <COL ancho="120" minimizable="S" minimizada="N"/>
+        <COL ancho="150" minimizable="S" minimizada="N" /> 
+        <COL ancho="120" minimizable="S" minimizada="N"/>
+        <COL ancho="120" minimizable="S" minimizada="N" /> 
+        <COL ancho="120" minimizable="S" minimizada="N"/>
+         <COL ancho="120" minimizable="S" minimizada="N"/>
+        <COL ancho="120" minimizable="S" minimizada="N" /> 
+        <COL ancho="120" minimizable="S" minimizada="N"/>
+        <COL ancho="120" minimizable="S" minimizada="N" /> 
+        <COL ancho="120" minimizable="S" minimizada="N"/>
+        <COL ancho="120" minimizable="S" minimizada="N"/>
+        <COL ancho="120" minimizable="S" minimizada="N" /> 
+        <COL ancho="120" minimizable="S" minimizada="N"/>
+        <COL ancho="0" minimizable="S" minimizada="S" oculta="S"/> 
+        <COL ancho="0" minimizable="S" minimizada="S" oculta="S"/>
+        <COL ancho="0" minimizable="S" minimizada="S" oculta="S" /> 
+        <COL ancho="0" minimizable="S" minimizada="S" oculta="S"/>
+         <COL ancho="0" minimizable="S" minimizada="S" oculta="S"/>
+        <COL ancho="0" minimizable="S" minimizada="S"  oculta="S"/> 
+        <COL ancho="0" minimizable="S" minimizada="S" oculta ="S"/>
+        <COL ancho="0" minimizable="S" minimizada="S"  oculta="S"/> 
+        <COL ancho="0" minimizable="S" minimizada="S" oculta="S"/>
+        <COL ancho="0" minimizable="S" minimizada="S" oculta="S"/>
+        <COL ancho="0" minimizable="S" minimizada="S" oculta="S"/> 
+        <COL ancho="0" minimizable="S" minimizada="S" oculta="S"/>        
+      </COLUMNAS>
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+	<COL colFondo="" ID="EstCab" cod="2512">Id. cartera</COL> 
+	<COL colFondo="" ID="EstCab" cod="1219">Usuario cobranza</COL> 
+	<COL colFondo="" ID="EstCab" cod="865">Etapa</COL> 
+	<COL colFondo="" ID="EstCab" cod="999">Tipo cargo</COL> 
+	<COL colFondo="" ID="EstCab" cod="6">Marca</COL> 
+	<COL colFondo="" ID="EstCab" cod="7">Canal</COL> 
+	<COL colFondo="" ID="EstCab" cod="276">Período</COL> 
+	<COL colFondo="" ID="EstCab" cod="124">Subgerencia vemtas</COL> 
+	<COL colFondo="" ID="EstCab" cod="109">Región</COL> 
+	<COL colFondo="" ID="EstCab" cod="143">Zona</COL> 
+        <COL colFondo="" ID="EstCab" cod="112">Sección</COL> 
+        <COL colFondo="" ID="EstCab" cod="126">Territorio</COL> 
+        <COL colFondo="" ID="EstCab" cod="645">Fecha cierre</COL> 
+	
+      </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+             coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+             onLoad="" colorSelecc="#D0D9E8">
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/>        
+      </DATOS>
+      <ROWSET>
+      </ROWSET>
+      <PAGINADO nombre="mipgndo" ancho="504" sep="$" x="12" class="botonera" y="462" control="|" conector="conector_prototipo_2" rowset="" cargainicial="N">
+    <!--	<BOTON nombre="ret1" x="37" y="466" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+    	<BOTON nombre="ava1" x="52" y="466" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>-->
+      </PAGINADO>
+   </LISTAEDITABLE>
+
+   <!-- <BOTON nombre="primera1" x="20" y="466" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();"/>  
+    <BOTON nombre="separa" x="59" y="462" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" /> -->
+    <BOTON nombre="btnAsignar" x="13" y="463" ID="botonContenido" tipo="html" estado="false" cod="231" accion="onClickAsignar();" ontab="ontab_Asignar();" onshtab="onshtab_Asignar();"/> 
+ <CAPA nombre="capaEspacio" alto="12" ancho="100%" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="485" zindex="">
+  </CAPA>                
+</FORMULARIO>
+
+</PAGINA>
+

@@ -1,0 +1,387 @@
+// Decompiled by DJ v3.10.10.93 Copyright 2007 Atanas Neshkov  Date: 17/11/2009 04:44:47 p.m.
+// Home Page: http://members.fortunecity.com/neshkov/dj.html  http://www.neshkov.com/dj.html - Check often for new version!
+// Decompiler options: packimports(3) 
+// Source File Name:   LPIdentificarUsuario.java
+
+import es.indra.druida.DruidaConector;
+import es.indra.mare.common.exception.MareException;
+import es.indra.mare.common.mgc.MareXMLMGC;
+import es.indra.mare.common.mgu.exception.MareMguInvalidCredentials;
+import es.indra.mare.common.mgu.manager.Property;
+import es.indra.mare.common.mgu.manager.UserIDImpl;
+import es.indra.mare.common.mii.*;
+import es.indra.mare.common.mii.helper.ServicesHelper;
+import es.indra.mare.common.mii.services.jdbcservice.RecordSet;
+import es.indra.mare.common.mln.MareBusinessID;
+import es.indra.sicc.dtos.men.DTOEntradaConsultarUsuario;
+import es.indra.sicc.dtos.men.DTOSFormato;
+import es.indra.sicc.logicanegocio.men.MONUsuarios;
+import es.indra.sicc.logicanegocio.men.MONUsuariosHome;
+import es.indra.sicc.logicanegocio.seg.ConstantesSEG;
+import es.indra.sicc.util.*;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.util.*;
+import javax.naming.*;
+import javax.rmi.PortableRemoteObject;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+import org.apache.commons.configuration.HierarchicalConfiguration;
+
+public final class LPIdentificarUsuario extends LPSICCBase
+{
+
+    public LPIdentificarUsuario()
+    {
+        accion = "";
+        usuario = "";
+        contrasenia = "";
+        codigoPais = "";
+    }
+
+    public void inicio()
+        throws Exception
+    {
+        pagina("validacion");
+    }
+
+    public void ejecucion()
+        throws Exception
+    {
+        setTrazaFichero();
+        try
+        {
+            accion = conectorParametroLimpia("accion", "", true);
+            usuario = conectorParametroLimpia("usuario", "", true).toUpperCase();
+            contrasenia = conectorParametroLimpia("contrasenia", "", true);
+            codigoPais = conectorParametroLimpia("codigoPais", "", true);
+            if(accion.equals(""))
+            {
+                cargarPantalla();
+                Enumeration enumeration = getRequest().getSession().getAttributeNames();
+                HttpSession httpsession = getRequest().getSession();
+                if(httpsession != null)
+                {
+                    for(; enumeration.hasMoreElements(); httpsession.removeAttribute((String)enumeration.nextElement()));
+                    httpsession.invalidate();
+                }
+            }
+            if(accion.equals("validar"))
+            {
+                traza((new StringBuilder()).append("codigoPais: ").append(codigoPais).toString());
+                traza((new StringBuilder()).append("codigoPais: ").append(codigoPais).toString());
+                recuperarUsuarioPais();
+                traza((new StringBuilder()).append("usuario recuperado: ").append(usuario).toString());
+                validaUsuario(usuario, contrasenia, codigoPais);
+            }
+        }
+        catch(Exception exception)
+        {
+            exception.printStackTrace();
+            logStackTrace(exception);
+            asignarAtributo("VAR", "nombreDevuelto", "valor", (new StringBuilder()).append("").append(usuario).toString());
+            lanzarPaginaError(exception);
+        }
+    }
+
+    private synchronized void cargarPantalla()
+        throws Exception
+    {
+        if(conPaises == null)
+        {
+            String path = (new StringBuilder()).append(MareMii.basePath).append(System.getProperty("file.separator")).append("web_conf.xml").toString();
+            MareXMLMGC mgcXML = new MareXMLMGC(path);
+            List paisesConf = mgcXML.configurationsAt("web.init.login.pais");
+            RecordSet rsPaises = new RecordSet();
+            RecordSet rsUrls = new RecordSet();
+            Vector columnas = new Vector();
+            columnas.add("OID");
+            columnas.add("NOMBRE");
+            rsPaises.setColumnIdentifiers(columnas);
+            rsUrls.setColumnIdentifiers(columnas);
+            HierarchicalConfiguration sub;
+            for(Iterator it = paisesConf.iterator(); it.hasNext(); paises.put(new String(sub.getString("codigo")), Long.valueOf((new Long(sub.getLong("identificador"))).longValue())))
+            {
+                sub = (HierarchicalConfiguration)it.next();
+                Vector filaPaises = new Vector();
+                filaPaises.add(new String(sub.getString("identificador")));
+                filaPaises.add(new String(sub.getString("nombre")));
+                rsPaises.addRow(filaPaises);
+                Vector filaUrls = new Vector();
+                filaUrls.add(new String(sub.getString("codigo")));
+                filaUrls.add(new String(sub.getString("url")));
+                rsUrls.addRow(filaUrls);
+            }
+
+            conPaises = UtilidadesBelcorp.generarConector("dtoSalida", rsPaises, columnas);
+            conUrls = UtilidadesBelcorp.generarConector("dtoSalida", rsUrls, columnas);
+            sub = null;
+            mgcXML = null;
+            rsPaises = null;
+            rsUrls = null;
+            paisesConf = null;
+        }
+        asignar("COMBO", "cbPais", conPaises, "dtoSalida");
+        asignar("COMBO", "cbPaisURL", conUrls, "dtoSalida");
+    }
+
+    private void recuperarUsuarioPais()
+        throws Exception
+    {
+        if(codigoPais != null && codigoPais.length() > 0)
+        {
+            usuario = (new StringBuilder()).append(codigoPais).append(usuario).toString();
+            usuario = usuario.trim();
+        }
+    }
+
+    private void obtenerFormatos(HashMap hashmap)
+        throws Exception
+    {
+        Vector vector = new Vector();
+        DTOPais dtopais = new DTOPais();
+        Property property = (Property)hashmap.get("PaisDefecto");
+        if(property != null && !property.getValue().toString().equals(""))
+            dtopais.setPais(new Long(property.getValue().toString()));
+        Property property1 = (Property)hashmap.get("Idioma");
+        if(property1 != null && !property1.getValue().toString().equals(""))
+            dtopais.setOidIdioma(new Long(property1.getValue().toString()));
+        vector.add(dtopais);
+        vector.add(new MareBusinessID("MENCargarFormato"));
+        DruidaConector druidaconector = conectar("ConectorCargaFormatos", vector);
+        DTOSFormato dtosformato = (DTOSFormato)druidaconector.objeto("dtoSalida");
+        Property property2 = null;
+        property2 = new Property("DescripcionPaisDefecto", dtosformato.getDescripcion());
+        hashmap.put("DescripcionPaisDefecto", property2);
+        property2 = new Property("FormatoFecha", dtosformato.getFormatoFecha());
+        hashmap.put("FormatoFecha", property2);
+        property2 = new Property("FormatoNumerico", dtosformato.getNumeroDeDecimales());
+        hashmap.put("FormatoNumerico", property2);
+        property2 = new Property("FormatoNumericoAlternativo", dtosformato.getNumeroDeDecimalesAlternativa());
+        hashmap.put("FormatoNumericoAlternativo", property2);
+        property2 = new Property("FormatoNumericoSeparadorDecimales", dtosformato.getSeparadorDecimal());
+        hashmap.put("FormatoNumericoSeparadorDecimales", property2);
+        property2 = new Property("FormatoNumericoSeparadorMiles", dtosformato.getSeperadorMiles());
+        hashmap.put("FormatoNumericoSeparadorMiles", property2);
+    }
+
+    private void validaUsuario(String s, String s1, String s2)
+        throws Exception
+    {
+        UserIDImpl useridsicc = new UserIDImpl(s);
+        traza("*** Despues de crear el usuario al login...");
+        try
+        {
+            traza("*** LLegando al login...");
+            MareCredentials marecredentials = new MareCredentials(useridsicc, s1);
+            java.util.Hashtable env = ServicesHelper.getContextParameters(MareMii.getServiceConfiguration("MGUService"), marecredentials);
+            System.out.println("Obteniendo el contexto");
+            Context ctx;
+            try
+            {
+                ctx = new InitialContext(env);
+            }
+            catch(CommunicationException e)
+            {
+                throw new MareException(null, null, UtilidadesError.armarCodigoError("0316"));
+            }
+            System.out.println("Contexto obtenido");
+            MONUsuarios mgu = null;
+            System.out.println("ejecutando lookup");
+            MONUsuariosHome mguHome;
+            try
+            {
+                mguHome = (MONUsuariosHome)PortableRemoteObject.narrow(ctx.lookup("MONUsuarios"), es/indra/sicc/logicanegocio/men/MONUsuariosHome);
+            }
+            catch(Exception e)
+            {
+                String codigoError;
+                if(e instanceof CommunicationException)
+                    codigoError = "0316";
+                else
+                    codigoError = "0308";
+                throw new MareException(null, null, UtilidadesError.armarCodigoError(codigoError));
+            }
+            System.out.println("ejecutando create");
+            mgu = mguHome.create();
+            System.out.println("guardando en session");
+            getRequest().getSession(true).setAttribute("DR_SESION_INITIAL_CTX", ctx);
+            conectorParametroSesion("MARE_CREDENTIALS", marecredentials);
+            DTOEntradaConsultarUsuario dto = new DTOEntradaConsultarUsuario();
+            dto.setUsuario(s);
+            dto.setPassword(s1);
+            System.out.println("Obteniendo propiedades");
+            try
+            {
+                propiedasdesMGU = mgu.getMergedProperties(dto);
+            }
+            catch(Exception e)
+            {
+                throw new MareException(null, null, UtilidadesError.armarCodigoError("0308"));
+            }
+            System.out.println((new StringBuilder()).append("propiedades obtenidas. Total: ").append(propiedasdesMGU.size()).toString());
+            Property userP2 = (Property)propiedasdesMGU.get("TipoUsuario");
+            String tipoUsuar = (String)userP2.getValue();
+            if(tipoUsuar.equalsIgnoreCase("BATCH"))
+                throw new MareException(null, null, UtilidadesError.armarCodigoError("312"));
+            conectorParametroSesion("DruidaUsuario", s);
+            conectorParametroSesion("DruidaPassword", s1);
+            Property property1 = (Property)propiedasdesMGU.get("UsuarioSustitucion");
+            Property property2 = (Property)propiedasdesMGU.get("FechaSustitucionDesde");
+            Property property3 = (Property)propiedasdesMGU.get("FechaSustitucionHasta");
+            Property property4 = (Property)propiedasdesMGU.get("IndicacionClaveInicial");
+            Property property5 = (Property)propiedasdesMGU.get("UsuarioHabilitado");
+            Property property6 = (Property)propiedasdesMGU.get("PeriodoValidezFechaDesde");
+            Property property7 = (Property)propiedasdesMGU.get("PeriodoValidezFechaHasta");
+            Property property8 = (Property)propiedasdesMGU.get("Idioma");
+            String s7 = null;
+            String s8 = null;
+            if(property8 != null && !property8.getValue().toString().equals(""))
+            {
+                getIdiomas();
+                s7 = getISO(new Long(property8.getValue().toString()));
+                s8 = get_ISO(new Long(property8.getValue().toString()));
+                setIdioma(s7);
+            }
+            propiedasdesMGU.put("Idioma_ISO", new Property("Idioma_ISO", s7));
+            propiedasdesMGU.put("Idioma__ISO", new Property("Idioma__ISO", s8));
+            if(paises.size() == 0)
+            {
+                DTOOID dtooid = new DTOOID();
+                dtooid.setOid(new Long(-1));
+                dtooid.setOidIdioma(ConstantesSEG.IDIOMA_DEFECTO);
+                Vector vector = new Vector();
+                vector.add(dtooid);
+                vector.add(new MareBusinessID("SEGRecuperaPais"));
+                DruidaConector druidaconector = conectar("ConectorRecuperarPais", vector);
+                DTOSalida dtosalida = (DTOSalida)druidaconector.objeto("dtoSalidaObjeto");
+                for(int i = 0; i < dtosalida.getResultado().getRowCount(); i++)
+                    paises.put((String)dtosalida.getResultado().getValueAt(i, 2), new Long(dtosalida.getResultado().getValueAt(i, 0).toString()));
+
+            }
+            Long long1 = (Long)paises.get(s2);
+            if(long1 != null)
+                propiedasdesMGU.put("PaisDefecto", new Property("PaisDefecto", long1.toString()));
+            else
+                traza("Valor oidPais es nulo. Permanece pais por defecto.");
+            conectorParametroSesion("propiedades", (Object)propiedasdesMGU);
+            obtenerFormatos(propiedasdesMGU);
+            if(property5 != null && property5.getValue() != null && property5.getValue().toString().equals("N"))
+            {
+                traza("[LPInicioBelcorp] Usuario deshabilitado 1");
+                throw new MareException(null, null, UtilidadesError.armarCodigoError("0306"));
+            }
+            if(!validaRango(property6, property7))
+            {
+                traza("[LPInicioBelcorp] Usuario deshabilitado 2");
+                throw new MareException(null, null, UtilidadesError.armarCodigoError("0306"));
+            }
+            if(property4 == null || property4.getValue().toString().equals("N"))
+            {
+                String s4;
+                if(property1 == null || (String)property1.getValue() == null)
+                    s4 = "S";
+                else
+                if(validaRango(property2, property3))
+                    s4 = "U";
+                else
+                    s4 = "S";
+                try
+                {
+                    traza((new StringBuilder()).append("status :").append(s4).toString());
+                    if(s4.equalsIgnoreCase("S"))
+                        rastreo();
+                }
+                catch(Exception exception1)
+                {
+                    exception1.printStackTrace();
+                    logStackTrace(exception1);
+                    traza((new StringBuilder()).append("Exception :").append(exception1.getClass().getName()).toString());
+                }
+                asignarAtributo("VAR", "validado", "valor", s4);
+            } else
+            {
+                asignarAtributo("VAR", "validado", "valor", "E");
+            }
+        }
+        catch(MareMiiServiceNotFoundException maremiiservicenotfoundexception)
+        {
+            logStackTrace(maremiiservicenotfoundexception);
+            traza((new StringBuilder()).append("MareMiiServiceNotFoundException: ").append(maremiiservicenotfoundexception.toString()).toString());
+            MareException mareexception1 = new MareException(null, null, UtilidadesError.armarCodigoError("0308"));
+            asignarAtributo("VAR", "validado", "valor", "N");
+            lanzarPaginaError(mareexception1);
+        }
+        catch(MareException mareexception)
+        {
+            logStackTrace(mareexception);
+            if(mareexception instanceof MareMguInvalidCredentials)
+            {
+                traza("Es una MareException de tipo MareMguInvalidCredentials");
+                if(mareexception.getCode() == 20003)
+                    asignarAtributo("VAR", "validado", "valor", "C");
+                else
+                    asignarAtributo("VAR", "validado", "valor", "N");
+            } else
+            {
+                asignarAtributo("VAR", "validado", "valor", "N");
+            }
+            lanzarPaginaError(mareexception);
+        }
+        catch(Exception exception)
+        {
+            logStackTrace(exception);
+            exception.printStackTrace();
+            asignarAtributo("VAR", "errCodigo", "valor", "");
+            asignarAtributo("VAR", "errDescripcion", "valor", exception.getMessage());
+        }
+    }
+
+    private boolean validaRango(Property property, Property property1)
+        throws Exception
+    {
+        long l = System.currentTimeMillis();
+        long l1 = 0L;
+        long l2 = 0L;
+        boolean flag = true;
+        long l3 = 0x5265c00L;
+        if(property != null && property.getValue() != null && !property.getValue().equals(""))
+            l1 = Long.parseLong(property.getValue().toString());
+        if(property1 != null && property1.getValue() != null && !property1.getValue().equals(""))
+            l2 = Long.parseLong(property1.getValue().toString());
+        if(l1 != 0L && l1 > l)
+            flag = false;
+        if(l2 != 0L)
+        {
+            l2 += l3;
+            if(l > l2)
+                flag = false;
+        }
+        return flag;
+    }
+
+    private void logStackTrace(Throwable throwable)
+        throws Exception
+    {
+        traza((new StringBuilder()).append("Se produjo la excepcion: ").append(throwable.getMessage()).toString());
+        ByteArrayOutputStream bytearrayoutputstream = new ByteArrayOutputStream();
+        PrintStream printstream = new PrintStream(bytearrayoutputstream);
+        if(throwable instanceof MareException)
+        {
+            MareException mareexception = (MareException)throwable;
+            traza((new StringBuilder()).append("Es una mare Exception con codigo de error: ").append(mareexception.getCode()).toString());
+        }
+        throwable.printStackTrace(printstream);
+        traza((new StringBuilder()).append("stack Trace : ").append(bytearrayoutputstream.toString()).toString());
+    }
+
+    private String accion;
+    private String usuario;
+    private String contrasenia;
+    private HashMap propiedasdesMGU;
+    private String codigoPais;
+    private static HashMap paises = new HashMap();
+    private static DruidaConector conPaises = null;
+    private static DruidaConector conUrls = null;
+
+}

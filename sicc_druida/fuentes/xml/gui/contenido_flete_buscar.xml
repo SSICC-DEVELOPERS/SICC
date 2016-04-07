@@ -1,0 +1,817 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_flete_buscar.xml,v 1.1 2009/12/03 18:46:18 pecbazalar Exp $
+   prueba arbol 
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+<PAGINA nombre="contenido_flete_buscar" cod="" titulo="Buscar flete" estilos="estilosB3.css" colorf="#F0F0F0" 
+	msgle="Buscar flete" onload="onLoadPag();" xml:lang="es">
+
+<!--
+0627 Consultar flete
+0628 Eliminar flete
+-->
+
+<JS src="sicc_util.js"/>
+<JS src="PaginacionSicc.js"/>
+<JS src="DruidaTransactionMare.js"/>
+<JS src="i18NJS.js"/>
+<JS src="ConstantesJS.js"/>
+       
+
+<JAVASCRIPT>
+ <![CDATA[    
+      
+function onLoadPag(){
+		configurarMenuSecundario("frmBuscar");
+
+	    DrdEnsanchaConMargenDcho('listado1',12);
+		ocultarLista();	   
+	    eval (ON_RSZ);  
+
+		var zonaUbigeo = get("frmBuscar.hVisibleZona");		
+		var acc =  get("frmBuscar.accion");
+
+		if (acc =="muestraModificacion"){
+			btnProxy(1,'0');
+			btnProxy(2,'0');
+			btnProxy(3,'1');
+		}
+		if (acc =="muestraBorrado"){
+			btnProxy(4,'0');			
+		}
+
+		if (zonaUbigeo == "S"){	
+			accion("frmBuscar.cbZona",".disabled=false");
+			accion("frmBuscar.txtUbigeo",".disabled=true");
+
+		}else{
+				accion("frmBuscar.cbZona",".disabled=true");
+				accion("frmBuscar.txtUbigeo",".disabled=false");		
+		}
+
+		focaliza("frmBuscar.cbMarca");
+		accion("frmBuscar.cbZona",".disabled=true");
+		if (get("frmBuscar.errDescripcion")!='') {
+		     var wnd = fMostrarMensajeError(get("frmBuscar.errCodigo"), get("frmBuscar.errDescripcion"));
+			 ocultarLista();
+	    }		
+
+}
+
+
+function fBorrar(){
+	 if (listado1.numSelecc()== 0) {
+       GestionarMensaje('1021',null,null,null);
+       return false;
+     } else{
+			eliminarFilas(listado1.codSeleccionados(),"PEDeliminaFlete", mipgndo);
+			}
+}
+
+function mostrarLista(){
+
+	var acc =  get("frmBuscar.accion");
+	
+	document.all["Cplistado1"].style.visibility='';
+	document.all["CpLin1listado1"].style.visibility='';
+	document.all["CpLin2listado1"].style.visibility='';
+	document.all["CpLin3listado1"].style.visibility='';
+	document.all["CpLin4listado1"].style.visibility='';
+	document.all["primera1Div"].style.visibility='';
+	document.all["ret1Div"].style.visibility='';
+	document.all["ava1Div"].style.visibility='';
+	document.all["separaDiv"].style.visibility='';
+
+	if (acc == 'muestraBorrado') {
+		document.all["ModificarDiv"].style.visibility='hidden';
+	    document.all["DetalleDiv"].style.visibility='hidden';
+	}
+	
+	if (acc == 'muestraConsulta') {
+		document.all["ModificarDiv"].style.visibility='hidden';
+	    document.all["DetalleDiv"].style.visibility='';
+	}
+
+	if (acc == 'muestraBorrado') {
+		document.all["ModificarDiv"].style.visibility='hidden';
+	    document.all["DetalleDiv"].style.visibility='';
+	}
+
+	if (acc == 'muestraModificacion') {
+		document.all["ModificarDiv"].style.visibility='';
+	    document.all["DetalleDiv"].style.visibility='hidden';
+	}
+}
+
+
+
+function muestraLista(ultima, rowset) {
+
+         var tamanio = rowset.length;
+
+         if (tamanio > 0) {
+			mostrarLista();
+			if(get('frmBuscar.casoDeUso') == 'elimina'){
+				btnProxy(4, 1);
+				mipgndo.lista.maxSel = -1;
+			}else{
+				btnProxy(4, 0);
+				mipgndo.lista.maxSel = 1;
+			}
+			return true;
+		 } else {
+			ocultarLista();
+			btnProxy(4, 0);
+			return false;
+		 }
+    }
+
+
+
+function ocultarLista(){
+
+		document.all["Cplistado1"].style.visibility='hidden';
+	    document.all["CpLin1listado1"].style.visibility='hidden';
+	    document.all["CpLin2listado1"].style.visibility='hidden';
+	    document.all["CpLin3listado1"].style.visibility='hidden';
+	    document.all["CpLin4listado1"].style.visibility='hidden';
+
+	    document.all["primera1Div"].style.visibility='hidden';
+	    document.all["ret1Div"].style.visibility='hidden';
+	    document.all["ava1Div"].style.visibility='hidden';
+	    document.all["separaDiv"].style.visibility='hidden';
+	    document.all["ModificarDiv"].style.visibility='hidden';
+	    document.all["DetalleDiv"].style.visibility='hidden';
+}
+
+
+function accionConsultar(){//1
+
+	valorSeteado = listado1.codSeleccionados();
+	codigos = listado1.codSeleccionados();
+
+	if( valorSeteado != '' ){ //2
+	
+			if( valorSeteado.length == 1 ){
+
+				var obj = new Object();
+				obj.seleccion = valorSeteado[0];
+				var sel = valorSeteado;
+			
+				var	datoMarca = listado1.extraeDato(codigos,0);
+				var datoCanal = listado1.extraeDato(codigos,1);
+				var datoZona = listado1.extraeDato(codigos,2);
+				var datoDespacho = listado1.extraeDato(codigos,3);
+				var tipoCliente = listado1.extraeDato(codigos,9);
+				var subTipoCliente = listado1.extraeDato(codigos,10);
+				var tipoClasi = listado1.extraeDato(codigos,11);
+				var clasi = listado1.extraeDato(codigos,12);
+				
+				obj.accion = 'detalle';
+				obj.marcaDescr = datoMarca;
+				obj.canalDescr = datoCanal;
+				obj.zonaDescr = datoZona;
+				obj.despachoDescr = datoDespacho;
+				obj.tipoClienteDescr = tipoCliente;
+				obj.subTipoClienteDescr = subTipoCliente;
+				obj.tipoClasiDescr = tipoClasi;
+				obj.clasiDescr = clasi;				
+				
+				var winModal = mostrarModalSICC('LPMantieneFlete', 'detalle', obj, null, null);
+
+			} else {
+						GestionarMensaje('8',null,null,null);
+			 }
+		}//2		
+		else{
+				GestionarMensaje('4', null, null, null);
+	   }		
+}//1
+
+function buscar(){
+		ocultarLista();
+		var acc =  get("frmBuscar.accion");
+
+		if (acc =="muestraBorrado"){
+			btnProxy(4,'1');
+		}	
+		var pais = get("frmBuscar.hPais");
+		var idioma = get("frmBuscar.hIdioma");
+		var zona = get("frmBuscar.cbZona");
+				
+		var arr = new Array();
+		
+		arr[arr.length] = new Array("oidPais", pais);
+		arr[arr.length] = new Array("oidIdioma", idioma);
+		arr[arr.length] = new Array("ubigeo", get("frmBuscar.txtUbigeo"));
+		arr[arr.length] = new Array("oidMarca", get("frmBuscar.cbMarca"));
+		arr[arr.length] = new Array("oidCanal", get("frmBuscar.cbCanal"));
+	
+		if (zona == "0"){
+			arr[arr.length] = new Array("zona", "");
+		}else{
+			arr[arr.length] = new Array("zona", get("frmBuscar.cbZona"));
+		}
+		
+		arr[arr.length] = new Array("oidTipoDespacho", get("frmBuscar.cbTipoDespacho"));
+
+		arr[arr.length] = new Array("tamanioPagina", 10);
+		arr[arr.length] = new Array("indicadorSituacion", 0);
+		configurarPaginado(mipgndo, "PEDconsultaFlete", "ConectorBuscarFlete", "es.indra.sicc.dtos.ped.DTOFlete",arr);
+}
+
+
+function MarcaOnChange(){
+	var zonaUbigeo = get("frmBuscar.hVisibleZona");
+	var pais = get("frmBuscar.hPais");
+	var canal = get("frmBuscar.cbCanal");
+	var marca = get("frmBuscar.cbMarca");
+
+	if (zonaUbigeo == "S"){
+			accion("frmBuscar.cbZona",".disabled=false");
+			accion("frmBuscar.txtUbigeo",".disabled=true");
+
+			var arr = new Array();
+			arr[arr.length] = new Array("oidPais", pais+"");
+			arr[arr.length] = new Array("oidMarca", get("frmBuscar.cbMarca")+"");
+			arr[arr.length] = new Array("oidCanal", get("frmBuscar.cbCanal")+"");
+
+
+		    //if((marca != '') && (canal !='')){
+			if((canal !='')){
+			        recargaCombo('frmBuscar.cbZona', 'ZONRecargaZonas', 'es.indra.sicc.dtos.zon.DTOUnidadAdministrativa',arr, 'setearSubtipo(datos)');
+		    }
+			else{
+					var aCombo = new Array(new Array("",""));
+					set_combo("frmBuscar.cbZona",aCombo,[]);
+			}
+	}
+     else{
+				accion("frmBuscar.cbZona",".disabled=true");
+				accion("frmBuscar.txtUbigeo",".disabled=false");	
+	}
+}
+
+function setearSubtipo(datos){
+ 	seteo = cargaArray(datos);
+
+    set_combo('frmBuscar.cbZona',datos, []);				   
+    set('frmBuscar.cbZona', [get('frmBuscar.zona')]); 
+    accion('frmBuscar.cbZona', '.disabled=false');
+}
+
+function CanalOnChange(){
+ var pais = get("frmBuscar.hPais");
+ var marca = get("frmBuscar.cbMarca");
+ var canal = get("frmBuscar.cbCanal");
+ 
+ var zonaUbigeo = get("frmBuscar.hVisibleZona");
+
+ 	if (zonaUbigeo == "S"){
+			accion("frmBuscar.cbZona",".disabled=false");
+			accion("frmBuscar.txtUbigeo",".disabled=true");
+			
+		    var arr = new Array();
+		    arr[arr.length] = new Array("oidPais", pais +"");
+		    arr[arr.length] = new Array("oidMarca", get("frmBuscar.cbMarca")+"");
+		    arr[arr.length] = new Array("oidCanal", get("frmBuscar.cbCanal")+"");
+	   
+			if ((marca != '') && (canal !='')){
+					recargaCombo('frmBuscar.cbZona', 'ZONRecargaZonas', 'es.indra.sicc.dtos.zon.DTOUnidadAdministrativa',arr);
+		   }
+		   else{
+					var aCombo = new Array(new Array("",""));
+					set_combo("frmBuscar.cbZona",aCombo,[]);
+			}
+
+				 
+	}else{
+			accion("frmBuscar.cbZona",".disabled=true");
+			accion("frmBuscar.txtUbigeo",".disabled=false");
+	}
+
+}
+
+function tabCanal(){
+	focaliza("frmBuscar.cbCanal");
+}
+
+function tabBtn(){
+	focalizaBotonHTML('botonContenido','btnBuscar');	
+}
+
+function cargaArray(datos){
+		var seteo = new Array(datos.length + 1);
+		seteo[0] = ['' , '']
+		for(i = 0; i < datos.length; i++){
+			seteo[i+1] = [ datos[i][0], datos[i][1] ]
+		}
+		return seteo;
+}
+
+function focalizaTab(){
+
+	if(document.all["Cplistado1"].style.visibility=='hidden'){
+			focaliza("frmBuscar.cbMarca");
+	}else{
+			if(get('frmBuscar.casoDeUso') == 'modifica' ){
+				focalizaBotonHTML_XY('Modificar');
+			}else{
+				focalizaBotonHTML_XY('Detalle');
+			}
+
+		}
+	
+}
+
+function focalizaShTab(){  
+		if(document.all["Cplistado1"].style.visibility=='hidden'){
+			focalizaBotonHTML('botonContenido','btnBuscar');
+		}else{
+		    if(get('frmBuscar.casoDeUso') == 'modifica' ){
+				focalizaBotonHTML_XY('Modificar');
+			}else{
+				focalizaBotonHTML_XY('Detalle');
+			}
+
+		}
+}
+
+
+function onClickModificar(){
+	var codigos = listado1.codSeleccionados();
+	var valorSeteado = mipgndo.lista.codSeleccionados();
+
+	if (listado1.numSelecc()!= 1) {
+		GestionarMensaje('1022',null,null,null);
+		return false;
+	}
+
+	if( valorSeteado != '' ){
+
+				var obj = new Object();
+				obj.seleccion = valorSeteado[0];
+				var sel = valorSeteado;
+				var	datoMarca = listado1.extraeDato(codigos,0);
+				var datoCanal = listado1.extraeDato(codigos,1);
+				var datoZona = listado1.extraeDato(codigos,2);
+				set("frmBuscar.OIDZona",datoZona);
+				var datoDespacho = listado1.extraeDato(codigos,3);
+				var tipoCliente = listado1.extraeDato(codigos,9);
+				var subTipoCliente = listado1.extraeDato(codigos,10);
+				var tipoClasi = listado1.extraeDato(codigos,11);
+				var clasi = listado1.extraeDato(codigos,12);
+
+				var oidMarca = listado1.extraeDato(codigos,14);
+				var oidCanal = listado1.extraeDato(codigos,13);	
+
+				var oidZona = listado1.extraeDato(codigos,19);
+				var oidDesp = listado1.extraeDato(codigos,15);
+				var oidTipoClien = listado1.extraeDato(codigos,16);
+				var oidSubTipoClien = listado1.extraeDato(codigos,17);
+				var oidTipoClas = listado1.extraeDato(codigos,18);
+				var oidClas = listado1.extraeDato(codigos,20);	
+
+				obj.accion = 'modificar';
+				obj.marcaDescr = datoMarca;
+				obj.canalDescr = datoCanal;
+				obj.zonaDescr = datoZona;
+				obj.despachoDescr = datoDespacho;
+				obj.tipoClienteDescr = tipoCliente;
+				obj.subTipoClienteDescr = subTipoCliente;
+				obj.tipoClasiDescr = tipoClasi;
+				obj.clasiDescr = clasi;		
+
+				var retorno = mostrarModalSICC('LPMantieneFlete', 'modificar', obj, null, null);
+				if( retorno != null && retorno == true ){
+					buscar();
+				}
+	}else{
+					GestionarMensaje('4', null, null, null);
+	}
+}
+
+
+function fLimpiar(){
+	var zonaUbigeo = get("frmBuscar.hVisibleZona")
+	set("frmBuscar.cbMarca",new Array(''));
+	set("frmBuscar.cbCanal",new Array(''));
+    set_combo("frmBuscar.cbZona",new Array("",""), []);
+	set("frmBuscar.txtUbigueo", "");
+	focaliza("frmBuscar.cbMarca");
+}
+
+]]>
+</JAVASCRIPT>
+
+
+<FORMULARIO nombre="frmBuscar">
+
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="accion" valor=""/>
+<VAR nombre="casoDeUso" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="seleccion" valor=""/>
+
+
+<VAR nombre="OIDMarca" valor=""/>
+<VAR nombre="OIDCanal" valor=""/>
+<VAR nombre="OIDZona" valor=""/>
+<VAR nombre="OIDUbigeo" valor=""/>
+<VAR nombre="OIDDespacho" valor=""/>
+<VAR nombre="OIDTipoCliente" valor=""/>
+<VAR nombre="OIDSubTipoCliente" valor=""/>
+<VAR nombre="OIDTipoClasificacion" valor=""/>
+<VAR nombre="OIDClasificacion" valor=""/>
+
+<VAR nombre="oidLst" valor=""/>
+<VAR nombre="hPais" valor=""/>
+<VAR nombre="hIdioma" valor=""/>
+
+<VAR nombre="marca" valor=""/>
+<VAR nombre="canal" valor=""/>
+<VAR nombre="zona" valor=""/>
+
+<VAR nombre="marcaDescr" valor=""/>
+<VAR nombre="canalDescr" valor=""/>
+<VAR nombre="zonaDescr" valor=""/>
+<VAR nombre="despachoDescr" valor=""/>
+
+<VAR nombre="tipoClienteDescr" valor=""/>
+<VAR nombre="subTipoClienteDescr" valor=""/>
+<VAR nombre="tipoClasiDescr" valor=""/>
+<VAR nombre="clasiDescr" valor=""/>
+
+<VAR nombre="hVisibleZona" valor=""/>
+<VAR nombre="hTxtUbigeo" valor=""/>
+
+<CAPA nombre="capa">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr>
+      <td><IMG src="b.gif"/></td>
+      <td>
+	<fieldset><legend class="legend"><LABELC nombre="lblCritBusqueda" alto="13" filas="1" cod="0075" id="legend" /></legend>
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">             
+	        <tr><td>
+	        <table width="622" border="0" align="left" cellspacing="0" cellpadding="0">             
+	        <tr>
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>              
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblMarca" alto="13" filas="1" valor="" id="datosTitle" cod="6"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblCanal" alto="13" filas="1" valor="" id="datosTitle" cod="7"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                    <td><IMG src="b.gif" width="8" height="8"/></td>
+                    <td nowrap="nowrap" >
+                    	<COMBO nombre="cbMarca" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" onchange="MarcaOnChange();" onshtab="focalizaShTab();">
+	                      <ROWSET>
+	                      </ROWSET>
+                    	</COMBO>
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" >
+                   	<COMBO nombre="cbCanal" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" onchange="CanalOnChange();">
+	                      <ROWSET>
+	                      </ROWSET>
+                    	</COMBO>
+                   </td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+              </table>
+              </td>
+                </tr>
+              <tr><td>
+	        <table width="622" border="0" align="left" cellspacing="0" cellpadding="0">                      
+	        <tr>
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>              
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblTipoDespacho" alto="13" filas="1" valor="" id="datosTitle" cod="1000"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                    <td><IMG src="b.gif" width="8" height="8"/></td>
+                    <td nowrap="nowrap" >
+                   	<COMBO nombre="cbTipoDespacho" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+	                      <ROWSET>
+	                      </ROWSET>
+                    	</COMBO>
+                    </td>
+                    <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+	        <tr>
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <table width="622" border="0" align="left" cellspacing="0" cellpadding="0">          
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblZona" alto="13" filas="1" valor="" id="datosTitle" cod="143"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblUbigeo" alto="13" filas="1" valor="" id="datosTitle" cod="135"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                    <td><IMG src="b.gif" width="8" height="8"/></td>
+                    <td nowrap="nowrap">
+                      <COMBO nombre="cbZona" id="datosCampos" size="1" multiple="N" req="N" valorinicial="0" textoinicial="">
+		        <ROWSET>                
+		        </ROWSET>
+	              </COMBO>
+	           </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap">
+                     <CTEXTO nombre="txtUbigeo" id="datosCampos" max="60" tipo="" onchange="" req="N" size="60" valor="" validacion="" />
+                   </td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+              </table>   
+            </td>
+          </tr>        
+              </table>                      
+        </fieldset>
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr>
+        <tr> 
+        <td><IMG src="b.gif"/></td>
+      	  <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnBuscar" ID="botonContenido" tipo="html" accion="buscar();" estado="false" cod="1" ontab="focalizaTab();"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>  
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+
+  <LISTAEDITABLE nombre="listado1" ancho="625" alto="317" x="12" y="202" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+	<BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+	<BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+	<BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+      <LINEAS>
+	<GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="1" horizTitulo="1" horizBase="1"/> 
+	<COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00135" ID="datosTitle"/>
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+        <COL ancho="60" minimizable="S" minimizada="N"/> 
+        <COL ancho="60" minimizable="S" minimizada="N"/> 
+        <COL ancho="130" minimizable="S" minimizada="N"/>
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="85" minimizable="S" minimizada="N"/> 
+        <COL ancho="85" minimizable="S" minimizada="N"/>
+        <COL ancho="85" minimizable="S" minimizada="N"/>        
+        <COL ancho="85" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/>
+        <COL ancho="120" minimizable="S" minimizada="N"/>
+        <COL ancho="120" minimizable="S" minimizada="N"/>
+        <COL ancho="120" minimizable="S" minimizada="N"/>
+        <COL ancho="120" minimizable="S" minimizada="N"/>       
+      </COLUMNAS>
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+		<COL colFondo="" ID="EstCab" cod="6"/> 
+		<COL colFondo="" ID="EstCab" cod="7"/> 
+		<COL colFondo="" ID="EstCab" cod="2415"/>
+		<COL colFondo="" ID="EstCab" cod="1000"/>
+		<COL colFondo="" ID="EstCab" cod="1414"/> 
+		<COL colFondo="" ID="EstCab" cod="1415"/> 
+		<COL colFondo="" ID="EstCab" cod="2177"/> 
+		<COL colFondo="" ID="EstCab" cod="2178"/> 
+		<COL colFondo="" ID="EstCab" cod="1418"/>
+		<COL colFondo="" ID="EstCab" cod="1869"/>
+		<COL colFondo="" ID="EstCab" cod="595"/>
+		<COL colFondo="" ID="EstCab" cod="756"/>
+		<COL colFondo="" ID="EstCab" cod="550"/>
+      </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+             coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+             onLoad="" colorSelecc="#D0D9E8">
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/>
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/>
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/>
+      </DATOS>
+      <ROWSET>
+	<ROW ID="1">
+	  <CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="COD0" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		  <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		  <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		  <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+	      <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+	      <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+	</ROW>
+	<ROW ID="2">
+	      <CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="COD1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+	      <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		  <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		  <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		  <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+	      <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+	</ROW>
+	<ROW ID="3">
+	     <CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="COD2" /> 
+         <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+         <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		 <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		 <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+         <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		 <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		 <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		 <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+         <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+         <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+         <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+         <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+         <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+	</ROW>
+	<ROW ID="1">
+		<CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="COD3" /> 
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		<CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		<CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		<CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		<CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		<CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+	</ROW>
+	<ROW ID="2">
+		<CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="COD4" /> 
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+	    <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		<CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		<CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		<CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		<CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+	</ROW>
+	<ROW ID="3">
+		<CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="COD5" /> 
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		<CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		<CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		<CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		<CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		<CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+	</ROW>
+	<ROW ID="3">
+		<CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="COD6" /> 
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		<CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		<CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		<CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		<CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		<CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+	</ROW>
+	<ROW ID="1">
+		<CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="COD0" /> 
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		<CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		<CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		<CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		<CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		<CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+	</ROW>
+	<ROW ID="2">
+		<CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="COD1" /> 
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		<CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		<CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		<CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		<CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		<CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+	</ROW>
+	<ROW ID="3">
+		<CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="COD2" /> 
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		<CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		<CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		<CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		<CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+		<CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" /> 
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+        <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+	</ROW>
+      </ROWSET>
+      <PAGINADO nombre="mipgndo" ancho="625" sep="$" x="12" class="botonera" y="496" control="|" conector="conector_prototipo_2" rowset="" cargainicial="N" onload="procesarPaginado(mipgndo,msgError, ultima, rowset, 'muestraLista(ultima, rowset)')">
+    	<BOTON nombre="ret1" x="37" y="500" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+    	<BOTON nombre="ava1" x="52" y="500" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>        
+      </PAGINADO>
+   </LISTAEDITABLE>
+
+    <BOTON nombre="primera1" x="20" y="500" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();"/>  
+    <BOTON nombre="separa" x="59" y="496" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />       
+    <BOTON nombre="Modificar" x="80" y="497" ID="botonContenido" tipo="html" estado="false" cod="2"  accion="onClickModificar();" ontab="focaliza('frmBuscar.cbMarca');"  onshtab="focalizaBotonHTML('botonContenido','btnBuscar');"/> 
+    <BOTON nombre="Detalle" x="80" y="497" ID="botonContenido" tipo="html" estado="false" cod="3" accion="accionConsultar();" ontab="focaliza('frmBuscar.cbMarca');"  onshtab="focalizaBotonHTML('botonContenido','btnBuscar');"/> 
+    
+ <CAPA nombre="capaEspacio" alto="12" ancho="50" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="519" zindex=""/>
+
+ </FORMULARIO>
+</PAGINA>

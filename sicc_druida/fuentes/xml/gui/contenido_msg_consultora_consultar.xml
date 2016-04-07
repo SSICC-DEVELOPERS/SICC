@@ -1,0 +1,539 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_msg_consultora_consultar.xml,v 1.1 2009/12/03 18:44:49 pecbazalar Exp $
+   contenido MSG
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_msg_consultora_consultar" cod="" titulo="Consultar mensajes por consultoras"  estilos="estilosB3.css" colorf="#F0F0F0" 
+	msgle="Consultar mensajes por consultoras" onload="onLoadPag();" xml:lang="es">
+
+
+
+<JS src="sicc_util.js"/>
+<JS src="PaginacionSicc.js"/>
+<JS src="DruidaTransactionMare.js"/>
+<JS src="ConstantesJS.js"/>
+
+
+<JAVASCRIPT>
+<![CDATA[ 
+
+var varNoLimpiarSICC = true;
+
+function onLoadPag(){   
+		configurarMenuSecundario("frmMsgConsultar");
+    btnProxy(5,'1');
+	 if (window.dialogArguments) { // Si es modal (se abrió mediante showModalDialog) DBLG500000915
+            btnProxy(2,1);  // boton 'volver', habilitado
+            btnProxy(3,0);  // boton 'Ir a pantalla de inicio', deshabilitado
+    }
+
+		DrdEnsanchaConMargenDcho('listado1',12);
+		ocultarLista();    
+		eval(ON_RSZ);
+		focaliza("frmMsgConsultar.codCliente");  
+    accion("frmMsgConsultar.comboPeriodo",".disabled=true");
+  
+    if (get('frmMsgConsultar.errDescripcion')!='') {
+		   var wnd = fMostrarMensajeError(get('frmMsgConsultar.errCodigo'), get('frmMsgConsultar.errDescripcion'));
+			 ocultarLista();
+	  }
+}
+
+function ocultarLista(){
+    listado1.setDatos(new Array());
+    document.all["Cplistado1"].style.visibility='hidden';
+    document.all["CpLin1listado1"].style.visibility='hidden';
+    document.all["CpLin2listado1"].style.visibility='hidden';
+    document.all["CpLin3listado1"].style.visibility='hidden';
+    document.all["CpLin4listado1"].style.visibility='hidden';
+    document.all["primera1Div"].style.visibility='hidden';
+    document.all["ret1Div"].style.visibility='hidden';
+    document.all["ava1Div"].style.visibility='hidden';
+    document.all["separaDiv"].style.visibility='hidden';
+}
+
+function buscar(){
+	ocultarLista();  
+  var formatoFecha = get("frmMsgConsultar.hFormatoFechaPais" );  
+  var fec = get("frmMsgConsultar.FImpresion");  
+  var OK = true;
+   
+  if (sicc_validaciones_generales() && OK){  
+  
+    if (fec != "") {
+     if (!EsFechaValida_SICC(fec , "frmMsgConsultar") ){
+                             GestionarMensaje("1006", formatoFecha, null, null);
+                             focaliza("frmMsgConsultar.FImpresion");
+                             return false;
+     }
+   }else
+         OK = true;
+  
+     var cliente =  get("frmMsgConsultar.codCliente");
+     var patron = get("frmMsgConsultar.cbCodPatron");
+     var Tperiodo = get("frmMsgConsultar.comboTipoPeriodo"); 
+     var periodo = get("frmMsgConsultar.comboPeriodo");
+     var lote  = get("frmMsgConsultar.NloteImpresion");
+     var impresion = get("frmMsgConsultar.FImpresion");  
+          
+     set("frmMsgConsultar.oidPatronH", patron);
+     set("frmMsgConsultar.codigoClienteH", cliente);
+     set("frmMsgConsultar.oidPeriodoH", Tperiodo);
+     set("frmMsgConsultar.oidPeriodo", periodo);
+     set("frmMsgConsultar.lote", lote);
+     set("frmMsgConsultar.impresion", impresion);
+     
+     set("frmMsgConsultar.conectorAction","LPConsultarMensajes");   
+     set("frmMsgConsultar.accion","Consultar mensajes consultora");
+     enviaSICC('frmMsgConsultar');
+	 }	
+}
+
+function seteaValores(sRs){
+
+  /*
+   * dmorello, 13/01/2006
+   * Se observó que, si el texto del mensaje se compone de varias líneas,
+   * no se muestra la lista de resultados en pantalla. Esto se debe a que la llamada
+   * a seteaValores queda formada también por esos saltos de línea, resultando, por
+   * ejemplo:
+   *         seteaValores('&lt;txt&gt;Linea 1&lt;/txt&gt;
+   * 
+   *         &lt;txt/&gt;')
+   *
+   * De este modo, nos queda una llamada a JavaScript incorrecta.
+   * Para evitar esto, los caracteres fin de línea fueron reemplazados por otros en la LP
+   * a fin de que aquí sean restaurados y se pueda realizar adecuadamente el seteo de valores.
+   */
+  //alert("sRs antes de restaurar: "+sRs);
+
+  /*
+   * dmorello, 18/01/2006
+   * Se restaura el String original con los cambios de línea
+   */
+  var sRsArray = sRs.split("~");
+  var sRsArrayLength = sRsArray.length;
+  sRs = "";
+  for (var i = 0; i < sRsArrayLength; i++) {
+           sRs += sRsArray[i];
+           if (i < sRsArrayLength - 1) {
+                sRs += '\r\n';
+           }
+  }
+
+  //alert("sRs luego de restaurar: "+sRs);
+
+  var lineas = sRs.split("|"); 
+  
+
+  mostrarLista();
+  var datosLista = new Array();
+  
+ if (lineas!= ''){ 
+     for ( var i = 0; i < lineas.length; i++)
+      {	
+            var valor =lineas[i].split("@");
+            
+            var elementoDos = "";
+            
+            if ( valor[1] != " "  ){
+             elementoDos = valor[0] + ', '  + valor[1];         
+             }
+            else{
+             elementoDos = valor[0];
+             }
+            datosLista[i]  = [i, elementoDos];
+            
+      
+      } 
+      
+     
+      listado1.setDatos(datosLista);
+   }else{
+   
+   }   
+      
+}
+
+
+ 
+        
+function tipoPeriodoOnChange(){
+	var pais = get('frmMsgConsultar.hPais');
+	var idioma = get('frmMsgConsultar.hIdioma');
+	var arr = new Array();
+
+	arr[arr.length] = new Array("oidPais", pais );
+	arr[arr.length] = new Array("oidIdioma", idioma );  
+	arr[arr.length] = new Array("oidTipoPeriodo", get("frmMsgConsultar.comboTipoPeriodo")+"");
+  
+  accion("frmMsgConsultar.comboPeriodo",".disabled=false");
+  recargaCombo('frmMsgConsultar.comboPeriodo', 'SEGObtenerPeriodosPorTipoPeriodo', 'es.indra.sicc.dtos.seg.DTOPeriodosPorTipoPeriodo',arr);
+
+}
+
+function buscarCliente() {
+          var obj = new Object();
+              var whnd = mostrarModalSICC('LPBusquedaRapidaCliente','',obj);
+              if(whnd==null){
+
+              }else{
+                  var oid;
+              
+                  var oid = whnd[0];
+                  var cod = whnd[1];
+                  var nombre1 = whnd[2];
+                  var apellido1 = whnd[4];
+                  set("frmMsgConsultar.codCliente", cod);    
+              
+              }     
+ }
+
+
+function fLimpiar(){   
+	set("frmMsgConsultar.codCliente", "");
+	set("frmMsgConsultar.FImpresion", "");
+	set("frmMsgConsultar.NloteImpresion","");
+	set("frmMsgConsultar.comboPeriodo","");	
+  set("frmMsgConsultar.comboTipoPeriodo", "");
+  var aCombo = new Array(new Array("",""));
+	set_combo("frmMsgConsultar.comboPeriodo",aCombo,[]);	
+  accion("frmMsgConsultar.comboPeriodo",".disabled=true");
+  focaliza("frmMsgConsultar.codCliente");	
+  
+}
+
+function mostrarLista(){
+	  document.all["Cplistado1"].style.visibility='';
+    document.all["CpLin1listado1"].style.visibility='';
+    document.all["CpLin2listado1"].style.visibility='';
+    document.all["CpLin3listado1"].style.visibility='';
+    document.all["CpLin4listado1"].style.visibility='';
+    document.all["primera1Div"].style.visibility='';
+    document.all["ret1Div"].style.visibility='';
+    document.all["ava1Div"].style.visibility='';
+    document.all["separaDiv"].style.visibility='';
+}
+
+
+function muestraLista(ultima, rowset) { 
+  var tamanio = rowset.length;
+  if (tamanio > 0) { 
+			mostrarLista();
+			mipgndo.lista.maxSel = -1;
+			return true;
+ }
+ else {
+			ocultarLista();
+			return false;
+		}
+}
+
+function cerrarVentana(){
+		window.close();
+}		
+
+function fVolver(){	
+		window.close();
+}
+function focalizaShTab(){  
+	focalizaBotonHTML('botonContenido','btnBuscar');	
+}
+
+function focalizaTab(){
+	focaliza("frmMsgConsultar.codCliente");	
+}
+
+
+function llenarDigitos(){
+              var txt  = document.getElementsByName("codCliente").item(0);
+              if(get('frmMsgConsultar.codCliente') != ''){
+              txt.value = get('frmMsgConsultar.codCliente');
+              
+              
+              var uno = txt.value;
+              var valor = new Array(10);
+              var valoraux = new Array();
+              
+              valor = txt.value;              
+             
+              var con = Math.abs(11);
+              
+              
+              var dif = con-valor.length;
+              
+              if(valor.length == con){
+                return;
+              }
+             if(valor.length < con){
+                   
+                  for(var i=0; i<dif;i++){
+                   valoraux= valoraux + '0';
+                }
+                
+            
+               set('frmMsgConsultar.codCliente', valoraux + uno );
+
+              }else{ 
+                  txt.value= "";
+            
+            }
+          }else{
+           
+          }
+        }
+       
+  
+]]> 
+
+
+<VALIDACION>
+	<ELEMENTO name="codCliente" required="true" cod="263"/>
+	<ELEMENTO name="comboTipoPeriodo" required="true" cod="132"/>
+	<ELEMENTO name="comboPeriodo" required="true" cod="276"/>
+	<!-- INC 22027 - dmorello, 22/12/2005: Se cambia el formato de N a E, ya que el número de lote es entero -->
+	<ELEMENTO name="NloteImpresion" required="false" cod="936" format="e" min="0" max ="999999999999"/>
+
+</VALIDACION>
+  
+</JAVASCRIPT>
+ 
+
+<FORMULARIO nombre="frmMsgConsultar" oculto="S">
+
+<VAR nombre="accion" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="errCodigo" valor=""/>
+<VAR nombre="conectorAction" valor=""/>
+
+
+<VAR nombre="hFormatoFechaPais" valor=""/>
+<VAR nombre="hPais" valor=""/>
+<VAR nombre="hIdioma" valor=""/>
+
+<VAR nombre="oidPeriodo" valor=""/>
+<VAR nombre="oidPatronH" valor=""/>
+<VAR nombre="codigoClienteH" valor=""/>
+<VAR nombre="oidPeriodoH" valor=""/>
+
+<VAR nombre="lote" valor=""/>
+<VAR nombre="impresion" valor=""/>
+
+
+    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr > 
+      <td><IMG src="b.gif"/></td>
+      <td >
+      
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="Seleccion"  alto="13" filas="1" valor="" id="legend" cod="0075"/></legend>
+	
+          <!---primera fila-->
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+             <table width="581" border="0" align="left" cellspacing="0" cellpadding="0">
+	                  <tr> 
+		            <td colspan="8"><IMG src="b.gif" width="8" height="8"/></td>
+		          </tr>
+		          <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td colspan="2"><LABELC nombre="CodCliente"  alto="13" filas="1" valor="" id="datosTitle" cod="263"/></td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td><LABELC nombre="TipoPeriodo"  alto="13" filas="1" valor="" id="datosTitle" cod="132"/></td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td><LABELC nombre="Periodo"  alto="13" filas="1" valor="" id="datosTitle" cod="276"/></td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td><LABELC nombre="CodPatron"  alto="13" filas="1" valor="" id="datosTitle" cod="823"/></td>
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td nowrap="nowrap"><CTEXTO nombre="codCliente" id="datosCampos" max="15" tipo="" onchange="llenarDigitos();" req="S" size="15" valor="" validacion="" onshtab="focalizaShTab();"/></td>
+	                    <td><IMG src="b.gif" width="8" height="8"/><IMG src="iconBuscar.gif" onclick="buscarCliente();"/></td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                   <td nowrap="nowrap"><COMBO nombre="comboTipoPeriodo" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial=""  onchange="tipoPeriodoOnChange();">
+			               <ROWSET>
+			                      	
+			               </ROWSET>
+			         </COMBO>
+			        
+			    </td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td nowrap="nowrap">
+                      <COMBO nombre="comboPeriodo" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="">
+                     <ROWSET>
+			                      	
+			               </ROWSET>
+			         </COMBO>
+			        
+			    </td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td valign="bottom"><COMBO nombre="cbCodPatron" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+			               <ROWSET>
+			                      	
+			               </ROWSET>
+			         </COMBO>
+			        
+			    </td>
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr> 
+	                    <td colspan="9"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	            </table>
+	     </td></tr>
+       <!---fin primera fila-->
+       <tr><td>
+             <table width="581" border="0" align="left" cellspacing="0" cellpadding="0">
+	                 
+		          <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td><LABELC nombre="NLoteImpresionLabel"  alto="13" filas="1" valor="" id="datosTitle" cod="936"/></td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td><LABELC nombre="lblFImpresion"  alto="13" filas="1" valor="" id="datosTitle" cod="1159"/></td>
+	                    
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+						<!-- INC 22027 - dmorello, 02/01/2006 -->
+						<!-- Se modifican de 6 a 10 el tamaño y la longitud máxima del textField NloteImpresion -->
+	                    <td nowrap="nowrap" valign="bottom"><CTEXTO nombre="NloteImpresion" id="datosCampos" max="10" tipo="" onchange="" req="N" size="10" valor="" validacion="" /></td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td nowrap="nowrap" valign="bottom"><CTEXTO nombre="FImpresion" id="datosCampos" max="10" tipo="" onchange="" req="N" size="10" valor="" validacion="" /></td>
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr> 
+	                    <td colspan="9"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	            </table>
+	     </td></tr>
+          </table>
+        </fieldset>
+          
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td >
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0" >        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnBuscar" ID="botonContenido" tipo="html" accion="buscar();" estado="false" cod="1" ontab="focalizaTab();"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>       
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+
+
+  <LISTAEDITABLE nombre="listado1" ancho="585" alto="317" x="12" y="169" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+        <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+        <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+        <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+     
+      <LINEAS>
+        <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="1" horizTitulo="1" horizBase="1"/> 
+        <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999"  /> 
+      </LINEAS>
+     <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00135" ID="datosTitle" />
+            <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+        <COL ancho="1000" minimizable="S" minimizada="N"/>
+        
+      </COLUMNAS>
+     
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC" ajustarAMitadInf="S">
+        <COL colFondo="" ID="EstCab" align="center" cod="531">Menasajes</COL> 
+	
+      </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+             coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+             onLoad="" colorSelecc="#D0D9E8">
+       <COL tipo="texto" ID="EstDat"/> 
+       
+      </DATOS>
+      <ROWSET>
+	<!--<ROW ID="2">
+	  <CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="COD1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+	</ROW>
+	<ROW ID="2">
+	  <CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="COD1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+	</ROW>
+	<ROW ID="2">
+	  <CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="COD1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+	</ROW>
+	<ROW ID="2">
+	  <CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="COD1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+	</ROW>
+	<ROW ID="2">
+	  <CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="COD1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+	</ROW>
+	<ROW ID="2">
+	  <CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="COD1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+	</ROW>
+	<ROW ID="2">
+	  <CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="COD1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+	</ROW>
+	<ROW ID="2">
+	  <CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="COD1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+	</ROW>
+	<ROW ID="2">
+	  <CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="COD1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+	</ROW>
+	<ROW ID="2">
+	  <CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="COD1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+	</ROW>-->
+      </ROWSET>
+      <PAGINADO nombre="mipgndo" ancho="585" sep="$" x="12" class="botonera" y="463" control="|" conector="conectorSandra" rowset="" cargainicial="N" onload="procesarPaginado(mipgndo,msgError, ultima, rowset, 'muestraLista(ultima, rowset)')">
+        <BOTON nombre="ret1" x="37" y="467" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+        <BOTON nombre="ava1" x="52" y="467" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>
+                
+    </PAGINADO>
+  </LISTAEDITABLE>
+  <BOTON nombre="primera1" x="20" y="467" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();"/>  
+  <BOTON nombre="separa" x="59" y="463" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />      
+  
+ <CAPA nombre="capaEspacio" alto="12" ancho="100%" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="483" zindex="">
+  </CAPA>                                            
+
+</FORMULARIO>
+
+
+</PAGINA>
+

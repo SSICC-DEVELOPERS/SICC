@@ -1,0 +1,1138 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_parametros_generales_mantener.xml,v 1.4 2011/06/20 22:42:04 peextsapaza Exp $
+   prueba arbol 
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+<PAGINA nombre="contenido_parametros_generales_mantener" cod="" titulo="Crear concurso" 
+estilos="estilosB3.css" colorf="#F0F0F0" msgle="" onload="onLoadPag();" xml:lang="es">
+
+<JS src="sicc_util.js"></JS> 
+<JS src="PaginacionSicc.js"></JS>
+<JS src="DruidaTransactionMare.js"></JS>
+<JS src="i18NJS.js"/>     
+<JS src="pestanyas_concurso_inc.js"/>
+<JS src="validaciones_sicc.js"/>
+
+<JAVASCRIPT>
+<![CDATA[ 
+
+function onLoadPag(){
+         configurarMenuSecundario("formulario");
+         btnProxy(1,'1');
+         btnProxy(5,'1');
+         asignarLabels();
+         asignarCombos();
+         asignarChecks();
+         asignarObservaciones();
+         
+         var menu = get("formulario.opcionMenu");
+         if (menu.toLowerCase() =="consultar concurso"){
+                  btnProxy(1,'0');
+                  btnProxy(5,'0');
+                  deshabilitaCampos();
+                  //El area de texto no se deshabilita, se pone en read only
+                  //para que el usuario pueda usar la barra de scroll vertical
+                  document.getElementById("atxtObservaciones").readOnly = true;
+         }
+         else if(menu.toLowerCase() =="modificar concurso") {
+                  btnProxy(2,'1');
+                  btnProxy(3,'0');
+                  btnProxy(7,'0');
+                  btnProxy(8,'0');
+                  btnProxy(9,'0');
+         }
+         else {
+                  focoNombreConcurso();
+         }
+	 //jrivas 30-1-2007 Dupla Cyzone
+	 if(get('formulario.hIndEstadoCalificion')!='S'){
+    	        set('formulario.ckDuplaCyzone', 'N');
+		accion("formulario.ckDuplaCyzone", ".disabled=true");
+	 }
+
+         finCargaPagina = true;
+}
+
+function fVolver() {
+         window.close();
+}
+
+function asignarObservaciones() {
+         var obser = get("formulario.tempObservaciones");
+         set("formulario.atxtObservaciones", obser);
+}
+
+function fLimpiar() {
+         onLoadPag();
+}
+
+function deshabilitaCampos(){
+  accion("formulario.txtNombreConcurso", ".disabled=true");
+  accion("formulario.ckActivarConcurso", ".disabled=true");
+  accion("formulario.cbMarca", ".disabled=true");
+  //accion("formulario.cbAcceso", ".disabled=true");
+  accion("formulario.cbPeriodoDesde", ".disabled=true");
+  accion("formulario.cbPeriodoHasta", ".disabled=true");
+  accion("formulario.txtExpresionPuntaje", ".disabled=true");
+  accion("formulario.ckDevoluciones", ".disabled=true");
+  accion("formulario.ckAnulaciones", ".disabled=true");
+  accion("formulario.ckFaltantesNoAnunciados", ".disabled=true");
+  accion("formulario.ckConcursoPruebas", ".disabled=true");
+  accion("formulario.cbTipoConcursoIVR", ".disabled=true");
+
+  //jrivas 1-2-2007 Dupla Cyzone
+  accion("formulario.ckDuplaCyzone", ".disabled=true");
+
+  //agregado por cvalenzu - cambio fac-003
+  accion("formulario.cbTipoPrograma", ".disabled=true");
+
+  // vbongiov -- Cambio 20080809 -- 7/04/2009
+  accion("formulario.ckNoGeneraPunt", ".disabled=true");
+
+  // vbongiov -- Cambio 20090930 -- 16/07/2009
+  accion("formulario.cbClasificacionConcurso", ".disabled=true");
+
+  // vbongiov -- PER-SiCC-2011-0042 -- 18/01/2011
+  accion("formulario.cbTipoOfertaConcurso", ".disabled=true");
+
+  // sapaza -- PER-SiCC-2011-0042 -- 18/01/2011
+  accion("formulario.ckMultiMarca", ".disabled=true");
+  accion("formulario.txtPuntosAbonar", ".disabled=true");
+
+  btnProxy(2, 1);
+  btnProxy(3, 0);
+  btnProxy(7, 0);
+  btnProxy(8, 0);
+  btnProxy(9, 0);
+}
+
+function focoNombreConcurso() {
+         focaliza("formulario.txtNombreConcurso");
+}
+
+function focoObservaciones() {
+         focaliza("formulario.atxtObservaciones");
+}
+
+function asignarLabels(){
+  txt_to('lbldtNumPlantilla', get('formulario.hdtNumPlantilla'));
+  txt_to('lbldtNombrePlantilla', get('formulario.hdtNombrePlantilla'));
+  txt_to('lblCanaldt', get('formulario.hDescCanal'));
+  txt_to('lbldtDirigida',  get('formulario.hDirigidoA') );
+}
+
+function asignarCombos(){
+  var marca = get('formulario.hMarca');
+  var accesos = get('formulario.hAccesos');  
+  var periodoDesde = get('formulario.hOidPeriodoDesde');    
+  var periodoHasta = get('formulario.hOidPeriodoHasta');  
+  var tipoConcursoIVR = get('formulario.hTipoConcursoIVR');
+
+  // vbongiov -- Cambio 20090930 -- 16/07/2009
+  var clasificacionConcurso = get('formulario.hClasificacionConcurso');
+
+  if(marca != null && marca != ''){
+    set('formulario.cbMarca', [marca]);
+    //recargaComboDesde();
+    //recargaComboHasta(); 
+	onChangeMarca();	
+	//onChangePeriodoDesde();	
+  }
+
+  if(tipoConcursoIVR != null && tipoConcursoIVR != ''){
+    set('formulario.cbTipoConcursoIVR', [tipoConcursoIVR]);
+  }
+
+  if(accesos != null && accesos != ''){
+    var vAccesos = accesos.split('|');
+    set('formulario.cbAcceso', vAccesos);
+  }
+
+  var tipoPrograma = get('formulario.hTipoPrograma');
+  if(tipoPrograma != null && tipoPrograma != ''){
+	set('formulario.cbTipoPrograma', [tipoPrograma]);
+  }
+
+  // vbongiov -- Cambio 20090930 -- 16/07/2009
+  if(clasificacionConcurso != null && clasificacionConcurso != ''){
+	set('formulario.cbClasificacionConcurso', [clasificacionConcurso]);
+  }
+  
+  // sapaza -- PER-SiCC-2011-0042 -- 18/01/2011
+  var tipoOfertaConcurso = get('formulario.hTipoOfertaConcurso');
+  if(tipoOfertaConcurso != null && tipoOfertaConcurso != ''){
+	set('formulario.cbTipoOfertaConcurso', [tipoOfertaConcurso]);
+  }
+  
+}
+
+function recargaComboDesde() {
+     recargaCombo("formulario.cbPeriodoDesde","CRAObtienePeriodos", "es.indra.sicc.dtos.cra.DTOPeriodo",armarArrayDTOPeriodo(),"marcaCombo(datos);");
+}
+
+function recargaComboHasta() {
+      recargaCombo("formulario.cbPeriodoDeHasta","CRAObtienePeriodos", "es.indra.sicc.dtos.cra.DTOPeriodo",armarArrayDTOPeriodo(),"marcaComboHasta(datos);");
+}
+
+function marcaCombo(datos) {
+         // Setea espacio en blanco.
+         var datosNuevo = new Array();
+ 
+         datosNuevo[0] = ["",""];
+
+         for (var i = 0; i < datos.length; i++ )
+                  datosNuevo[i+1]  = datos[i];
+
+         set_combo("formulario.cbPeriodoDesde", datosNuevo);
+
+         var oidDesde = get("formulario.hOidPeriodoDesde");
+  
+         var oidSeleccionada = new Array();
+         oidSeleccionada = oidDesde.split(",");	  
+  
+  set("formulario.cbPeriodoDesde", oidSeleccionada);
+
+}
+
+function marcaComboHasta(datos) {
+         // Setea espacio en blanco.
+         var datosNuevo = new Array();
+ 
+         datosNuevo[0] = ["",""];
+
+         for (var i = 0; i < datos.length; i++ )
+                  datosNuevo[i+1]  = datos[i];
+
+         set_combo("formulario.cbPeriodoHasta", datosNuevo);
+
+         var oidHasta = get("formulario.hOidPeriodoHasta");
+  
+         var oidSeleccionada = new Array();
+         oidSeleccionada = oidHasta.split(",");	  
+  
+  set("formulario.cbPeriodoHasta", oidSeleccionada);
+}
+
+function asignarChecks(){
+  var activarConcurso = get('formulario.hIndActivarConcurso');
+  var devoluciones = get('formulario.hIndDevoluciones');
+  var anulaciones = get('formulario.hIndAnulaciones');
+  var faltantesNoAnunciados = get('formulario.hIndFaltantesNoAnunciados');
+  var pruebas = get('formulario.hIndPruebas');
+  //jrivas 30-1-2007 Dupla Cyzone
+  var dupla = get('formulario.hIndDuplaCyzones');
+
+  // vbongiov -- Cambio 20080809 -- 7/04/2009
+  var noGeneraPunt = get('formulario.hIndNoGeneraPunt');
+  
+  // sapaza -- PER-SiCC-2012-0082 -- 16/05/2012
+  var multiMarca = get('formulario.hIndMultiMarca');
+
+  if(activarConcurso == 'S'){
+    set('formulario.ckActivarConcurso', 'S');
+  }else{
+    set('formulario.ckActivarConcurso', 'N');
+  }
+  
+  if(devoluciones == 'S'){
+    set('formulario.ckDevoluciones', 'S');
+  }else{
+    set('formulario.ckDevoluciones', 'N');
+  }
+
+  if(anulaciones == 'S'){
+    set('formulario.ckAnulaciones', 'S');
+  }else{
+    set('formulario.ckAnulaciones', 'N');
+  }
+
+  if(faltantesNoAnunciados == 'S'){
+    set('formulario.ckFaltantesNoAnunciados', 'S');
+  }else{
+    set('formulario.ckFaltantesNoAnunciados', 'N');
+  }
+
+  if(pruebas == 'S'){
+    set('formulario.ckConcursoPruebas', 'S');
+  }else{
+    set('formulario.ckConcursoPruebas', 'N');
+  }
+
+  //jrivas 30-1-2007 Dupla Cyzone
+  if(dupla == 'S'){
+    set('formulario.ckDuplaCyzone', 'S');
+  }else{
+    set('formulario.ckDuplaCyzone', 'N');
+  }
+
+  // vbongiov -- Cambio 20080809 -- 7/04/2009
+  if(noGeneraPunt == 'S'){
+    set('formulario.ckNoGeneraPunt', 'S');
+  }else{
+    set('formulario.ckNoGeneraPunt', 'N');
+  }
+  
+  // sapaza -- PER-SiCC-2012-0082 -- 16/05/2012
+  if(multiMarca == 'S'){
+    set('formulario.ckMultiMarca', 'S');
+  }else{
+    set('formulario.ckMultiMarca', 'N');
+  }
+  
+  cambioMultimarca();
+  
+}
+
+function pasarCamposAHiddens(){
+  pasarChecksAHiddens();
+  pasarCombosAHiddens();
+}
+
+function pasarChecksAHiddens(){
+  set('formulario.hIndActivarConcurso', get('formulario.ckActivarConcurso'));
+  set('formulario.hIndDevoluciones', get('formulario.ckDevoluciones'));
+  set('formulario.hIndAnulaciones', get('formulario.ckAnulaciones'));
+  set('formulario.hIndFaltantesNoAnunciados', get('formulario.ckFaltantesNoAnunciados'));
+  set('formulario.hIndPruebas', get('formulario.ckConcursoPruebas'));
+  //jrivas 30-1-2007 Dupla Cyzone
+  set('formulario.hIndDuplaCyzones', get('formulario.ckDuplaCyzone'));
+
+  // vbongiov -- Cambio 20080809 -- 7/04/2009
+  set('formulario.hIndNoGeneraPunt', get('formulario.ckNoGeneraPunt'));
+  
+  // vbongiov -- Cambio 20080809 -- 7/04/2009
+  set('formulario.hIndMultiMarca', get('formulario.ckMultiMarca'));
+}
+
+function pasarCombosAHiddens(){
+  set('formulario.hMarca', get('formulario.cbMarca')[0]);
+  set('formulario.hAccesos', obtenerAccesosSeleccionados());  
+  set('formulario.hOidPeriodoDesde', get('formulario.cbPeriodoDesde')[0]);
+  set('formulario.hOidPeriodoHasta', get('formulario.cbPeriodoHasta')[0]);
+  //Agregado por cvalenzu - 31/05/2006
+  set('formulario.codPeriodoDesde', get('formulario.cbPeriodoDesde', "T"));
+  set('formulario.codPeriodoHasta', get('formulario.cbPeriodoHasta', "T"));
+  //FIN - Agregado por cvalenzu - 31/05/2006
+  set('formulario.hTipoConcursoIVR', get('formulario.cbTipoConcursoIVR')[0]);
+
+  //Agregado por cvalenzu - 3/7/2007 - cambio fac-003
+  set('formulario.hTipoPrograma', get('formulario.cbTipoPrograma')[0]);
+  //Agregado por cvalenzu - 3/7/2007
+
+  // vbongiov -- Cambio 20090930 -- 16/07/2009
+  set('formulario.hClasificacionConcurso', get('formulario.cbClasificacionConcurso')[0]);
+
+  // sapaza -- PER-SiCC-2011-0042 -- 18/01/2011
+  var tipoOfertaConcurso = get('formulario.cbTipoOfertaConcurso');
+  if(tipoOfertaConcurso.length > 0)
+  	set('formulario.hTipoOfertaConcurso', get('formulario.cbTipoOfertaConcurso')[0]);
+  else	
+	set('formulario.hTipoOfertaConcurso', '');
+}
+
+function obtenerAccesosSeleccionados(){
+  var sAccesos = '';
+  var accesos = get('formulario.cbAcceso');
+  
+  for(var i = 0; i < accesos.length; i++){
+    if(sAccesos != ''){
+      sAccesos += '|';
+    }
+    sAccesos += accesos[i];
+  }
+  
+  return sAccesos;
+}
+
+function onClickPestanyaPagina(numPestanya, form, lp){
+
+  // Para validar formatos y que el combo Marca tenga valor
+
+  if ( sicc_validaciones_generales() ) {  
+           pasarCamposAHiddens();
+           onClickPestanyaHabilitadaAux(numPestanya, form, lp);
+         } else{
+                  return; //Cleal - 21049
+         }
+
+}
+
+// Funcion agregada por Cristian Valenzuela
+// 4-5-2006 - Cambios de Versionado
+function onChangePeriodoDesde() {
+	//alert("onChangePeriodoDesde");
+    var periodoDesde = get('formulario.cbPeriodoDesde');	
+	//alert("periodoDesde " + periodoDesde);
+
+	if(periodoDesde!="") {
+		recargaCombo('formulario.cbPeriodoHasta', 'CRAObtenerPeriodosPosterioresActivos', 'es.indra.sicc.dtos.cra.DTOPeriodo', armarArrayDTOPeriodoComboHasta(), "despuesCargarComboHasta(datos);");
+	}
+	else {
+		var array = new Array();
+        array[0] = ['', ''];    
+        set_combo('formulario.cbPeriodoHasta', array);         
+	}	
+}
+
+function despuesCargarComboHasta(datos) {
+	//alert("despuesCargarComboHasta");
+
+	var codPeriodoHasta = get("formulario.codPeriodoHasta");
+	var oidPeriodoHasta = get("formulario.oidPeriodoHasta");
+
+	//alert("codPeriodoHasta " + codPeriodoHasta);
+	//alert("oidPeriodoHasta " + oidPeriodoHasta);
+	
+	var datosNuevo = new Array(); 
+    datosNuevo[0] = ["",""];
+
+    for (var i = 0; i < datos.length; i++ )
+		datosNuevo[i+1]  = datos[i];
+
+    set_combo("formulario.cbPeriodoHasta", datosNuevo);
+
+	var menu = get("formulario.opcionMenu");
+	//1° Si la opcion del menu es modificar
+	if (menu.toLowerCase() == "modificar concurso" ||
+		menu.toLowerCase() == "crear concurso") {		
+		var comboHasta = document.getElementById("cbPeriodoHasta");
+		var longitud = comboHasta.options.length;
+		//alert("longitud " + longitud);
+		var existe = "false";
+
+		for(var i=0; i<longitud; i++) {				
+			var oidTemp = comboHasta.options[i].value; 
+			if(oidPeriodoHasta==oidTemp) existe = "true";
+		}		
+
+		//alert("existe " + existe);
+			
+		if(existe=="true") {
+			var oidSeleccionado = new Array();
+			oidSeleccionado = oidPeriodoHasta.split(",");	    
+			set("formulario.cbPeriodoHasta", oidSeleccionado);
+		}
+		else {
+			//"El periodo hasta % no es posterior al período desde"
+			GestionarMensaje('INC054', codPeriodoHasta);
+		}
+	}
+}
+
+function armarArrayDTOPeriodoComboHasta(){
+         var pais = get('formulario.hPais');
+         var marca = get('formulario.cbMarca');
+         var canal = get('formulario.hCanal'); 
+		 var periodoDesde = get('formulario.cbPeriodoDesde');
+  
+         var array = new Array();
+         var index = 0;
+
+         if( pais != null && pais != '' ){
+	         array[index] = new Array('pais', pais);
+             index++;
+         }	
+
+         if( marca != null && marca[0] != null && marca[0] != '' ){
+		     array[index] = new Array('marca', marca[0]);
+             index++;
+         }
+
+         if( canal != null && canal != '' ){
+			 array[index] = new Array('canal', canal);
+             index++;
+         }
+
+		 if( periodoDesde != null && periodoDesde != '' ){
+			 array[index] = new Array('oid', periodoDesde);
+             index++;
+         }
+  
+         return array;
+}
+
+// Funcion modificada por Cristian Valenzuela
+// 3-5-2006 - Cambios de versionado
+function onChangeMarca() {
+	//alert("onChangeMarca");
+
+	var codPeriodoDesde = get("formulario.codPeriodoDesde");
+	var oidPeriodoDesde = get("formulario.oidPeriodoDesde");
+	var codPeriodoHasta = get("formulario.codPeriodoHasta");
+	var oidPeriodoHasta = get("formulario.oidPeriodoHasta");
+
+	//alert("codPeriodoDesde " + codPeriodoDesde);
+	//alert("oidPeriodoDesde " + oidPeriodoDesde);
+	//alert("codPeriodoHasta " + codPeriodoHasta);
+	//alert("oidPeriodoHasta " + oidPeriodoHasta);
+
+	var menu = get("formulario.opcionMenu");
+	var oidVigenciaConcurso = get("formulario.oidVigenciaConcurso");
+
+	//1° Si la opcion del menu es distinta a consulta concurso
+    if (menu.toLowerCase() != "consultar concurso"){
+    	if((menu.toLowerCase() == "modificar concurso") && oidVigenciaConcurso == '1') {
+	    	var array = new Array();
+		    array[0] = [oidPeriodoDesde, codPeriodoDesde];    
+	        set_combo('formulario.cbPeriodoDesde', array);
+
+            var oidMarca = get('formulario.cbMarca');
+            var desMarca = get('formulario.cbMarca', "T");
+	        var array2 = new Array();
+		    array2[0] = [oidMarca, desMarca];    
+	        set_combo('formulario.cbMarca', array2);
+	        
+	        onChangePeriodoDesde();	 
+    	} else {
+			//alert("limpia combo periodo hasta");	
+			//2° Si limpia el combo periodo hasta
+			var array = new Array();
+	        array[0] = ['', ''];    
+	        set_combo('formulario.cbPeriodoHasta', array);         
+	
+			//alert("carga combo periodo desde");	
+			//3° Se carga el combo periodo desde
+			recargaCombo('formulario.cbPeriodoDesde', 'CRAObtenerPeriodosPosterioresActual', 'es.indra.sicc.dtos.cra.DTOPeriodo', armarArrayDTOPeriodo(), "despuesCargarComboDesde(datos);");
+		}			
+	}
+	else {
+		//alert("entro al else");
+		var array = new Array();
+	    array[0] = [oidPeriodoDesde, codPeriodoDesde];    
+        set_combo('formulario.cbPeriodoDesde', array);         
+
+		var array = new Array();
+        array[0] = [oidPeriodoHasta, codPeriodoHasta];    
+        set_combo('formulario.cbPeriodoHasta', array);         		
+	}
+}
+
+function despuesCargarComboDesde(datos) {
+	//alert("despuesCargarComboDesde");
+
+	var codPeriodoDesde = get("formulario.codPeriodoDesde");
+	var oidPeriodoDesde = get("formulario.oidPeriodoDesde");
+	var codPeriodoHasta = get("formulario.codPeriodoHasta");
+	var oidPeriodoHasta = get("formulario.oidPeriodoHasta");
+
+	//alert("codPeriodoDesde " + codPeriodoDesde);
+	//alert("oidPeriodoDesde " + oidPeriodoDesde);
+	//alert("codPeriodoHasta " + codPeriodoHasta);
+	//alert("oidPeriodoHasta " + oidPeriodoHasta);
+
+	var datosNuevo = new Array(); 
+    datosNuevo[0] = ["",""];
+
+    for (var i = 0; i < datos.length; i++ )
+		datosNuevo[i+1]  = datos[i];
+
+	//alert("cargando combo desde");
+    set_combo("formulario.cbPeriodoDesde", datosNuevo);
+	
+	var menu = get("formulario.opcionMenu");
+	if (menu.toLowerCase() == "modificar concurso" ||
+		menu.toLowerCase() == "crear concurso"){
+		//alert("entro al if");	
+
+		var comboDesde = document.getElementById("cbPeriodoDesde");
+		var longitud = comboDesde.options.length;
+		//alert("longitud " + longitud);
+		var existe = "false";
+
+		for(var i=0; i<longitud; i++) {				
+			var oidTemp = comboDesde.options[i].value; 
+			//alert("oidTemp " + oidTemp);
+			//alert("oidPeriodoDesde " + oidPeriodoDesde);
+			if(oidPeriodoDesde==oidTemp) {
+				existe = "true";
+			}
+		}		
+			
+		//alert("existe " + existe)
+		if(existe=="true") {
+			//alert("selecciona");
+			var oidSeleccionado = new Array();
+			oidSeleccionado = oidPeriodoDesde.split(",");	    
+			set("formulario.cbPeriodoDesde", oidSeleccionado);
+
+			onChangePeriodoDesde();	
+		}
+		else {
+			//alert("mensaje");
+			//"El periodo desde % no es posterior al período actual"
+			GestionarMensaje('INC053', codPeriodoDesde);
+		}
+	}
+}
+
+function armarArrayDTOPeriodo(){
+         var pais = get('formulario.hPais');
+         var marca = get('formulario.cbMarca');
+         var canal = get('formulario.hCanal');   
+  
+         var array = new Array();
+         var index = 0;
+
+         if( pais != null && pais != '' ){
+                  array[index] = new Array('pais', pais);
+                  index++;
+         }	
+
+         if( marca != null && marca[0] != null && marca[0] != '' ){
+                  array[index] = new Array('marca', marca[0]);
+                  index++;
+         }
+
+         if( canal != null && canal != '' ){
+                  array[index] = new Array('canal', canal);
+                  index++;
+         }
+  
+         return array;
+}
+
+function comprobarDatosObligatorios(){
+         // Comprueba que los campos marcados como obligatorios, tengan valor .
+         // Si alguno no contiene valor, retorna false. Si todos están rellenos, retorna true.
+         // Nota especial con el combo Marca, que no se valida acá porque debe poseer un valor sí o sí para pasar de pantalla.
+
+         var txtNombreConcurso = get('formulario.txtNombreConcurso');
+         var cbPeriodoDesde = get('formulario.cbPeriodoDesde');
+         var txtExpresionPuntaje = get('formulario.txtExpresionPuntaje');
+         var retorno = false;
+
+         if (txtNombreConcurso != "" && cbPeriodoDesde != "" && txtExpresionPuntaje != "")
+                  retorno = true;
+
+         return retorno;
+}
+
+function fGuardar() {
+		if(!sicc_validaciones_generales('camposOpcionales')) {
+			return;
+        }	
+
+         // Modificado por ssantana, 30/5/2005
+         if ( sicc_validaciones_generales() ) {
+                  var validacionObligatorios = comprobarDatosObligatorios();
+                  //alert(validacionObligatorios);
+                  
+                  if ( validacionObligatorios ){
+                           set('formulario.datosObligatorios', 'S');
+                           set("formulario.hOidPeriodoDesde" , get("formulario.cbPeriodoDesde"));
+                           set("formulario.hOidPeriodoHasta", get("formulario.cbPeriodoHasta"));
+                           set("formulario.hMarca", get("formulario.cbMarca"));
+                           set("formulario.hCanal",get("formulario.hCanal"));
+                  }else
+                           set('formulario.datosObligatorios', 'N');
+
+                  pasarCamposAHiddens();
+
+                  eval('formulario').oculto = 'S';
+                  set('formulario.conectorAction', 'LPMantenerParametrosGenerales');
+                  set('formulario.accion', 'guardar');
+                  enviaSICC("formulario", "", "", "N");
+         } else{
+                  return; //Cleal - 21049
+         }
+}
+
+function onchangeAcceso() {
+         var menu = get("formulario.opcionMenu");
+         if (menu.toLowerCase() =="consultar concurso"){
+                  var accesos = get('formulario.hAccesos');
+
+                  if(accesos != null && accesos != ''){
+                           var vAccesos = accesos.split('|');
+                      set('formulario.cbAcceso', vAccesos);
+                    }
+             return false;
+         }
+}
+
+function cambioMultimarca() {
+	if(get('formulario.ckMultiMarca')=="S") {
+		accion("formulario.txtPuntosAbonar", ".disabled=false");
+	}
+	else {
+		accion("formulario.txtPuntosAbonar", ".disabled=true");
+		set("formulario.txtPuntosAbonar", "");
+	}
+}          
+
+]]> 
+</JAVASCRIPT>
+
+<VALIDACION>
+  <ELEMENTO name="txtNombreConcurso" required="true" cod="1605" format="t" max="75"/>
+  <ELEMENTO name="cbMarca" required="true" cod="0069"/>
+  <ELEMENTO name="cbPeriodoDesde" required="true" cod="1175"/>
+  <ELEMENTO name="txtExpresionPuntaje" required="true" cod="1627" format="t"/>
+  <ELEMENTO name="cbTipoOfertaConcurso" required="false" cod="3483"/>  
+
+  <ELEMENTO name="atxtObservaciones" required="false" cod="169" format="t" max="256" group="camposOpcionales"/>
+   
+  <ELEMENTO name="txtPuntosAbonar" required="false" min="0" max="9999999" format="e" cod="3490"/>   
+</VALIDACION>
+
+<FORMULARIO nombre="formulario" oculto="N">
+
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="accion" valor=""/>
+<VAR nombre="errCodigo" valor=""/> 
+<VAR nombre="errDescripcion" valor=""/>
+
+<VAR nombre="idPestanyaDest" valor=""/>
+<VAR nombre="hOidConcurso" valor=""/>
+<VAR nombre="datosObligatorios" valor=""/>
+
+<!--Contiene el valor del label lbldtNumPlantilla-->
+<VAR nombre="hdtNumPlantilla" valor=""/>
+<VAR nombre="hOidPlantilla" valor=""/>
+
+<!--Contiene el valor del label lbldtNumPlantilla-->
+<VAR nombre="hdtNombrePlantilla" valor=""/>
+<VAR nombre="hIndActivarConcurso" valor=""/>
+
+<VAR nombre="hPais" valor=""/>
+<VAR nombre="hMarca" valor=""/>
+<VAR nombre="hCanal" valor=""/>
+<VAR nombre="hDescCanal" valor=""/>
+
+<!--Contiene los valores de los oids seleccionados en el combo de Accesos-->
+<!--El formato es: xx|xx|xx|xx|xx|xx|..-->
+<VAR nombre="hAccesos" valor=""/>
+
+<VAR nombre="hOidPeriodoDesde" valor=""/>
+<VAR nombre="hOidPeriodoHasta" valor=""/>
+
+<VAR nombre="hIndDevoluciones" valor=""/>
+<VAR nombre="hIndAnulaciones" valor=""/>
+<VAR nombre="hIndFaltantesNoAnunciados" valor=""/>
+
+<VAR nombre="hOidDirigidoA" valor=""/>
+<VAR nombre="hDirigidoA" valor=""/>
+<VAR nombre="hIndPruebas" valor=""/>
+<VAR nombre="hTipoConcursoIVR" valor=""/>
+
+<VAR nombre="opcionMenu" valor=""/>
+<VAR nombre="tempObservaciones" valor=""/>
+
+<!--jrivas 30-1-2007 Dupla Cyzone-->
+<VAR nombre="hIndDuplaCyzones" valor=""/>
+
+<!--vbongiov - Cambio 20080809 - 7/04/2009-->
+<VAR nombre="hIndNoGeneraPunt" valor=""/>
+
+<!--FLAGS DE ESTADO DE PESTANYAS-->
+<!--"S" == habilitado-->
+<VAR nombre="hIndEstadoProductos" valor=""/>
+<VAR nombre="hIndEstadoAmbitoGeografico" valor=""/>
+<VAR nombre="hIndEstadoCalificion" valor=""/>
+<VAR nombre="hIndEstadoGerentes" valor=""/>
+<VAR nombre="hIndEstadoConsultoras" valor=""/>
+<VAR nombre="hIndEstadoProgramaNuevas" valor=""/>
+<VAR nombre="hIndEstadoMultinivel" valor=""/>
+
+<!-- VARIABLES AGREGADAS POR CVALENZU 3/5/2006 -->
+<!-- CAMBIOS - VERSIONADO -->
+<VAR nombre="oidPeriodoDesde" valor=""/>
+<VAR nombre="oidPeriodoHasta" valor=""/>
+<VAR nombre="codPeriodoDesde" valor=""/>
+<VAR nombre="codPeriodoHasta" valor=""/>
+
+<!-- VARIABLE AGREGADA POR CVALENZU 3/7/2007 -->
+<!-- CAMBIO FAC-003 -->
+<VAR nombre="hTipoPrograma" valor=""/>
+
+<!--vbongiov - Cambio 20090930 - 16/07/2009-->
+<VAR nombre="hClasificacionConcurso" valor=""/>
+
+<!--sapaza - PER-SiCC-2011-0042 - 18/01/2011-->
+<VAR nombre="hTipoOfertaConcurso" valor=""/>
+
+<!--sapaza - PER-SiCC-2011-0295 - 17/06/2011-->
+<VAR nombre="oidVigenciaConcurso" valor=""/>
+
+<!--sapaza - PER-SiCC-2012-0082 - 16/05/2012-->
+<VAR nombre="hIndMultiMarca" valor=""/>
+
+<!-- DEFINICION DE PESTANYAS -->
+
+ <table width="100%" height="100%" border="0" align="center" cellpadding="0" cellspacing="0" class="menu4">
+  <tr> 
+    <td width="12" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="12" height="30"/></td>
+    <td nowrap="nowrap" class="menu5texto">&nbsp;</td>
+    <td width="10" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="92" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" bgcolor="#496A9A">
+         <tr align="center"> 
+           <td nowrap="nowrap"><LABELC nombre="lblParametrosGenerales"  alto="13" filas="1" valor=""  id="menu5textoblanca" cod="00393"/></td>
+         </tr>
+      </table>
+    </td>
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="activarPunteroAux('formulario', 5, 'lblProductos');" onclick="onClickPestanyaPagina(5, 'formulario', 'LPMantenerParametrosGenerales');">
+         <tr align="center"> 
+           <td nowrap="nowrap" ><LABELC nombre="lblProductos"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="0094"/></td>
+         </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="activarPunteroAux('formulario', 6, 'lblPremios');" onclick="onClickPestanyaPagina(6, 'formulario', 'LPMantenerParametrosGenerales');">
+         <tr align="center"> 
+           <td nowrap="nowrap" ><LABELC nombre="lblPremios"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00394"/></td>
+         </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="activarPunteroAux('formulario',7,'lblRequisitos');" onclick="onClickPestanyaPagina(7, 'formulario', 'LPMantenerParametrosGenerales');">
+         <tr align="center"> 
+           <td nowrap="nowrap"  ><LABELC nombre="lblRequisitos"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00395"/></td>
+         </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="activarPunteroAux('formulario', 4, 'lblObtencionPuntos');" onclick="onClickPestanyaPagina(4, 'formulario', 'LPMantenerParametrosGenerales');">
+         <tr align="center"> 
+           <td nowrap="nowrap" ><LABELC nombre="lblObtencionPuntos"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00396"/></td>
+         </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="activarPunteroAux('formulario', 8, 'lblDespachoPremios');" onclick="onClickPestanyaPagina(8, 'formulario', 'LPMantenerParametrosGenerales');">
+         <tr align="center"> 
+           <td nowrap="nowrap" ><LABELC nombre="lblDespachoPremios"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00397"/></td>
+         </tr>
+      </table>
+   </td>
+  
+    <td width="16" class="menu5texto"><IMG src="b.gif" width="12" height="8"/></td>
+  </tr>
+</table>         
+ <table width="100%" height="100%" border="0" align="center" cellpadding="0" cellspacing="0" class="menu4">
+  <tr> 
+    <td width="12" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="12" height="30"/></td>
+    <td nowrap="nowrap" class="menu5texto">&nbsp;</td>
+    <td width="10" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+     <td width="70" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="activarPunteroAux('formulario', 3, 'lblAmbitoGeografico');" onclick="onClickPestanyaPagina(3, 'formulario', 'LPMantenerParametrosGenerales');">
+         <tr align="center"> 
+           <td nowrap="nowrap" ><LABELC nombre="lblAmbitoGeografico"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="2801"/></td>
+         </tr>
+      </table>
+    </td>
+    <td width="10" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+     <td width="70" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="activarPunteroAux('formulario', 9, 'lblCalificacion');" onclick="onClickPestanyaPagina(9, 'formulario', 'LPMantenerParametrosGenerales');">
+         <tr align="center"> 
+           <td nowrap="nowrap" ><LABELC nombre="lblCalificacion"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00398"/></td>
+         </tr>
+      </table>
+    </td>
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="activarPunteroAux('formulario', 10, 'lblGerentes');" onclick="onClickPestanyaPagina(10, 'formulario', 'LPMantenerParametrosGenerales');">
+         <tr align="center"> 
+           <td nowrap="nowrap" ><LABELC nombre="lblGerentes"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00399"/></td>
+         </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+   <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="activarPunteroAux('formulario', 11, 'lblConsultoras');" onclick="onClickPestanyaPagina(11, 'formulario', 'LPMantenerParametrosGenerales');">
+         <tr align="center"> 
+           <td nowrap="nowrap" ><LABELC nombre="lblConsultoras"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00401"/></td>
+         </tr>
+      </table>
+   </td>
+   
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+   
+         <td width="20" nowrap="nowrap" class="menu5texto">
+   <table width="75" border="1" align="center" cellpadding="1" cellspacing="0" ID="DatosGenerales" 
+        bordercolor="#496A9A" onclick="onClickPestanyaPagina(2, 'formulario', 'LPMantenerParametrosGenerales');" onmouseover="activarPunteroAux('formulario', 2, 'lblProgramaNuevas');">
+         <tr align="center"> 
+           <td nowrap="nowrap"><LABELC nombre="lblProgramaNuevas"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00590"/></td>
+         </tr>
+      </table>
+   </td>
+   
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onclick="onClickPestanyaPagina(12, 'formulario', 'LPMantenerParametrosGenerales');" onmouseover="activarPunteroAux('formulario', 12, 'lblMultinivel');">
+         <tr align="center"> 
+           <td nowrap="nowrap"><LABELC nombre="lblMultinivel"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00400"/></td>
+         </tr>
+      </table>
+   </td>
+    <td width="16" class="menu5texto"><IMG src="b.gif" width="12" height="8"/></td>
+  </tr>
+</table>                                                                                                             
+
+<!-- FIN DEFINICION DE PESTANYAS -->
+
+<CAPA nombre="capa1">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+         <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+         <td width="750" ><IMG src="b.gif"/></td>
+         <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+<!--**************************-->
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+         <fieldset><legend class="legend"><LABELC nombre="lblDatosPrincipales"  alto="13" filas="1" valor="" id="legend" cod="00282"/></legend>
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+           <tr><td>
+           <!---primera fila-->
+                <table width="730" border="0" align="left" cellspacing="0" cellpadding="0">
+                  <tr> 
+                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td><LABELC nombre="lblNumPlantilla" alto="13" filas="1" valor="" id="datosTitle" cod="1606"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td><LABELC nombre="lblNombrePlantilla"  alto="13" filas="1" valor="" id="datosTitle" cod="743"/></td>
+                     <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr> 
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td><LABELC nombre="lbldtNumPlantilla" alto="13" filas="1" valor="" id="datosCampos"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td><LABELC nombre="lbldtNombrePlantilla"  alto="13" filas="1" valor="" id="datosCampos" /></td>
+                     <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr> 
+                  <tr>
+                     <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                  
+                </table>
+             </td></tr>
+            <tr><td>
+                <table width="730" border="0" align="left" cellspacing="0" cellpadding="0">
+                 <!-- CAMBIO FAC-003 - nuevo combo tipo programa -->
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td><LABELC nombre="lblNombreConcurso"  alto="13" filas="1" valor="" id="datosTitle" cod="1605"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td><LABELC nombre="lblTiposPrograma"  alto="13" filas="1" valor="" id="datosTitle" cod="3165"/></td>        
+					 <td><IMG src="b.gif" width="25" height="8"/></td>
+					 <td><LABELC nombre="lblActivarConcurso"  alto="13" filas="1" valor="" id="datosTitle" cod="1669"/></td>
+					 <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr> 
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td nowrap="nowrap"><CTEXTO nombre="txtNombreConcurso" id="datosCampos" max="75" tipo="" onchange="" req="S" size="75" valor="" validacion="" onshtab="focoObservaciones();"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+					 <td nowrap="nowrap" valign="bottom"><COMBO nombre="cbTipoPrograma" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                                   <ROWSET>                                         
+                                   </ROWSET>
+                            </COMBO> 
+                     </td>
+					 <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td valign="bottom"><CHECKBOX nombre="ckActivarConcurso" id="datosCampos" onclick="" check="S"/></td>
+                     <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                  <tr>
+                     <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                  <!-- CAMBIO FAC-003 -->
+                </table>
+        </td></tr>
+        <tr><td>
+              <table width="730" border="0" align="left" cellspacing="0" cellpadding="0">
+              
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                      <td><LABELC nombre="lblMarca"  alto="13" filas="1" valor="" id="datosTitle" cod="6"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td><LABELC nombre="lblCanal" alto="13" filas="1" valor="" id="datosTitle" cod="7"/></td>
+                     <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                  <tr>
+                      <td><IMG src="b.gif" width="8" height="8"/></td>
+                      <td nowrap="nowrap"><COMBO nombre="cbMarca" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onchange="onChangeMarca()">
+                                   <ROWSET>
+                                           		
+                                   </ROWSET>
+                            </COMBO> 
+                     </td>
+                      <td><IMG src="b.gif" width="25" height="8"/></td>
+                      <td><LABELC nombre="lblCanaldt" alto="13" filas="1" valor="" id="datosCampos"/></td>
+                     <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                  <tr> 
+                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr> 
+                </table>
+          </td></tr>
+          
+          <tr><td>
+                <table width="730" border="0" align="left" cellspacing="0" cellpadding="0">
+              
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                      <td><LABELC nombre="lblAcceso"  alto="13" filas="1" valor="" id="datosTitle" cod="10"/></td>
+                      <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td><LABELC nombre="lblPeriodoDesde"  alto="13" filas="1" valor="" id="datosTitle" cod="1175"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td><LABELC nombre="lblPeriodoHasta"  alto="13" filas="1" valor="" id="datosTitle" cod="1176"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td><LABELC nombre="lblDirigida"  alto="13" filas="1" valor="" id="datosTitle" cod="1626"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+		     <td><LABELC nombre="lblDuplaCyzone"  alto="13" filas="1" valor="" id="datosTitle" cod="3437"/></td>
+					  <td><IMG src="b.gif" width="25" height="8"/></td>
+					  <td><LABELC nombre="lblNoGeneraPunt"  alto="13" filas="1" valor="" id="datosTitle" cod="3399"/></td>
+                     <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                  <tr>
+                      <td><IMG src="b.gif" width="8" height="8"/></td>
+                      <td nowrap="nowrap"><COMBO nombre="cbAcceso" id="datosCampos" size="5" multiple="S" req="N" valorinicial="" textoinicial="" onchange="onchangeAcceso();">
+                                   <ROWSET>
+                                   </ROWSET>
+                            </COMBO> 
+                     </td>
+                        <td><IMG src="b.gif" width="25" height="8"/></td>
+                      <td nowrap="nowrap" valign="top"><COMBO nombre="cbPeriodoDesde" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onchange="onChangePeriodoDesde();">
+                                   <ROWSET>
+                                           		
+                                   </ROWSET>
+                            </COMBO> 
+                     </td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                      <td nowrap="nowrap" valign="top"><COMBO nombre="cbPeriodoHasta" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                                   <ROWSET>
+                                           		
+                                   </ROWSET>
+                            </COMBO> 
+                     </td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>  
+                     <td valign="top"><LABELC nombre="lbldtDirigida"  alto="13" filas="1" valor="" id="datosCampos" /></td>
+		     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td valign="top"><CHECKBOX nombre="ckDuplaCyzone" id="datosCampos" onclick="" check="N"/></td>
+					 <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td valign="top"><CHECKBOX nombre="ckNoGeneraPunt" id="datosCampos" onclick="" check="N"/></td>
+                     <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                  <tr> 
+                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr> 
+                </table>
+         </td></tr>
+         <tr><td>
+                <table width="730" border="0" align="left" cellspacing="0" cellpadding="0">
+              
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td><LABELC nombre="lblExpresionPuntaje" alto="13" filas="1" valor="" id="datosTitle" cod="1627"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td><LABELC nombre="lblDevoluciones"  alto="13" filas="1" valor="" id="datosTitle" cod="1623"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td><LABELC nombre="lblAnulaciones" alto="13" filas="1" valor="" id="datosTitle" cod="1624"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td><LABELC nombre="lblFaltantesNoAnunciados" alto="13" filas="1" valor="" id="datosTitle" cod="1625"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td><LABELC nombre="lblConcursoPruebas" alto="13" filas="1" valor="" id="datosTitle" cod="1628"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td><LABELC nombre="lblTipoConcursoIVR"  alto="13" filas="1" valor="" id="datosTitle" cod="2417"/></td>
+                     <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                  <tr>
+                      <td><IMG src="b.gif" width="8" height="8"/></td>
+                      <td nowrap="nowrap" valign="top"><CTEXTO nombre="txtExpresionPuntaje" id="datosCampos" max="15" tipo="" onchange="" req="S" size="19" valor="" validacion="" /></td>
+                      <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td valign="bottom"><CHECKBOX nombre="ckDevoluciones" id="datosCampos" onclick="" check="S"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td valign="bottom"><CHECKBOX nombre="ckAnulaciones" id="datosCampos" onclick="" check="S"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>  
+                     <td valign="bottom"><CHECKBOX nombre="ckFaltantesNoAnunciados" id="datosCampos" onclick="" check="S"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td> 
+                     <td valign="bottom"><CHECKBOX nombre="ckConcursoPruebas" id="datosCampos" onclick="" check="N" req="N"/></td> 
+                     <td><IMG src="b.gif" width="25" height="8"/></td> 
+                     <td nowrap="nowrap" valign="bottom"><COMBO nombre="cbTipoConcursoIVR" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                                   <ROWSET>
+                                         <!--ROW ID="1">
+                                                      <CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="00"/>
+                                                      <CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="Constancia"/>
+                                             </ROW>	
+                                             <ROW ID="2">
+                                                      <CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="01"/>
+                                                      <CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="Pasar pedido"/>
+                                             </ROW-->		
+                                   </ROWSET>
+                            </COMBO> 
+                     </td>
+                     <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr> 
+                  <tr> 
+                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr> 
+                </table>
+         </td></tr>
+         <tr><td>
+                <table width="730" border="0" align="left" cellspacing="0" cellpadding="0">
+                  
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td><LABELC nombre="lblClasificacionConcurso"  alto="13" filas="1" valor="" id="datosTitle" cod="3438"/></td>
+                     <td><IMG src="b.gif" width="35" height="8"/></td>
+					 <td><LABELC nombre="lblObservaciones"  alto="13" filas="1" valor="" id="datosTitle" cod="169"/></td>
+                     <td><IMG src="b.gif" width="35" height="8"/></td>
+                     <td><LABELC nombre="lblTipoOfertaConcurso"  alto="13" filas="1" valor="" id="datosTitle" cod="3483"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td><LABELC nombre="lblMultiMarca"  alto="13" filas="1" valor="" id="datosTitle" cod="3489"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td><LABELC nombre="lblPuntosAbonar"  alto="13" filas="1" valor="" id="datosTitle" cod="3490"/></td>
+                     <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr> 
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+					 <td nowrap="nowrap" valign="top"><COMBO nombre="cbClasificacionConcurso" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                                   <ROWSET>                                           		
+                                   </ROWSET>
+                            </COMBO> 
+                     </td>
+					 <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td nowrap="nowrap">
+                            <AREATEXTO cols="50" id="datosCampos" msjreq="" nombre="atxtObservaciones" readOnly="N"
+                          req="N" rows="3" tabindex="2" valor="" max="256" ontab="focoNombreConcurso();"/>
+                     </td>
+                     <td><IMG src="b.gif" width="35" height="8"/></td>
+					 <td nowrap="nowrap" valign="top">
+					 		<COMBO nombre="cbTipoOfertaConcurso" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                                   <ROWSET>                                           		
+                                   </ROWSET>
+                            </COMBO> 
+                     </td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>                     
+                     <td nowrap="nowrap" valign="top"><CHECKBOX nombre="ckMultiMarca" id="datosCampos" onclick="cambioMultimarca();" check="S"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+					 <td nowrap="nowrap" valign="top"><CTEXTO nombre="txtPuntosAbonar" id="datosCampos" max="7" tipo="" onchange="" size="9" valor="" validacion="" disabled="S"/></td>                     
+                     <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                  <tr>
+                  <td colspan="6"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                  
+                </table>
+           </td></tr>
+          </table>
+         </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr>
+    <tr>
+         <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+         <td width="756" ><IMG src="b.gif"/></td>
+         <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+ </CAPA>
+ </FORMULARIO>
+</PAGINA>                                                                                                                                                                                      
+                                                                                            
+

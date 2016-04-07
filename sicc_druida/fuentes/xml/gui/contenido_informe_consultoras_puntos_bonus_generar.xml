@@ -1,0 +1,411 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_informe_consultoras_puntos_bonus_generar.xml,v 1.1 2009/12/03 18:44:04 pecbazalar Exp $
+   contenido CCC
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_informe_consultoras_puntos_bonus_generar" cod="0858" titulo="Generar informe consultoras puntos bonus" estilos="estilosB3.css" colorf="#F0F0F0" 
+	msgle="" onload="onLoad()" xml:lang="es">
+
+
+<JS src="sicc_util.js"/>
+<JS src="PaginacionSicc.js"/>
+<JS src="DruidaTransactionMare.js"/>
+
+
+<JAVASCRIPT>
+  
+  <![CDATA[
+  
+   function onLoad(){
+    
+    configurarMenuSecundario('Formulario');
+    fMostrarMensajeError();
+    setearPais();
+    cambioPais();
+    focaliza('Formulario.cbPais');
+  
+  }
+
+//------------------------------------------------------------------------------
+  
+  function setearPais(){
+  
+    var pais = get('Formulario.pais');
+    
+    iSeleccionado = new Array();
+    iSeleccionado[0] = pais;
+    set('Formulario.cbPais',iSeleccionado);
+    
+  }
+  
+//------------------------------------------------------------------------------
+  
+  function fLimpiar(){
+    
+    var aCombo = new Array(new Array("",""));
+    
+    set_combo('Formulario.cbSubgerenciaVentas', aCombo, []);
+    set_combo('Formulario.cbRegion', aCombo, []);
+    set_combo('Formulario.cbZona', aCombo, []);
+    set_combo('Formulario.cbTerritorio', aCombo, []);
+    set_combo('Formulario.cbNumConcurso', aCombo, []);
+    
+    focaliza('Formulario.cbPais');
+    
+  } 
+   
+//------------------------------------------------------------------------------
+  
+  
+  function cambioPais(){
+    
+    opciones = new Array();
+    
+    pais = get('Formulario.cbPais');
+    
+    if(pais != ''){
+      
+      var arr = new Array();
+      arr[arr.length] = ["oidPais", pais];
+      recargaCombo("Formulario.cbSubgerenciaVentas", "ZONRecargaSubgerenciaVentas", "es.indra.sicc.dtos.zon.DTOUnidadAdministrativa",arr);
+                                                    
+      var arrConcurso = new Array();
+      arrConcurso[arrConcurso.length] = ["oidPais", pais]; 
+      arrConcurso[arrConcurso.length] = ["oidAgrugacion", "0"];
+      recargaCombo('Formulario.cbNumConcurso','INCObtenerConcursosREP', 'es.indra.sicc.dtos.inc.DTOBusquedaClienteCalificado',arrConcurso );
+    
+    }else{
+      
+      var aCombo = new Array(new Array("",""));
+      set_combo('Formulario.cbSubgerenciaVentas',aCombo, []);
+      set_combo('Formulario.cbRegion',aCombo, []);
+      set_combo('Formulario.cbZona',aCombo, []);
+      set_combo('Formulario.cbTerritorio',aCombo, []);
+      set_combo('Formulario.cbNumConcurso',aCombo, []);
+    }
+  
+  }
+
+//------------------------------------------------------------------------------
+
+  function cambioSGV(){
+    
+    opciones = new Array();
+    
+    set_combo('Formulario.cbRegion',opciones);
+    set_combo('Formulario.cbZona',opciones);
+    set_combo('Formulario.cbTerritorio',opciones);
+    
+    combo_add('Formulario.cbRegion', '', '');
+    
+    var sgv = get('Formulario.cbSubgerenciaVentas','V');
+    
+    for(var k=0;k<ListaRegiones.datos.longitud;k++) {
+      for(var y=0;y<sgv.length;y++){
+        if (ListaRegiones.datos.ij(k,0) == sgv[y]){
+          combo_add('Formulario.cbRegion',ListaRegiones.datos.ij(k,1),ListaRegiones.datos.ij(k,2));
+        }
+      }
+    }
+  
+  }
+  
+//------------------------------------------------------------------------------
+
+  function cambioRegion(){
+    
+    opciones = new Array();
+    set_combo('Formulario.cbZona',opciones);                      
+    set_combo('Formulario.cbTerritorio',opciones);
+    
+    var region = get('Formulario.cbRegion','V');
+    combo_add('Formulario.cbZona', '', '');
+         
+    for(var k=0;k<ListaZonas.datos.longitud;k++) {
+      for(var y=0;y<region.length;y++){
+        if (ListaZonas.datos.ij(k,1) == region[y]){     
+          combo_add('Formulario.cbZona',ListaZonas.datos.ij(k,0),ListaZonas.datos.ij(k,2));
+        }
+      }
+    }
+  }
+
+
+//------------------------------------------------------------------------------
+
+  function cambioZona(){
+     
+    opciones = new Array();
+    set_combo('Formulario.cbTerritorio',opciones);                      
+          
+    var zona = get('Formulario.cbZona','V');
+    combo_add('Formulario.cbTerritorio', '', '');
+     
+    for(var k=0;k<ListaTerri.datos.longitud;k++) {
+      for(var y=0;y<zona.length;y++){
+        if (ListaTerri.datos.ij(k,0) == zona[y]){     
+          combo_add('Formulario.cbTerritorio',ListaTerri.datos.ij(k,1),ListaTerri.datos.ij(k,2));
+        }
+      }
+    }
+  }
+
+//------------------------------------------------------------------------------
+    
+  function generar(formato){
+      
+    if(sicc_validaciones_generales()){
+         
+      var a = new Object();
+      a.accion = 'generar';
+           
+      a.pais = get('Formulario.cbPais');  
+      a.subgerenciaVentas = quitarItemVacio(get('Formulario.cbSubgerenciaVentas'));
+      a.region = quitarItemVacio(get('Formulario.cbRegion'));
+      a.zona = quitarItemVacio(get('Formulario.cbZona'));
+      a.territorio = quitarItemVacio(get('Formulario.cbTerritorio'));
+      a.numeroConcurso = quitarItemVacio(get('Formulario.cbNumConcurso'));
+      a.eventoConsultora = quitarItemVacio(get('Formulario.cbEventosConsultoras'));
+           
+      a.formato = formato;
+           
+      mostrarModalSICC('INCConsultorasBonus','generar', a);
+    
+    }
+
+  }
+
+    function quitarItemVacio(elemento){
+      var elementoADevolver = new Array();
+     
+      for(var k=0;k<elemento.length;k++) {
+          if (elemento[k] != ''){                            
+             elementoADevolver[elementoADevolver.length] = elemento[k];
+          }
+      }
+         
+      return elementoADevolver;
+      
+   }
+
+]]>
+  
+  <VALIDACION>
+    
+    <ELEMENTO name="cbPais" required="true" cod="5"/>
+    <ELEMENTO name="cbSubgerenciaVentas" required="true" cod="124"/>
+    <ELEMENTO name="cbRegion" required="true" cod="109"/>
+    <ELEMENTO name="cbNumConcurso" required="true" cod="1604"/>
+    <ELEMENTO name="cbEventosConsultoras" required="true" cod="2697"/>
+  
+  </VALIDACION>
+
+
+</JAVASCRIPT>
+
+<FORMULARIO nombre="Formulario">
+
+
+<VAR nombre="accion" valor="" />
+<VAR nombre="conectorAction" valor="" />
+<VAR nombre="casoDeUso" valor=""/>
+<VAR nombre="errCodigo" valor="" />
+<VAR nombre="errDescripcion" valor="" />
+<VAR nombre="idioma" valor="" />
+<VAR nombre="pais" valor="" />
+
+
+
+
+
+<CAPA nombre="capa1">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblCriteriosSeleccion"  alto="13" filas="1" valor="" id="legend" cod="00275"/></legend>
+          <!---primera fila-->
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+           <tr><td>
+
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblPais"  alto="13" filas="1" id="datosTitle" cod="5" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbPais" size="1" multiple="N" valorinicial="" textoinicial="" id="datosCampos" req="S" onchange="cambioPais()" onshtab="focalizaBotonHTML('botonContenido','btnGenerarExcel');">
+                		<ROWSET>
+                    </ROWSET>
+	                </COMBO> 
+                   </td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr> 
+           
+            
+            <tr><td>
+
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblSubgerenciaVentas"  alto="13" filas="1" id="datosTitle" cod="124" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblRegion"  alto="13" filas="1" id="datosTitle" cod="109" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbSubgerenciaVentas" size="5" multiple="S" valorinicial="" textoinicial="" id="datosCampos" req="S" onchange="cambioSGV()">
+                		<ROWSET>
+                    </ROWSET>	
+	                </COMBO> 
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbRegion" size="5" multiple="S" valorinicial="" textoinicial="" id="datosCampos" req="S" onchange="cambioRegion()">
+                		<ROWSET>
+              	 	  </ROWSET>
+	                </COMBO>
+                   </td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>
+            <tr><td>
+
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblZona"  alto="13" filas="1" id="datosTitle" cod="143" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblTerritorio"  alto="13" filas="1" id="datosTitle" cod="126" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbZona" size="5" multiple="S" valorinicial="" textoinicial="" id="datosCampos" req="N" onchange="cambioZona()">
+                		<ROWSET>
+                	 	</ROWSET>
+	                </COMBO> 
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" ><COMBO nombre="cbTerritorio" size="5" multiple="S" valorinicial="" textoinicial="" id="datosCampos" req="N">
+                		<ROWSET>
+                    </ROWSET>
+	                </COMBO> 
+                   </td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>
+            <tr><td>
+
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblNumConcurso"  alto="13" filas="1" id="datosTitle" cod="1604" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblEventosConsultoras"  alto="13" filas="1" id="datosTitle" cod="2697" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbNumConcurso" size="5" multiple="S" valorinicial="" textoinicial="" id="datosCampos" req="S">
+                		<ROWSET>
+                    </ROWSET>
+	                </COMBO>
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" valign="top"><COMBO nombre="cbEventosConsultoras" size="3" multiple="S" valorinicial="1" textoinicial="Puntaje acumulado no canjeado" id="datosCampos" req="S">
+                		<ROWSET>
+                  			
+                      <ROW ID="2">
+                        <CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="2"/>
+                        <CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="Premios canjeados y puntos disponibles"/>
+                      </ROW>
+                  		
+                      <ROW ID="3">
+                        <CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="3"/>
+                        <CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="Premios canjeados y puntos no disponibles"/>
+                      </ROW>
+               				
+                  	 	</ROWSET>	
+	                
+                  </COMBO>
+                   </td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>
+            
+           </table>
+       <!---fin primera fila-->
+         
+        
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnGenerarInforme" ID="botonContenido" tipo="html" accion="generar('pdf')" estado="false" cod="2495"/>
+		  <BOTON nombre="btnGenerarExcel" ID="botonContenido" tipo="html" accion="generar('xls')" estado="false" cod="2526" ontab="focaliza('Formulario.cbPais')"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>       
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+ </CAPA>                                                                                                                                                           
+</FORMULARIO>
+</PAGINA>

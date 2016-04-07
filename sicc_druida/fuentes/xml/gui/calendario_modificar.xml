@@ -1,0 +1,751 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+/**
+ * Copyright 2003 © por Indra Sistemas,S.A.. Todos los derechos reservados.
+ * Avda. de Bruselas, 35
+ * Parque Empresarial Arroyo de la Vega
+ * 28108 Alcobendas, Madrid
+ * España
+ *
+ * Privado y Confidencial.
+ * La información contenida en este documento es propiedad de Indra sistemas.
+ * Para uso exclusivo de empleados autorizados no permitiéndose
+ * la distribución de este código sin permiso expreso.
+ */
+-->
+<!--
+   INDRA/CDOS/SICC
+   $Id: calendario_modificar.xml,v 1.1 2009/12/03 18:46:19 pecbazalar Exp $
+   DESC
+
+   DRUIDATARGET=/../../config/scripts/iniciales
+-->
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+<PAGINA nombre="contenido_calendario_modificar" 
+        estilos="estilos.css" colorf="#F0F0F0" 
+        xml:lang="es" onload="onLoadCargarBarra();" cod="087">
+        <!--   
+              titulo="Modificar Calendario"
+              msgle="Modificar Calendario"
+        -->
+  <JS src="sicc_util.js"/>
+  <ESTILO>#estcombo30F {width:355px} 
+                  #estcombo40F {width:473px}
+                  #MA {font-family: Arial, Helvetica, sans-serif;background-color:#CED7E7;    font-size:8pt;font-weight:bold;color:#526D84;}
+                  #S  {font-family: Arial, Helvetica, sans-serif;background-color:#526D84;
+                            font-size:8pt;font-face:Arial;font-weight:bold;color:#FFFFFF;}
+                  #DOFF {font-family: Arial, Helvetica, sans-serif;background-color:white;
+                              font-size:8pt;text-decoration:none;color:black;font-weight:bold;}
+                  #DON {font-family: Arial, Helvetica, sans-serif;background-color:#292084;
+                             font-size:8pt;text-decoration:none;color:white;font-weight:bold;}
+                  #FDS {font-family: Arial, Helvetica, sans-serif;color:black;background-color:white;
+                             font-size:8pt;text-decoration:none;font-weight:bold;}
+                  #F {background-color:red;font-family: Arial, Helvetica, sans-serif;text-decoration:none;
+                           font-size:8pt;font-weight:bold;}</ESTILO>
+  <JAVASCRIPT>
+    <![CDATA[
+
+      var APP_ICONOS = parent.frames['iconos'];
+      /**
+       * Esta funcion verifica si los checkboxes de grupos zonas y actividades
+       * estan marcados. De ser asi, se asigna el valor 'S' a las variables
+       * hTodasLasActividades Y hTodosLosGruposZonas para asignarles el valor
+       * 0 (cero) en la LP. De lo contrario se asigna el valor seleccionado
+       * en la lista correspondiente.
+       */
+      function verificarCheckboxes(){
+        //Si se selecciono el combo para todas las actividades
+        if( get( 'frmModificarCalendario.txtTodasActividades' ) == 'S' )
+          set('frmModificarCalendario.hTodasLasActividades', 'S');
+        else
+          set('frmModificarCalendario.hTodasLasActividades', '');
+
+        //Si se selecciono el combo para todas los grupos zonas
+        //if( get( 'frmModificarCalendario.chkTodasGrupoDeZonas' ) == 'S' )
+        //  set('frmModificarCalendario.hTodosLosGruposZonas', 'S');
+        //else
+        //  set('frmModificarCalendario.hTodosLosGruposZonas', '');
+      }
+
+      function enviarFormulario() {
+        // Se verifican si estan tildados los checkboxes grupos zonas y actividades
+        verificarCheckboxes();
+        obtenerPaisMarcaCanal();
+
+        set('frmModificarCalendario.accion', 'cargarCalendario');
+        set('frmModificarCalendario.sAnio', get('frmModificarCalendario.txtAnio'));
+        set('frmModificarCalendario.sActividad', get('frmModificarCalendario.cbActividades'));
+        set('frmModificarCalendario.sGrupoDeZona', get('frmModificarCalendario.cbGrupoDeZonas'));
+
+        if( validaNoVacio('frmModificarCalendario.txtAnio', true)       &&
+            validaNumericoAnio()                                        &&
+            validaNoVacio('frmModificarCalendario.cbMarcas', true)      &&
+            validaNoVacio('frmModificarCalendario.cbCanales', true)     &&
+            validaNoVacio('frmModificarCalendario.cbGrupoDeZonas', true) 
+        ){
+              //Si se selecciono 'Todas' para Actividades
+              //no se debe validar que esa lista tenga un item seleccionado.
+              var comboActividadesOK = true;
+              
+              if( get( 'frmModificarCalendario.txtTodasActividades' ) != 'S' ){
+                comboActividadesOK = fValidarCOMBO('frmModificarCalendario.cbActividades');
+              }
+
+              if( comboActividadesOK ){
+                set('frmModificarCalendario.conectorAction', 'LPModificarCalendario'); 
+                enviaSICC('frmModificarCalendario');
+              }
+          }
+      }
+
+      function validaNumericoAnio(){
+        if(fValidarNumero(get('frmModificarCalendario.txtAnio'), 10, 0, 9999) != 'OK'){
+          GestionarMensaje('405', null, null, null);
+          focaliza('frmModificarCalendario.txtAnio');
+          return false;
+        }
+        return true;
+      }
+    
+      function validaNoVacio(valor, mensaje){
+        if(get(valor) == '' || get(valor) == '0'){
+          if (mensaje){
+            GestionarMensaje('27',null,null,null);
+            focaliza(valor);
+          }
+          return false;
+        }
+        return true;
+      }
+    
+      function comprobarPaisMarcaCanal(){
+        if( validaNoVacio('frmModificarCalendario.cbMarcas', false ) &&
+            validaNoVacio('frmModificarCalendario.cbCanales', false)){
+              set('frmModificarCalendario.conectorAction','LPModificarCalendario');
+              set('frmModificarCalendario.accion', 'seleccionPaisMarcaCanal');
+              obtenerPaisMarcaCanal();
+              enviaSICC('frmModificarCalendario');
+          }
+      }
+
+
+	function fVolver(){
+		set('frmModificarCalendario.conectorAction','LPModificarCalendario');
+		set('frmModificarCalendario.accion', 'seleccionPaisMarcaCanal');
+		obtenerPaisMarcaCanal();
+		enviaSICC('frmModificarCalendario');
+	}
+
+
+	function onLoadCargarBarra() {
+		if( !fMostrarMensajeError() ){
+			configurarMenuSecundario('frmModificarCalendario');
+			focaliza('frmModificarCalendario.txtAnio', '');
+			posicionarCombo();
+        
+			//recuperarPaisMarcaCanal();
+
+			if( get( 'frmModificarCalendario.hCasoDeUso' ) == 'Consultar' ){
+				set('frmModificarCalendario.tipoBarra', 'Consultar');
+			}
+			else{
+				set('frmModificarCalendario.tipoBarra', 'Modificar');
+			}
+
+			if (get('frmModificarCalendario.tipoBarra')=="Modificar" && get_visibilidad('capaBusqueda2')){
+				accion('frmModificarCalendario.cbMarcas','.disabled=true');
+				accion('frmModificarCalendario.cbCanales','.disabled=true');
+				accion('frmModificarCalendario.cbActividades','.disabled=true');
+				accion('frmModificarCalendario.cbGrupoDeZonas','.disabled=true');
+				accion('frmModificarCalendario.txtAnio','.disabled=true');
+			}
+			var caso = get('frmModificarCalendario.hCasoDeUso') ;
+			ShowError();
+		}
+	}
+    
+      function ShowError(){
+        if (get('frmModificarCalendario.errDescripcion')!='') { 
+          var wnd = fMostrarMensajeError(get('frmModificarCalendario.errCodigo'), 
+            get('frmModificarCalendario.errDescripcion'));
+          if (wnd == 0)
+            reintentar();
+          //else
+           // cancelar();
+        }
+      } 
+    
+      function reintentar(){
+        var caso = get('frmModificarCalendario.hCasoDeUso') ;
+        var tipobarra = get('frmModificarCalendario.tipoBarra') ;
+        if (caso == 'Modificar' || tipoBarra == 'Modificar') {
+          set('frmModificarCalendario.conectorAction','LPModificarCalendario');
+        } else 
+        set('frmModificarCalendario.conectorAction','LPConsultarCalendario');
+        //envia('frmModificarCalendario');
+      }
+    
+      function cancelar(){
+        fLimpiar();
+        set('frmModificarCalendario.accion','');
+        var caso = get('frmModificarCalendario.hCasoDeUso') ;
+        var tipoBarra = get('frmModificarCalendario.tipoBarra') ;
+        if (caso == 'Modificar' || tipoBarra == 'Modificar') {
+          set('frmModificarCalendario.conectorAction','LPModificarCalendario');
+        } else
+          set('frmModificarCalendario.conectorAction','LPConsultarCalendario');
+      
+        //envia('frmModificarCalendario');
+      }
+
+      function obtenerPaisMarcaCanal(){
+        //set('frmModificarCalendario.sPais', get('frmModificarCalendario.cbPaises'));
+        set('frmModificarCalendario.sAnio', get('frmModificarCalendario.txtAnio'));
+        set('frmModificarCalendario.sCanal', get('frmModificarCalendario.cbCanales'));
+        set('frmModificarCalendario.sMarca', get('frmModificarCalendario.cbMarcas'));
+        set('frmModificarCalendario.descPais', get('frmModificarCalendario.lblContenidoPais'));
+        set('frmModificarCalendario.descCanal', get('frmModificarCalendario.cbCanales', 'T'));
+        set('frmModificarCalendario.descMarca', get('frmModificarCalendario.cbMarcas', 'T'));
+      }
+    
+      function recuperarPaisMarcaCanal(){
+        /*
+        alert("Pais=" + get('frmModificarCalendario.sPais'));
+        alert("Canal=" + get('frmModificarCalendario.sCanal'));
+        alert("Marca=" + get('frmModificarCalendario.sMarca'));
+        document.frmModificarCalendario.cbPaises.value=get('frmModificarCalendario.sPais');
+        document.frmModificarCalendario.cbCanales.value=get('frmModificarCalendario.sCanal');
+        document.frmModificarCalendario.cbMarcas.value=get('frmModificarCalendario.sMarca');
+        set('frmModificarCalendario.cbPaises', get('frmModificarCalendario.sPais'));
+        set('frmModificarCalendario.cbCanales', get('frmModificarCalendario.sCanal'));
+        set('frmModificarCalendario.cbMarcas', get('frmModificarCalendario.sMarca'));
+        */
+      }
+
+      function posicionarCombo() {
+    
+        var iSeleccionado = new Array();
+        iSeleccionado[0] = get('frmModificarCalendario.sCanal');
+        set('frmModificarCalendario.cbCanales',iSeleccionado);
+    
+        var iSeleccionadoM = new Array();
+        iSeleccionadoM[0] = get('frmModificarCalendario.sMarca');
+        set('frmModificarCalendario.cbMarcas',iSeleccionadoM);
+
+        //----------------------------------------------------------------------
+        //var iSeleccionadoA = new Array();
+        var strAct = get('frmModificarCalendario.sActividad');
+        iSeleccionadoA = strAct.split(',');
+        set('frmModificarCalendario.cbActividades', iSeleccionadoA);
+        //----------------------------------------------------------------------
+        //var iSeleccionadoGZ = new Array();
+        var strGZ = get('frmModificarCalendario.sGrupoDeZona');
+        iSeleccionadoGZ = strGZ.split(',');
+        set('frmModificarCalendario.cbGrupoDeZonas',iSeleccionadoGZ);
+        //----------------------------------------------------------------------
+
+        //CHECKBOXES
+
+        //if( get('frmModificarCalendario.hTodosLosGruposZonas')=='S' ){
+        //  set('frmModificarCalendario.chkTodasGrupoDeZonas', 'S');
+        //}
+
+        if( get('frmModificarCalendario.hTodasLasActividades')=='S' ){
+          set('frmModificarCalendario.txtTodasActividades', 'S');
+        }
+      }
+    
+      function listaDeFestivos() {
+        var strFechasFestivos = '';
+        for(var i = 0; i < mical.festivos.longitud; i++) {
+          strFechasFestivos += mical.festivos.ij(i,0);  // Dia
+          strFechasFestivos += '/' + mical.festivos.ij(i,1); // Mes
+          strFechasFestivos += '/' + mical.festivos.ij(i,2); // Anio
+          strFechasFestivos += '|';
+        }
+        return strFechasFestivos;
+      }
+     
+      function pulsardia20() {
+        var caso = get('frmModificarCalendario.hCasoDeUso') ;
+        
+        if(caso == 'Modificar'){
+          var d, m, a;
+    
+          d  = mical.getDiaSeleccionado();
+          m  = mical.getMes();
+          a  = mical.getAnno();
+
+          if (a == get('frmModificarCalendario.txtAnio')) {
+            var idFest = mical.getFestivoID(d,m,a);
+            if (idFest == '')
+              mical.addFestivo(d,m,a,'F');
+            else
+              mical.delFestivo(d,m,a);
+            mical.display();
+          }
+        }
+      }
+     
+      function fModificar() {
+        if(
+          validaNoVacio('frmModificarCalendario.txtAnio', true) &&
+          validaNumericoAnio() &&
+          validaNoVacio('frmModificarCalendario.cbMarcas', true) &&
+          validaNoVacio('frmModificarCalendario.cbCanales', true) &&
+          fValidarCOMBO('frmModificarCalendario.cbGrupoDeZonas')){
+        
+          set('frmModificarCalendario.accion', 'modificar');
+          set('frmModificarCalendario.sAnio', get('frmModificarCalendario.txtAnio'));
+          obtenerPaisMarcaCanal();
+     
+          set('frmModificarCalendario.sActividad', get('frmModificarCalendario.cbActividades'));
+          set('frmModificarCalendario.sGrupoDeZona', get('frmModificarCalendario.cbGrupoDeZonas'));
+     
+          // Se obtiene la lista de festivos seleccionados y se guarda en un VAR para mandar a la LP Modificar
+          set('frmModificarCalendario.listaFestivos', listaDeFestivos());
+        
+          // Se activa la LP de Modificar para que se le pase los parametros de la pagina.
+          set('frmModificarCalendario.conectorAction','LPConsultarCalendario');
+          enviaSICC('frmModificarCalendario'); 
+        }
+      }
+    
+      function fLimpiar() {
+        set('frmModificarCalendario.txtAnio','');
+        set('frmModificarCalendario.cbMarcas','');
+        set('frmModificarCalendario.cbCanales','');
+        set_combo('frmModificarCalendario.cbGrupoDeZonas',[]);
+        // set('frmModificarCalendario.cbGrupoDeZonas','');
+        set_combo('frmModificarCalendario.cbActividades',[]);
+        // set('frmModificarCalendario.cbActividades','');
+
+        if (get('frmModificarCalendario.hCasoDeUso') == "Modificar"){
+          //accion('frmModificarCalendario.cbPaises','.disabled=false');
+          accion('frmModificarCalendario.cbMarcas','.disabled=false');
+          accion('frmModificarCalendario.cbCanales','.disabled=false');
+          accion('frmModificarCalendario.cbActividades','.disabled=false');
+          accion('frmModificarCalendario.cbGrupoDeZonas','.disabled=false');
+          accion('frmModificarCalendario.txtAnio','.disabled=false');
+          visibilidad('capaBusqueda2', 'O');
+          //set_visibilidad("capaBusqueda2","hidden");
+        }
+
+        focaliza('frmModificarCalendario.txtAnio','');
+      
+        //foco('frmModificarCalendario.cbCanales','');
+        //foco('frmModificarCalendario.cbCanales','');
+        //foco('frmModificarCalendario.cbMarcas','');
+        //foco('frmModificarCalendario.cbMarcas','');
+        //foco('frmModificarCalendario.cbPaises','');
+        //foco('frmModificarCalendario.cbPaises','');
+      }
+    
+      function focalizaPrimero(){
+        //focaliza('frmModificarCalendario.cbPaises','');
+      }
+
+      //Esta funcion se invoca al presionar el boton 'Grabar' en al barra
+      function fGuardar(){
+        if(
+          validaNoVacio('frmModificarCalendario.txtAnio', true) &&
+          validaNumericoAnio() &&
+          validaNoVacio('frmModificarCalendario.cbMarcas', true) &&
+          validaNoVacio('frmModificarCalendario.cbCanales', true) &&
+          fValidarCOMBO('frmModificarCalendario.cbGrupoDeZonas')){
+        
+          set('frmModificarCalendario.accion', 'modificar');
+          set('frmModificarCalendario.sAnio', get('frmModificarCalendario.txtAnio'));
+          obtenerPaisMarcaCanal();
+
+          // Se verifican si estan tildados los checkboxes grupos zonas y actividades
+          verificarCheckboxes();
+
+          set('frmModificarCalendario.sActividad', get('frmModificarCalendario.cbActividades'));
+          set('frmModificarCalendario.sGrupoDeZona', get('frmModificarCalendario.cbGrupoDeZonas'));
+     
+          // Se obtiene la lista de festivos seleccionados y se guarda en un VAR 
+          // para mandar a la LP Modificar
+          set('frmModificarCalendario.listaFestivos', listaDeFestivos());
+
+          //alert( 'Lista de festivos: ' + get( 'frmModificarCalendario.listaFestivos' ) );
+        
+          // Se activa la LP de Modificar para que se le pase los parametros de la pagina.
+          //set('frmModificarCalendario.conectorAction','LPConsultarCalendario');
+          set('frmModificarCalendario.conectorAction','LPModificarCalendario');
+          
+          enviaSICC('frmModificarCalendario'); 
+        }
+      }
+    
+    ]]>
+    
+  </JAVASCRIPT>
+  <FORMULARIO nombre="frmModificarCalendario">
+    <VAR nombre="accion" valor="cargarCalendario"/>
+    <VAR nombre="conectorAction" valor=""/>
+    <VAR nombre="errCodigo" valor=""/>
+    <VAR nombre="errDescripcion" valor=""/>
+    <VAR nombre="hCasoDeUso" valor=""/>
+    <VAR nombre="tipoBarra" valor=""/>
+    <VAR nombre="guardar" valor="N"/>
+    <VAR nombre="hidAnio" valor=""/>
+    <VAR nombre="sAnio" valor=""/>
+    <VAR nombre="sPais" valor=""/>
+    <VAR nombre="sDescPais" valor=""/>
+    
+    <VAR nombre="sCanal" valor=""/>
+    <VAR nombre="sMarca" valor=""/>
+    <VAR nombre="sActividad" valor=""/>
+    <VAR nombre="sGrupoDeZona" valor=""/>
+    <VAR nombre="descPais" valor=""/>
+    <VAR nombre="descCanal" valor=""/>
+    <VAR nombre="descMarca" valor=""/>
+    <VAR nombre="descActividad" valor=""/>
+    <VAR nombre="descGrupoDeZona" valor=""/>
+    <VAR nombre="listaFestivos" valor=""/>
+
+    <VAR nombre="hTodasLasActividades" valor=""/>
+    <VAR nombre="hTodosLosGruposZonas" valor=""/>
+
+
+    
+    <!-- PRIMER CAPA -->
+    <!--TABLE width="100%" border="0" cellspacing="0" cellpadding="0" align="left"-->
+    <CAPA nombre="capaBusqueda" alto="550" ancho="585" colorf="" borde="0"
+          imagenf="" repeat="" padding="" visibilidad="visible" contravsb=""
+          x="12" y="12" zindex="">
+      <!--
+        <TR>
+                        <TD>
+                                 <IMG src="b.gif" width="12" height="1"/>
+                        </TD>
+                        <TD align="center" colspan="6">
+                                 <IMG src="b.gif" witdh="8" height="8"/>
+                        </TD>
+                        <TD align="center">
+                                 <IMG src="b.gif" width="12" height="1"/>
+                        </TD>
+               </TR>
+      -->
+      <TR>
+        <TD align="left">
+          <TABLE width="585" border="1" cellspacing="1" cellpadding="0"
+                 bordercolor="#CCCCCC">
+            <TR>
+              <TD>
+                <!-- border = 0 -->
+                <TABLE width="98%" border="0" cellspacing="0" cellpadding="0"
+                       align="left">
+                  <TR>
+                    <TD>
+                      <IMG src="b.gif" witdh="8" height="8"/>
+                    </TD>
+                  </TR>
+                  <TR>
+                    <TD width="100" colspan="2" valign="center">
+                      <!-- Label Pais -->
+                      <LABELC nombre="lblPais" ancho="100" alto="30" filas="1"
+                              id="datosTitleRight" cod="5" valor=""
+                              enviaroculto="N"/>
+                      <!-- Fin Label Pais -->
+                    </TD>
+                    <TD width="8">
+                      <IMG src="b.gif" width="8" height="8"/>
+                    </TD>
+                    <TD width="200" colspan="2">
+
+
+                      <LABELC nombre="lblContenidoPais" ancho="130" alto="27" filas="1"
+                          id="datosCamposLeft" valor=""
+                          enviaroculto="N"/>
+
+                    
+                      <!-- Combo de Paises -->
+                      <!--COMBO req="N" multiple="N" size="1" id="estcombo30"
+                             nombre="cbPaises" textoinicial="" valorinicial=""
+                             onchange="comprobarPaisMarcaCanal();"
+                             onshtab="focaliza('frmModificarCalendario.cbActividades');">
+                        <ROWSET>
+                        </ROWSET>
+                      </COMBO-->
+                      <!-- Fin Combo de Paises -->
+
+                      
+                    </TD>
+                  </TR>
+                  <TR>
+                    <TD width="100" colspan="2" valign="center">
+                      <!-- Label Anio -->
+                      <LABELC nombre="lblAnio" ancho="100" alto="30" filas="1"
+                              id="datosTitleRight" cod="171" valor=""
+                              enviaroculto="N"/>
+                      <!-- Fin Label Anio -->
+                    </TD>
+                    <TD width="8">
+                      <IMG src="b.gif" width="8" height="8"/>
+                    </TD>
+                    <TD width="100%" colspan="2">
+                      <!-- TextBox Anio -->
+                      <CTEXTO nombre="txtAnio" class="datosCampos" id="txtAnio"
+                              max="4" tipo="" onchange="" req="N" size="4"
+                              valor="" validacion=""/>
+                      <!-- Fin TextBox Anio -->
+                    </TD>
+                  </TR>
+                  <TR>
+                    <TD width="100" colspan="2">
+                      <!-- Label Marca -->
+                      <LABELC nombre="lblMarca" ancho="100" alto="30" filas="1"
+                              id="datosTitleRight" cod="6" valor=""
+                              enviaroculto="N"/>
+                      <!-- Fin Label Marca -->
+                    </TD>
+                    <TD width="8">
+                      <IMG src="b.gif" witdh="8" height="8"/>
+                    </TD>
+                    <TD valign="center" colspan="2">
+                      <!-- Combo de Marcas -->
+                      <COMBO nombre="cbMarcas" size="1" multiple="N" req="N"
+                             id="estcombo30" textoinicial="" valorinicial=""
+                             onchange="comprobarPaisMarcaCanal()">
+                        <ROWSET>
+                        </ROWSET>
+                      </COMBO>
+                      <!-- Fin COMBO de Marcas -->
+                    </TD>
+                  </TR>
+                  
+                  <TR>
+                    <TD width="100" colspan="2" valign="top">
+                      <LABELC nombre="lblCanal" ancho="100" alto="30" filas="1"
+                              id="datosTitleRight" cod="7" valor=""
+                              enviaroculto="N"/>
+                    </TD>
+                    <TD width="8">
+                      <IMG src="b.gif" width="8" height="8"/>
+                    </TD>
+                    <TD valign="center" width="100%" colspan="2">
+                      <!-- Combo de Canales-->
+                      <COMBO textoinicial="" valorinicial="" req="N"
+                             multiple="N" size="1" id="estcombo30"
+                             nombre="cbCanales"
+                             onchange="comprobarPaisMarcaCanal()">
+                        <ROWSET>
+                        </ROWSET>
+                      </COMBO>
+                      <!-- Fin Combo de Canales-->
+                    </TD>
+                    <TD width="12">
+                      <IMG src="b.gif" width="12" height="8"/>
+                    </TD>
+                  </TR>
+                  <TR height="4">
+                    <TD>
+                    </TD>
+                  </TR>
+                  
+                  <TR>
+                    <TD width="100" valign="top" colspan="2">
+                      <!-- Label Grupo de Zonas -->
+                      <LABELC nombre="lblGrupoDeZonas" ancho="100" alto="30"
+                              filas="2" id="datosTitleRight" cod="180" valor=""
+                              enviaroculto="N"/>
+                      <!-- Fin Label Grupo de Zonas -->
+                    </TD>
+                    <TD width="8">
+                      <IMG src="b.gif" width="8" height="8"/>
+                    </TD>
+                    <TD valign="top" colspan="2">
+                      <!-- COMBO Grupo de Zonas -->
+                      <COMBO nombre="cbGrupoDeZonas" size="5" multiple="S"
+                             req="N" id="estcombo30">
+                        <ROWSET>
+                        </ROWSET>
+                      </COMBO>
+                      <!-- Fin COMBO Grupo de Zonas -->
+                    </TD>
+                  </TR>
+
+
+                  <!--
+                  <TR>
+                    <TD width="8">
+                      <IMG src="b.gif" witdh="8" height="8"/>
+                    </TD>
+                    <TD width="8">
+                      <IMG src="b.gif" witdh="8" height="8"/>
+                    </TD>
+                    <TD width="8">
+                      <IMG src="b.gif" witdh="8" height="8"/>
+                    </TD>
+                    
+                    <TD width="20">
+                      <CHECKBOX onfocus="" onclick="" id="txtTodas2" req="N"
+                                validacion="" check="N" texto=""
+                                nombre="chkTodasGrupoDeZonas"/>
+                    </TD>
+                    <TD width="100%">
+                      <LABELC nombre="lblTodasGrupoDeZonas" ancho="150"
+                              alto="30" filas="2" id="datosTitleLeft" cod="176"
+                              valor="" enviaroculto="N"/>
+                    </TD>
+                  </TR>
+                  -->
+                  
+                  <TR height="8">
+                    <TD>
+                    </TD>
+                  </TR>
+                  
+                  <TR>
+                    <TD width="100" valign="top" colspan="2">
+                      <!-- Label de Actividades -->
+                      <LABELC nombre="lblActividad" ancho="100" alto="30"
+                              filas="1" id="datosTitleRight" cod="173" valor=""
+                              enviaroculto="N"/>
+                      <!-- Fin Label de Actividades -->
+                    </TD>
+                    <TD width="8">
+                      <IMG src="b.gif" width="8" height="8"/>
+                    </TD>
+                    <TD valign="top" colspan="2" width="100%">
+                      <!-- COMBO  de Actividades -->
+                      <COMBO nombre="cbActividades" size="5" multiple="S"
+                             req="N" id="estcombo30" ontab="focalizaPrimero();">
+                        <ROWSET>
+                        </ROWSET>
+                      </COMBO>
+                      <!-- Fin COMBO  de Actividades -->
+                    </TD>
+                  </TR>
+                  <TR>
+                    <TD width="8">
+                      <IMG src="b.gif" witdh="8" height="8"/>
+                    </TD>
+                    <TD width="8">
+                      <IMG src="b.gif" witdh="8" height="8"/>
+                    </TD>
+                    <TD width="8">
+                      <IMG src="b.gif" witdh="8" height="8"/>
+                    </TD>
+                    <TD width="20">
+                      <!-- CHECKBOX Todas Actividades -->
+                      <CHECKBOX onfocus="" onclick="" id="txtTodasActividades"
+                                req="N" validacion="" check="N" texto=""
+                                nombre="txtTodasActividades" class="" max="1"
+                                tipo="" size="1"/>
+                      <!-- Fin CHECKBOX Todas Actividades -->
+                    </TD>
+                    <TD width="100%">
+                      <!-- LABEL Todas Actividades -->
+                      <LABELC nombre="lblTodasActividades" ancho="150" alto="30"
+                              filas="1" id="datosTitleLeft" cod="176" valor=""
+                              enviaroculto="N"/>
+                      <!-- Fin LABEL Todas Actividades -->
+                    </TD>
+                  </TR>
+                  <!--                                                           <TR>
+                                                                                           <TD colspan="14" align="right">
+                                                                                                    <IMG src="b.gif" witdh="8" height="8"/>
+                                                                                           </TD>
+                                                                                  </TR>
+                  -->
+                </TABLE>
+              </TD>
+            </TR>
+            <TR>
+              <TD class="tablaTitle">
+                <!-- BOTON Cargar calendario -->
+                <BOTON cod="172" estado="true"
+                       accion="javascript:enviarFormulario();" tipo="html"
+                       ID="BotonContenido" nombre="btnCargarCalendario"/>
+                <!-- Fin BOTON Cargar calendario -->
+              </TD>
+            </TR>
+          </TABLE>
+        </TD>
+        <TD align="left">
+          <IMG src="b.gif" witdh="8" height="8"/>
+        </TD>
+      </TR>
+      <!--
+               <TR>
+                        <TD align="center">
+                                 <IMG src="b.gif" witdh="8" height="8"/>
+                        </TD>
+                        <TD colspan="6" align="left">
+                                 <IMG src="b.gif" witdh="8" height="8"/>
+                        </TD>
+                        <TD align="left">
+                                 <IMG src="b.gif" witdh="8" height="8"/>
+                        </TD>
+               </TR>
+               -->
+    </CAPA>
+    <!-- SEGUNDA CAPA -->
+    <!--/TABLE-->
+    <CAPA nombre="capaBusqueda2" alto="256" ancho="590" colorf="" borde="0"
+          imagenf="" repeat="" padding="" visibilidad="hidden" contravsb=""
+          x="12" y="440" zindex="">
+      <TR>
+        <TD align="center">
+          <IMG src="b.gif" witdh="8" height="8"/>
+        </TD>
+        <TD colspan="6" align="left">
+          <!-- Aca empiezan las tablas del segundo panel -->
+          <TABLE width="584" border="1" cellpadding="0" cellspacing="1"
+                 bordercolor="#CCCCCC">
+            <TR>
+              <TD>
+                <!-- border="0" -->
+                <TABLE width="100%" border="0" cellpadding="0" cellspacing="0">
+                  <TR>
+                    <TD align="center">
+                      <IMG src="b.gif" witdh="8" height="8"/>
+                    </TD>
+                  </TR>
+                  <TR>
+                    <TD height="30" align="center">
+                      <!-- border="0" -->
+                      <TABLE width="100%" border="0" align="center"
+                             cellpadding="0" cellspacing="0">
+                        <TR>
+                          <TD width="35%">
+                          </TD>
+                          <TD align="left" valign="top" width="185" height="190">
+                            <!--
+                                                                                                                                         <DIV id="Layer1" style="position:relative; left:0px; top:0px; width:757; z-index:1; height: 165; overflow: auto; clip: rect(0 500 auto 0); visibility: visible; visibility: hidden;">
+                                                                                                                                         
+                                                                                                                                         <DIV id="Layer1" style="position:relative; left:0px; top:0px; width:757; z-index:1; height: 165; overflow: auto; clip: rect(0 500 auto 0); visibility: visible;">
+                                                                                                                                         -->
+                            <!-- CALENDARIO DRUIDA -->
+                            <CALENDARIO nombre="mical" ancho="185" alto="170"
+                                        ruta="." pixelsborde="2"
+                                        colorborde="#9CAEC6" idmesanio="MA"
+                                        idsemana="S" iddiaoff="DOFF"
+                                        iddiaon="DON" dia="-1" mes="0" anio="0"
+                                        fm="11/2002" fM="02/2004" finde="FDS"
+                                        accion="pulsardia20()"
+                                        visibilidad="visible">
+                              <REJILLA nombre="salida"/>
+                            </CALENDARIO>
+                          </TD>
+                          <TD width="40%">
+                            <!--
+                                                                                                                                         </DIV>
+                                                                                                                                         -->
+                          </TD>
+                        </TR>
+                      </TABLE>
+                    </TD>
+                  </TR>
+                </TABLE>
+              </TD>
+            </TR>
+          </TABLE>
+        </TD>
+      </TR>
+    </CAPA>
+  </FORMULARIO>
+</PAGINA>

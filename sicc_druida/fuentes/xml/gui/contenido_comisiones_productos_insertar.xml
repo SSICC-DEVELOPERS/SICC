@@ -1,0 +1,982 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_comisiones_productos_insertar.xml,v 1.2 2010/08/24 22:52:58 peextsapaza Exp $
+   prueba arbol 
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+<PAGINA nombre="contenido_comisiones_productos_insertar" cod="0515" titulo="Insertar comisiones" estilos="estilosB3.css" colorf="#F0F0F0" msgle="" onload="onLoadPag();" xml:lang="es">
+
+<!-- Barra Modificar comisiones cod="0520"
+     Barra Consultar comisiones cod="0510"
+     Barra Eliminar comisiones cod="0558"-->
+
+<JS src="sicc_util.js"></JS> 
+<JS src="PaginacionSicc.js"></JS>
+<JS src="DruidaTransactionMare.js"></JS>
+<JS src="i18NJS.js"/>     
+     
+<JAVASCRIPT>
+<![CDATA[ 
+
+function onLoadPag()   {  
+  configurarMenuSecundario("formulario");        
+  DrdEnsanchaConMargenDcho('listado1',12);  
+  mostrarCapa();
+  eval(ON_RSZ);  
+}
+
+function mostrarCapa() {
+  document.all["Cplistado1"].style.visibility='';
+  document.all["CpLin1listado1"].style.visibility='';
+  document.all["CpLin2listado1"].style.visibility='';
+  document.all["CpLin3listado1"].style.visibility='';
+  document.all["CpLin4listado1"].style.visibility='';
+  document.all["separaDiv"].style.visibility='';
+  document.all["primera1Div"].style.visibility='';
+  document.all["ret1Div"].style.visibility='';
+  document.all["ava1Div"].style.visibility='';
+
+  var opcionMenu = get("formulario.opcionMenu");
+  if(opcionMenu=="consultar") {
+	document.all["btnIncluirDiv"].style.visibility='hidden';
+	document.all["btnModificarDiv"].style.visibility='hidden';
+	document.all["btnExcluirDiv"].style.visibility='hidden';
+    btnProxy(4, '0');
+	btnProxy(3, '0');  
+  }  
+  else {
+	document.all["btnIncluirDiv"].style.visibility='';
+	document.all["btnModificarDiv"].style.visibility='';
+	document.all["btnExcluirDiv"].style.visibility='';
+    btnProxy(4, '1');
+    focoBotonIncluir();
+  }
+
+  if (opcionMenu != "insertar") {
+	btnProxy(2,'1');
+  } else {
+	btnProxy(2,'0');
+  }  
+  
+}
+
+function focoBotonIncluir() {
+  focalizaBotonHTML_XY('btnIncluir');
+}
+
+function focoBotonExcluir() {
+  focalizaBotonHTML_XY('btnExcluir');
+}
+
+function poneManito(nombre) {
+  var pestana = document.getElementById(nombre);
+
+  if(!validarComisionEscalonada(nombre))
+  	return false;
+  else	
+    pestana.style.cursor = "hand";
+}
+
+function validarComisionEscalonada(nombre) {
+  var sComisionEscalonada = get("formulario.sComisionEscalonada");
+  
+  if(nombre == "DatosCalculo" && sComisionEscalonada == "S")
+  	return false;
+
+  if(nombre == "DatosComisionEscalonada" && sComisionEscalonada !="S")
+  	return false;
+  
+  return true;
+}
+
+function quitarManito(nombre) {
+  var pestana = document.getElementById(nombre);
+  pestana.style.cursor = "";
+}
+
+function onClickPestanya(valor) {      
+	var opcionMenu = get("formulario.opcionMenu");
+	var estadoVentana = get("formulario.estadoVentana");
+
+	if(valor=="DatosGenerales") {
+		set("formulario.idPestanyaDest", "1");
+	}
+	else if(valor=="Clientes") {
+		set("formulario.idPestanyaDest", "3");
+	}
+	else if(valor=="DatosCalculo") {
+		set("formulario.idPestanyaDest", "4");
+	}
+	// sapaza -- PER-SiCC-2010-0478 -- 20/08/2010
+	else if(valor=="DatosComisionEscalonada") {
+		set("formulario.idPestanyaDest", "5");
+	}	
+
+	var valoresLista = listado1.datos;    
+
+	if(valoresLista=="") {
+		set("formulario.conectorAction", "LPMantenimientoComisionesProductos");
+		set("formulario.estadoVentana", estadoVentana);
+		set("formulario.accion", "almacenar");
+	    set("formulario.opcionMenu", opcionMenu);
+		set("formulario.datosDeLista", "null");
+  	    set("formulario.titulo", get("formulario.titulo"));
+		set("formulario.oidTipoPlantilla", get("formulario.oidTipoPlantilla"));
+		enviaSICC("formulario"); 	
+	}
+	else {
+		var datosDeLista = "[";
+
+		for(var i=0; i<valoresLista.length; i++) {
+			var fila = new Array();
+
+			//Oid Tipo Producto
+			var oidTipoProducto = valoresLista[i][0];
+			if(oidTipoProducto=="") oidTipoProducto = " ";
+			fila[0] = oidTipoProducto;
+
+			//Tipo Producto
+			var tipoProducto = valoresLista[i][1];
+			if(tipoProducto=="") tipoProducto = " ";
+			fila[1] = tipoProducto;		
+
+			//Codigo producto
+			var codigoProducto = valoresLista[i][2];
+			if(codigoProducto=="") codigoProducto= " ";
+			fila[2] = codigoProducto;
+
+			//Tipo oferta
+			var tipoOferta = valoresLista[i][3];
+			if(tipoOferta == "") tipoOferta = " ";
+			fila[3] = tipoOferta;
+
+			//Ciclo vida
+			var cicloVida = valoresLista[i][4];
+			if(cicloVida=="") cicloVida = " ";
+			fila[4] = cicloVida;
+
+			//Marca
+			var marca = valoresLista[i][5];
+			if(marca=="") marca = " ";
+			fila[5] = marca;
+
+			//Unidad negocio
+			var unidadNegocio = valoresLista[i][6];
+			if(unidadNegocio=="") unidadNegocio = " ";
+			fila[6] = unidadNegocio;
+
+			//Negocio
+			var negocio = valoresLista[i][7];
+			if(negocio=="") negocio = " ";
+			fila[7] = negocio;
+
+			//Supergenerico
+			var supergenerico = valoresLista[i][8];
+			if(supergenerico=="") supergenerico = " ";
+			fila[8] = supergenerico;
+
+			//Generico
+			var generico = valoresLista[i][9];
+			if(generico=="") generico = " ";
+			fila[9] = generico;
+
+			//Oid Tipo oferta
+			var oidTipoOferta = valoresLista[i][10];
+			if(oidTipoOferta=="") oidTipoOferta = " ";
+			fila[10] = oidTipoOferta;
+
+			//Oid Ciclo vida
+			var oidCicloVida = valoresLista[i][11];
+			if(oidCicloVida=="") oidCicloVida = " ";
+			fila[11] = oidCicloVida;
+
+			//Oid marca
+			var oidMarca = valoresLista[i][12];
+			if(oidMarca=="") oidMarca = " ";
+			fila[12] = oidMarca;
+			
+			//Oid unidad negocio
+			var oidUnidadNegocio = valoresLista[i][13];
+			if(oidUnidadNegocio=="") oidUnidadNegocio = " ";
+			fila[13] = oidUnidadNegocio;
+
+			//Oid negocio
+			var oidNegocio = valoresLista[i][14];
+			if(oidNegocio=="") oidNegocio = " ";
+			fila[14] = oidNegocio;
+
+			//Oid supergenerico
+			var oidSupergenerico = valoresLista[i][15];
+			if(oidSupergenerico=="") oidSupergenerico = " ";
+			fila[15] = oidSupergenerico;
+			
+			//Oid generico
+			var oidGenerico = valoresLista[i][16];
+			if(oidGenerico=="") oidGenerico = " ";
+			fila[16] = oidGenerico;
+			
+			//Oid tipo insercion
+			var oidTipoInsercion = valoresLista[i][17];
+			if(oidTipoInsercion=="") oidTipoInsercion = " ";
+			fila[17] = oidTipoInsercion;
+			
+			//Oid producto
+			var oidProducto = valoresLista[i][18];
+			if(oidProducto=="") oidProducto = " ";
+			fila[18] = oidProducto;
+
+			//ID
+			fila[19] = i + 1;
+
+			if(i==0) {
+				datosDeLista = datosDeLista + fila;	
+			}
+			else {
+				datosDeLista = datosDeLista + "|" + fila;	
+			}
+		}
+
+		datosDeLista = datosDeLista + "]"
+
+		set("formulario.conectorAction", "LPMantenimientoComisionesProductos");
+		set("formulario.estadoVentana", estadoVentana);
+		set("formulario.accion", "almacenar");
+	    set("formulario.opcionMenu", opcionMenu);
+		set("formulario.datosDeLista", datosDeLista);
+  	    set("formulario.titulo", get("formulario.titulo"));
+		set("formulario.oidTipoPlantilla", get("formulario.oidTipoPlantilla"));
+		enviaSICC("formulario"); 
+	}       
+}
+
+function fGuardar() {
+  onClickGuardar();
+}
+
+function onClickGuardar() {
+	var valoresLista = listado1.datos;    
+	var oidTipoPlantilla = get("formulario.oidTipoPlantilla");
+	var datosClientes = get("formulario.datosPestanyaClientes");
+	var datosPestanyaDatosCalculo = get("formulario.datosPestanyaDatosCalculo");
+
+	if(valoresLista=="") {
+		if((datosPestanyaDatosCalculo=="false") && (oidTipoPlantilla=="")) {
+			GestionarMensaje('1544',null,null,null)
+			return false;
+		}
+
+		if((datosClientes=="false") || (datosPestanyaDatosCalculo=="false")) {
+			var resp = GestionarMensaje('1543',null,null,null);
+
+			if(resp==true) {
+				eval("formulario").oculto= "S";
+				set("formulario.conectorAction", "LPMantenimientoComisionesProductos");
+				set("formulario.accion", "guardar");
+				set("formulario.datosDeLista", "null");
+				enviaSICC("formulario"); 	
+			}
+			else {
+				return;
+			}
+		}
+		else {
+			eval("formulario").oculto= "S";
+			set("formulario.conectorAction", "LPMantenimientoComisionesProductos");
+			set("formulario.accion", "guardar");
+			set("formulario.datosDeLista", "null");
+			enviaSICC("formulario"); 	
+		}		 
+	}
+	else {
+		var datosDeLista = "[";
+
+		for(var i=0; i<valoresLista.length; i++) {
+			var fila = new Array();
+
+			//Oid Tipo Producto
+			var oidTipoProducto = valoresLista[i][0];
+			if(oidTipoProducto=="") oidTipoProducto = " ";
+			fila[0] = oidTipoProducto;
+
+			//Tipo Producto
+			var tipoProducto = valoresLista[i][1];
+			if(tipoProducto=="") tipoProducto = " ";
+			fila[1] = tipoProducto;		
+
+			//Codigo producto
+			var codigoProducto = valoresLista[i][2];
+			if(codigoProducto=="") codigoProducto= " ";
+			fila[2] = codigoProducto;
+
+			//Tipo oferta
+			var tipoOferta = valoresLista[i][3];
+			if(tipoOferta == "") tipoOferta = " ";
+			fila[3] = tipoOferta;
+
+			//Ciclo vida
+			var cicloVida = valoresLista[i][4];
+			if(cicloVida=="") cicloVida = " ";
+			fila[4] = cicloVida;
+
+			//Marca
+			var marca = valoresLista[i][5];
+			if(marca=="") marca = " ";
+			fila[5] = marca;
+
+			//Unidad negocio
+			var unidadNegocio = valoresLista[i][6];
+			if(unidadNegocio=="") unidadNegocio = " ";
+			fila[6] = unidadNegocio;
+
+			//Negocio
+			var negocio = valoresLista[i][7];
+			if(negocio=="") negocio = " ";
+			fila[7] = negocio;
+
+			//Supergenerico
+			var supergenerico = valoresLista[i][8];
+			if(supergenerico=="") supergenerico = " ";
+			fila[8] = supergenerico;
+
+			//Generico
+			var generico = valoresLista[i][9];
+			if(generico=="") generico = " ";
+			fila[9] = generico;
+
+			//Oid Tipo oferta
+			var oidTipoOferta = valoresLista[i][10];
+			if(oidTipoOferta=="") oidTipoOferta = " ";
+			fila[10] = oidTipoOferta;
+
+			//Oid Ciclo vida
+			var oidCicloVida = valoresLista[i][11];
+			if(oidCicloVida=="") oidCicloVida = " ";
+			fila[11] = oidCicloVida;
+
+			//Oid marca
+			var oidMarca = valoresLista[i][12];
+			if(oidMarca=="") oidMarca = " ";
+			fila[12] = oidMarca;
+			
+			//Oid unidad negocio
+			var oidUnidadNegocio = valoresLista[i][13];
+			if(oidUnidadNegocio=="") oidUnidadNegocio = " ";
+			fila[13] = oidUnidadNegocio;
+
+			//Oid negocio
+			var oidNegocio = valoresLista[i][14];
+			if(oidNegocio=="") oidNegocio = " ";
+			fila[14] = oidNegocio;
+
+			//Oid supergenerico
+			var oidSupergenerico = valoresLista[i][15];
+			if(oidSupergenerico=="") oidSupergenerico = " ";
+			fila[15] = oidSupergenerico;
+			
+			//Oid generico
+			var oidGenerico = valoresLista[i][16];
+			if(oidGenerico=="") oidGenerico = " ";
+			fila[16] = oidGenerico;
+			
+			//Oid tipo insercion
+			var oidTipoInsercion = valoresLista[i][17];
+			if(oidTipoInsercion=="") oidTipoInsercion = " ";
+			fila[17] = oidTipoInsercion;
+			
+			//Oid producto
+			var oidProducto = valoresLista[i][18];
+			if(oidProducto=="") oidProducto = " ";
+			fila[18] = oidProducto;
+
+			//ID
+			fila[19] = i + 1;
+
+			if(i==0) {
+				datosDeLista = datosDeLista + fila;	
+			}
+			else {
+				datosDeLista = datosDeLista + "|" + fila;	
+			}
+		}
+
+		datosDeLista = datosDeLista + "]"
+
+		if((datosPestanyaDatosCalculo=="false") && (oidTipoPlantilla=="")) {
+			GestionarMensaje('1544',null,null,null)
+			return false;
+		}
+
+		if((datosClientes=="false") || (datosPestanyaDatosCalculo=="false")) {
+			var resp = GestionarMensaje('1543',null,null,null);
+
+			if(resp==true) {
+				eval("formulario").oculto= "S";
+				set("formulario.conectorAction", "LPMantenimientoComisionesProductos");
+				set("formulario.accion", "guardar");
+				set("formulario.datosDeLista", datosDeLista);
+				enviaSICC("formulario"); 
+			}
+			else {
+				return;
+			}
+		}
+		else {
+			eval("formulario").oculto= "S";
+			set("formulario.conectorAction", "LPMantenimientoComisionesProductos");
+			set("formulario.accion", "guardar");
+			set("formulario.datosDeLista", datosDeLista);
+			enviaSICC("formulario");  	
+		}		 
+	}    
+}
+
+function onClickAnadir() {  
+  var canal = get("formulario.varOidCanal");
+  var marca = get("formulario.varOidMarca");  
+  var opcionMenu = get("formulario.opcionMenu");
+
+  set("formulario.filaSeleccionadaModificar", "");
+  set("formulario.presionoModificar", "false");
+  set("formulario.vieneModificar", "false");
+  
+  var obj = new Object();
+  obj.varOidCanal = canal;
+  obj.varOidMarca = marca;
+  obj.descTipoProducto = "incluir";
+  obj.opcionMenu = opcionMenu;
+    
+  var whnd = mostrarModalSICC('LPMantenimientoComisionesProductos','Anadir',obj);
+  if(whnd!=null){
+    agregarFila(whnd);   
+  }
+}
+
+function onClickExcluir() {
+	/* El usuario ha debido seleccionar un registro de "lstProductos"
+	que sea una "inclusión" y que sea por "jerarquía" 
+	Si es así entonces 
+	Se abre una ventana emergente modal y en la nueva ventana se
+	invoca LPMantenimientoComisionesProductos con: 
+	accion = "Excluir" 
+	oidCanal = varOidCanal 
+	oidMarca = varOidMarca 
+
+	Cuando se cierre la ventana, esta retorna un arreglo JavaScript
+	para añadir una nueva línea a la lista "lstProductos" 
+
+	Si no entonces 
+	Mostrar mensaje de error con código "UICOM0003" 
+	Fin Si */
+
+    listado1.actualizaDat();
+
+    if (listado1.numSelecc()== 0) {
+		GestionarMensaje('1021',null,null,null);
+		return false;
+    }
+
+	var fila = listado1.filaSelecc;
+	set("formulario.filaSeleccionadaModificar", "");
+	set("formulario.presionoModificar", "false");
+	set("formulario.vieneModificar", "false");
+
+	var filaDatos = listado1.datos[fila];
+
+	var tipoProducto = filaDatos[0].toString();
+	var tipoInsercion = filaDatos[17].toString();
+
+	//Descripciones
+	var lblDescMarcaProducto  = filaDatos[5].toString();
+    var lblDescUnidadNegocio = filaDatos[6].toString();
+    var lblDescNegocio = filaDatos[7].toString();  
+    var lblDescSupergenerico = filaDatos[8].toString();  
+    var lblDescGenerico = filaDatos[9].toString();  
+    var lblDescTipoOferta = filaDatos[3].toString();  
+    var lblDescCicloVida = filaDatos[4].toString();  
+
+	//Oids
+	var oidMarcaTemp = filaDatos[12].toString();
+	var oidUNegocioTemp = filaDatos[13].toString();
+	var oidNegocioTemp = filaDatos[14].toString();
+	var oidSupergenericoTemp = filaDatos[15].toString();
+	var oidGenericoTemp = filaDatos[16].toString();
+	var oidTipoOfertaTemp = filaDatos[10].toString();
+	var oidCicloVidaTemp = filaDatos[11].toString();
+
+	if((tipoProducto==1) && (tipoInsercion==2)) {
+		var canal = get("formulario.varOidCanal");
+	    var marca = get("formulario.varOidMarca");  
+	    var opcionMenu = get("formulario.opcionMenu");
+  
+		var obj = new Object();
+		obj.varOidCanal = canal;
+		obj.varOidMarca = marca;
+
+		obj.lblDescMarcaProducto = lblDescMarcaProducto;
+		obj.lblDescUnidadNegocio = lblDescUnidadNegocio;
+		obj.lblDescNegocio = lblDescNegocio;
+		obj.lblDescSupergenerico = lblDescSupergenerico;
+		obj.lblDescGenerico = lblDescGenerico;
+		obj.lblDescTipoOferta = lblDescTipoOferta;
+		obj.lblDescCicloVida = lblDescCicloVida;
+
+		obj.tipoInsercion = tipoInsercion;
+
+		obj.oidMarcaTemp = oidMarcaTemp;
+		obj.oidUNegocioTemp = oidUNegocioTemp;
+		obj.oidNegocioTemp = oidNegocioTemp;
+		obj.oidSupergenericoTemp = oidSupergenericoTemp;
+		obj.oidGenericoTemp = oidGenericoTemp;
+		obj.oidTipoOfertaTemp = oidTipoOfertaTemp;
+		obj.oidCicloVidaTemp = oidCicloVidaTemp;
+		obj.descTipoProducto = "excluir";
+
+	    obj.opcionMenu = opcionMenu;
+    
+		var whnd = mostrarModalSICC('LPMantenimientoComisionesProductos','excluir',obj);
+		if(whnd!=null){
+			agregarFila(whnd);   
+		}
+	}
+	else {
+		GestionarMensaje('1491',null,null,null);
+		return false;
+	}
+}
+
+function onClickModificar() {
+	listado1.actualizaDat();
+
+    if (listado1.numSelecc()== 0) {
+		GestionarMensaje('1021',null,null,null);
+		return false;
+    }
+
+	var canal = get("formulario.varOidCanal");
+	var marca = get("formulario.varOidMarca");  
+	var opcionMenu = get("formulario.opcionMenu");
+
+	var fila = listado1.filaSelecc;
+	var filaDatos = listado1.datos[fila];
+
+	set("formulario.filaSeleccionadaModificar", fila);
+	set("formulario.presionoModificar", "true");
+	set("formulario.vieneModificar", "true");
+	var vieneModificar = get("formulario.vieneModificar");
+
+	//Tipo producto y tipo de insercion
+	var tipoProducto = filaDatos[0].toString();
+	var tipoInsercion = filaDatos[17].toString();
+	//Descripciones
+	var lblDescMarcaProducto  = filaDatos[5].toString();
+	var lblDescUnidadNegocio = filaDatos[6].toString();
+	var lblDescNegocio = filaDatos[7].toString();  
+   	var lblDescSupergenerico = filaDatos[8].toString();  
+   	var lblDescGenerico = filaDatos[9].toString();  
+   	var lblDescTipoOferta = filaDatos[3].toString();  
+   	var lblDescCicloVida = filaDatos[4].toString();  
+	var lblCodigoProducto = filaDatos[2].toString();  
+	//Oids
+	var oidMarcaTemp = filaDatos[12].toString();
+	var oidUNegocioTemp = filaDatos[13].toString();
+	var oidNegocioTemp = filaDatos[14].toString();
+	var oidSupergenericoTemp = filaDatos[15].toString();
+	var oidGenericoTemp = filaDatos[16].toString();
+	var oidTipoOfertaTemp = filaDatos[10].toString();
+	var oidCicloVidaTemp = filaDatos[11].toString();
+	var oidProductoTemp = filaDatos[18].toString();  
+
+	var obj = new Object();
+	obj.varOidCanal = canal;
+	obj.varOidMarca = marca;
+	obj.opcionMenu = opcionMenu;
+
+	obj.tipoProducto = tipoProducto;
+	obj.tipoInsercion = tipoInsercion;
+
+	obj.lblDescMarcaProducto = lblDescMarcaProducto;
+	obj.lblDescUnidadNegocio = lblDescUnidadNegocio;
+	obj.lblDescNegocio = lblDescNegocio;
+	obj.lblDescSupergenerico = lblDescSupergenerico;
+	obj.lblDescGenerico = lblDescGenerico;
+	obj.lblDescTipoOferta = lblDescTipoOferta;
+	obj.lblDescCicloVida = lblDescCicloVida;	
+	obj.lblCodigoProducto = lblCodigoProducto;	
+
+	obj.oidMarcaTemp = oidMarcaTemp;
+	obj.oidUNegocioTemp = oidUNegocioTemp;
+	obj.oidNegocioTemp = oidNegocioTemp;
+	obj.oidSupergenericoTemp = oidSupergenericoTemp;
+	obj.oidGenericoTemp = oidGenericoTemp;
+	obj.oidTipoOfertaTemp = oidTipoOfertaTemp;
+	obj.oidCicloVidaTemp = oidCicloVidaTemp;	
+	obj.oidProductoTemp = oidProductoTemp;	
+	obj.vieneModificar = vieneModificar;
+
+	if(tipoProducto==1) {
+		obj.descTipoProducto = "incluir";
+		obj.incluido = "true";
+	}
+	else {
+		obj.descTipoProducto = "excluir";
+		obj.incluido = "false";
+	}
+    
+	var whnd = mostrarModalSICC('LPMantenimientoComisionesProductos','modificar',obj);
+	if(whnd!=null){
+		agregarFila(whnd);   
+	}
+}
+
+function fBorrar() {
+	onClickEliminar();
+}
+
+function onClickEliminar() {
+	if (listado1.numSelecc()== 0) {
+		GestionarMensaje('1021',null,null,null);
+		return false;
+    }
+
+	listado1.eliminarSelecc();
+	focoBotonIncluir();
+}
+
+function agregarFila(nuevaFila) {
+  /* Posiciones de 0 a 18:
+	  - 0: oid tipo de producto
+	  - 1: descripcion tipo de producto
+	  - 2: codigo producto
+	  - 3: descripcion tipo oferta
+	  - 4: descripcion ciclo vida
+	  - 5: descripcion marca
+	  - 6: descripcion unidad negocio
+	  - 7: descripcion negocio
+	  - 8: descripcion supergenerico
+	  - 9: descripcion generico
+	  - 10: oid tipo oferta
+	  - 11: oid ciclo vida
+	  - 12: oid marca
+	  - 13: oid unidad negocio
+	  - 14: oid negocio
+	  - 15: oid supergenerico
+	  - 16: oid generico
+	  - 17: oid tipo insercion 
+  	  - 18: oid producto*/
+
+	if(nuevaFila!="") {
+		var unicaFila = nuevaFila[0];
+		var arrayTemp = unicaFila.split(",");
+		var arrayInsertar = new Array();
+
+		var tip = arrayTemp[0];
+
+		if(tip=="codigo") {
+			arrayInsertar[0] = arrayTemp[1];
+			arrayInsertar[1] = arrayTemp[2];
+			arrayInsertar[2] = arrayTemp[3]; 
+			arrayInsertar[3] = arrayTemp[4];  
+			arrayInsertar[4] = arrayTemp[5];   
+			arrayInsertar[5] = "";
+			arrayInsertar[6] = ""; 
+			arrayInsertar[7] = ""; 
+			arrayInsertar[8] = ""; 
+			arrayInsertar[9] = ""; 
+			arrayInsertar[10] = arrayTemp[6];    
+			arrayInsertar[11] = arrayTemp[7]; 
+			arrayInsertar[12] = ""; 
+			arrayInsertar[13] = ""; 
+			arrayInsertar[14] = ""; 
+			arrayInsertar[15] = "";
+			arrayInsertar[16] = ""; 
+			arrayInsertar[17] = arrayTemp[8];  
+			arrayInsertar[18] = arrayTemp[9];  
+		}
+		else {
+			arrayInsertar[0] = arrayTemp[16];
+			arrayInsertar[1] = arrayTemp[17];
+			arrayInsertar[2] = ""; 
+			arrayInsertar[3] = arrayTemp[12];  
+			arrayInsertar[4] = arrayTemp[14];   
+			arrayInsertar[5] = arrayTemp[2];
+			arrayInsertar[6] = arrayTemp[4]; 
+			arrayInsertar[7] = arrayTemp[6]; 
+			arrayInsertar[8] = arrayTemp[8]; 
+			arrayInsertar[9] = arrayTemp[10]; 
+			arrayInsertar[10] = arrayTemp[11];    
+			arrayInsertar[11] = arrayTemp[13]; 
+			arrayInsertar[12] = arrayTemp[1]; 
+			arrayInsertar[13] = arrayTemp[3]; 
+			arrayInsertar[14] = arrayTemp[5]; 
+			arrayInsertar[15] = arrayTemp[7];
+			arrayInsertar[16] = arrayTemp[9]; 
+			arrayInsertar[17] = arrayTemp[15];  
+			arrayInsertar[18] = "";  
+		}
+
+		var filaSeleccionadaModificar = get("formulario.filaSeleccionadaModificar");
+		var presionoModificar = get("formulario.presionoModificar");
+
+		if(presionoModificar=="true") {
+			listado1.actualizaDat();   
+			var datos = listado1.datos;
+			datos[filaSeleccionadaModificar] = arrayInsertar; 
+			listado1.setDatos(datos);
+			listado1.repintaDat();
+		}
+		else {
+			listado1.actualizaDat();   
+			var datos = listado1.datos;
+			datos[datos.length] = arrayInsertar; 
+			listado1.setDatos(datos);
+			listado1.repintaDat();
+		}
+	  }
+  focoBotonIncluir();
+}
+
+function fErrorAlGuardar() {
+	focoBotonIncluir();
+}
+
+function reInicio() {
+	focoBotonIncluir();
+}
+
+function fVolver() {
+	window.close();
+}
+
+]]> 
+</JAVASCRIPT>	
+<FORMULARIO nombre="formulario">
+<VAR nombre="estadoVentana" valor=""/>
+<VAR nombre="oidTipoPlantilla" valor=""/>
+<VAR nombre="titulo" valor=""/>
+<VAR nombre="opcionMenu" valor=""/>
+
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="accion" valor=""/>
+<VAR nombre="errCodigo" valor=""/> 
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="varPais" valor=""/> 
+<VAR nombre="varIdioma" valor=""/>
+
+<VAR nombre="varOidCanal" valor=""/> 
+<VAR nombre="varOidMarca" valor=""/>
+<VAR nombre="incluido" valor=""/> 
+
+<VAR nombre="codProducto" valor=""/>
+<VAR nombre="descMarcaProducto" valor=""/> 
+<VAR nombre="descUnidadNegocio" valor=""/>
+<VAR nombre="descNegocio" valor=""/> 
+<VAR nombre="descSupergenerico" valor=""/>
+<VAR nombre="descGenerico" valor=""/> 
+<VAR nombre="descTipoOferta" valor=""/>
+<VAR nombre="descCicloVida" valor=""/>
+
+<VAR nombre="idPestanyaDest" valor=""/>
+<VAR nombre="datosDeLista" valor=""/>
+
+<VAR nombre="lblCodigoProducto" valor=""/>
+<VAR nombre="lblDescMarcaProducto" valor=""/>
+<VAR nombre="lblDescUnidadNegocio" valor=""/>
+<VAR nombre="lblDescNegocio" valor=""/>
+<VAR nombre="lblDescSupergenerico" valor=""/>
+<VAR nombre="lblDescGenerico" valor=""/>
+<VAR nombre="lblDescTipoOferta" valor=""/>
+<VAR nombre="lblDescCicloVida" valor=""/>
+
+<VAR nombre="descTipoProducto" valor=""/>
+<VAR nombre="vieneModificar" valor=""/>
+<VAR nombre="tipoInsercion" valor=""/>
+<VAR nombre="tipoProducto" valor=""/>
+
+<VAR nombre="oidProductoTemp" valor=""/>
+<VAR nombre="oidMarcaTemp" valor=""/>
+<VAR nombre="oidUNegocioTemp" valor=""/>
+<VAR nombre="oidNegocioTemp" valor=""/>
+<VAR nombre="oidSupergenericoTemp" valor=""/>
+<VAR nombre="oidGenericoTemp" valor=""/>
+<VAR nombre="oidTipoOfertaTemp" valor=""/>
+<VAR nombre="oidCicloVidaTemp" valor=""/>
+
+<VAR nombre="filaSeleccionadaModificar" valor=""/>
+<VAR nombre="presionoModificar" valor=""/>
+
+<VAR nombre="datosPestanyaClientes" valor=""/>
+<VAR nombre="datosPestanyaDatosCalculo" valor=""/>
+
+<VAR nombre="sComisionEscalonada" valor=""/>
+
+<table width="100%" height="100%" border="0" align="center" cellpadding="0" cellspacing="0" class="menu4">
+  <tr> 
+    <td width="12" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="12" height="30"/></td>
+    <td nowrap="nowrap" class="menu5texto">&nbsp;</td>
+    <td width="10" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+   <td width="92" nowrap="nowrap" class="menu5texto">
+   
+   <table width="75" border="1" align="center" cellpadding="1" cellspacing="0" ID="DatosGenerales" 
+   bordercolor="#496A9A" onclick="onClickPestanya('DatosGenerales');" onmouseover="poneManito('DatosGenerales');" >
+        <tr align="center"> 
+          <td nowrap="nowrap"><LABELC nombre="lblDGC"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00543"/></td>
+        </tr>
+   </table>
+    </td>
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto">
+   
+    <table width="75" border="1" align="center" cellpadding="1" cellspacing="0" 
+    bordercolor="#496A9A"  bgcolor="#496A9A">
+        <tr align="center"> 
+          <td nowrap="nowrap" ><LABELC nombre="lblProductos"  alto="13" filas="1" valor="" id="menu5textoblanca" cod="0094"/></td>
+        </tr>
+    </table>
+    
+    
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto">
+    <table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" ID="Clientes"
+        onclick="onClickPestanya('Clientes');" onmouseover="poneManito('Clientes');">
+        <tr align="center"> 
+          <td nowrap="nowrap" ><LABELC nombre="lblClientes"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="0026"/></td>
+        </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto">
+    <table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" ID="DatosCalculo"
+    onclick="if(validarComisionEscalonada('DatosCalculo'))onClickPestanya('DatosCalculo');" onmouseover="poneManito('DatosCalculo');" onmouseout="quitarManito('DatosCalculo');">
+        <tr align="center"> 
+          <td nowrap="nowrap"  ><LABELC nombre="lblDatosC"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00544" /></td>
+        </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto">
+    <table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" ID="DatosComisionEscalonada"
+    onclick="if(validarComisionEscalonada('DatosComisionEscalonada'))onClickPestanya('DatosComisionEscalonada');" onmouseover="poneManito('DatosComisionEscalonada');" onmouseout="quitarManito('DatosComisionEscalonada');">
+        <tr align="center"> 
+          <td nowrap="nowrap"  ><LABELC nombre="lblDatosEscalonada"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="3462" /></td>
+        </tr>
+      </table>
+   </td>
+   
+    <td width="16" class="menu5texto"><IMG src="b.gif" width="12" height="8"/></td>
+  </tr>
+</table>                    
+
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="100%" ><IMG src="b.gif" width="424" height="8"/></td>
+    
+    </tr>
+ </table>
+
+  <LISTAEDITABLE nombre="listado1" ancho="400" alto="317" x="12" y="35" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+        <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+        <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+        <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+      <LINEAS>
+        <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="0" horizTitulo="1" horizBase="1"/> 
+        <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="0094" ID="datosTitle" />
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+       <COL ancho="100" minimizable="S" minimizada="N"/>
+        <COL ancho="100" minimizable="S" minimizada="N"/>
+        <COL ancho="100" minimizable="S" minimizada="N" /> 
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/>
+        <COL ancho="100" minimizable="S" minimizada="N" /> 
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+
+
+        <COL ancho="100" minimizable="S" minimizada="N" oculta="S" /> 
+        <COL ancho="100" minimizable="S" minimizada="N" oculta="S" /> 
+        <COL ancho="100" minimizable="S" minimizada="N" oculta="S" /> 
+        <COL ancho="100" minimizable="S" minimizada="N" oculta="S" />
+        <COL ancho="100" minimizable="S" minimizada="N" oculta="S" /> 
+        <COL ancho="100" minimizable="S" minimizada="N" oculta="S" /> 
+        <COL ancho="100" minimizable="S" minimizada="N" oculta="S" /> 
+        <COL ancho="100" minimizable="S" minimizada="N" oculta="S" /> 
+        <COL ancho="100" minimizable="S" minimizada="N" oculta="S" /> 
+      
+      </COLUMNAS>
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+	<COL colFondo="" ID="EstCab" cod="793"></COL>
+	<COL colFondo="" ID="EstCab" cod="337"></COL> 
+	<COL colFondo="" ID="EstCab" cod="608"></COL> 
+	<COL colFondo="" ID="EstCab" cod="581"></COL> 
+	<COL colFondo="" ID="EstCab" cod="6"></COL>    
+	<COL colFondo="" ID="EstCab" cod="1338"></COL> 
+	<COL colFondo="" ID="EstCab" cod="588"></COL>
+	<COL colFondo="" ID="EstCab" cod="590"></COL>                  
+	<COL colFondo="" ID="EstCab" cod="589"></COL>   
+
+		<COL colFondo="" ID="EstCab" cod="608"></COL> 
+	<COL colFondo="" ID="EstCab" cod="581"></COL> 
+	<COL colFondo="" ID="EstCab" cod="6"></COL>    
+	<COL colFondo="" ID="EstCab" cod="1338"></COL> 
+	<COL colFondo="" ID="EstCab" cod="588"></COL>
+	<COL colFondo="" ID="EstCab" cod="590"></COL>                  
+	<COL colFondo="" ID="EstCab" cod="589"></COL>   
+	<COL colFondo="" ID="EstCab" cod="590"></COL>                  
+	<COL colFondo="" ID="EstCab" cod="589"></COL>   
+	   
+      </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="1" msgErrMaxSel="" 
+             coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+             onLoad="" colorSelecc="#D0D9E8">
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+
+      </DATOS>
+      <ROWSET>
+      </ROWSET>
+    
+<PAGINADO nombre="mipgndo" ancho="400" sep="$" x="12" class="botonera" y="306" control="|" conector="" rowset="" cargainicial="N">  
+  <BOTON nombre="ret1" x="37" y="333" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+  <BOTON nombre="ava1" x="52" y="333" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>        
+</PAGINADO>
+</LISTAEDITABLE>
+<BOTON nombre="primera1" x="20" y="333" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();" />      
+<BOTON nombre="separa" x="59" y="329" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />       
+<BOTON nombre="btnIncluir" x="80" y="330" ID="botonContenido" tipo="html" estado="false" cod="2477" onshtab="focoBotonExcluir();" accion="onClickAnadir();"/> 
+<BOTON nombre="btnModificar" x="122" y="330" ID="botonContenido" tipo="html" estado="false" cod="2"
+accion="onClickModificar();"/>          
+<BOTON nombre="btnExcluir" x="188" y="330" ID="botonContenido" tipo="html" estado="false" cod="2272" ontab="focoBotonIncluir();" accion="onClickExcluir();"/>          
+
+<CAPA nombre="capaEspacio" alto="12" ancho="100%" colorf="" borde="0" imagenf="" 
+repeat="" padding="" visibilidad="hidden" contravsb="" x="0" y="329" zindex="">
+</CAPA>     
+</FORMULARIO>
+</PAGINA> 

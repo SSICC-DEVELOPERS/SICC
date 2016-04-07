@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_informe_cupones_tramite_generar.xml,v 1.1 2009/12/03 18:45:47 pecbazalar Exp $
+   contenido CCC
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_informe_cupones_tramite_generar" cod="0850" titulo="Generar informe cupones en trámite sin aplicar" estilos="estilosB3.css" colorf="#F0F0F0" 
+	msgle="" onload="onLoad();" xml:lang="es">
+ <JS src="sicc_util.js"/>   
+<JAVASCRIPT>
+  <![CDATA[ 
+ 
+   function onLoad(){
+      configurarMenuSecundario('Formulario');
+      fMostrarMensajeError();
+      set('Formulario.txtFechaValorDesde', '01/01/2000');
+      set('Formulario.txtFechaProcesoDesde', '01/01/2000');
+      setearFechas();
+      focaliza('Formulario.txtFechaValorDesde');
+           
+      
+   }
+//------------------------------------------------------------------------------   
+   function generar(formato){
+      if(sicc_validaciones_generales()){
+         if(validarFechasValor()){
+            if(validarFechasProceso()){
+               /*recolectarParametros();
+               set('Formulario.conectorAction', 'CCCCuponesTramite');           
+               set('Formulario.accion', 'generar');
+               set('Formulario.formatoSalida', formato);
+               enviaSICC('Formulario');*/
+               var a = new Object();
+               a.accion = 'generar';
+               a.fechaValorDesde = get('Formulario.txtFechaValorDesde');  
+               a.fechaValorHasta = get('Formulario.txtFechaValorHasta');
+               a.fechaProcesoDesde = get('Formulario.txtFechaProcesoDesde');  
+               a.fechaProcesoHasta = get('Formulario.txtFechaProcesoHasta');
+               a.banco = get('Formulario.cbBanco');
+               a.orden = get('Formulario.cbCriterioOrdenamiento');
+               a.formatoSalida = formato;
+               mostrarModalSICC('CCCCuponesTramite','generar', a);  
+            }
+         }      
+      }
+   }
+
+//------------------------------------------------------------------------------   
+   function setearFechas(){
+      var fechaActual = get('Formulario.fechaActual');
+      
+      set('Formulario.txtFechaValorHasta', fechaActual);
+      set('Formulario.txtFechaProcesoHasta', fechaActual);
+   
+   }
+
+//------------------------------------------------------------------------------   
+
+   function validarFechasValor(){
+      
+      var fechaDesde = get('Formulario.txtFechaValorDesde');
+      var fechaHasta = get('Formulario.txtFechaValorHasta');
+      var formatoFecha = get('Formulario.hFormatoFechaPais');
+            
+     
+      if (! EsFechaValida_SICC(fechaDesde, "Formulario")){
+          GestionarMensaje("1006", formatoFecha, null, null);
+          focaliza("Formulario.txtFechaValorDesde");
+          return false;
+      }
+     
+      if(! EsFechaValida_SICC(fechaHasta, "Formulario")){
+          GestionarMensaje("1006", formatoFecha, null, null);
+          focaliza("Formulario.txtFechaValorHasta");
+          return false;
+      }
+                 
+      var errorLevel = EsFechaValida( fechaDesde, fechaHasta, "Formulario", "S");
+      if ( errorLevel == 3){
+          GestionarMensaje("1191");
+          focaliza('Formulario.txtFechaValorDesde');
+          return false;
+      }
+     
+      return true;   
+   
+   }
+//------------------------------------------------------------------------------  
+
+   function validarFechasProceso(){
+      
+      var fechaDesde = get('Formulario.txtFechaProcesoDesde');
+      var fechaHasta = get('Formulario.txtFechaProcesoHasta');
+      var formatoFecha = get('Formulario.hFormatoFechaPais');
+            
+      if(fechaDesde != ''){
+          if (! EsFechaValida_SICC(fechaDesde, "Formulario")){
+              GestionarMensaje("1006", formatoFecha, null, null);
+              focaliza("Formulario.txtFechaProcesoDesde");
+              return false;
+          }
+      }     
+      
+      if(fechaHasta != ''){
+          if(! EsFechaValida_SICC(fechaHasta, "Formulario")){
+              GestionarMensaje("1006", formatoFecha, null, null);
+              focaliza("Formulario.txtFechaValorHasta");
+              return false;
+          }
+      }
+                 
+      if((fechaDesde != '') && (fechaHasta != '')){
+          var errorLevel = EsFechaValida( fechaDesde, fechaHasta, "Formulario", "S");
+          if ( errorLevel == 3){
+              GestionarMensaje("1191");
+              focaliza('Formulario.txtFechaValorDesde');
+              return false;
+          }
+      }
+     
+      return true;   
+   
+   }
+//------------------------------------------------------------------------------   
+   function recolectarParametros(){
+           
+      set('Formulario.fechaValorDesde', get('Formulario.txtFechaValorDesde'));  
+      set('Formulario.fechaValorHasta', get('Formulario.txtFechaValorHasta'));
+      set('Formulario.fechaProcesoDesde', get('Formulario.txtFechaProcesoDesde'));  
+      set('Formulario.fechaProcesoHasta', get('Formulario.txtFechaProcesoHasta'));
+      set('Formulario.banco', get('Formulario.cbBanco'));
+      set('Formulario.orden', get('Formulario.cbCriterioOrdenamiento'));
+ 
+  
+   }
+
+   
+//------------------------------------------------------------------------------   
+
+   function fLimpiar(){
+      focaliza('Formulario.txtFechaValorDesde');
+   }
+  
+  ]]> 
+  
+  <VALIDACION>
+    <ELEMENTO name="txtFechaValorDesde" required="true" cod="2667"/>
+    <ELEMENTO name="txtFechaValorHasta" required="true" cod="2678"/>
+    <ELEMENTO name="cbCriterioOrdenamiento" required="true" cod="2659"/>
+   
+</VALIDACION>
+</JAVASCRIPT>
+
+
+<FORMULARIO nombre="Formulario">
+<VAR nombre="accion" valor="" />
+<VAR nombre="conectorAction" valor="" />
+<VAR nombre="casoDeUso" valor=""/>
+<VAR nombre="errCodigo" valor="" />
+<VAR nombre="errDescripcion" valor="" />
+
+
+<VAR nombre="pais" valor="" />
+
+<VAR nombre="banco" valor="" />
+<VAR nombre="fechaValorDesde" valor="" />
+<VAR nombre="fechaValorHasta" valor="" />
+<VAR nombre="fechaProcesoDesde" valor="" />
+<VAR nombre="fechaProcesoHasta" valor="" />
+<VAR nombre="fechaActual" valor="" />
+<VAR nombre="banco" valor="" />
+<VAR nombre="orden" valor="" />
+<VAR nombre="formatoSalida" valor="" />
+
+<CAPA nombre="capa1">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblCriteriosSeleccion"  alto="13" filas="1" valor="" id="legend" cod="00275"/></legend>
+          <!---primera fila-->
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+            <tr><td>
+
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblFechaValorDesde"  alto="13" filas="1" id="datosTitle" cod="2677"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblFechaValorHasta"  alto="13" filas="1" id="datosTitle" cod="2678"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblFechaProcesoDesde"  alto="13" filas="1" id="datosTitle" cod="1915"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblFechaProcesoHasta"  alto="13" filas="1" id="datosTitle" cod="1916"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap" ><CTEXTO nombre="txtFechaValorDesde" id="datosCampos" max="10" tipo="" onchange="" req="S" size="12" valor="" validacion="" onshtab="focalizaBotonHTML('botonContenido','btnGenerarExcel');"/></td>                
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" ><CTEXTO nombre="txtFechaValorHasta" id="datosCampos" max="10" tipo="" onchange="" req="S" size="12" valor="" validacion=""/></td>   
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap" valign="bottom"><CTEXTO nombre="txtFechaProcesoDesde" id="datosCampos" max="10" tipo="" onchange="" req="N" size="12" valor="" validacion=""/></td>                
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" valign="bottom"><CTEXTO nombre="txtFechaProcesoHasta" id="datosCampos" max="10" tipo="" onchange="" req="N" size="12" valor="" validacion=""/></td>                             
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>
+            
+           <tr><td>
+
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblBanco"  alto="13" filas="1" id="datosTitle" cod="617" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblCriterioOrdenamiento"  alto="13" filas="1" id="datosTitle" cod="2659" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbBanco" size="5" multiple="S" valorinicial="" textoinicial="" id="datosCampos" req="N">
+                		<ROWSET>
+                  			
+			                  
+			               		
+                  	 	</ROWSET>	
+	                </COMBO> 
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" valign="top"><COMBO nombre="cbCriterioOrdenamiento" size="1" multiple="N" valorinicial="1" textoinicial="Código" id="datosCampos" req="S">
+                		<ROWSET>
+                  			<ROW ID="1">
+                     				<CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="2"/>
+                     				<CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="Fecha valor"/>
+                  			</ROW>
+                  			
+                  	 	</ROWSET>	
+	                </COMBO> 
+                   </td>
+	           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>
+            
+             
+            
+           </table>
+       <!---fin primera fila-->
+         
+        
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnGenerarInforme" ID="botonContenido" tipo="html" accion="generar();" estado="false" cod="2495"/>
+		  <BOTON nombre="btnGenerarExcel" ID="botonContenido" tipo="html" accion="generar('xls');" estado="false" cod="2526" ontab="focaliza('Formulario.txtFechaValorDesde')"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>       
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+ </CAPA>                                                                                                                                                           
+</FORMULARIO>
+</PAGINA>  

@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/INC/sic3
+   $Id: contenido_ranking_calcular.xml,v 1.1 2009/12/03 18:45:27 pecbazalar Exp $
+   INC
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_ranking_calcular" cod="0527" titulo="Calcular Ranking" estilos="estilosB3.css" colorf="#F0F0F0" 
+	msgle="" onload="onLoadPag();" xml:lang="es">
+<JS src="sicc_util.js"/>   
+<JS src="PaginacionSicc.js"/>    
+<JS src="DruidaTransactionMare.js"/>
+
+<JAVASCRIPT>
+  <![CDATA[ 
+
+  function onLoadPag()   {    
+     ocultarLista();
+     DrdEnsanchaConMargenDcho('listado1',12);
+     eval (ON_RSZ);  
+     configurarMenuSecundario('Formulario');
+     fMostrarMensajeError();
+     accion('Formulario.cbBaseCalculo', '.disabled=true');
+      
+
+     focaliza('Formulario.cbNumConcurso');
+   }
+
+//------------------------------------------------------------------------------
+//                 M E T O D O S   D E L     M O D E L O
+//------------------------------------------------------------------------------
+
+   function onChangeValorCalculo(){
+     var valorCalculo = get('Formulario.cbValorCalculo');
+     var constanteBase = get('Formulario.baseCalculo');
+     
+     if(valorCalculo == constanteBase){
+        accion('Formulario.cbBaseCalculo', '.disabled=false');
+     }else{
+        set('Formulario.cbBaseCalculo', '');
+        accion('Formulario.cbBaseCalculo', '.disabled=true');
+     }
+ 
+  }
+//------------------------------------------------------------------------------
+
+   function buscar(){
+            
+      var concurso = get('Formulario.cbNumConcurso');
+      var valorCalculo = get('Formulario.cbValorCalculo');
+      var baseCalculo  =  get('Formulario.cbBaseCalculo');
+      var idioma  =  get('Formulario.idioma');
+           
+      var arrayDatos = new Array();
+      arrayDatos[arrayDatos.length] = ['oidConcurso', concurso];
+      arrayDatos[arrayDatos.length] = ['valorCalculado', valorCalculo];
+      arrayDatos[arrayDatos.length] = ['baseCalculo', baseCalculo];
+      arrayDatos[arrayDatos.length] = ['oidIdioma', idioma];
+              
+      configurarPaginado(mipgndo, "INCBuscarRanking", "ConectorBuscarRanking", "es.indra.sicc.dtos.inc.DTORanking", arrayDatos) 
+   
+   }
+   
+//------------------------------------------------------------------------------   
+
+   function onClickAceptar(){
+       var codigos = new Array();
+     
+       
+        if (listado1.codSeleccionados().length == 1)  {
+                    
+           set('Formulario.oidConcurso',listado1.codSeleccionados());
+           set('Formulario.descConcurso',listado1.extraeDato(listado1.codSeleccionados(),0));
+           set('Formulario.version',listado1.extraeDato(listado1.codSeleccionados(), 1));
+           set('Formulario.descValorCalculo',listado1.extraeDato(listado1.codSeleccionados(), 2));
+           set('Formulario.descBaseCalculo',listado1.extraeDato(listado1.codSeleccionados(), 3));
+           set('Formulario.oidValorCalculo',listado1.extraeDato(listado1.codSeleccionados(), 4));
+           set('Formulario.oidBaseCalculo',listado1.extraeDato(listado1.codSeleccionados(), 5));
+           set('Formulario.oidDirigidoA',listado1.extraeDato(listado1.codSeleccionados(), 6));
+           set('Formulario.accion', 'calcularRanking');
+           set('Formulario.conectorAction', 'LPMantenimientoRanking');
+           enviaSICC('Formulario');
+        }else{
+          GestionarMensaje('4');
+      
+        }     
+
+   }
+
+ 
+//------------------------------------------------------------------------------   
+//            M E T O D O S      A D I C I O N A L E S
+//------------------------------------------------------------------------------   
+
+   function ocultarLista() {
+         document.all["Cplistado1"].style.visibility='hidden'; 
+         document.all["CpLin1listado1"].style.visibility='hidden';
+         document.all["CpLin2listado1"].style.visibility='hidden' ;
+         document.all["CpLin3listado1"].style.visibility='hidden' ;
+         document.all["CpLin4listado1"].style.visibility='hidden';
+         document.all["primera1Div"].style.visibility='hidden'; 
+         document.all["ret1Div"].style.visibility='hidden'; 
+         document.all["ava1Div"].style.visibility='hidden';   
+         document.all["separaDiv"].style.visibility='hidden';
+         document.all["btnAceptarDiv"].style.visibility='hidden';
+         
+    }
+          
+//------------------------------------------------------------------------------   
+
+   function mostrarLista() {
+        document.all["Cplistado1"].style.visibility='visible';
+        document.all["CpLin1listado1"].style.visibility='visible';
+        document.all["CpLin2listado1"].style.visibility='visible';
+        document.all["CpLin3listado1"].style.visibility='visible';
+        document.all["CpLin4listado1"].style.visibility='visible';
+        document.all["primera1Div"].style.visibility='visible';
+        document.all["ret1Div"].style.visibility='visible';
+        document.all["ava1Div"].style.visibility='visible';
+        document.all["separaDiv"].style.visibility='visible';
+        document.all["btnAceptarDiv"].style.visibility='visible';
+   }
+
+//------------------------------------------------------------------------------            
+    function prueba(ultima, rowset, error){
+        var tamano = rowset.length;
+    
+        if (tamano > 0) {
+           mostrarLista();
+           return true;
+        }else{
+           ocultarLista(); 
+           cdos_mostrarAlert(error);
+           return false;
+     }
+  } 
+
+//------------------------------------------------------------------------------            
+
+
+  ]]> 
+</JAVASCRIPT>
+
+<FORMULARIO nombre="Formulario">
+<VAR nombre="accion" valor="" />
+<VAR nombre="conectorAction" valor="" />
+<VAR nombre="casoDeUso" valor=""/>
+<VAR nombre="errCodigo" valor="" />
+<VAR nombre="errDescripcion" valor="" />
+<VAR nombre="idioma" valor="" />
+<VAR nombre="baseCalculo" valor="" />
+
+<VAR nombre="descConcurso" valor="" />
+<VAR nombre="oidConcurso" valor="" />
+<VAR nombre="version" valor="" />
+<VAR nombre="descValorCalculo" valor="" />
+<VAR nombre="oidValorCalculo" valor="" />
+<VAR nombre="descBaseCalculo" valor="" />
+<VAR nombre="oidBaseCalculo" valor="" />
+<VAR nombre="oidDirigidoA" valor="" />
+
+
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblCriteriosBusqueda" alto="13" filas="1" valor="" id="legend" cod="0075"/></legend>
+          <!---primera fila-->
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr><td> 
+	                <table width="525" border="0" align="left" cellspacing="0" cellpadding="0">
+	                <tr> 
+	                  <td colspan="9"><IMG src="b.gif" width="8" height="8"/></td>
+	                </tr>
+	                <tr>
+	                   <td><IMG src="b.gif" width="8" height="8"/></td>
+	                   <td><LABELC nombre="lblNumConcurso" alto="13" filas="1" valor="" id="datosTitle" cod="1604"/></td>
+	                  
+	                   <td><IMG src="b.gif" width="25" height="8"/></td>
+	                   <td><LABELC nombre="lblValorCalculo" alto="13" filas="1" valor="" id="datosTitle" cod="2444"/></td>
+	                   <td><IMG src="b.gif" width="25" height="8"/></td>
+	                   <td><LABELC nombre="lblBaseCalculo" alto="13" filas="1" valor="" id="datosTitle" cod="1181"/></td>
+	                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                </tr> 
+	                <tr>
+	                   <td><IMG src="b.gif" width="8" height="8"/></td>
+	                   <td nowrap="nowrap">
+	                   	<COMBO nombre="cbNumConcurso" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" onshtab="focalizaBotonHTML('botonContenido','btnBuscar')">
+                    		  <ROWSET>
+				       
+                    		  </ROWSET>
+                  		</COMBO>
+	                   </td>
+	                  
+	                   <td><IMG src="b.gif" width="25" height="8"/></td>
+	                   <td nowrap="nowrap">
+	                   	<COMBO nombre="cbValorCalculo" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" onchange="onChangeValorCalculo();">
+                    		  <ROWSET>
+				
+                    		  </ROWSET>
+                  		</COMBO>
+	                   </td>
+	                   <td><IMG src="b.gif" width="25" height="8"/></td>
+	                   <td nowrap="nowrap">
+	                   	<COMBO nombre="cbBaseCalculo" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                    		  <ROWSET>
+					
+                    		  </ROWSET>
+                  		</COMBO>
+	                   </td>
+	                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                </tr>
+	                <tr>
+	                   <td colspan="9"><IMG src="b.gif" width="8" height="8"/></td>
+	                </tr> 
+	              </table>
+	       
+              </td></tr>
+            </table>
+       
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnBuscar" ID="botonContenido" tipo="html" accion="buscar();" estado="false" cod="1" ontab="focaliza('Formulario.cbnumConcurso')"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>       
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+  
+  <LISTAEDITABLE nombre="listado1" ancho="400" alto="300" x="12" y="124" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+	<BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+	<BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+	<BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+      <LINEAS>
+	<GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="1" horizTitulo="1" horizBase="1"/> 
+	<COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00135" ID="datosTitle" />
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+        <COL ancho="30" minimizable="S" minimizada="N"/>
+        <COL ancho="25" minimizable="S" minimizada="N"/>
+        <COL ancho="40" minimizable="S" minimizada="N"/>
+        <COL ancho="75" minimizable="S" minimizada="N"/>
+        <COL ancho="25" minimizable="S" minimizada="N" oculta="S"/>
+        <COL ancho="40" minimizable="S" minimizada="N" oculta="S"/>
+        <COL ancho="75" minimizable="S" minimizada="N" oculta="S"/>
+      </COLUMNAS>
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+	<COL colFondo="" ID="EstCab" cod="1604"></COL> 
+	<COL colFondo="" ID="EstCab" cod="1607"></COL>
+	<COL colFondo="" ID="EstCab" cod="2444"></COL>
+	<COL colFondo="" ID="EstCab" cod="1181"></COL>
+  <COL colFondo="" ID="EstCab" cod="1607"></COL>
+	<COL colFondo="" ID="EstCab" cod="2444"></COL>
+	<COL colFondo="" ID="EstCab" cod="1181"></COL>
+      </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+             coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+             onLoad="" colorSelecc="#D0D9E8">
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+        <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/>
+      </DATOS>
+      <ROWSET>
+	
+      </ROWSET>
+  <PAGINADO nombre="mipgndo" ancho="400" sep="$" x="12" class="botonera" y="401" control="|" conector="conector_inc" rowset="" cargainicial="N" onload="procesarPaginado(mipgndo,msgError, ultima, rowset, 'prueba(ultima, rowset)')">
+    <BOTON nombre="ret1" x="37" y="405" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+    <BOTON nombre="ava1" x="52" y="405" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>        
+  </PAGINADO>
+</LISTAEDITABLE>
+
+    <BOTON nombre="primera1" x="20" y="405" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();"/>  
+    <BOTON nombre="separa" x="59" y="401" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />      
+    <BOTON nombre="btnAceptar" x="80" y="402" ID="botonContenido" img="" tipo="html" estado="false" cod="12" accion="onClickAceptar();" />   
+<CAPA nombre="capaEspacio" alto="12" ancho="100" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="424" zindex="">
+</CAPA>
+
+</FORMULARIO>
+</PAGINA>

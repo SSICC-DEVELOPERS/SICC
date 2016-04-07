@@ -1,0 +1,514 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_nueva_version_generar.xml,v 1.1 2009/12/03 18:45:03 pecbazalar Exp $
+   INC
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_nueva_version_generar" cod="0495" titulo="Generar nueva versión" estilos="estilosB3.css" colorf="#F0F0F0" msgle="" onload="onLoadPag();" xml:lang="es">
+
+<JS src="sicc_util.js"></JS> 
+<JS src="PaginacionSicc.js"></JS>
+<JS src="DruidaTransactionMare.js"></JS>
+
+<JAVASCRIPT>
+<![CDATA[
+
+var LP = 'LPMantenimientoVersiones';
+var obj = new Object();
+
+ function reestablecerIconos() {
+	 btnProxy(1,1);
+	 btnProxy(2,1);
+	 btnProxy(3,0);
+	 btnProxy(4,0);	  
+   	 btnProxy(5,1);
+	 btnProxy(6,1);
+	 btnProxy(7,0);
+	 btnProxy(8,0);
+	 btnProxy(9,0);
+	 btnProxy(10,1);
+   }
+
+function onLoadPag()  {
+	configurarMenuSecundario("formulario");
+	var pais = get('formulario.oidPais');
+	var marca = get('formulario.marca');
+	var canal = get('formulario.canal');
+	var codPeriodoHasta = get("formulario.codPeriodoHasta");
+	   
+	if (get('formulario.periodoDesde') != '') 
+		set('formulario.cbPeriodoDesde', [get('formulario.periodoDesde')]);
+
+    // Agregado por ssantana, 25/8/2005 
+    var puestaEnMarcha = get('formulario.periodoPuestaMarcha');
+    if ( puestaEnMarcha != '') 
+	  set('formulario.cbPeriodoPuestaMarcha', new Array(puestaEnMarcha) );
+		
+	var oidPeriodoFin = get('formulario.periodoFin');
+	if ( oidPeriodoFin != '') 
+		set('formulario.cbPeriodoFin', new Array(oidPeriodoFin) );
+
+    if (get('formulario.ckPagoTiempo') == 'N') {
+	    disable('txtDiasGracia');
+	    disable('cbPeriodoDesde');
+	    disable('cbPeriodoHasta');
+	}        
+
+	reestablecerIconos();
+
+	focaliza('formulario.cbPeriodoFin');
+
+	if (get('formulario.llamarLPMantenerProductos') == 'S') {
+		llamarLPMantenerProductosConOpcionMenuDeDruida();
+	}
+}
+
+   function accionCambiarProductos()  {  
+		var obj = new Object();
+		obj.opcionMenu = 'nueva version';
+		obj.ocultarPestanyas = 'S';
+		mostrarModalSICC('LPMantenerProductos','',obj);
+   }
+
+   function fVolver() {
+      window.close();
+	  return;
+   }
+
+   function accionCambiarPremios() { 
+	  var obj = new Object();
+	  obj.opcionMenu = 'nueva version';
+	  obj.ocultarPestanyas = 'S';
+	  mostrarModalSICC('LPMantenerParametrosGeneralesPremiacion','',obj);
+   }
+  
+     function onChangePagoATiempo()   { 
+      if (get('formulario.ckPagoTiempo') != 'S') {
+		 //set('formulario.ckPagoTiempo', 'S');
+		 set('formulario.txtDiasGracia', '');
+		 set('formulario.cbPeriodoDesde', '');
+ 		 set('formulario.cbPeriodoHasta', '');
+		 disable('txtDiasGracia');		 
+		 disable('cbPeriodoDesde');
+		 disable('cbPeriodoHasta');
+	 }
+	 else {	
+	     //set('formulario.ckPagoTiempo', 'N');
+	     set('formulario.txtDiasGracia',get('formulario.diasGracia'));
+		 enable('txtDiasGracia');
+		 enable('cbPeriodoDesde');
+		 enable('cbPeriodoHasta');
+
+		 /* Agregado por ssantana, 10/05/2006, Versionado */
+		 var cbPuestaMarcha = get("formulario.cbPeriodoPuestaMarcha");
+		 if (cbPuestaMarcha.length > 0) {
+			var arrayFiltro = new Array();
+			var index = 0;
+
+			var pais = get('formulario.oidPais');
+			var marca = get('formulario.marca');
+			var canal = get('formulario.canal');
+			var oidPuestaMarcha = get('formulario.cbPeriodoPuestaMarcha');
+
+			arrayFiltro[index] =  new Array('pais', pais);
+			index++;
+			arrayFiltro[index] =   new Array('marca', marca);
+			index++;
+			arrayFiltro[index] =  new Array('canal', canal);
+			index++;
+			arrayFiltro[index] =  new Array('oid', oidPuestaMarcha);
+
+			recargaCombo('formulario.cbPeriodoHasta', 
+						 'CRAObtenerPeriodosPosterioresActivos', 
+						 'es.indra.sicc.dtos.cra.DTOPeriodo',
+						 arrayFiltro,
+						 'validacionPeriodo(datos);');
+		 }
+	 }
+   }
+
+   function fGuardar()   { 
+		// Se detecta si se han producido cambios, antes de guardar     
+
+		 var indCambio = false;
+		 obj.oid = get('formulario.oid');
+		 obj.oidConcurso = get('formulario.oidConcurso');
+		 obj.oidRequisitoPremiacion = get('formulario.oidRequisitoPremiacion');
+
+		  if (get('formulario.periodoFin') != get('formulario.cbPeriodoFin')) { 
+			 obj.periodoFin = get('formulario.cbPeriodoFin'); 
+			 indCambio = true;
+		 } else {
+			 obj.periodoFin = get('formulario.periodoFin');
+ 		 }
+
+		 if (get('formulario.periodoPuestaMarcha') != get('formulario.cbPeriodoPuestaMarcha')) { 
+			 obj.periodoPuestaMarcha = get('formulario.cbPeriodoPuestaMarcha'); 
+			 indCambio = true;
+		 } else {
+			obj.periodoPuestaMarcha = get('formulario.periodoPuestaMarcha'); 
+		 }
+						 
+		 obj.indActivo = get('formulario.cteIndActivo');
+		 obj.indInactivo = get('formulario.cteIndInactivo');
+
+		  var varChkPagoATiempo = get('formulario.varChkPagoATiempo'); // Valor anterior.
+		  var checkBoxIndPagoTiempo = get('formulario.ckPagoTiempo'); // El valor actual en la pantalla. 
+
+		  if ( varChkPagoATiempo != checkBoxIndPagoTiempo) {
+				indCambio = true;
+		  }
+		  obj.indPagoTiempo = checkBoxIndPagoTiempo;
+
+		  if (get('formulario.diasGracia') != get('formulario.txtDiasGracia')) { 
+			obj.diasGracia = get('formulario.txtDiasGracia'); 
+			indCambio = true;
+		 }
+		 else
+			obj.diasGracia = get('formulario.diasGracia')
+		  
+		 if (get('formulario.periodoDesde') != get('formulario.cbPeriodoDesde')) { 
+			obj.periodoDesde = get('formulario.cbPeriodoDesde');
+			indCambio = true;
+		 } else {
+			obj.periodoDesde = get('formulario.periodoDesde');
+		 }
+	 
+		 if (get('formulario.periodoHasta') != get('formulario.cbPeriodoHasta')) { 
+			obj.periodoHasta = get('formulario.cbPeriodoHasta'); 
+			indCambio = true;
+		 }
+		 else
+			obj.periodoHasta = get('formulario.periodoHasta');
+
+		 // seteo indCambio a var oculta
+
+		 if (indCambio) {  
+			  set('formulario.indCambio', 'true');
+		 } else {
+			  set('formulario.indCambio', 'false');
+		 }
+
+		set('formulario.strPeriodoPuestaMarcha', get('formulario.cbPeriodoPuestaMarcha'));
+		callMethod('validar modificacion cambios');
+   }
+   
+	function enviarEstructura() {      
+		var periodoHasta = get('formulario.periodoHasta');
+		var codPeriodoHasta = get("formulario.codPeriodoHasta");
+
+		if (get('formulario.ckPagoTiempo')=='S') {
+			if(get('formulario.cbPeriodoHasta')=="") {
+				if (periodoHasta != '') {
+				   set('formulario.cbPeriodoHasta', new Array(periodoHasta));
+				   var elemSeleccionado = get('formulario.cbPeriodoHasta');			
+				   if (elemSeleccionado.length == 0) {
+			    	  GestionarMensaje('INC055', codPeriodoHasta);
+					  // El periodo hasta % no es posterior al período de puesta en marcha", 
+					  //pasar codPeriodoHasta recibido como parámetro
+					  reestablecerIconos();
+			       }
+				   else {
+						returnValue = makeMap(obj);
+						delete obj;
+						window.close();
+						return;
+				   }
+			    }
+			}	
+			else {
+				returnValue = makeMap(obj);
+				delete obj;
+				window.close();
+				return;
+			}	
+		}
+		else {
+			returnValue = makeMap(obj);
+			delete obj;
+			window.close();
+			return;
+		}
+   }
+
+   function validaComboPuestaMarcha(){
+	 /*  Al generar una nueva versión debe seleccionarse el período 
+	 de puesta en marcha del concurso */
+
+	 GestionarMensaje("INC060");
+	 eval('formulario').oculto='N';
+
+ 	 reestablecerIconos();
+
+	 focaliza('formulario.cbPeriodoFin');
+   }
+
+   function llamarLPMantenerProductosConOpcionMenuDeDruida() {   
+	   callMethod('', true, 'LPMantenerProductos');
+   }
+   
+   function fLimpiar() {
+       set('formulario.txtDiasGracia', '');
+	   set('formulario.cbPeriodoDesde', '');
+	   set('formulario.cbPeriodoHasta', '');
+	   set('formulario.ckPagoTiempo', get('formulario.varChkPagoATiempo'));
+	   set('formulario.cbPeriodoPuestaMarcha', '');
+	   set('formulario.cbPeriodoFin', '');
+   }
+   
+   // verifica si seleccionado un registro, y devuelve position o false
+   function chkPos() 
+   {	if (listado1.numSelecc() == 1)
+			return obtenerPosicionListaEditable(listado1.codSeleccionados(), listado1);			
+		else
+		{  if (listado1.numSelecc() > 1)
+			  cdos_mostrarAlert(GestionarMensaje("240"));	  
+		   else
+		   {  if(listado1.numSelecc() < 1)
+				 GestionarMensaje("4");
+		   }
+		}
+		return -1;
+	} 
+
+	function callMethod()	{  
+	if (!arguments[1])
+		  eval('formulario').oculto='S';
+	   set('formulario.conectorAction', (arguments[2]) ? arguments[2] : LP);
+	   set('formulario.accion', arguments[0]);
+	   enviaSICC('formulario', null, null, 'N');
+	}
+
+	function makeMap() { 
+		var fld = null;
+	  var mp = '<?xml version="1.0" encoding="ISO-8859-1" ?><args><field ';
+	  for (fld in arguments[0])
+	    mp += fld+'="'+arguments[0][fld] + '" ';
+	  mp += '></field></args>';
+	  return mp;
+	}
+
+	function disable() { 
+		accion('formulario.' + arguments[0], '.disabled = true');	
+	}
+
+	function enable() { 
+		accion('formulario.' + arguments[0], '.disabled = false');	
+	}
+
+/* Agregado por ssantana, 10/05/2006, Versionado */
+function onChangePuestaMarcha() {
+	var chkPagoTiempo = get('formulario.ckPagoTiempo');
+
+	if (chkPagoTiempo == "S") {
+		var arrayFiltro = new Array();
+		var index = 0;
+		var pais = get('formulario.oidPais');
+		var marca = get('formulario.marca');
+		var canal = get('formulario.canal');
+		var oidPuestaMarcha = get('formulario.cbPeriodoPuestaMarcha');
+
+		arrayFiltro[index] = new Array('pais', pais);
+		index++;
+		arrayFiltro[index] = new Array('marca', marca);
+		index++;
+		arrayFiltro[index] = new Array('canal', canal);
+		index++;
+		arrayFiltro[index] = new Array('oid', oidPuestaMarcha); 
+
+		recargaCombo('formulario.cbPeriodoHasta', 
+				     'CRAObtenerPeriodosPosterioresActivos', 
+					 'es.indra.sicc.dtos.cra.DTOPeriodo',
+					 arrayFiltro,
+					 'validacionPeriodo(datos)');
+	}
+}
+
+function validacionPeriodo(datos) {
+ 	var periodoHasta = get('formulario.periodoHasta');
+	var codPeriodoHasta = get("formulario.codPeriodoHasta");
+
+	var arrayDatosNuevo = new Array();
+	arrayDatosNuevo[0] = ['',''];
+	arrayDatosNuevo = arrayDatosNuevo.concat(datos);
+	set_combo('formulario.cbPeriodoHasta', arrayDatosNuevo);
+
+	if (periodoHasta != '') {
+	   set('formulario.cbPeriodoHasta', new Array(periodoHasta));
+	   var elemSeleccionado = get('formulario.cbPeriodoHasta');
+	   if (elemSeleccionado.length == 0) {
+    	  GestionarMensaje('INC055', codPeriodoHasta);
+		  // El periodo hasta % no es posterior al período de puesta en marcha", pasar codPeriodoHasta recibido como parámetro
+       }
+	}
+	else {
+		GestionarMensaje('INC055', codPeriodoHasta);
+		// El periodo hasta % no es posterior al período de puesta en marcha", pasar codPeriodoHasta recibido como parámetro
+	}
+} 
+
+/* Fin Agregado por ssantana, 10/05/2006, Versionado */
+
+ 
+  ]]> 
+</JAVASCRIPT>
+
+<FORMULARIO nombre="formulario">
+<!-- ****** common ********* -->
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="opcionMenu" valor=""/>
+<VAR nombre="accion" valor=""/>
+<VAR nombre="errCodigo" valor=""/> 
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="oidIdioma" valor=""/>
+<VAR nombre="oidPais" valor=""/>
+<!-- *********************** -->
+
+<VAR nombre="oid" valor="" />
+
+<VAR nombre="oidConcurso" valor="" />
+<VAR nombre="cteIndActivo" valor="" />
+<VAR nombre="cteIndInactivo" valor="" />
+<VAR nombre="datosNuevaVersion" valor="" />
+<VAR nombre="varChkPagoATiempo" valor="" />
+<VAR nombre="periodoFin" valor="" />
+<VAR nombre="periodoPuestaMarcha" valor="" />
+<VAR nombre="periodoDesde" valor="" />
+<VAR nombre="periodoHasta" valor="" />
+<VAR nombre="ocultarPestanyas" valor="S" />
+<VAR nombre="llamarLPMantenerProductos" valor="" />
+<VAR nombre="indCambio" valor="" /> <!-- inc. 20335 03/08/2005 idedough -->
+<VAR nombre="oidRequisitoPremiacion" valor="" />
+<VAR nombre="diasGracia" valor="" />
+<VAR nombre="marca" valor=""/>
+<VAR nombre="canal" valor=""/>
+<VAR nombre="codPeriodoHasta" valor=""/>
+<VAR nombre="strPeriodoPuestaMarcha" valor=""/>
+
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblDatosNuevaVersion" alto="13" filas="1" valor="" id="legend" cod="00391"/></legend>
+          <!---primera fila-->
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr><td> 
+	                <table width="525" border="0" align="left" cellspacing="0" cellpadding="0">
+	                <tr> 
+	                  <td colspan="13"><IMG src="b.gif" width="8" height="8"/></td>
+	                </tr>
+	                <tr>
+	                   <td><IMG src="b.gif" width="8" height="8"/></td>
+	                   <td><LABELC nombre="lblPeriodoFin" alto="13" filas="1" valor="" id="datosTitle" cod="967"/></td>
+	                   <td><IMG src="b.gif" width="25" height="8"/></td>
+	                   <td><LABELC nombre="lblPeriodoPuestaMarcha" alto="13" filas="1" valor="" id="datosTitle" cod="1643"/></td>
+	                   <td><IMG src="b.gif" width="25" height="8"/></td>
+	                   <td><LABELC nombre="lblPagoTiempo" alto="13" filas="1" valor="" id="datosTitle" cod="1644"/></td>
+	                   <td><IMG src="b.gif" width="25" height="8"/></td>
+	                   <td><LABELC nombre="lblDiasGracia" alto="13" filas="1" valor="" id="datosTitle" cod="1645"/></td>
+	                   <td><IMG src="b.gif" width="25" height="8"/></td>
+	                   <td><LABELC nombre="lblPeriodoDesde" alto="13" filas="1" valor="" id="datosTitle" cod="1175"/></td>
+	                   <td><IMG src="b.gif" width="25" height="8"/></td>
+	                   <td><LABELC nombre="lblPeriodoHasta" alto="13" filas="1" valor="" id="datosTitle" cod="1176"/></td>
+	                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                </tr> 
+	                <tr>
+	                   <td><IMG src="b.gif" width="8" height="8"/></td>
+	                   <td>
+	                     	<COMBO nombre="cbPeriodoFin" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                    		  <ROWSET>
+					<ROW>
+			   		  <CAMPO NOMBRE="cabecera" TIPO="STRING" VALOR="0"/>
+			   		  <CAMPO NOMBRE="contenido" TIPO="STRING" VALOR=""/>
+		        		</ROW>                    
+                    		  </ROWSET>
+                  		</COMBO>
+	                   </td>
+	                   <td><IMG src="b.gif" width="25" height="8"/></td>
+	                   <td>
+	                   	<COMBO nombre="cbPeriodoPuestaMarcha" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" onchange="onChangePuestaMarcha();">
+                    		  <ROWSET>
+					<ROW>
+			   		  <CAMPO NOMBRE="cabecera" TIPO="STRING" VALOR="0"/>
+			   		  <CAMPO NOMBRE="contenido" TIPO="STRING" VALOR=""/>
+		        		</ROW>                    
+                    		  </ROWSET>
+                  		</COMBO>
+	                   </td>
+	                   <td><IMG src="b.gif" width="25" height="8"/></td>
+	                   <td><CHECKBOX nombre="ckPagoTiempo" id="datosCampos" onclick="onChangePagoATiempo();" check=""/></td>
+	                   <td><IMG src="b.gif" width="25" height="8"/></td>
+	                   <td><CTEXTO nombre="txtDiasGracia" id="datosCampos" max="4" tipo="" onchange="" req="N" size="5" valor="" validacion=""/></td>
+	                   <td><IMG src="b.gif" width="25" height="8"/></td>
+	                   <td>
+	                   	<COMBO nombre="cbPeriodoDesde" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                    		  <ROWSET>
+					<ROW>
+			   		  <CAMPO NOMBRE="cabecera" TIPO="STRING" VALOR="0"/>
+			   		  <CAMPO NOMBRE="contenido" TIPO="STRING" VALOR=""/>
+		        		</ROW>                    
+                    		  </ROWSET>
+                  		</COMBO>
+	                   </td>
+	                   <td><IMG src="b.gif" width="25" height="8"/></td>
+	                   <td>
+	                   	<COMBO nombre="cbPeriodoHasta" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                    		  <ROWSET>
+					<ROW>
+			   		  <CAMPO NOMBRE="cabecera" TIPO="STRING" VALOR="0"/>
+			   		  <CAMPO NOMBRE="contenido" TIPO="STRING" VALOR=""/>
+		        		</ROW>                    
+                    		  </ROWSET>
+                  		</COMBO>
+	                   </td>
+	                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                </tr>
+	                <tr>
+	                   <td colspan="13"><IMG src="b.gif" width="8" height="8"/></td>
+	                </tr> 
+	              </table>
+	       
+              </td></tr>
+            </table>
+       
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnCambiarProductos" ID="botonContenido" tipo="html" accion="accionCambiarProductos();" estado="false" cod="1646"/>
+		  <BOTON nombre="btnCambiarPremios" ID="botonContenido" tipo="html" accion="accionCambiarPremios();" estado="false" cod="2425"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>       
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+
+</FORMULARIO>
+</PAGINA>

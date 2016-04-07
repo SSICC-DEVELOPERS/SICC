@@ -1,0 +1,466 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_perfil_usuario_modificar.xml,v 1.1 2009/12/03 18:46:15 pecbazalar Exp $
+   vvv
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_perfil_usuario_modificar" cod="052" titulo="" estilos="estilosB3.css" colorf="#F0F0F0" 
+          msgle="" onload="onLoadPag();" xml:lang="es">
+<!--Consultar perfiles cod="053"-->
+<!--Eliminar perfiles cod="054"-->
+
+<JS src="sicc_util.js"/>
+<JS src="PaginacionSicc.js"/>
+<JS src="DruidaTransactionMare.js"/>
+
+<JAVASCRIPT>
+ <![CDATA[ 
+          function muestraLista(ultima, rowset){
+                    var tamano = rowset.length;
+                    if (tamano > 0) {
+                                 //Al presionar buscar se hace visible la lista
+                                 document.all["Cplistado1"].style.visibility='visible';
+                                 document.all["separaDiv"].style.visibility='visible';
+                                 document.all["prim1Div"].style.visibility='visible'; 
+                                 document.all["ret1Div"].style.visibility='visible'; 
+                                 document.all["ava1Div"].style.visibility='visible';   
+                                 document.all["CpLin1listado1"].style.visibility='visible' 
+                                 document.all["CpLin2listado1"].style.visibility='visible' 
+                                 document.all["CpLin3listado1"].style.visibility='visible' 
+                                 document.all["CpLin4listado1"].style.visibility='visible'
+                                
+                                 //El boton modificar se hace visible solo si estoy en el caso de uso modificar
+                                 var caso = get("frmContenido.casoUso");
+                                  if (caso== "eliminar"){
+                                    btnProxy(4,1);
+                                  }
+                                 if(caso=="modificar"){
+                                         listado1.maxSel = "1";
+                                         document.all["ModificarDiv"].style.visibility='visible';
+                                 }
+
+                                 if(caso=="consultar"){
+                                         listado1.maxSel = "1";
+                                         document.all["ConsultarDiv"].style.visibility='visible';
+                                 }
+
+                                 if(caso=="copiar"){
+                                         listado1.maxSel = "1";
+                                         document.all["CopiarDiv"].style.visibility='visible';
+                                 }  
+                                 focaliza("frmContenido.txtNombrePerfil");
+                                 return true;
+                    } else {
+                      focaliza("frmContenido.txtNombrePerfil");
+                      //cdos_mostrarAlert(error);
+                      return false;
+                     }
+          }
+
+
+  function onLoadPag()   {   
+    DrdEnsanchaConMargenDcho('listado1',12);
+    
+    document.all["Cplistado1"].style.visibility='';
+    document.all["CpLin1listado1"].style.visibility='';
+    document.all["CpLin2listado1"].style.visibility='';
+    document.all["CpLin3listado1"].style.visibility='';
+    document.all["CpLin4listado1"].style.visibility='';
+    document.all["prim1Div"].style.visibility='';
+    document.all["ret1Div"].style.visibility='';
+    document.all["ava1Div"].style.visibility='';
+    document.all["ModificarDiv"].style.visibility='';
+    document.all["CopiarDiv"].style.visibility='hidden';
+    document.all["ConsultarDiv"].style.visibility='hidden';
+    eval (ON_RSZ);
+    init();
+    ocultarLista();
+     
+   }
+
+   //Esta funcion oculta la lista
+   function ocultarLista() {
+      btnProxy(4,0);
+      //Al principio se debe ocultar la lista
+      document.all["Cplistado1"].style.visibility='hidden';
+      document.all["separaDiv"].style.visibility='hidden';
+      document.all["prim1Div"].style.visibility='hidden'; 
+      document.all["ret1Div"].style.visibility='hidden'; 
+      document.all["ava1Div"].style.visibility='hidden';   
+      document.all["ModificarDiv"].style.visibility='hidden';
+      document.all["CopiarDiv"].style.visibility='hidden';
+      document.all["ConsultarDiv"].style.visibility='hidden';
+      document.all["CpLin1listado1"].style.visibility='hidden' 
+      document.all["CpLin2listado1"].style.visibility='hidden' 
+      document.all["CpLin3listado1"].style.visibility='hidden' 
+      document.all["CpLin4listado1"].style.visibility='hidden'
+  }   
+
+   function init() {
+            configurarMenuSecundario("frmContenido");
+      var bErrores = hayErrores(); 
+      if (bErrores == true) {
+          return;
+          }
+      focaliza("frmContenido.txtNombrePerfil");
+
+      var exito = get("frmContenido.varExitoModifica"); //Si la variable varExito tiene el valor Exito
+    
+      if(exito == "Exito") {
+          fMostrarMensajeExito("modificar");          //muestra el mensaje de insercion exitosa
+          set("frmContenido.varExitoModifica", ""); //y despues deja varExitoInserta en vacio
+      }  
+    }
+
+    function hayErrores() {
+          var codigoError = get("frmContenido.errCodigo");
+          var descError = get("frmContenido.errDescripcion");
+
+          if (codigoError == "") {
+            return false;
+          }
+          //Si hay errores entra a la LP por accion vacio          
+          else {
+            fMostrarMensajeError(codigoError, descError);    
+            set("frmContenido.conectorAction", "LPPerfiles");            
+            set("frmContenido.accion", "");      
+            enviaSICC("frmContenido");    
+            return true;
+          }
+    }
+
+    function focalizaNombre() {
+      focaliza("frmContenido.txtNombrePerfil");
+    }
+
+    function accionBuscar () {  
+          
+      //Llamamos a configurarPaginado pasandole los siguientes parametros: 
+      //paginado = el objeto paginado de la lista resultados 
+      //idBusiness = "MENBuscarPerfiles" 
+      //conector = ConectorBuscarPerfiles 
+      //dto = "DTOString" (con la ruta completa de paquetes) 
+      //parametros = [valor = get(nombre)]. Siendo nombre el campo nombre del formulario
+
+            
+            document.all["capaTapaTodo"].style.visibility='hidden';
+            ocultarLista();
+
+
+      //Si se presiona buscar primero limpia la lista
+      var codigos = listado1.codigos();
+      var longitud = codigos.length;
+      for(var i=0;i<longitud;i++) {
+          listado1.deselecciona(i);    
+      }
+
+     configurarPaginado(mipgndo,"MENBuscarPerfiles","ConectorBuscarPerfiles","es.indra.sicc.dtos.men.DTOString", armarArray());      
+    }
+
+    function armarArray(){
+      var arrDatos = new Array(); 
+      arrDatos[0] = new Array('valor',get('frmContenido.txtNombrePerfil'));     
+      arrDatos[1] = new Array('usuario',get('frmContenido.usuario'));     
+      arrDatos[2] = new Array('password',get('frmContenido.constrasenia'));     
+      return arrDatos;
+    }    
+
+    function accionEliminar() {
+      //Mostramos un mensaje de confirmación con el código de mensaje: GEN-0011 
+      //(¿Desea realmente eliminar los registros seleccionados?) 
+      //Si pulsa Cancelar salimos de la funcion sin hacer nada. 
+
+      //var parametros = "MENEliminarPerfil" + "|"; 
+      //Añadimos a la cadena parametros la primera columna de cada
+      //fila seleccionada del listado (nombre), separarando cada elemento por el caracter "~" 
+
+      //asignar([["TEXT","","ConectorEliminarPerfilTransaction","resultado", parametros, "resultadoOperacion(datos);"]]); 
+
+      //Guardamos el parametro "paginado" en la variable objetoPaginado (es una variable Javascript fuera de los métodos)
+
+
+      //Primero verifico que haya eligido una o mas filas de la lista
+      if (listado1.numSelecc()== 0) {
+          GestionarMensaje('1021',null,null,null);
+          return false;
+      }   
+
+      //Luego se pide al usuario una confirmacion para borrar
+      var respuesta = GestionarMensaje(1077);
+      //Si presiona cancelar sale de la funcion
+      if(respuesta==false) {          
+          return;
+      }
+
+      //Empiezo a armar la variable parametros
+      //primero va el BussID y un separador
+      var parametros = "MENEliminarPerfil" + "|";
+      
+      var codigos = listado1.codSeleccionados(); //Obtengo los indices de las filas que selecciono     
+      var cantElemen = listado1.numSelecc();     //Obtengo la cantidad de elementos que selecciono
+      var todos = "";
+      var valor = "";
+      var indice = "";
+
+      //Recorro la cantidad de elementos
+      for(var i=0;i<cantElemen;i++) {
+          //A una variable le paso el valor del indice que selecciono
+          indice = codigos[i]; 
+          //A otra variable le paso el elemento contiene la fila
+          valor = listado1.extraeDato(indice,0);
+
+          //A otra variable le concateno cada elemento de la lista
+          if(i==0) {
+            todos = valor;
+          }
+          else {
+            todos = todos + "~" + valor;
+          }          
+      }
+
+      //Finalmente a la variable parametros le concateno los nombres de los
+      //perfiles a eliminar separados por el simbolo "~"
+      parametros = parametros + todos;
+      asignar([["TEXT","","ConectorEliminarPerfilTransaction","resultado", parametros, "resultadoOperacion(datos);"]]);      
+      accionBuscar();
+      focaliza("frmContenido.txtNombrePerfil");
+    }
+
+    function accionCopiar() {
+      //Abrimos un popup y direccionamos a la LPPerfiles
+      //pasandole como parametro "perfil" el elmento que ha seleccionado
+      //de la lista resultados y como accion "copiar"
+
+      //Comprobar que se ha seleccionado un elemento de la lista.
+
+      if (listado1.numSelecc()!= 1) {
+          GestionarMensaje('1022',null,null,null);
+          return false;
+      }
+
+      var posicion = obtenerPosicionListaEditable(listado1.codSeleccionados(),listado1);
+      var obj = new Object();  
+      
+      obj.varPerfil=listado1.datos[posicion][1];
+      obj.casoUso=get("frmContenido.casoUso");
+      obj.varCopiar="copiando";
+
+      mostrarModalSICC('LPPerfiles','copiar',obj,800,600);
+      /* Se bloquea la ejecución hasta el cierre de la ventana emergente */ 
+      accionBuscar();            
+    }
+
+    function accionConsultar() {
+      //Abrimos un popup y direccionamos a la LPPerfiles
+      //pasandole como parametro "perfil" el elmento que ha
+      //seleccionado de la lista resultados y como accion "consultar"
+
+      //Comprobar que se ha seleccionado un elemento de la lista.
+
+      if (listado1.numSelecc()!= 1) {
+          GestionarMensaje('1022',null,null,null);
+          return false;
+      }
+
+      var posicion = obtenerPosicionListaEditable(listado1.codSeleccionados(),listado1);
+      var obj = new Object();  
+      
+      obj.varPerfil=listado1.datos[posicion][1];
+      obj.casoUso=get("frmContenido.casoUso");
+
+      mostrarModalSICC('LPPerfiles','consultar',obj,800,470);  //PRUEBA
+      /* Se bloquea la ejecución hasta el cierre de la ventana emergente */ 
+
+            
+            //set("frmContenido.conectorAction", "LPPerfiles");            
+            //set("frmContenido.accion", "consultar");      
+            //enviaSICC("frmContenido");    
+            //return true;
+
+      accionBuscar();      //PRUEBA
+    }
+
+    function accionModificar() {      
+      //Abrimos un popup y direccionamos a la LPPerfiles pasandole
+      //como parametro "perfil" el elmento que ha seleccionado de
+      //la lista resultados y como accion "modificar"
+
+      //Comprobar que se ha seleccionado un elemento de la lista.
+
+      if (listado1.numSelecc()!= 1) {
+          GestionarMensaje('1022',null,null,null);
+          return false;
+      }
+
+      var posicion = obtenerPosicionListaEditable(listado1.codSeleccionados(),listado1);
+      var obj = new Object();  
+      
+      obj.varPerfil=listado1.datos[posicion][1];
+      obj.casoUso=get("frmContenido.casoUso");
+
+      mostrarModalSICC('LPPerfiles','modificar',obj,800,600);
+      /* Se bloquea la ejecución hasta el cierre de la ventana emergente */ 
+
+      //Refrescar la lista paginada de resultados para que se muestren las modificaciones realizadas
+      accionBuscar();     
+    }
+
+    function obtenerPosicionListaEditable(clave, lista) {
+      this.posicion = 0;
+      if (lista.codSeleccionados().length > 0) {
+          for(var k=0;k<lista.datos.length;k++) {
+            if (lista.datos[k][0] == clave) {
+              posicion=k;
+              break;
+            }
+          }           
+          return posicion;
+      }
+    }
+
+    function fBorrar() {
+      accionEliminar();    
+    }
+
+  ]]>  
+</JAVASCRIPT>   
+<FORMULARIO nombre="frmContenido">
+<VAR nombre="casoUso" valor=""/>
+<VAR nombre="accion" valor=""/>
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="errCodigo" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="nombreArbol" valor=""/>
+<VAR nombre="inicio" valor=""/>
+<VAR nombre="nombre" valor=""/>
+<VAR nombre="funciones" valor=""/>
+<VAR nombre="varExitoModifica" valor=""/>
+<VAR nombre="varPerfil" valor=""/>
+<VAR nombre="varExitoInserta" valor=""/>
+<VAR nombre="varNombre" valor=""/>
+<VAR nombre="varCopiar" valor=""/>
+<VAR nombre="varUnaVariable" valor=""/>
+<VAR nombre="usuario" valor=""/>
+<VAR nombre="contrasenia" valor=""/>
+
+<CAPA nombre="capaContenido" colorf="#F0F0F0"  borde="0" imagenf="" repeat="" padding="" visibilidad="" contravsb="" x="0" y="0" zindex="">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+          <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+          <td width="750" ><IMG src="b.gif"/></td>
+          <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>    
+     <tr> 
+      <td><IMG src="b.gif"/></td>      
+      <td>
+          <fieldset><legend class="legend"><LABELC nombre="lblCriterios" alto="13" filas="1" valor="Datos Búsqueda" id="legend" cod="0075"/></legend> 
+            <!---primera fila-->
+          <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+                  <table width="680" border="0" align="left" cellspacing="0" cellpadding="0">
+                    <tr> 
+                      <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                    </tr>
+                    <tr>
+                        <td><IMG src="b.gif" width="8" height="8"/></td>                        
+                        <td><LABELC nombre="lblPerfil1" alto="13" filas="1" valor="" id="datosTitle" cod="146"/></td>                        
+                        <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                    </tr> 
+                    <tr>
+                        <td><IMG src="b.gif" width="8" height="8"/></td>                        
+                        <td  nowrap="nowrap">
+                         <CTEXTO nombre="txtNombrePerfil" id="datosCampos" max="25" tipo="" onchange="" req="N" size="33" valor="" validacion="" ontab="focalizaNombre();" onshtab="focalizaNombre();"/>
+                        </td>  
+                        <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                    </tr>
+                    <tr>
+                        <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                    </tr>                    
+                  </table>
+            </td></tr></table>
+         <!---fin primera fila-->
+         </fieldset>          
+      </td>      
+      <td><IMG src="b.gif" /></td>      
+    </tr>     
+    <tr> 
+          <td><IMG src="b.gif"/></td>
+          <td>
+            <fieldset>
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">          
+                  <tr>
+                    <td class="botonera">
+                      <BOTON nombre="btnBuscar" ID="botonContenido" tipo="html" accion="accionBuscar();" estado="false" cod="1"/>
+                    </td>
+                  </tr>    
+              </table>          
+            </fieldset>
+          </td>
+          <td><IMG src="b.gif" width="8" height="12"/></td>
+    </tr>   
+    <tr>
+          <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+          <td width="750" ><IMG src="b.gif"/></td>
+          <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+
+<LISTAEDITABLE nombre="listado1" ancho="680" alto="301" x="12" y="124" colorFondo="#CECFCE" msgDebugJS="S">
+<TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00135" ID="datosTitle"/>
+<BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+
+<IMGBOTONES precarga="S" conROver="S">
+  <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+  <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+  <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>
+</IMGBOTONES>
+
+<LINEAS>
+  <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="1" horizTitulo="1" horizBase="1"/> 
+  <COLOR borde="#999999" vertCabecera="#999999" vertDatos="#999999" horizDatos="#999999" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999"/> 
+</LINEAS>
+
+<COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+  <COL ancho="100" minimizable="S" minimizada="N"/> 
+</COLUMNAS>
+
+<CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+  <COL colFondo="" ID="EstCab" align="center" cod="147"></COL>
+</CABECERA>
+
+<DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+onLoad="" colorSelecc="#D0D9E8">
+  <COL tipo="texto" ID="EstDat"/>
+</DATOS>
+
+<ROWSET>
+</ROWSET>
+
+<!--Comienzo del paginado y botones de listas-->
+<PAGINADO nombre="mipgndo" ancho="683" sep="$" x="12" class="botonera" y="402" control="|" conector="" rowset="" cargainicial="N" 
+onload="procesarPaginado(mipgndo, msgError, ultima, rowset, 'muestraLista(ultima, rowset)')">
+  <BOTON nombre="ret1" x="37" y="406" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+  <BOTON nombre="ava1" x="52" y="406" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();" />
+</PAGINADO>      
+    
+</LISTAEDITABLE>
+<BOTON nombre="Modificar" x="80" y="403" ID="botonContenido" tipo="html" estado="false" cod="2" accion="accionModificar();"/>
+<BOTON nombre="Consultar" x="80" y="403" ID="botonContenido" tipo="html" estado="false" cod="3" accion="accionConsultar();"/>
+<BOTON nombre="Copiar" x="80" y="403" ID="botonContenido" tipo="html" estado="false" cod="721" accion="accionCopiar();"/>
+<BOTON nombre="prim1" x="20" y="406" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();" /> 
+<BOTON nombre="separa" x="59" y="402" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />   
+</CAPA>
+
+<CAPA nombre="capaTapaTodo" colorf="#F0F0F0"  borde="0" visibilidad="" x="12" y="124" ancho="785" alto="320"/>
+</FORMULARIO>
+</PAGINA>
+
+
+
+

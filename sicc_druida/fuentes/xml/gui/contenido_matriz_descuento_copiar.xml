@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_matriz_descuento_copiar.xml,v 1.1 2009/12/03 18:44:10 pecbazalar Exp $
+   contenido DTO
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_matriz_descuento_copiar" 
+        cod="0245" 
+        titulo="Copiar Matriz de descuento" 
+        estilos="estilosB3.css" 
+        colorf="#F0F0F0" 
+    	msgle="" 
+        onload="onLoadPag();" 
+        xml:lang="es">
+ <JS src="sicc_util.js"/>	 
+<JS src="PaginacionSicc.js"/>	 
+<JS src="DruidaTransactionMare.js"/>
+
+<JAVASCRIPT>
+  <![CDATA[ 
+
+	function onLoadPag()   {
+  
+    configurarMenuSecundario("formulario");
+    DrdEnsanchaConMargenDcho('listado1',12);
+    document.all["Cplistado1"].style.visibility='visible';
+    document.all["CpLin1listado1"].style.visibility='visible';
+    document.all["CpLin2listado1"].style.visibility='visible';
+    document.all["CpLin3listado1"].style.visibility='visible';
+    document.all["CpLin4listado1"].style.visibility='visible';
+    document.all["primera1Div"].style.visibility='visible';
+    document.all["ret1Div"].style.visibility='visible';
+    document.all["ava1Div"].style.visibility='visible';
+    document.all["separaDiv"].style.visibility='visible';
+    eval (ON_RSZ);  
+	 focaliza('formulario.txtDescripcionNuevaMatriz');
+	 if (get("formulario.noMat")=="S")
+			GestionarMensaje("1230",null,null,null);
+   }
+
+	function prueba(error, ultima, rowset){
+    var tamano = rowset.length;
+    
+		if (tamano > 0) {
+		 document.all["Cplistado1"].style.visibility='';
+		 document.all["CpLin1listado1"].style.visibility='';
+		 document.all["CpLin2listado1"].style.visibility='';
+		 document.all["CpLin3listado1"].style.visibility='';
+		 document.all["CpLin4listado1"].style.visibility='';
+		 document.all["primera1Div"].style.visibility='';
+		 document.all["ret1Div"].style.visibility='';
+		 document.all["ava1Div"].style.visibility='';
+		 document.all["separaDiv"].style.visibility='';
+		 eval (ON_RSZ);
+				
+		  var i;
+		  var index = 3;
+		  var si = GestionarMensaje(84);
+		  var no = GestionarMensaje(86);
+		
+		  for( i = 0; i < rowset.length; i++ ){
+			 //reemplazar los valores en matriz activa
+			 if(rowset[i][index] == '0')  rowset[i][index] = no;
+			    else	if(rowset[i][index] == '1')	rowset[i][index] = si;
+				          else  rowset[i][index] = '';
+		  }
+		  return true;
+		}  else {
+		 document.all["Cplistado1"].style.visibility='hidden';
+		 document.all["CpLin1listado1"].style.visibility='hidden';
+		 document.all["CpLin2listado1"].style.visibility='hidden';
+		 document.all["CpLin3listado1"].style.visibility='hidden';
+		 document.all["CpLin4listado1"].style.visibility='hidden';
+		 document.all["primera1Div"].style.visibility='hidden';
+		 document.all["ret1Div"].style.visibility='hidden';
+		 document.all["ava1Div"].style.visibility='hidden';
+		 document.all["separaDiv"].style.visibility='hidden';
+						
+		  focaliza('formulario.txtDescripcionNuevaMatriz','');
+		  cdos_mostrarAlert(error);
+		  return false;
+		}
+  } 
+
+	//Copia la matriz de descuentos seleccionada
+	function copiar() {
+		// validamos campos requeridos
+		if( ! sicc_validaciones_generales('grupoCopiar') ) {
+			   return false;
+		}		
+
+		var desc = get("formulario.txtDescripcionNuevaMatriz");
+		set("formulario.Descripcion",desc);
+		if (get("formulario.noMat")=="S"){
+			GestionarMensaje("1230",null,null,null);
+		}else{
+			var codigos = new Array();
+			codigos = listado1.codSeleccionados();
+			var cant = codigos.length;
+			var posicion = obtenerPosicionListaEditable(listado1.codSeleccionados(),listado1);
+			set("formulario.hidOidMatriz", codigos[0]);
+
+			if (cant == 1){
+				set("formulario.accion","guardarCopia");
+				set("formulario.conectorAction","LPMantenimientoMatrizDescuentos");
+				enviaSICC("formulario");
+			} else GestionarMensaje('50');
+		}
+	}
+   
+  ]]> 
+</JAVASCRIPT>
+
+<VALIDACION>
+         <!-- Primer Grupo -->
+         <ELEMENTO name="txtDescripcionNuevaMatriz" required="true" cod="846" group="grupoCopiar"/>
+</VALIDACION>
+
+
+<FORMULARIO nombre="formulario">
+ <VAR nombre="accion" valor=""/>
+ <VAR nombre="oid" valor=""/>
+<VAR nombre="idioma" valor=""/>
+<VAR nombre="pais" valor=""/>
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="casoDeUso" valor=""/>
+<VAR nombre="tipoAccion" valor=""/>
+<VAR nombre="hidOidMatriz" valor=""/>
+<VAR nombre="Descripcion" valor=""/>
+<VAR nombre="errCodigo" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="noMat" valor=""/>
+
+  <LISTAEDITABLE nombre="listado1" ancho="423" alto="301" x="12" y="12" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+        <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+        <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+      <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+           <LINEAS>
+        <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="1" horizTitulo="1" horizBase="1"/> 
+        <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="0042" ID="datosTitle" />
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+        <COL ancho="15" minimizable="S" minimizada="N"/>
+        <COL ancho="40" minimizable="S" minimizada="N" orden="alfanumerico"/> 
+        <COL ancho="15" minimizable="S" minimizada="N"/> 
+               
+       
+      </COLUMNAS>
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+	<COL colFondo="" ID="EstCab" align="center" cod="2184">Cód. matriz</COL> 
+	<COL colFondo="" ID="EstCab" cod="9">Descripción</COL> 
+	<COL colFondo="" ID="EstCab" cod="912">Matriz activa</COL> 
+	
+      </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+             coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+             onLoad="" colorSelecc="#D0D9E8">
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/>      
+              
+      </DATOS>
+      <ROWSET>
+	
+      </ROWSET>
+      <PAGINADO nombre="mipgndo" ancho="423" sep="$" x="12" class="botonera" y="290" control="|" conector="" rowset="" cargainicial="N">
+        
+        <BOTON nombre="ret1" x="37" y="294" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+        <BOTON nombre="ava1" x="52" y="294" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>
+      
+    </PAGINADO>
+  </LISTAEDITABLE>
+  <BOTON nombre="primera1" x="20" y="294" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();" />      
+  <BOTON nombre="separa" x="59" y="290" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />      
+ <CAPA nombre="capa1" alto="111" ancho="100%" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="325" zindex="">
+       <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblMatrizDestino"  alto="13" filas="1" valor="" id="legend" cod="0041"/></legend>
+	 <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+          <!---primera fila-->
+              <table width="419" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblDescripcionNuevaMatriz"  alto="13" filas="1" id="datosTitle" cod="846" /></td>
+                   <td width="100%"><IMG src="b.gif" width="73" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap">
+					  <CTEXTO nombre="txtDescripcionNuevaMatriz" id="datosCampos" max="40" tipo="" onchange="" req="S" size="40" onshtab="focalizaBotonHTML('botonContenido','btnCopiar');" valor="" validacion="" />
+	               </td>
+	           <td width="100%"><IMG src="b.gif" width="73" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+       <!---fin primera fila-->
+          </td></tr>
+        </table>
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+      <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnCopiar" ID="botonContenido" tipo="html" accion="copiar();" ontab="focaliza('formulario.txtDescripcionNuevaMatriz');" estado="false" cod="721"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>   
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+  </CAPA>                                                                                                                                                             
+</FORMULARIO>
+</PAGINA>  
+

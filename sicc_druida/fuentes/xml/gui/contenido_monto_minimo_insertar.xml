@@ -1,0 +1,714 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+/**
+ * Copyright 2003 © por Indra Sistemas,S.A.. Todos los derechos reservados.
+ * Avda. de Bruselas, 35
+ * Parque Empresarial Arroyo de la Vega
+ * 28108 Alcobendas, Madrid
+ * España
+ *
+ * Privado y Confidencial.
+ * La información contenida en este documento es propiedad de Indra sistemas.
+ * Para uso exclusivo de empleados autorizados no permitiéndose
+ * la distribución de este código sin permiso expreso.
+ */
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_monto_minimo_insertar" cod="0615" titulo="Insertar Monto Mínimo" estilos="estilosB3.css" colorf="#F0F0F0"
+        msgle="" onload="onLoadPag()" xml:lang="es">
+
+<JS src="sicc_util.js" />
+<JS src="PaginacionSicc.js"/>
+<JS src="DruidaTransactionMare.js"/>    
+<JAVASCRIPT>
+ <![CDATA[    
+
+	var varNoLimpiarSICC = true;
+      
+	function onLoadPag()   
+	{
+		configurarMenuSecundario('frmFormulario');
+
+        fMostrarMensajeError();
+
+		inicializaPantalla();	
+		set('frmFormulario.rbRegion','N');	
+	}
+
+	
+    function inicializaPantalla(){  
+	   if(get('frmFormulario.casoDeUso')=='inserta'){
+			accion('frmFormulario.cbSubTipoCliente', '.disabled=true');
+			accion('frmFormulario.cbTipoClasificacion', '.disabled=true');
+			accion('frmFormulario.cbClasificacion', '.disabled=true');
+
+			focaliza("frmFormulario.cbTipoSolicitud");
+
+	   }else if(get('frmFormulario.accion')=='detalle'){
+
+			iSeleccionado = new Array(); 
+			iSeleccionado[0] = get('frmFormulario.hcbTipoSolicitud');
+
+            set('frmFormulario.cbTipoSolicitud', iSeleccionado);
+			accion('frmFormulario.cbTipoSolicitud', '.disabled=true');
+
+			asignar([['LISTA','', 'ConectorDruidaTransactionQuery', 'dtoSalida.resultado_ROWSET', formarCadenaDT('PEDObtieneTipoClienteTipoSolicitud', 'es.indra.sicc.util.DTOOID',[[ "oid", get('frmFormulario.cbTipoSolicitud') ]]),'cargaTipoCliente(datos);']] );
+
+	        accion('frmFormulario.txtNivel1', '.disabled=true');
+			accion('frmFormulario.txtNivel2', '.disabled=true');
+			accion('frmFormulario.txtNivel3', '.disabled=true');
+			accion('frmFormulario.txtRecargo', '.disabled=true');
+			accion('frmFormulario.txtMontoMinimoNominal', '.disabled=true');
+		    accion('frmFormulario.cbRegion', '.disabled=true');
+			accion('frmFormulario.cbZona', '.disabled=true');
+
+	   } else if(get('frmFormulario.accion')=='modificar'){
+
+			iSeleccionado = new Array(); 
+			iSeleccionado[0] = get('frmFormulario.hcbTipoSolicitud');
+
+            set('frmFormulario.cbTipoSolicitud', iSeleccionado);
+			accion('frmFormulario.cbTipoSolicitud', '.disabled=true');
+
+			asignar([['LISTA','', 'ConectorDruidaTransactionQuery', 'dtoSalida.resultado_ROWSET', formarCadenaDT('PEDObtieneTipoClienteTipoSolicitud', 'es.indra.sicc.util.DTOOID',[[ "oid", get('frmFormulario.cbTipoSolicitud') ]]),'cargaTipoCliente(datos);']] );
+	   }
+	}
+
+
+    function cargaTipoCliente(datos){  
+
+		txt_to('lblTipoClienteXX', datos[0][1]);
+		set('frmFormulario.hcbTipoCliente', datos[0][0]);
+
+		recargaCombo('frmFormulario.cbSubTipoCliente', 'MAEobtenerSubtipos', 'es.indra.sicc.util.DTOOID', makeParameter('oid',datos[0][0]), 'cargaSubTipoCliente(datos);' );
+	}
+
+	
+
+	function cargaSubTipoCliente(datos){  
+
+		set_combo('frmFormulario.cbSubTipoCliente', agregarBlanco(datos));
+
+		iSeleccionado = new Array(); 
+		iSeleccionado[0] = get('frmFormulario.hDcbSubTipoCliente');
+
+		set('frmFormulario.cbSubTipoCliente', iSeleccionado);
+
+		if(get('frmFormulario.accion')=='detalle'){
+			accion('frmFormulario.cbSubTipoCliente', '.disabled=true');
+		}
+
+		if((get('frmFormulario.hDcbTipoClasificacion')!='') || (get('frmFormulario.hDcbTipoClasificacion')=='' && get('frmFormulario.accion')=='modificar' )){
+
+			recargaCombo('frmFormulario.cbTipoClasificacion', 'MAEobtenerTipoClasificacion', 'es.indra.sicc.util.DTOOID', makeParameter('oid',get('frmFormulario.cbSubTipoCliente')), 'cargaTipoClasificacion(datos);' );
+				
+		} else{
+			set_combo('frmFormulario.cbTipoClasificacion', arrayVacio());
+			set_combo('frmFormulario.cbClasificacion', arrayVacio() );
+
+			accion('frmFormulario.cbTipoClasificacion', '.disabled=true');
+			accion('frmFormulario.cbClasificacion', '.disabled=true');
+
+            if(get('frmFormulario.accion')=='modificar'){
+				focaliza("frmFormulario.txtNivel1");
+			}
+		}
+
+	 }
+
+	 function cargaTipoClasificacion(datos){  
+
+		set_combo('frmFormulario.cbTipoClasificacion', agregarBlanco(datos));
+
+		iSeleccionado = new Array(); 
+		iSeleccionado[0] = get('frmFormulario.hDcbTipoClasificacion');
+
+		set('frmFormulario.cbTipoClasificacion', iSeleccionado);
+
+		if(get('frmFormulario.accion')=='detalle'){
+			accion('frmFormulario.cbTipoClasificacion', '.disabled=true');
+		}
+
+		if(get('frmFormulario.hDcbClasificacion')!='' || (get('frmFormulario.hDcbTipoClasificacion')!='' &&  get('frmFormulario.accion')=='modificar')){
+
+			recargaCombo('frmFormulario.cbClasificacion', 'MAEobtenerClasificacionesPorTipo', 'es.indra.sicc.util.DTOOID', makeParameter('oid', get('frmFormulario.cbTipoClasificacion')), 'cargaClasificacion(datos);' ); 
+			
+		} else{
+			set_combo('frmFormulario.cbClasificacion', arrayVacio() );
+			accion('frmFormulario.cbClasificacion', '.disabled=true');
+
+			if(get('frmFormulario.accion')=='modificar'){
+				focaliza("frmFormulario.txtNivel1");
+			}
+		}
+
+	}
+
+
+	function cargaClasificacion(datos){  
+
+		set_combo('frmFormulario.cbClasificacion', agregarBlanco(datos));
+
+		iSeleccionado = new Array(); 
+		iSeleccionado[0] = get('frmFormulario.hDcbClasificacion');
+
+		set('frmFormulario.cbClasificacion', iSeleccionado);
+
+		if(get('frmFormulario.accion')=='detalle'){
+			accion('frmFormulario.cbClasificacion', '.disabled=true');
+		} else {
+			focaliza("frmFormulario.txtNivel1");
+		}
+
+	}
+
+
+
+    function onChangeTipoSolicitud(){  
+		
+		document.selection.empty();
+
+		if(get('frmFormulario.cbTipoSolicitud')!=''){
+
+			asignar([['LISTA','', 'ConectorDruidaTransactionQuery', 'dtoSalida.resultado_ROWSET', formarCadenaDT('PEDObtieneTipoClienteTipoSolicitud', 'es.indra.sicc.util.DTOOID',[[ "oid", get('frmFormulario.cbTipoSolicitud') ]]),'recargarSubTipos(datos);']] );
+
+			recargaCombo('frmFormulario.cbRegion', 'ZONObtenerRegionesPorPais', 'es.indra.sicc.util.DTOOID', makeParameter('oid',null) );
+			var arr = new Array();
+			arr[arr.length] = ['oidPais', get('frmFormulario.hPais')];
+			//arr[arr.length] = ['oidMarca', oidMarca]
+			//arr[arr.length] = ['oidCanal', oidCanal]
+			recargaCombo('frmFormulario.cbZona', 'ZONObtenerZonasPorRegiones', 'es.indra.sicc.dtos.zon.DTOUnidadAdministrativa', arr );
+
+		} else {
+		    txt_to('lblTipoClienteXX', '');
+			set('frmFormulario.hcbTipoCliente', '');
+			set_combo('frmFormulario.cbSubTipoCliente', arrayVacio() );
+			set_combo('frmFormulario.cbTipoClasificacion', arrayVacio());
+			set_combo('frmFormulario.cbClasificacion', arrayVacio());
+			set_combo('frmFormulario.cbRegion', arrayVacio());
+			set_combo('frmFormulario.cbZona', arrayVacio());
+			
+			accion('frmFormulario.cbSubTipoCliente', '.disabled=true');
+			accion('frmFormulario.cbTipoClasificacion', '.disabled=true');
+			accion('frmFormulario.cbClasificacion', '.disabled=true');
+		}
+        
+	 }
+
+     function recargarSubTipos(datos){        
+        txt_to('lblTipoClienteXX', datos[0][1]);
+		set('frmFormulario.hcbTipoCliente', datos[0][0]);
+
+        recargaCombo('frmFormulario.cbSubTipoCliente', 'MAEobtenerSubtipos', 'es.indra.sicc.util.DTOOID', makeParameter('oid',datos[0][0]) );
+       
+		accion('frmFormulario.cbSubTipoCliente', '.disabled=false');
+		
+		set_combo('frmFormulario.cbTipoClasificacion', arrayVacio() );		
+		set_combo('frmFormulario.cbClasificacion', arrayVacio());
+		
+
+		accion('frmFormulario.cbTipoClasificacion', '.disabled=true');
+		accion('frmFormulario.cbClasificacion', '.disabled=true');
+
+      }
+
+
+      function makeParameter(nombre, oid){
+              var array = new Array();
+              var i=0;
+              array[i] = new Array('oidPais', get('frmFormulario.hPais') );
+              i++;
+              array[i] = new Array('oidIdioma', get('frmFormulario.hIdioma') );
+              i++;
+			  if(oid!=null){
+		          array[i] = new Array(nombre,oid);              
+			  }
+              return array;
+     }
+
+     function onChangeSubtipoCliente(){
+
+	    document.selection.empty();
+                                                      
+		if(get('frmFormulario.cbSubTipoCliente')!=''){
+			recargaCombo('frmFormulario.cbTipoClasificacion', 'MAEobtenerTipoClasificacion', 'es.indra.sicc.util.DTOOID', makeParameter('oid',get('frmFormulario.cbSubTipoCliente') ) );
+
+			accion('frmFormulario.cbTipoClasificacion', '.disabled=false');
+
+		} else{			
+			set_combo('frmFormulario.cbTipoClasificacion', arrayVacio());
+			set_combo('frmFormulario.cbClasificacion', arrayVacio() );
+
+			accion('frmFormulario.cbTipoClasificacion', '.disabled=true');
+			accion('frmFormulario.cbClasificacion', '.disabled=true');
+		}
+     }
+
+     function onChangeTipoClasificacion(){
+		
+		document.selection.empty();
+
+		if(get('frmFormulario.cbTipoClasificacion')!=''){
+			recargaCombo('frmFormulario.cbClasificacion', 'MAEobtenerClasificacionesPorTipo', 'es.indra.sicc.util.DTOOID', makeParameter('oid', get('frmFormulario.cbTipoClasificacion') )); 
+
+			accion('frmFormulario.cbClasificacion', '.disabled=false');
+
+		} else{
+			set_combo('frmFormulario.cbClasificacion', arrayVacio());
+			accion('frmFormulario.cbClasificacion', '.disabled=true');
+		}
+     }
+
+
+     function fGuardar(){ 
+
+		if(sicc_validaciones_generales("gGuardar")){
+		   // Validaciones de niveles
+		   nivel1 = get('frmFormulario.txtNivel1');
+		   nivel2 = get('frmFormulario.txtNivel2');
+		   nivel3 = get('frmFormulario.txtNivel3');
+
+		   formatoDef = get('frmFormulario.hFormatoDef');
+
+		   if(numeroDeFormatoSICC(nivel1, formatoDef) > numeroDeFormatoSICC(nivel2, formatoDef)){
+		      GestionarMensaje('1365');
+		      focaliza("frmFormulario.txtNivel2");
+		      return;
+		   }
+
+		   if(numeroDeFormatoSICC(nivel2, formatoDef) > numeroDeFormatoSICC(nivel3, formatoDef)){
+		      GestionarMensaje('1366');
+		      focaliza("frmFormulario.txtNivel3");
+		      return;
+		   }
+
+		   set('frmFormulario.conectorAction', 'LPMantieneMontoMinimo');
+		   set('frmFormulario.accion', 'guardar');
+		   enviaSICC('frmFormulario');
+		
+		}
+     }
+     
+
+    function fLimpiar(){
+		if(get('frmFormulario.casoDeUso')=='inserta'){
+			set('frmFormulario.cbTipoSolicitud',new Array(''));
+			txt_to('lblTipoClienteXX','');        
+			set('frmFormulario.txtNivel1','');
+			set('frmFormulario.txtNivel2','');
+			set('frmFormulario.txtNivel3','');
+			set('frmFormulario.txtRecargo','');
+			set('frmFormulario.txtMontoMinimoNominal','');        
+			set_combo('frmFormulario.cbSubTipoCliente', arrayVacio());
+			set_combo('frmFormulario.cbTipoClasificacion', arrayVacio());
+			set_combo('frmFormulario.cbClasificacion',arrayVacio());
+
+			accion('frmFormulario.cbSubTipoCliente', '.disabled=true');
+			accion('frmFormulario.cbTipoClasificacion', '.disabled=true');
+			accion('frmFormulario.cbClasificacion', '.disabled=true');
+
+			focaliza("frmFormulario.cbTipoSolicitud");
+
+		}else if(get('frmFormulario.casoDeUso')=='modifica'){
+
+			set('frmFormulario.txtNivel1',get('frmFormulario.hTxtNivel1'));
+			set('frmFormulario.txtNivel2',get('frmFormulario.hTxtNivel2'));
+			set('frmFormulario.txtNivel3',get('frmFormulario.hTxtNivel3'));
+			set('frmFormulario.txtRecargo',get('frmFormulario.hTxtRecargo'));
+			set('frmFormulario.txtMontoMinimoNominal',get('frmFormulario.hTxtMontoMinimoNominal'));
+
+            accion('frmFormulario.cbTipoClasificacion', '.disabled=false');
+			accion('frmFormulario.cbClasificacion', '.disabled=false');
+
+			asignar([['LISTA','', 'ConectorDruidaTransactionQuery', 'dtoSalida.resultado_ROWSET', formarCadenaDT('PEDObtieneTipoClienteTipoSolicitud', 'es.indra.sicc.util.DTOOID',[[ "oid", get('frmFormulario.cbTipoSolicitud') ]]),'cargaTipoCliente(datos);']] );
+		}
+     }
+
+  
+    function fBorrar(){
+         if(!listado1.numSelecc() == 0){		
+            listado1.eliminarSelecc();        
+         }else{
+            GestionarMensaje('8');
+         }   
+    }     
+
+	function focalizaTab(campo){  
+
+		if(campo==1){
+			if( cbSubTipoCliente.disabled == false )
+				focaliza("frmFormulario.cbSubTipoCliente");
+			else
+				focoPrimerCampo();
+		} else if(campo==2){
+			if( cbTipoClasificacion.disabled == false )
+				focaliza("frmFormulario.cbTipoClasificacion");
+			else
+				focoPrimerCampo();
+		}else if(campo==3){
+			if( cbClasificacion.disabled == false )
+				focaliza("frmFormulario.cbClasificacion");
+			else
+				focoPrimerCampo();
+		}else if(campo==4){
+			focoPrimerCampo();
+		}
+   }
+
+
+   function focoPrimerCampo(){  
+		if(get('frmFormulario.casoDeUso')=='inserta'){
+			focaliza("frmFormulario.cbTipoSolicitud");
+		}else if(get('frmFormulario.casoDeUso')=='modifica'){
+			focaliza("frmFormulario.txtNivel1");
+		}
+    }
+
+
+	function focalizaShTab(campo){  
+		if(campo==1){
+			if( cbClasificacion.disabled == false ){
+				focaliza("frmFormulario.cbClasificacion");
+			}else if( cbTipoClasificacion.disabled == false ){
+				focaliza("frmFormulario.cbTipoClasificacion");
+			}else if( cbSubTipoCliente.disabled == false ){
+				focaliza("frmFormulario.cbSubTipoCliente");
+			}else{
+				focaliza("frmFormulario.txtMontoMinimoNominal");
+			}
+		}if(campo==2){
+			if(get('frmFormulario.casoDeUso')=='inserta'){
+				focaliza("frmFormulario.cbTipoSolicitud");
+			}else if(get('frmFormulario.casoDeUso')=='modifica'){
+				focalizaShTab(1);
+			}
+		}
+    }
+
+
+	function errorAlGuardar(){  
+	    if(get('frmFormulario.casoDeUso')=='inserta'){
+			focaliza("frmFormulario.cbTipoSolicitud");
+		}else if(get('frmFormulario.casoDeUso')=='modifica'){
+			focaliza("frmFormulario.txtNivel1");
+		}
+	}
+
+	function fVolver(){	
+		window.close();
+	}
+
+	function cerrarVentana(){
+		window.returnValue = true;
+	}
+
+
+	function agregarBlanco(datos){  
+	    datosBlanco = new Array();
+
+		datosBlanco[0]= new Array("","");
+
+		for(var i=0; i< datos.length; i++){		
+              datosBlanco[i+1] = new Array(datos[i][0], datos[i][1]);
+             
+		}
+
+		//alert(datosBlanco);
+		return datosBlanco;
+	}
+
+	function arrayVacio(){  
+		var array = new Array();             
+        array[0] = new Array('','');
+
+		return array;
+	}
+
+	function onClickRegion(){
+		accion('frmFormulario.rbRegion', '.check="S"');
+		accion('frmFormulario.rbZona', '.check="N"');
+		accion('frmFormulario.cbZona', '.disabled=true');	
+		accion('frmFormulario.cbZona', '.disabled=false');
+	}
+
+	function onClickZona(){
+		accion('frmFormulario.cbRegion', '.check="N"');
+		accion('frmFormulario.rbZona', '.check="S"');
+		accion('frmFormulario.cbRegion', '.disabled=true');
+		accion('frmFormulario.cbZona', '.disabled=false');	
+	}
+
+
+  ]]>
+
+  <VALIDACION>	
+	<ELEMENTO name="cbTipoSolicitud" required="true" group="gGuardar" cod="415"/>
+	<ELEMENTO name="txtNivel1" required="true" min="0" max="9999999999.99" format="n" group="gGuardar" cod="1097"/>
+	<ELEMENTO name="txtNivel2" required="true" min="0" max="9999999999.99" format="n" group="gGuardar" cod="1098"/>
+	<ELEMENTO name="txtNivel3" required="true" min="0" max="9999999999.99" format="n" group="gGuardar" cod="1099"/>
+	<ELEMENTO name="txtRecargo" required="true" min="-9999999999.99" max="9999999999.99" format="n" group="gGuardar" cod="390"/>
+	<ELEMENTO name="txtMontoMinimoNominal" required="true" min="0" max="9999999999.99" format="n" group="gGuardar" cod="2174"/>
+	<!--ELEMENTO name="cbSubTipoCliente" required="true" group="gGuardar" cod="595"/-->
+  </VALIDACION>
+
+</JAVASCRIPT>
+
+
+<FORMULARIO nombre="frmFormulario" oculto="S">
+
+<VAR nombre="accion" valor=""/>
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="casoDeUso" valor=""/>
+<VAR nombre="errCodigo" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>
+
+<VAR nombre="oid" valor=""/>
+
+<VAR nombre="hcbTipoSolicitud" valor=""/>
+<VAR nombre="hcbTipoCliente" valor=""/>
+<VAR nombre="hcbSubTipoCliente" valor=""/>
+<VAR nombre="hcbTipoClasificacion" valor=""/>
+<VAR nombre="hcbClasificacion" valor=""/>
+
+
+<VAR nombre="hIdioma" valor=""/>
+<VAR nombre="hPais" valor=""/>
+
+<VAR nombre="hFormatoDef" valor=""/>
+
+<VAR nombre="hTxtNivel1" valor=""/>
+<VAR nombre="hTxtNivel2" valor=""/>
+<VAR nombre="hTxtNivel3" valor=""/>
+<VAR nombre="hTxtRecargo" valor=""/>
+<VAR nombre="hTxtMontoMinimoNominal" valor=""/>
+<VAR nombre="hDcbSubTipoCliente" valor=""/>
+<VAR nombre="hDcbTipoClasificacion" valor=""/>
+<VAR nombre="hDcbClasificacion" valor=""/>
+
+<CAPA nombre="capaEspacio1" x="0" y="0">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+	<fieldset><legend class="legend"><LABELC nombre="lblDatosMontoMinimo" filas="1" valor="" id="legend" cod="00461"/></legend>
+          <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+            <tr> 
+              <td>
+                <table width="674" border="0" align="left" cellspacing="0" cellpadding="0">
+                  <tr> 
+                    <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                  <tr>
+                    <td><IMG src="b.gif" width="8" height="8"/></td>
+                    <td><LABELC nombre="lblTipoSolicitud" filas="1" valor="" id="datosTitle" cod="415"/></td>
+                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                 </tr> 
+                 <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap">
+		     <COMBO nombre="cbTipoSolicitud" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onchange="onChangeTipoSolicitud();" onshtab="focalizaShTab(1);">
+		       <ROWSET>
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                 </tr> 
+                 <tr>
+                   <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                 </tr>
+               </table>
+             </td>
+           </tr>
+           <tr>
+             <td>
+               <table width="674" border="0" align="left" cellspacing="0" cellpadding="0">
+                 <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblMontoMinimoNominal" filas="1" valor="" id="datosTitle" cod="2174"/></td>
+				   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblNivel1" filas="1" valor="" id="datosTitle" cod="1097"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblNivel2" filas="1" valor="" id="datosTitle" cod="1098"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblNivel3" filas="1" valor="" id="datosTitle" cod="1099"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblRecargo" filas="1" valor="" id="datosTitle" cod="390"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                 </tr> 
+                 <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"><CTEXTO nombre="txtMontoMinimoNominal" id="datosCampos" max="13" tipo="" onchange="" req="S" size="19" valor="" validacion="" ontab="focalizaTab(1);"/></td>                
+
+				   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap"><CTEXTO nombre="txtNivel1" id="datosCampos" max="13" tipo="" onchange="" req="S" size="16" valor="" validacion="" onshtab="focalizaShTab(2);"/></td>                
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap"><CTEXTO nombre="txtNivel2" id="datosCampos" max="13" tipo="" onchange="" req="S" size="16" valor="" validacion=""/></td>                
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap"><CTEXTO nombre="txtNivel3" id="datosCampos" max="13" tipo="" onchange="" req="S" size="16" valor="" validacion=""/></td>                
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap"><CTEXTO nombre="txtRecargo" id="datosCampos" max="13" tipo="" onchange="" req="S" size="16" valor="" validacion=""/></td>                
+
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                 </tr> 
+                 <tr>
+                   <td colspan="3"><IMG src="b.gif" width="8" height="12"/></td>
+                 </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td><IMG src="b.gif" width="8" height="8"/></td>                  
+                  <td width="100%">                      
+                    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                      <tr>
+                        <td>
+                          <fieldset><legend class="legend"><LABELC nombre="lblTipificacionCliente"  filas="1" valor="" id="legend" cod="00571"/></legend> 
+                            <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+		              <tr>
+		                <td>
+		                  <table width="652" border="0" align="left" cellspacing="0" cellpadding="0">
+		                    <tr>
+                                      <td colspan="3"><IMG src="b.gif" width="8" height="7"/></td>
+                                    </tr>
+		                    <tr>
+		                      <td><IMG src="b.gif" width="8" height="8"/></td>
+		                      <td><LABELC nombre="lblTipoCliente" filas="1" valor="" id="datosTitle" cod="1869"/></td>
+		                      <td><IMG src="b.gif" width="25" height="8"/></td>
+		                      <td><LABELC nombre="lblSubTipoCliente" filas="1" valor="" id="datosTitle" cod="595"/></td>
+		                      <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+		                    </tr> 
+		                    <tr>
+		                      <td><IMG src="b.gif" width="8" height="8"/></td>
+		                      <td><LABELC nombre="lblTipoClienteXX" filas="1" valor="" id="datosCampos"/></td>
+		                      <td><IMG src="b.gif" width="25" height="8"/></td>
+		                      <td nowrap="nowrap">
+				        <COMBO nombre="cbSubTipoCliente" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" onchange="onChangeSubtipoCliente();" ontab="focalizaTab(2);">
+				          <ROWSET>
+				          </ROWSET>
+				        </COMBO>
+				      </td>
+		                      <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+		                    </tr> 
+		                    <tr>
+		                      <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+		                    </tr>
+		                  </table>
+		                </td>
+		              </tr>
+		              <tr>
+		                <td>
+		                  <table width="652" border="0" align="left" cellspacing="0" cellpadding="0">
+		                    <tr>
+		                      <td><IMG src="b.gif" width="8" height="8"/></td>
+		                      <td><LABELC nombre="lblTipoClasificacion" filas="1" valor="" id="datosTitle" cod="756"/></td>
+		                      <td><IMG src="b.gif" width="25" height="8"/></td>
+		                      <td><LABELC nombre="lblClasificacion" filas="1" valor="" id="datosTitle" cod="550"/></td>
+		                      <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+		                    </tr> 
+		                    <tr>
+		                      <td><IMG src="b.gif" width="8" height="8"/></td>
+		                      <td>
+				        <COMBO nombre="cbTipoClasificacion" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" onchange="onChangeTipoClasificacion();" ontab="focalizaTab(3);">
+				          <ROWSET>
+				          </ROWSET>
+				        </COMBO>
+				      </td>
+		                      <td><IMG src="b.gif" width="25" height="8"/></td>
+		                      <td>
+				        <COMBO nombre="cbClasificacion" id="datosCampos" size="1" multiple="N" req="N"  valorinicial="" textoinicial="" ontab="focalizaTab(4);">
+				          <ROWSET>
+				          </ROWSET>
+				        </COMBO>
+				      </td>
+		                      <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+		                    </tr> 
+		                    <tr>
+							  <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+		                    </tr>
+		                  </table>
+		                </td>
+		              </tr>
+					</table>
+                          </fieldset>
+                        </td>
+				         <tr>
+		                 <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+		                 </tr>
+						<tr>  <td>
+			  <table width="679" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td>
+				   <RADIOB nombre="rbRegion" tipo="H" id="datosCampos" ontab="" onshtab="">
+                          <RBINPUT valor="R" check="S" onfocus="" id="datosCampos" cod="109" onclick="onClickRegion()"></RBINPUT>
+                   </RADIOB>
+					</td>
+				   <td><IMG src="b.gif" width="25" height="8"/></td> 
+		           <td>
+				   <RADIOB nombre="rbZona" tipo="H" id="datosCampos" ontab="" onshtab="">
+			              <RBINPUT valor="Z" check="N" onfocus="" id="datosCampos" cod="143" onclick="onClickZona()"></RBINPUT>
+					</RADIOB>
+				   </td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td nowrap="nowrap" valign="top">                  
+                    <COMBO nombre="cbRegion" id="datosCampos" size="5" multiple="S" req="N" valorinicial="" onchange="" textoinicial="">
+                      <ROWSET>            
+                      </ROWSET>
+                    </COMBO> 
+                  </td>
+				   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td nowrap="nowrap" valign="top">                  
+                    <COMBO nombre="cbZona" id="datosCampos" size="5" multiple="S" req="N" valorinicial="" textoinicial="">
+                      <ROWSET>            
+                      </ROWSET>
+                    </COMBO> 
+                  </td>
+                  <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+			  </td></tr>
+								              
+
+                      </tr> 
+                    </table> 
+                  </td>
+	        </tr>
+	          
+	      </table>                                    
+            </td>                                      
+          </tr>
+          <tr>
+            <td colspan="4"><IMG src="b.gif" width="8" height="12"/></td>
+          </tr>                                                      
+        </table> 
+        </fieldset>
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="756" ><IMG src="b.gif"/></td>
+      <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+
+
+</FORMULARIO>
+</PAGINA>

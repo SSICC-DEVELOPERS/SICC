@@ -1,0 +1,945 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+
+/**
+
+ * Copyright 2003 © por Indra Sistemas,S.A.. Todos los derechos reservados.
+
+ * Avda. de Bruselas, 35
+
+ * Parque Empresarial Arroyo de la Vega
+
+ * 28108 Alcobendas, Madrid
+
+ * España
+
+ *
+
+ * Privado y Confidencial.
+
+ * La información contenida en este documento es propiedad de Indra sistemas.
+
+ * Para uso exclusivo de empleados autorizados no permitiéndose
+
+ * la distribución de este código sin permiso expreso.
+
+ */
+$Id: contenido_grupos_zonas_insertar.xml,v 1.1 2009/12/03 18:44:57 pecbazalar Exp $
+-->
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+<PAGINA nombre="contenido_grupos_zonas_insertar" titulo="Insertar Grupos Zonas"
+         estilos="estilos.css" colorf="#F0F0F0" msgle="Insertar Grupos Zonas"
+         onload="inicializacion();" xml:lang="es" cod="065">
+    
+    <ESTILO>#estcombo30F {width:355px} #estcomboF {width:150px}</ESTILO>
+
+    <JS src="sicc_util.js"/>
+    <JS src="valida.js"/>
+
+    <JAVASCRIPT>
+         <![CDATA[
+               
+           function inicializacion(){
+
+		//cargarBarra('barra_grupos_zonas_insertar');
+		configurarMenuSecundario("frmInsertarGruposZonas");
+                posicionarCombo();
+                
+		//alert(get('frmInsertarGruposZonas.hCodigoDeGrupo'));
+		set('frmInsertarGruposZonas.txtCodigoDeGrupo',get('frmInsertarGruposZonas.hCodigoDeGrupo'));
+                set('frmInsertarGruposZonas.txtNombreDeGrupo',get('frmInsertarGruposZonas.hNombreDeGrupo'));
+                var tipoFacturac = get('frmInsertarGruposZonas.hTipoDeFacturacion');
+
+		//alert("fac:"+tipoFacturac);	
+		if (tipoFacturac != ''){
+		  var iSeleccionado = new Array();
+		  iSeleccionado[ 0 ] = tipoFacturac;
+		  set( 'frmInsertarGruposZonas.rbTipoDeFacturacion', iSeleccionado );
+		  //set('frmInsertarGruposZonas.rbTipoDeFacturacion',tipoFacturac);
+                }else{
+                   //Se asume este valor por default
+		  var iSeleccionado = new Array();
+		  iSeleccionado[ 0 ] = '';
+		  set( 'frmInsertarGruposZonas.rbTipoDeFacturacion', iSeleccionado );
+                  // set('frmInsertarGruposZonas.rbTipoDeFacturacion','MONO');
+		}
+
+	        if (get('frmInsertarGruposZonas.hCampoFoco') != ''){
+                   foco('frmInsertarGruposZonas.' + get('frmInsertarGruposZonas.hCampoFoco'));
+                }
+
+                if (get('frmInsertarGruposZonas.accion') == "cambioRegiones"){
+                                            
+		   var strV = '';
+		   var strT = '';
+		   var i;
+
+		if(get('frmInsertarGruposZonas.hZonasSeleccionadas')!=''){
+		   meter_en_combo(get('frmInsertarGruposZonas.hZonasSeleccionadas'));
+		}
+
+               var iSeleccionadoR = new Array();
+               iSeleccionadoR[0] = get('frmInsertarGruposZonas.hRegion');
+               set('frmInsertarGruposZonas.cbRegion',iSeleccionadoR);
+
+               focaliza('frmInsertarGruposZonas.cbRegion','');
+                                             
+		}//fin ACCION = CAMBIO_REGIONES
+
+  	        if (get('frmInsertarGruposZonas.accion') == "seleccionPaisMarcaCanal"){
+		    focaliza('frmInsertarGruposZonas.txtCodigoDeGrupo','');
+		}
+
+		if (get('frmInsertarGruposZonas.hSaliendo')=='true'){
+			if(get('frmInsertarGruposZonas.hZonasSeleccionadas')!=''){
+			   meter_en_combo(get('frmInsertarGruposZonas.hZonasSeleccionadas'));
+			}
+			salida();
+		}
+
+		ShowError();
+           
+	   }//inicializacion()
+
+           function ShowError(){           
+	      if (get('frmInsertarGruposZonas.errDescripcion')!=''){              
+		var wnd = fMostrarMensajeError(get('frmInsertarGruposZonas.errCodigo'), 
+                                               get('frmInsertarGruposZonas.errDescripcion'));
+                if (wnd == 0)
+		   reintentar();
+                else
+                   cancelar();
+              }           
+	   }//ShowError()
+
+           function reintentar(){
+              set('frmInsertarGruposZonas.conectorAction','LPCrearGruposZonas');
+              enviaSICC('frmInsertarGruposZonas');
+           }
+
+           function cancelar(){
+              set('frmInsertarGruposZonas.accion','');
+              set('frmInsertarGruposZonas.conectorAction','LPCrearGruposZonas');
+              fLimpiar();
+           }
+
+           function posicionarCombo(){
+               var iSeleccionado = new Array();
+               iSeleccionado[0] = get('frmInsertarGruposZonas.hCanal');
+               set('frmInsertarGruposZonas.cbCanales',iSeleccionado);
+
+               var iSeleccionadoM = new Array();
+               iSeleccionadoM[0] = get('frmInsertarGruposZonas.hMarca');
+               set('frmInsertarGruposZonas.cbMarcas',iSeleccionadoM);
+
+               //eliminarDuplicadosComboRegion();
+               var iSeleccionadoR = new Array();
+               iSeleccionadoR[0] = get('frmInsertarGruposZonas.hRegion');
+               set('frmInsertarGruposZonas.cbRegion',iSeleccionadoR);
+           }//posicionarCombo()
+
+           // Elimina todos los elementos duplicados del combo de Regiones
+           function eliminarDuplicadosComboRegion(){
+            
+	     var longitud = combo_get('frmInsertarGruposZonas.cbRegion','L');
+             var elem = new Array(2);
+             var regionCola = new Array();
+             var regionPrueba = new Array();
+
+             if (longitud > 1){
+	       for( i = 1;i < longitud;i++){
+                  var cReg = combo_get('frmInsertarGruposZonas.cbRegion','V',i);
+                  elem = new Array(2);
+                  elem[0] = cReg;
+                  elem[1] = cReg;
+
+                  if (i== 1){
+                    regionCola.push(elem);
+                  }else{
+                    var elemCola = regionCola.pop();
+                    regionCola.push(elemCola);
+                    if (elemCola[0] != cReg){
+                      regionCola.push(elem);
+                    } 
+                  }
+                           
+                  regionPrueba.push(elem);
+                }				
+              }
+		 
+	      set_combo('frmInsertarGruposZonas.cbRegion', regionCola);
+                           
+           }//eliminarDuplicadosComboRegion()
+
+           function obtenerPaisMarcaCanal(){
+	     set('frmInsertarGruposZonas.hCanal',get('frmInsertarGruposZonas.cbCanales'));
+             set('frmInsertarGruposZonas.hMarca',get('frmInsertarGruposZonas.cbMarcas'));
+           }
+
+           function obtenerCodNomGrupoTipoFact(){
+	     set('frmInsertarGruposZonas.hCodigoDeGrupo',get('frmInsertarGruposZonas.txtCodigoDeGrupo'));
+             set('frmInsertarGruposZonas.hNombreDeGrupo',get('frmInsertarGruposZonas.txtNombreDeGrupo'));
+	     set('frmInsertarGruposZonas.hTipoDeFacturacion',get('frmInsertarGruposZonas.rbTipoDeFacturacion'));
+           }
+
+           //Se pide la carga de Regiones segun P-M-C seleccionados
+           function cargarRegZonDip(){
+	     if (get('frmInsertarGruposZonas.cbMarcas') != "" && get('frmInsertarGruposZonas.cbCanales') != ""){
+		 set('frmInsertarGruposZonas.accion','seleccionPaisMarcaCanal');
+                 obtenerPaisMarcaCanal();
+                 obtenerCodNomGrupoTipoFact();
+		 set('frmInsertarGruposZonas.hRegion',get('frmInsertarGruposZonas.cbRegion'));
+                 enviaSICC('frmInsertarGruposZonas');
+             }
+            }//cargarRegZonDip()
+
+           function fLimpiar(){
+              set('frmInsertarGruposZonas.cbCanales','');
+              set('frmInsertarGruposZonas.cbMarcas','');
+              set('frmInsertarGruposZonas.txtCodigoDeGrupo','');
+              set('frmInsertarGruposZonas.txtNombreDeGrupo','');
+              set('frmInsertarGruposZonas.rbTipoDeFacturacion','MONO');
+              set('frmInsertarGruposZonas.cbRegion','');
+              set_combo('frmInsertarGruposZonas.cbZonasDisponibles',[]);
+              set_combo('frmInsertarGruposZonas.cbZonasSeleccionadas',[]);
+              set('frmInsertarGruposZonas.chkTodasZonas','N');
+              focaliza('frmInsertarGruposZonas.cbMarcas','');
+           }
+
+	   //Valida que un campo sea numérico
+           function validaNumerico(value){              
+	    if(fValidarNumero(value,3,0,999) != "OK"){
+              fMostrarMensajeError('',fValidarNumero(value,3,0,999));
+              foco('frmInsertarGruposZonas.txtCodigoDeGrupo');
+              return 0;
+            }
+	    return 1;
+           }
+              
+	   function fGuardar(){
+	     setTimeout("guardar2()", 100);
+           }
+
+           //Se pulso el boton guardar de la barra de herramientas.
+           function guardar2(){
+
+	      if (fValidarCOMBO('frmInsertarGruposZonas.cbMarcas') &&
+                  fValidarCOMBO('frmInsertarGruposZonas.cbCanales') &&
+                  fValidarCTEXT('frmInsertarGruposZonas.txtCodigoDeGrupo') &&
+                  validaNumerico(get('frmInsertarGruposZonas.txtCodigoDeGrupo')) &&
+                  fValidarCTEXT('frmInsertarGruposZonas.txtNombreDeGrupo')){
+                            
+                  obtenerPaisMarcaCanal();
+                  obtenerCodNomGrupoTipoFact();
+                  set('frmInsertarGruposZonas.hRegion',get('frmInsertarGruposZonas.cbRegion'));
+                  var strZonasSeleccionadas = '';
+                  var longitud = combo_get('frmInsertarGruposZonas.cbZonasSeleccionadas','L');
+ 
+ 		  if (longitud > 0)
+                     strZonasSeleccionadas = combo_get('frmInsertarGruposZonas.cbZonasSeleccionadas','V',0);
+
+		  for(var i = 1;i < longitud;i++){
+                     strZonasSeleccionadas += '|' + combo_get('frmInsertarGruposZonas.cbZonasSeleccionadas','V',i);
+                  }
+
+                  set('frmInsertarGruposZonas.hZonasSeleccionadas',strZonasSeleccionadas);
+                  set('frmInsertarGruposZonas.accion','crear');
+		  ///////
+			 obtenerPaisMarcaCanal();
+			 //obtenerCodNomGrupoTipoFact();
+			 set('frmInsertarGruposZonas.hRegion',get('frmInsertarGruposZonas.cbRegion'));
+		  ///////
+                  enviaSICC('frmInsertarGruposZonas');
+              }
+	   }//guardar2()
+
+           function crearOpcion(lista,indice){
+              opcion = new Option();
+              opcion.text = lista.options[indice].text;
+              opcion.value = lista.options[indice].value;
+              return opcion;
+           }
+
+           function ordenar(lista){
+  	      box = eval('document.'+lista);
+              quickSort(box,0,combo_get(lista,'L') - 1);
+           }
+
+           function comparar(item1,item2){
+
+	       if (item1 < item2){
+                 return -1;
+               }
+
+               if (item1 > item2){
+                 return 1;
+               }
+
+               return 0;
+
+            }//comparar()
+
+            function quickSort(box,inicio,fin){
+		
+		primero = inicio;
+                ultimo = fin;
+
+                if (primero >= ultimo){
+                   return; 
+                }
+
+                textoMedio = box.options[parseInt(((primero + ultimo) / 2).toString())].text;
+
+                while(primero < ultimo){
+                    while(primero < ultimo && (comparar(box.options[primero].text, textoMedio) == -1)){
+                        primero++;
+                    }
+
+                    for(; primero < ultimo && (comparar(box.options[ultimo].text, textoMedio) == 1); ultimo--){}
+
+                    if(primero < ultimo){
+                       opcionPrimero = crearOpcion(box,primero);
+                       opcionUltimo = crearOpcion(box,ultimo);
+                       box.options[primero] = opcionUltimo;
+                       box.options[ultimo] = opcionPrimero;
+                    }
+                 }
+
+                 if(ultimo < primero){
+                    aux = ultimo;
+                    ultimo = primero;
+                    primero = aux;
+                 }
+
+                 quickSort(box,inicio,primero);
+                 quickSort(box,primero != inicio ? primero : primero + 1,fin);
+
+           }//quickSort()
+
+           //Pasa un elemento de la lista origen a la destino
+           function traspasar(listaOrigen,listaDestino){
+              vectorValue = get(listaOrigen,'V');
+              vectorDesc = get(listaOrigen,'T');
+
+              for (var i=0;i <= vectorValue.length - 1;i++){
+                if ((vectorValue[i] != null) && (vectorValue[i] != '')){
+                  del_combo(listaOrigen,'V', vectorValue[i]);
+                  combo_add(listaDestino,vectorValue[i],vectorDesc[i]);
+                  //ordenar(listaDestino);
+                }
+              }
+
+	   }//traspasar()
+
+           //Se pulso el chk de todas en InsertarGruposZonas
+           function selecTodasZonas(){                   
+	      var checked = get('frmInsertarGruposZonas.chkTodasZonas','');
+                     
+	      if (checked == 'S'){
+                 select_combo('frmInsertarGruposZonas.cbZonasDisponibles');
+              }else{
+                 deselect_combo('frmInsertarGruposZonas.cbZonasDisponibles');
+              }
+	   }
+
+           function deselect_combo(campo){
+              var l=combo_get(campo,'L');
+              var arrai=new Array();
+              set(campo,arrai);
+           }
+
+           //Pasa un elemento de la lista de disponibles a la de seleccionados
+           function agregando(){
+             traspasar('frmInsertarGruposZonas.cbZonasDisponibles','frmInsertarGruposZonas.cbZonasSeleccionadas');
+
+	     if(get('frmInsertarGruposZonas.chkTodasZonas') == 'S'){
+                set('frmInsertarGruposZonas.chkTodasZonas','N');
+             }
+
+           }
+
+           /*function agregando(){
+	     traspasar('frmInsertarGruposZonas.cbZonasDisponibles','frmInsertarGruposZonas.cbZonasSeleccionadas');
+	   }*/
+
+           //Pasa un elemento de la lista de seleccionados a la de disponibles
+           /*function eliminando(){
+	     traspasar('frmInsertarGruposZonas.cbZonasSeleccionadas','frmInsertarGruposZonas.cbZonasDisponibles');
+           }*/
+
+	   function eliminando(){
+	      del_combo('frmInsertarGruposZonas.cbZonasSeleccionadas','V',get('frmInsertarGruposZonas.cbZonasSeleccionadas'));
+	      cambioRegiones();
+	   }
+
+	   function cambioRegiones(){
+
+	      set('frmInsertarGruposZonas.hRegion',get('frmInsertarGruposZonas.cbRegion'));
+
+	     /* if (get('frmInsertarGruposZonas.accion') != "cambioRegiones"){
+		 var zonasSeleccionadas = get('frmInsertarGruposZonas.cbZonasSeleccionadas');
+		 if (zonasSeleccionadas.length == 0)
+		     set('frmInsertarGruposZonas.hZonasSeleccionadas','');
+		 else
+		     //set('frmInsertarGruposZonas.hZonasSeleccionadas',zonasSeleccionadas);*/
+		     set('frmInsertarGruposZonas.hZonasSeleccionadas',''+comboToStr('frmInsertarGruposZonas.cbZonasSeleccionadas'));
+
+		/* var zonasDisponibles = get('frmInsertarGruposZonas.cbZonasDisponibles');
+		 if (zonasDisponibles.length == 0)
+		     set('frmInsertarGruposZonas.hZonasRegion','');
+		 else
+		     //set('frmInsertarGruposZonas.hZonasRegion',zonasDisponibles);
+		     set('frmInsertarGruposZonas.hZonasRegion',comboToStr('frmInsertarGruposZonas.cbZonasDisponibles'));
+	     // }*/
+
+	     /* alert(get('frmInsertarGruposZonas.cbZonasSeleccionadas'));
+	      alert(get('frmInsertarGruposZonas.cbZonasDisponibles'));
+	     
+	      alert(""+get('frmInsertarGruposZonas.hZonasRegion'));
+	       alert(get('frmInsertarGruposZonas.hZonasSeleccionadas'));
+      	      alert(comboToStr('frmInsertarGruposZonas.cbZonasSeleccionadas'));*/
+	      	set('frmInsertarGruposZonas.hCodigoDeGrupo',get('frmInsertarGruposZonas.txtCodigoDeGrupo'));
+                set('frmInsertarGruposZonas.hNombreDeGrupo',get('frmInsertarGruposZonas.txtNombreDeGrupo'));
+                set('frmInsertarGruposZonas.hTipoDeFacturacion',get('frmInsertarGruposZonas.rbTipoDeFacturacion'));
+
+	      set('frmInsertarGruposZonas.accion','cambioRegiones');
+	      enviaSICC('frmInsertarGruposZonas');
+	     
+	   }//cambioRegiones()
+
+           function sacaSelecTodas(){
+             set('frmInsertarGruposZonas.chkTodasZonas','N');
+           }
+
+	  function comboToStr(campo){
+		   var l=combo_get(campo,'L');
+		   var arrai=new Array();
+		   var datos='';
+		   for(var i=0;i<l;i++) {
+		     datos += combo_get(campo,'V',i)+'~~';
+		     datos += combo_get(campo,'T',i)+'~~';
+		   }
+		   return datos;
+	  }
+
+	  function meter_en_combo(datos){
+
+		var vectorValue = datos.split('~~');
+		alert(get('frmInsertarGruposZonas.cbZonasSeleccionadas'));
+	      alert(get('frmInsertarGruposZonas.cbZonasDisponibles'));
+	     
+		for (var i=0;i <= vectorValue.length - 1;i++){
+		   i++;
+		   if ((vectorValue[i] != null) && (vectorValue[i] != '')){		
+			combo_add('frmInsertarGruposZonas.cbZonasSeleccionadas', vectorValue[i], vectorValue[i]);
+		   }
+       
+		}
+alert(get('frmInsertarGruposZonas.cbZonasSeleccionadas'));
+	      alert(get('frmInsertarGruposZonas.cbZonasDisponibles'));
+	     
+	  }
+    
+
+	  function fSalir(){
+
+		//llama a la LP para que corrobore si quedan zonas sin asignar 
+		//y cuando vuelve en el inicio de ser afirmativo manda el mensaje y si no sale directamente
+
+		if (get('frmInsertarGruposZonas.cbMarcas') != "" && get('frmInsertarGruposZonas.cbCanales') != ""){
+			//para que cuando vuelva preserve los valores
+			set('frmInsertarGruposZonas.hRegion',get('frmInsertarGruposZonas.cbRegion'));
+			set('frmInsertarGruposZonas.hZonasSeleccionadas',''+comboToStr('frmInsertarGruposZonas.cbZonasSeleccionadas'));
+			//alert(""+comboToStr('frmInsertarGruposZonas.cbZonasSeleccionadas'));
+			set('frmInsertarGruposZonas.hCodigoDeGrupo',get('frmInsertarGruposZonas.txtCodigoDeGrupo'));
+			set('frmInsertarGruposZonas.hNombreDeGrupo',get('frmInsertarGruposZonas.txtNombreDeGrupo'));
+			set('frmInsertarGruposZonas.hTipoDeFacturacion',get('frmInsertarGruposZonas.rbTipoDeFacturacion'));
+
+			set('frmInsertarGruposZonas.accion','verificarZonasRestantes');
+			enviaSICC('frmInsertarGruposZonas');
+		} else {
+			salida();
+		}
+
+	}
+	function salida(){
+
+		if (get('frmInsertarGruposZonas.bQuedanZonasDisp')=='true') {
+			var vRet = GestionarMensaje('2518',null,null,null);
+			if (vRet)	{
+				//por ahora nada
+				//var vPantalla = parent.frames['menu'].getPantallaInicio();
+				parent.frames['menu'].location.reload();
+
+				//if ( vPantalla != "" ){
+					
+					//vPantalla = vPantalla.split("servlet/sicc0000jg?ON=").join("");
+					
+					var formulario = getFormularioSICC();
+					//set(formulario+".conectorAction",vPantalla);
+					set(formulario+".conectorAction","LPInicioBelcorp");
+					set(formulario+".accion","");
+					
+					try{
+						parent.frames["iconos"].mostrarCapa();
+					}catch(e){}
+					
+					enviaSICC(formulario,'','','N');
+					//parent.frames['contenido'].location.href=vPantalla;
+				//}			
+			} else {
+				set('frmInsertarGruposZonas.hSaliendo', "false");
+			}
+		}else {//sale directamente por aca
+			//var vPantalla = parent.frames['menu'].getPantallaInicio();
+			parent.frames['menu'].location.reload();
+
+			//if ( vPantalla != "" ){
+				
+				//vPantalla = vPantalla.split("servlet/sicc0000jg?ON=").join("");
+				
+				var formulario = getFormularioSICC();
+				//set(formulario+".conectorAction",vPantalla);
+				set(formulario+".conectorAction","LPInicioBelcorp");
+				set(formulario+".accion","");
+				
+				try{
+					parent.frames["iconos"].mostrarCapa();
+				}catch(e){}
+				
+				enviaSICC(formulario,'','','N');
+				//parent.frames['contenido'].location.href=vPantalla;
+			//}		
+			
+		}
+	  }
+
+         ]]>
+    </JAVASCRIPT>
+
+    <FORMULARIO nombre="frmInsertarGruposZonas">
+         <VAR nombre="accion" valor=""/>
+         <VAR nombre="conectorAction" valor="LPCrearGruposZonas"/>
+         <VAR nombre="errCodigo" valor=""/>
+         <VAR nombre="errDescripcion" valor=""/>
+
+         <VAR nombre="hPais" valor=""/>
+         <VAR nombre="hMarca" valor=""/>
+         <VAR nombre="hCanal" valor=""/>
+         <VAR nombre="hTipoDeFacturacion" valor=""/>
+         <VAR nombre="hCodigoDeGrupo" valor=""/>
+         <VAR nombre="hNombreDeGrupo" valor=""/>
+         <VAR nombre="hRegion" valor=""/>
+         <VAR nombre="hCampoFoco" valor=""/>
+
+	 <VAR nombre="vZonasFinal" valor=""/>
+	 <VAR nombre="tZonasFinal" valor=""/>
+	 <VAR nombre="sZonasFinal" valor=""/>
+	 <VAR nombre="sRegionActual" valor=""/>
+
+         <VAR nombre="hZonasRegion" valor=""/>
+
+         <VAR nombre="hZonasSeleccionadas" valor=""/>
+         <VAR nombre="vZonasInicial" valor=""/>
+	 <VAR nombre="tZonasInicial" valor=""/>
+	 <VAR nombre="sRegionPrevia" valor=""/>
+	 <VAR nombre="sZonasRegion" valor=""/>
+	 <VAR nombre="bQuedanZonasDisp" valor=""/>
+	 <VAR nombre="hSaliendo" valor="false"/>
+
+         <TABLE width="605" border="0" align="left" cellpadding="0"
+                 cellspacing="0">
+                  <TR> 
+                           <TD align="center" width="12"><IMG src="b.gif" width="12" height="8" /></TD>
+                           <TD width="400"></TD>
+                           <TD width="12"><IMG src="b.gif" width="12" height="1" /></TD>
+                  </TR>
+                  <TR> 
+                           <TD align="center"></TD>
+                           <TD>
+                                    <TABLE width="100%" border="1" cellspacing="1" cellpadding="0" bordercolor="#CCCCCC">
+                                             <TR> 
+                                                      <TD>
+                                                                <TABLE width="98%" border="0" cellspacing="0" cellpadding="0" align="left" >
+                                                                         <TR>
+                                                                                  <TD nowrap="nowrap" class="datosCampos">
+                                                                                           <IMG src="b.gif" width="8" height="8"/>
+                                                                                  </TD>
+                                                                         </TR>
+                                                                         <TR>
+                                                                                  <TD width="120"
+                                                                                           nowrap="nowrap">
+                                                                                           <LABELC nombre="etiqPais"
+                                                                                                             ancho="120"
+                                                                                                             alto="30"
+                                                                                                             filas="1"
+                                                                                                             id="datosTitleRight"
+                                                                                                             cod="5"
+                                                                                                             valor=""
+                                                                                                             enviaroculto="N"/>
+                                                                                  </TD>
+
+                                                                                  <TD width="1%">
+                                                                                      <IMG src="b.gif" witdh="8" height="8"/>
+                                                                                  </TD>
+
+                                                                                  <TD width="98%">
+											<LABELC nombre="lblPaisActual" ancho="90" alto="28" filas="1" id="datosCamposLeft" valor="XXXXXX" />
+                                                                                  </TD>
+                                                                         </TR>
+                                                                         <TR height="40">
+                                                                                  <TD valign="top" nowrap="nowrap" width="120">
+                                                                                           <LABELC id="datosTitleRight"
+                                                                                                       nombre="lblMarca"
+                                                                                                       ancho="120"
+                                                                                                       alto="30"
+                                                                                                       filas="1"
+                                                                                                       cod="6"/>
+                                                                                  </TD>
+
+										  <TD width="1%">
+                                                                                           <IMG src="b.gif" witdh="8" height="8"/>
+                                                                                  </TD>
+
+										  <TD width="98%" valign="middle">
+											   <COMBO nombre="cbMarcas"
+                                                                                                        id="estcombo30"
+                                                                                                        valorinicial=""
+                                                                                                        textoinicial=""
+                                                                                                        size="1"
+                                                                                                        multiple="N"
+                                                                                                        req="N"
+                                                                                                        onchange="cargarRegZonDip();">
+                                                                                              <ROWSET>
+                                                                                              </ROWSET>
+                                                                                           </COMBO>
+                                                                                  </TD>
+                                                                         </TR>
+                                                                        <!-- <TR>
+									    <TD width="1%">
+                                                                               <IMG src="b.gif" witdh="8" height="8"/>
+                                                                            </TD>
+                                                                         </TR> -->
+                                                                         <TR>
+                                                                            <TD width="120"
+                                                                                valign="middle">
+                                                                                <LABELC id="datosTitleRight"
+                                                                                        nombre="lblCanales"
+                                                                                        ancho="120"
+                                                                                        alto="30"
+                                                                                        filas="1"
+                                                                                        cod="7"/>
+                                                                             </TD>
+                                                                             <TD width="1%">
+                                                                                 <IMG src="b.gif" witdh="8" height="8"/>
+                                                                             </TD>
+                                                                             <TD width="98%" valign="middle">
+                                                                                 <COMBO nombre="cbCanales"
+                                                                                        id="estcombo30"
+                                                                                        size="1"
+                                                                                        multiple="N"
+                                                                                        req="N"
+                                                                                        valorinicial=""
+                                                                                        textoinicial=""
+                                                                                        onchange="cargarRegZonDip();">
+                                                                                        <ROWSET>
+                                                                                        </ROWSET>
+                                                                                  </COMBO>
+                                                                              </TD>
+                                                                         </TR>
+                                                                         <TR>
+                                                                             <TD nowrap="nowrap" width="120">
+                                                                                 <LABELC nombre="lblCodigo"
+                                                                                         ancho="120"
+                                                                                         alto="30"
+                                                                                         filas="1"
+                                                                                         id="datosTitleRight"
+                                                                                         cod="196"
+                                                                                         valor=""
+                                                                                         enviaroculto="N"/>
+                                                                              </TD>
+                                                                              <TD width="1%">
+                                                                                  <IMG src="b.gif" witdh="8" height="8"/>
+                                                                              </TD>
+                                                                              <TD width="98%" nowrap="nowrap">
+                                                                                 <CTEXTO nombre="txtCodigoDeGrupo"
+                                                                                         class="datosCampos"
+                                                                                         id="datosTitleRight"
+                                                                                         max="3" tipo=""
+                                                                                         onchange=""
+                                                                                         req="N" size="3"
+                                                                                         valor=""
+                                                                                         validacion=""/>
+                                                                               </TD>
+                                                                         </TR>
+                                                                         <TR>
+                                                                            <TD width="120" nowrap="nowrap">
+                                                                               <LABELC nombre="lblNombre"
+                                                                                       ancho="120"
+                                                                                       alto="30"
+                                                                                       filas="1"
+                                                                                       id="datosTitleRight"
+                                                                                       cod="197"
+                                                                                       valor=""
+                                                                                       enviaroculto="N"/>
+                                                                             </TD>
+                                                                             <TD width="1%">
+                                                                                <IMG src="b.gif" witdh="8" height="8"/>
+                                                                             </TD>
+                                                                             <TD width="98%">
+                                                                                 <CTEXTO nombre="txtNombreDeGrupo"
+                                                                                         class="datosCampos"
+                                                                                         id="txtNombreDeGrupo"
+                                                                                         max="30" tipo=""
+                                                                                         onchange=""
+                                                                                         req="N" size="52"
+                                                                                         valor=""
+                                                                                         validacion=""/>
+                                                                              </TD>
+                                                                           </TR>
+                                                                           <TR>
+                                                                              <TD valign="top" nowrap="nowrap" width="120">
+                                                                                 <LABELC nombre="lblTipoFc"
+                                                                                      ancho="120"
+                                                                                      alto="30"
+                                                                                      filas="1"
+                                                                                      id="datosTitleRight"
+                                                                                      cod="198"
+                                                                                      valor=""
+                                                                                      enviaroculto="N"/>
+                                                                              </TD>
+                                                                              <TD width="1%">
+                                                                                  <IMG src="b.gif" witdh="8" height="8"/>
+                                                                              </TD>
+                                                                              <TD width="98%" valign="top" nowrap="nowrap">
+                                                                                <TABLE bgcolor="" width="10%"
+                                                                                                  border="0"
+                                                                                                  cellspacing="0"
+                                                                                                  cellpadding="0">
+                                                                                    <TR>
+                                                                                       <TD class="datosCampos">
+													<COMBO id="estcombo3" req="N" 
+													       multiple="N" size="1" nombre="rbTipoDeFacturacion"
+                                 valorinicial=""
+                                 textoinicial="" >
+													  <ROWSET>
+													    <ROW ID="1">
+													      <CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="0"/>
+													      <CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="MONO"/>
+													    </ROW>
+													    <ROW ID="2">
+													      <CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="1"/>
+													      <CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="MULTI"/>
+													    </ROW>
+													    <ROW ID="3">
+													      <CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="2"/>
+													      <CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="SEMANAL"/>
+													    </ROW>
+													  </ROWSET>
+													</COMBO>
+                                                                                        </TD>
+                                                                                     </TR>
+                                                                                 </TABLE>
+										</TD>
+                                                                           </TR>
+                                                                           <TR height="35">
+                                                                              <TD valign="center" nowrap="nowrap" width="120">
+                                                                                  <LABELC nombre="lblregion"
+										          ancho="120"
+                                                                                          alto="30"
+                                                                                          filas="1"
+                                                                                          id="datosTitleRight"
+                                                                                          cod="109"
+                                                                                          valor=""
+                                                                                          enviaroculto="N"/>
+                                                                               </TD>
+                                                                               <TD width="1%">
+                                                                                  <IMG src="b.gif" witdh="8" height="8"/>
+                                                                               </TD>
+                                                                               <TD width="98%" valign="center" nowrap="nowrap" style="">
+                                                                                  <COMBO nombre="cbRegion"
+                                                                                         id="estcombo"
+                                                                                         size="1"
+                                                                                         multiple="N"
+                                                                                         req="N"
+                                                                                         onchange="cambioRegiones();">
+                                                                                         <ROWSET>
+                                                                                         </ROWSET>
+                                                                                   </COMBO>
+                                                                                </TD>
+                                                                              </TR>
+                                                                              <TR>
+                                                                                <TD>
+                                                                                </TD>
+                                                                                <TD width="1%">
+                                                                                   <IMG src="b.gif" witdh="8" height="8"/>
+                                                                                </TD>
+                                                                                <TD width="98%">
+                                                                                    <TABLE>
+                                                                                       <TR>
+                                                                                         <TD valign="top"
+                                                                                             nowrap="nowrap"
+                                                                                             width="120">
+                                                                                             <LABELC nombre="lblZonasDisp"
+                                                                                                     ancho="120"
+                                                                                                     alto="27"
+                                                                                                     filas="1"
+                                                                                                     id="datosTitleRight"
+                                                                                                     cod="237"
+                                                                                                     valor=""
+                                                                                                     enviaroculto="N"/>
+                                                                                          </TD>
+                                                                                          <TD width="20" nowrap="nowrap">
+                                                                                              <IMG src="b.gif" width="8" height="8"/>
+                                                                                          </TD>
+                                                                                          <TD valign="top" nowrap="nowrap" width="140">
+                                                                                             <LABELC nombre="lblZonasSelec"
+                                                                                                  ancho="140"
+                                                                                                  alto="27"
+                                                                                                  filas="1"
+                                                                                                  id="datosTitleLeft"
+                                                                                                  cod="238"
+                                                                                                  valor=""
+                                                                                                  enviaroculto="N"/>
+                                                                                           </TD>
+                                                                                         </TR>
+                                                                                         <TR height="60">
+                                                                                           <TD valign="top" nowrap="nowrap" style=""
+											       width="120">
+											       <COMBO nombre="cbZonasDisponibles"
+											              id="estcombo"
+                                                                                                      size="5"
+                                                                                                      multiple="S"
+                                                                                                      req="N"
+												onshtab="focaliza('frmInsertarGruposZonas.cbRegion');"  
+												ontab="focaliza('frmInsertarGruposZonas.cbZonasSeleccionadas');"
+                                                                                                      onchange="sacaSelecTodas();">
+                                                                                                  <ROWSET>
+                                                                                                  </ROWSET>
+                                                                                                </COMBO>
+                                                                                           </TD>
+                                                                                           <TD align="center" width="20">
+                                                                                           <TABLE bgcolor="" width="20"
+                                                                                                             border="0"
+                                                                                                             cellspacing="0"
+                                                                                                             cellpadding="0">
+                                                                                              <TR>
+                                                                                                 <TD class="tablaTitle"
+                                                                                                     align="center">
+                                                                                                     <BOTON estado="true"
+                                                                                                            accion="agregando();"
+                                                                                                            tipo="html"
+                                                                                                            ID="botonContenido"
+                                                                                                            nombre="btnAgregar"
+												            alt="&gt;"/>
+                                                                                                 </TD>
+                                                                                              </TR>
+                                                                                              <TR>
+                                                                                                 <TD>
+                                                                                                    <IMG src="b.gif" width="8" height="8"/>
+                                                                                                 </TD>
+                                                                                              </TR>
+                                                                                              <TR>
+                                                                                                 <TD class="tablaTitle" align="center">
+                                                                                                     <BOTON estado="true"
+                                                                                                        accion="eliminando();"
+                                                                                                        tipo="html"
+                                                                                                        ID="botonContenido"
+                                                                                                        nombre="btnEliminar"
+													alt="&lt;"/>
+                                                                                                 </TD>
+                                                                                              </TR>
+                                                                                             </TABLE>
+                                                                                             </TD>
+                                                                                             <TD valign="top" nowrap="nowrap" style=""
+                                                                                             width="140">
+                                                                                              <COMBO nombre="cbZonasSeleccionadas"
+                                                                                                     id="estcombo"
+                                                                                                     size="5"
+                                                                                                     multiple="S"
+                                                                                                     req="N" onshtab="focaliza('frmInsertarGruposZonas.cbZonasDisponibles');"    ontab="focaliza('frmInsertarGruposZonas.cbMarcas');"
+                                                                                                     onchange="">
+                                                                                                     <ROWSET></ROWSET>
+                                                                                              </COMBO>			
+                                                                                             </TD>
+                                                                                         </TR>
+                                                                                    </TABLE>
+                                                                                </TD>
+                                                                              </TR>
+                                                                              <TR>
+                                                                                <TD>
+                                                                                  <IMG src="b.gif" witdh="8" height="8"/>
+                                                                                </TD>
+                                                                                <TD colspan="7" nowrap="nowrap">
+                                                                                <TABLE width="21%" border="0"
+                                                                                       cellspacing="0" cellpadding="0">
+                                                                                  <TR>
+                                                                                    <TD></TD>
+                                                                                    <TD rowspan="2">
+                                                                                       <IMG src="b.gif" width="8" height="8"/>
+                                                                                    </TD>
+                                                                                    <TD rowspan="2">
+                                                                                       <TABLE width="70%" border="0" cellspacing="0"
+                                                                                              cellpadding="0">
+                                                                                         <TR>
+                                                                                           <TD></TD>
+                                                                                         </TR>
+                                                                                         <TR>
+                                                                                           <TD>
+                                                                                             <IMG src="b.gif" witdh="8" height="8"/>
+                                                                                           </TD>
+                                                                                         </TR>
+                                                                                         <TR>
+                                                                                           <TD></TD>
+                                                                                         </TR>
+                                                                                       </TABLE>
+                                                                                    </TD>
+                                                                                    <TD rowspan="2">
+                                                                                      <IMG src="b.gif" width="8" height="8"/>
+                                                                                    </TD>
+                                                                                    <TD rowspan="2" valign="top"></TD>
+                                                                                  </TR>
+                                                                                  <TR>
+                                                                                    <TD>
+                                                                                       <TABLE bgcolor="" width="10%" border="0" cellspacing="0"
+                                                                                                         cellpadding="0">
+                                                                                          <TR>
+                                                                                            <TD align="right" width="120">
+                                                                                               <CHECKBOX nombre="chkTodasZonas"
+                                                                                                         class="" id="estilos.css"
+                                                                                                         onclick="selecTodasZonas();"
+                                                                                                         max="1" tipo="" onchange="" 
+													 req="N" size="1" valor=""
+                                                                                                         validacion=""/>
+                                                                                            </TD>
+                                                                                            <TD>
+                                                                                               <LABELC nombre="etiqueta13" ancho="55"
+                                                                                                       alto="30" filas="1" id="datosTitleLeft"
+                                                                                                       cod="176" valor="" enviaroculto="N"/>
+                                                                                            </TD>
+                                                                                           </TR>
+                                                                                         </TABLE>
+                                                                                      </TD>
+                                                                                      <TD rowspan="2">
+										        <IMG src="b.gif" width="8" height="8"/>
+                                                                                      </TD>
+                                                                                      <TD rowspan="2" valign="top"></TD>
+                                                                                    </TR>
+                                                                                    <TR>
+                                                                                      <TD class="datosCampos">
+										         <IMG src="b.gif" width="8" height="8"/>
+										      </TD>
+                                                                                    </TR >
+                                                                                </TABLE>
+                                                                                </TD>
+                                                                              </TR>
+                                                                </TABLE>
+                                                      </TD>
+                                             </TR>
+                                    </TABLE>
+                           </TD>
+                  </TR>
+         </TABLE>
+    </FORMULARIO>
+</PAGINA>
+

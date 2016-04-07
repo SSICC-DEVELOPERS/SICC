@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+/**
+ * Copyright 2003 © por Indra Sistemas,S.A.. Todos los derechos reservados.
+ * Avda. de Bruselas, 35
+ * Parque Empresarial Arroyo de la Vega
+ * 28108 Alcobendas, Madrid
+ * España
+ *
+ * Privado y Confidencial.
+ * La información contenida en este documento es propiedad de Indra sistemas.
+ * Para uso exclusivo de empleados autorizados no permitiéndose
+ * la distribución de este código sin permiso expreso.
+ */
+-->
+
+<!--
+
+**************************************************************************************************************************
+Esta pagina es un template, contiene el codigo de la pagina HTML, con algunas modificaciones para facilitar la traduccion.
+**************************************************************************************************************************
+
+-->
+
+<!--
+   INDRA/CDOS/SICC
+   $Id: contenido_cronograma_fecha_modificar.xml,v 1.1 2009/12/03 18:45:38 pecbazalar Exp $
+   DESC
+
+   DRUIDATARGET=/../../config/scripts/iniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_cronograma_fecha_modificar" titulo="Modificar Fecha de Ejecucion" estilos="estilos.css" 
+	colorf="#F0F0F0" msgle="Modificar Fecha de Ejecucion" onload="inicializacion();" xml:lang="es">
+
+<JS src="sicc_util.js"/>
+<!--JS src="contenido_cronograma_fecha_modificar.js"/-->
+
+<JAVASCRIPT>
+<![CDATA[
+
+	function inicializacion() {
+	  //cargarBarra ("barra_detalle_digitar");
+		configurarMenuSecundario("frmModificarFecha");
+		set('frmModificarFecha.hlblActiFija',GestionarMensaje('1002'));
+		set('frmModificarFecha.hlblActiRefe',GestionarMensaje('1003'));
+
+		set('frmModificarFecha.txtFecha',get('frmModificarFecha.hFechaVieja'));
+		set('frmModificarFecha.txtHora',get('frmModificarFecha.hHoraVieja'));
+
+		//mostrarCodigoError();
+		fMostrarMensajeError(get('frmModificarFecha.errCodigo'), get('frmModificarFecha.errCodigo'));
+
+		focaliza ('frmModificarFecha.txtFecha');
+	}
+
+	function fVolver() {
+		 history.back();
+	}
+
+
+	function mostrarCodigoError()
+	{
+
+		var parametros = new Object();
+		parametros.errCodigo = get('frmModificarFecha.errCodigo');
+		parametros.errDescripcion = get('frmModificarFecha.errDescripcion');
+		var wnd;
+		if (get('frmModificarFecha.errDescripcion')!='')
+		{
+				wnd = fMostrarMensajeError(get('frmModificarFecha.errCodigo'), 
+						get('frmModificarFecha.errDescripcion'));
+		}		
+	} 
+
+	function fGuardar()
+	{
+		if (!validaFecha(get('frmModificarFecha.txtFecha'))) 
+		{
+				GestionarMensaje('947','frmModificarFecha.txtFecha');
+				return;
+		}
+		else 
+		{
+			if (!validaHora(get('frmModificarFecha.txtHora'))) {
+				GestionarMensaje('2516','frmModificarFecha.txtHora');
+				return;
+			}
+		}
+
+		set('frmModificarFecha.accion','actualizaFecha');
+		set('frmModificarFecha.hFecha',get('frmModificarFecha.txtFecha'));
+		set('frmModificarFecha.hHora',get('frmModificarFecha.txtHora'));
+		set('frmModificarFecha.hZonaSelec',get('frmModificarFecha.hZonaSelec'));
+		set('frmModificarFecha.hActivSelec',get('frmModificarFecha.hActivSelec'));
+		enviarFormulario();
+		
+	}
+
+	function enviarFormulario() {
+		obtenerDatos();
+		//deshabilitarControles();
+		envia('frmModificarFecha');
+	}
+
+	function obtenerDatos(){
+		set('frmModificarFecha.hPais', get('frmModificarFecha.hPais'));
+		set('frmModificarFecha.hCanal', get('frmModificarFecha.hCanal'));
+		set('frmModificarFecha.hMarca', get('frmModificarFecha.hMarca'));
+		set('frmModificarFecha.hCodigoPeriodo', get('frmModificarFecha.hCodigoPeriodo'));
+		set('frmModificarFecha.hFechaVieja', get('frmModificarFecha.hFechaVieja'));
+		set('frmModificarFecha.hHoraVieja', get('frmModificarFecha.hHoraVieja'));
+	}
+
+	function validaFecha(campo)
+	{
+		if (cdos_trim(campo) == "")
+			return false;
+
+		var fecha = campo
+		var estado = 0
+		var partes = new Array("", "", "")
+
+		//if (fTrim(fecha) == "")
+		//	return true;  //cambiado
+
+		for (var i = 0; i < fecha.length; i++)
+		{
+			var c = fecha.substring(i, i + 1)
+			if (estado > 2 || (c < "0" || c > "9") && c != "/")
+				return false
+			if (c == "/")
+				estado ++
+			else
+				partes[estado] += c
+		}
+
+		if (estado != 2)
+			return false
+
+		var maxDia = new Array(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+		var dd, mm, yy
+		dd = parseInt(partes[0], 10)
+		mm = parseInt(partes[1], 10)
+		aa = parseInt(partes[2], 10)
+		if (isNaN(dd) || isNaN(mm) || isNaN(aa))
+			return false
+
+		//Comprobar anyo
+		if (aa < 1900 || aa > 2100)
+			return false
+		if (aa % 4 == 0)
+			maxDia[1] ++
+
+		//Comprobar mes
+		if (mm < 1 || mm > 12)
+			return false
+
+		//Comprobar dia
+		if (dd < 1 || dd > maxDia[mm - 1])
+			return false
+
+		return true
+	}
+
+	function validaHora(campo)
+	{
+		if (cdos_trim(campo) == "")
+			return false;
+
+		var fecha = campo
+		var estado = 0
+		var partes = new Array("", "", "")
+
+		for (var i = 0; i < fecha.length; i++)
+		{
+			var c = fecha.substring(i, i + 1)
+			if (estado > 2 || (c < "0" || c > "9") && c != ":")
+				return false
+			if (c == ":")
+				estado ++
+			else
+				partes[estado] += c
+		}
+
+		if (estado != 2)
+			return false
+
+		var hh, min, ss
+		hh = parseInt(partes[0], 10)
+		min = parseInt(partes[1], 10)
+		ss = parseInt(partes[2], 10)
+		//alert("hh: "+ hh + " min: "+ min + " ss:"+ ss);
+
+		if (isNaN(hh) || isNaN(min) || isNaN(ss))
+			return false
+
+		//Comprobar hora
+		if (hh > 23)
+			return false
+
+		//Comprobar minutos
+		if (min > 59)
+			return false
+
+		//Comprobar segundos
+		if (ss > 59)
+			return false
+
+		return true
+	}
+
+	function fLimpiar()
+	{
+		set('frmModificarFecha.txtFecha','');
+		set('frmModificarFecha.txtHora','');
+		focaliza ('frmModificarFecha.txtFecha');
+	}
+
+]]>
+</JAVASCRIPT>
+
+<FORMULARIO nombre="frmModificarFecha">
+	<VAR nombre="accion" valor="cargaModificarFecha"/>
+	<VAR nombre="conectorAction" valor="LPGenerarCronogramaFase2"/>
+	<VAR nombre="errCodigo" valor=""/>
+	<VAR nombre="errDescripcion" valor=""/>
+	<VAR nombre="hCasoDeUso" valor=""/>
+	<VAR nombre="hPais" valor=""/>
+	<VAR nombre="descPais" valor=""/>
+	<VAR nombre="hMarca" valor=""/>
+	<VAR nombre="hCanal" valor=""/>
+	<VAR nombre="hCodigoPeriodo" valor=""/>
+	<VAR nombre="hZonaSelec" valor=""/>
+	<VAR nombre="hActivSelec" valor=""/>
+	<VAR nombre="hFecha" valor=""/>
+	<VAR nombre="hHora" valor=""/>
+	<VAR nombre="hFechaVieja" valor=""/>
+  	<VAR nombre="hHoraVieja" valor=""/>
+  	<VAR nombre="hlblActiFija" valor=""/>
+  	<VAR nombre="hlblActiRefe" valor=""/>
+
+
+
+<!--************************** COMIENZO CODIGO HTML ORIGINAL **************************-->
+	<TABLE width="100%" border="0" cellspacing="0" cellpadding="0" align="left">
+		<TR>
+			<TD>
+				<IMG src="b.gif" width="12" height="1"/>
+			</TD>
+			<TD align="center">
+				<IMG src="b.gif" witdh="8" height="8"/>
+			</TD>
+			<TD align="center">
+				<IMG src="b.gif" width="12" height="1"/>
+			</TD>
+		</TR>
+		<TR>
+			<TD width="20">
+				<IMG src="b.gif" witdh="8" height="8"/>
+			</TD>
+			<TD>
+				<TABLE width="100%" border="1" cellpadding="0" cellspacing="1" bordercolor="#CCCCCC">
+					<TR>
+						<TD>
+							<TABLE width="98%" border="0" align="center" cellpadding="0" cellspacing="0">
+								<TR>
+									<TD colspan="7" nowrap="nowrap">
+										<IMG src="b.gif" witdh="8" height="8"/>
+									</TD>
+								</TR>
+								<TR>
+									<!--TD width="72" nowrap="nowrap">Nueva Fecha</TD-->
+									<td width="72" nowrap="nowrap">
+										<LABELC nombre="lblFecha" ancho="80" alto="30" filas="1" id="datosTitleRight" cod="183" 
+												valor="" enviaroculto="N"/>
+									</td>
+									<TD nowrap="nowrap">
+										<IMG src="b.gif" witdh="8" height="8"/>
+									</TD>
+									<TD>
+										<!-- Tag INPUT original: -->
+										<!-- <INPUT name="textfield222" type="text" class="datosCampos" size="10" maxlength="10"/>  -->
+										<!-- Tag CTEXTO de ejemplo: -->
+										<CTEXTO nombre="txtFecha" class="datosCampos" id="txtFecha" max="10" tipo="" onchange="" 
+											req="N" size="10" valor="" validacion="" ontab="focaliza('frmModificarFecha.txtHora')"
+											onshtab="focaliza('frmModificarFecha.txtHora')"/>
+										<!--IMG src="b.gif" width="12" height="8"/-->
+									</TD>
+									<td width="60" nowrap="nowrap">
+										<LABELC nombre="lblHora" ancho="60" alto="30" filas="1" id="datosTitleRight" cod="184" 
+												valor="" enviaroculto="N"/>
+									</td>
+									<TD nowrap="nowrap">
+										<IMG src="b.gif" witdh="8" height="8"/>
+									</TD>
+									<TD>
+										<CTEXTO nombre="txtHora" class="datosCampos" id="txtHora" max="8" tipo="" onchange="" 
+											req="N" size="8" valor="" validacion="" ontab="focaliza('frmModificarFecha.txtFecha')"
+											onshtab="focaliza('frmModificarFecha.txtFecha')"/>
+									</TD>
+									<TD width="500">
+										<IMG src="b.gif" width="8" height="8"/>
+									</TD>
+								</TR>
+								<TR>
+									<TD colspan="7" nowrap="nowrap">
+										<IMG src="b.gif" witdh="8" height="8"/>
+									</TD>
+								</TR>
+							</TABLE>
+						</TD>
+					</TR>
+				</TABLE>
+			</TD>
+			<TD width="20" align="left">
+				<IMG src="b.gif" witdh="8" height="8"/>
+			</TD>
+		</TR>
+		<!--TR>
+			<TD width="20">
+				<IMG src="b.gif" witdh="8" height="8"/>
+			</TD>
+        <td valign="bottom" width="565">
+          <BOTON cod="1251" estado="true" accion="Guardar();" tipo="html" ID="BotonContenido" nombre="btnGuardar"/>
+        </td>
+		</TR-->
+	</TABLE>
+  
+
+<!--**************************** FIN CODIGO HTML ORIGINAL ****************************-->
+
+
+</FORMULARIO>
+
+</PAGINA>

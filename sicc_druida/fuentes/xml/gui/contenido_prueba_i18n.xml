@@ -1,0 +1,407 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+/**
+ * Copyright 2003 © por Indra Sistemas,S.A.. Todos los derechos reservados.
+ * Avda. de Bruselas, 35
+ * Parque Empresarial Arroyo de la Vega
+ * 28108 Alcobendas, Madrid
+ * España
+ *
+ * Privado y Confidencial.
+ * La información contenida en este documento es propiedad de Indra sistemas.
+ * Para uso exclusivo de empleados autorizados no permitiéndose
+ * la distribución de este código sin permiso expreso.
+ */
+-->
+
+<!--
+   INDRA/CDOS/SICC
+   $Id: contenido_prueba_i18n.xml,v 1.1 2009/12/03 18:45:59 pecbazalar Exp $
+   DESC
+
+   DRUIDATARGET=/../../config/scripts/iniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_prueba_i18n" 
+	titulo="Prueba i18n" 
+	estilos="estilos.css" 
+	colorf="#F0F0F0" 
+	onload="LoadBar();posicionarCombo();cargarArbol2()" 
+	msgle="Buscar Grupos de Zonas" 
+	xml:lang="es"
+	>
+
+<ESTILO>
+                  #MA {font-family: Arial, Helvetica, sans-serif;background-color:#CED7E7;
+                                     font-size:8pt;font-weight:bold;color:#526D84;}
+                  #S  {font-family: Arial, Helvetica, sans-serif;background-color:#526D84;
+                                     font-size:8pt;font-face:Arial;font-weight:bold;color:#FFFFFF;}
+                  #DOFF {font-family: Arial, Helvetica, sans-serif;background-color:white;
+                                              font-size:8pt;text-decoration:none;color:black;font-weight:bold;}
+                  #DON {font-family: Arial, Helvetica, sans-serif;background-color:#292084;
+                                             font-size:8pt;text-decoration:none;color:white;font-weight:bold;}
+                  #FDS {font-family: Arial, Helvetica, sans-serif;color:black;background-color:white;
+                                             font-size:8pt;text-decoration:none;font-weight:bold;}
+                  #F {background-color:red;font-family: Arial, Helvetica, sans-serif;text-decoration:none;
+                                    font-size:8pt;font-weight:bold;}
+                  #estcomboF {width:355px}
+</ESTILO>
+
+         <JS src="sicc_util.js"/>
+
+         <JS src="i18NJS.js"/>
+         
+<JAVASCRIPT>
+<![CDATA[
+         function LoadBar(){
+						/*
+                  if (get('frmBuscarGP.tipoBarra')=="eliminar" ){
+                           cargarBarra("barra_grupos_zonas_buscar", "A");
+                  }
+                  else{
+                           cargarBarra("barra_grupos_zonas_buscar");
+                  }
+						*/
+						configurarMenuSecundario("frmBuscarGP");
+                  //accion('frmBuscarGP.chkTodasMarcas','.disabled=true');
+                  
+                  //alert("Pais " + get('frmBuscarGP.hPais'));
+
+                  /////////////////////////////////////////////////////// 
+                  // Selecciona el pais por default y lo pone en el combo \\
+                  var iSeleccionadoP = new Array();
+
+                  //iSeleccionadoP[0] = get('frmBuscarGP.hPais');
+
+                  //set('frmBuscarGP.cbPaises',iSeleccionadoP);
+                  ///////////////////////////////////////////////////////
+                  
+                  focaliza('frmBuscarGP.cbMarcas','');
+
+                  ShowError();
+                  
+         }
+
+         function ShowError()
+         {
+                  if (get('frmBuscarGP.hidErrDescripcion')!='')
+                  {
+
+                           var wnd = fMostrarMensajeError(get('frmBuscarGP.hidErrCodigo'), 
+                                    get('frmBuscarGP.hidErrDescripcion'));
+
+                           if (wnd == 0)
+                                    reintentar();
+                           else
+                                    cancelar();
+                  }	
+         } 
+
+         function reintentar(){
+                  set('frmBuscarGP.conectorAction','LPBuscarGruposZonas');
+                  enviaSICC('frmBuscarGP');
+         }
+
+         function cancelar(){
+                  
+                  set('frmBuscarGP.accion','');
+                  set('frmBuscarGP.conectorAction','LPBuscarGruposZonas');
+                  visibilidad('capaBusqueda2', 'O');
+                  fLimpiar();
+         }
+
+
+
+         function fLimpiar() {
+                  
+                  //set('frmBuscarGP.cbPaises','');
+                  set('frmBuscarGP.cbMarcas','');
+                  set('frmBuscarGP.cbCanales','');
+                  focaliza('frmBuscarGP.cbMarcas','');		
+                  focaliza('frmBuscarGP.cbMarcas','');	
+         }
+
+         function obtenerPaisMarcaCanal(){
+                  //set('frmBuscarGP.hPais', get('frmBuscarGP.cbPaises'));
+                  set('frmBuscarGP.hCanal', get('frmBuscarGP.cbCanales'));
+                  set('frmBuscarGP.hMarca', get('frmBuscarGP.cbMarcas'));
+                 //set('frmBuscarGP.descPais', get('frmBuscarGP.cbPaises', 'T'));
+                  set('frmBuscarGP.descCanal', get('frmBuscarGP.cbCanales', 'T'));
+                  set('frmBuscarGP.descMarca', get('frmBuscarGP.cbMarcas', 'T'));
+
+                  set('frmBuscarGP.hGrupoZona', miarbol.getChecked());
+         }
+         
+         function cargarArbolX() {
+                  setTimeout("cargarArbolll()",100);
+         }
+
+         function cargarArbolll(){
+                  
+                  if(	//fValidarCOMBO('frmBuscarGP.cbPaises') && 
+                           fValidarCOMBO('frmBuscarGP.cbMarcas') && 
+                           fValidarCOMBO('frmBuscarGP.cbCanales')){
+                           
+                                    set('frmBuscarGP.accion', 'consulta');
+                                    enviarFormulario();
+                           }
+         }
+
+         function fBorrar(){
+                  eliminar();
+         }
+
+         function eliminar(){
+                  var nodoSel = miarbol.getChecked();
+                  var pos = nodoSel.indexOf('.');
+
+                  if(nodoSel.length > 0 && pos == -1){
+                           
+                           if(GestionarMensaje('5')) {
+                                    if(	
+                                             get('frmBuscarGP.hPais')	!= "" && 
+                                             get('frmBuscarGP.hMarca')	!= "" && 
+                                             get('frmBuscarGP.hCanal') != ""){
+                           
+                                             set('frmBuscarGP.accion', 'eliminar');
+                                             set('frmBuscarGP.conectorAction', 'LPEliminarGruposZonas');
+                                             enviarFormulario();
+                                    }
+                           }
+                  }
+                  else{
+                           GestionarMensaje('2515');
+                           
+                  }
+         }
+         
+
+         function cargarArbol2(){
+                  var v1 = get('frmBuscarGP.hArbol');
+                  if(v1 != ''){
+                           var v3 = eval(v1);
+                           miarbol.init(v3);
+                           miarbol.display();
+                  }
+         }
+
+         function enviarFormulario() {
+                  obtenerPaisMarcaCanal();
+                  
+                  enviaSICC('frmBuscarGP');
+         }
+
+         function posicionarCombo() {
+                  
+                  var iSeleccionadoP = new Array();
+                  iSeleccionadoP[0] = get('frmBuscarGP.hPais');
+                  //set('frmBuscarGP.cbPaises',iSeleccionadoP);
+                  
+
+                  var iSeleccionadoM = new Array();
+                  iSeleccionadoM[0] = get('frmBuscarGP.hMarca');
+                  set('frmBuscarGP.cbMarcas',iSeleccionadoM);
+
+                  var iSeleccionado = new Array();
+                  iSeleccionado[0] = get('frmBuscarGP.hCanal');
+                  set('frmBuscarGP.cbCanales',iSeleccionado);
+         }
+	 function recupera(){
+             set('frmBuscarGP.accion', 'consulta');
+             enviarFormulario();
+         }
+         
+]]>
+
+</JAVASCRIPT>
+
+<FORMULARIO nombre="frmBuscarGP">
+
+         <VAR nombre="accion" valor="" />
+         <VAR nombre="conectorAction" valor="LPPruebaI18N" />
+         <VAR nombre="hidErrCodigo" valor="" />
+         <VAR nombre="hidErrDescripcion" valor="" />
+
+         <VAR nombre="hCasoDeUso" valor="" />
+
+         <VAR nombre="hPais" valor="" />
+         <VAR nombre="hMarca" valor="" />
+         <VAR nombre="hCanal" valor="" />
+         <VAR nombre="descPais" valor="" />
+         <VAR nombre="descMarca" valor="" />
+         <VAR nombre="descCanal" valor="" />
+
+         <VAR nombre="hArbol" valor="" />
+         <VAR nombre="hGrupoZona" valor="" />
+
+         <VAR nombre="tipoBarra" valor="" />
+
+<CAPA nombre="capaBusqueda" alto="215" ancho="605" colorf="" borde="0" imagenf="" repeat="" padding=""    visibilidad="visible" contravsb="" x="0" y="0" zindex="">
+
+         <TABLE width="605" border="0" cellspacing="0" cellpadding="0" align="left">
+                  <TR> 
+                           <TD align="center" width="12"><IMG src="b.gif" width="12" height="8" /></TD>
+                           <TD width="400"></TD>
+                           <TD width="12"><IMG src="b.gif" width="12" height="1" /></TD>
+                  </TR>
+                  <TR> 
+                           <TD align="center"></TD>
+                           <TD>
+                                    <TABLE width="100%" border="1" cellspacing="1" cellpadding="0" bordercolor="#CCCCCC">
+                                             <TR> 
+                                                      <TD>
+                                                                <TABLE width="98%" border="0" cellspacing="0" cellpadding="0" align="left" >
+                                                                         <TR>
+                                                                                  <TD nowrap="nowrap" class="datosCampos">
+                                                                                           <IMG src="b.gif" width="8" height="8"/>
+                                                                                  </TD>
+                                                                         </TR>
+                                                                         <TR>
+                                                                                  <TD width="120">
+                                                                                           <!-- LABEL Pais -->
+                                                                                           <LABELC nombre="lblPais" ancho="80" alto="30" filas="1" id="datosTitleRight" cod="5" valor="" enviaroculto="N"/>
+                                                                                           <!-- FIN LABEL Pais -->
+                                                                                  </TD>
+                                                                                  <TD width="1%"><IMG src="b.gif" width="8" height="8"/></TD>
+                                                                                  <TD width="98%" >
+											<LABELC nombre="lblPaisActual" ancho="90" alto="28" filas="1" id="datosCamposLeft" valor="XXXXXX" />
+                                                                                  </TD>
+                                                                         </TR>
+                                                                         <TR>
+                                                                                  <TD width="120" valign="top">
+                                                                                           <LABELC nombre="lblMarca" ancho="80" alto="30" filas="1" id="datosTitleRight" cod="6" valor="" enviaroculto="N"/>
+                                                                                  </TD>
+                                                                                  <TD width="1%"><IMG src="b.gif" width="8" height="8"/></TD>
+                                                                                  <TD width="98%" >
+                                                                                           <COMBO  textoinicial="" valorinicial="" req="N" multiple="N" size="1" id="estcombo" nombre="cbMarcas" onchange="" onshtab="focaliza('frmBuscarGP.cbCanales');">
+                                                                                                    <ROWSET>
+                                                                                                    </ROWSET>
+                                                                                           </COMBO>
+                                                                                  </TD>
+                                                                         </TR>
+                                                                         <!--TR>
+                                                                                  <TD></TD>
+                                                                                  <TD width="1%"><IMG src="b.gif" width="8" height="8"/></TD>
+                                                                                  <TD>
+                                                                                           <TABLE>
+                                                                                                    <TR>
+                                                                                                             <TD width="120" align="right">
+                                                                                                                      <CHECKBOX onfocus="" onclick="" id="estilos.css" req="N" validacion="" check="N" texto="" nombre="chkTodasMarcas" />
+                                                                                                             </TD>
+                                                                                                             <TD width="98%">
+                                                                                                                      <LABELC nombre="lblTodasMarcas" ancho="80" alto="30" filas="1" id="datosTitleLeft" cod="176" valor="" enviaroculto="N"/>
+                                                                                                             </TD>
+                                                                                                    </TR>
+                                                                                           </TABLE>
+                                                                                  </TD>
+                                                                         </TR-->
+                                                                         <TR>
+                                                                                  <TD width="120">
+                                                                                           <LABELC nombre="lblCanal" ancho="80" alto="30" filas="1" id="datosTitleRight" cod="7" valor="" enviaroculto="N"/>
+                                                                                  </TD>
+                                                                                  <TD width="1%"><IMG src="b.gif" width="8" height="8"/></TD>
+                                                                                  <TD width="98%" >
+                                                                                           <CTEXTO nombre="txtDescripcion" class="datosCampos"  id="datosTitleRight" max="10" tipo="" onchange="" req="N" size="10" valor="" validacion=""/>
+                                                                                  </TD>
+                                                                                  <TD><IMG src="b.gif" width="8" height="8" /></TD>
+                                                                                  <TD><IMG src="b.gif" width="8" height="8" /></TD>
+                                                                                  <TD><IMG src="b.gif" width="8" height="8" /></TD>
+                                                                                  <TD><IMG src="b.gif" width="8" height="8" /></TD>
+                                                                         </TR>
+                                                                         <TR>
+                                                                                  <TD class="datosCampos"><IMG src="b.gif" width="8" height="8"/></TD>
+                                                                         </TR >
+                                                                </TABLE>
+                                                      </TD>
+                                             </TR>
+                                             <TR> 
+                                                      <TD bgcolor="#CCCCCC">
+                                                                <BOTON cod="1" estado="false" accion="javascript:levantarI18N('frmBuscarGP','1');" tipo="html" ID="botonContenido" nombre="btnBuscar" />
+								<BOTON cod="3" estado="false" accion="javascript:recupera();" tipo="html" ID="botonContenido" nombre="btnConsultar" />
+                                                      </TD>
+                                             </TR> 
+                                    </TABLE>
+                           </TD>
+                  </TR>
+    </TABLE>
+</CAPA>
+
+<CAPA nombre="capaBusqueda2" alto="250" ancho="603" colorf="" borde="0" imagenf="" repeat="" padding="" visibilidad="hidden" contravsb="" x="3" y="175" zindex="">
+                           
+                           <TABLE width="603" border="0" cellpadding="0" cellspacing="1"
+                     bordercolor="#CCCCCC">
+                <TR>
+                  <TD>
+                    <TABLE width="100%" border="0" cellpadding="0" cellspacing="0"
+                            bordercolor="#CCCCCC">
+                      <TR>
+                         <TD align="center" width="8"><IMG src="b.gif" witdh="8" height="8"/></TD>
+                         <TD>
+                           <TABLE width="581" border="1" cellpadding="0" cellspacing="1" bordercolor="#CCCCCC">
+
+                                                         <TR>
+                                         
+                                <TD>
+                                  <TABLE width="100%" border="0" cellpadding="0"
+                                          cellspacing="0">
+                                    
+                                                                         <TR align="center">
+                                                                                  <TD width="75%" align="left" class="tablaTitle">
+                                                                                           <LABELC nombre="lblGZ" ancho="160" alto="27" filas="1" id="datosTitleLeft" cod="180" valor="" enviaroculto="N"/>					                                      
+                                                                                  </TD>
+                                                                                  <TD align="left" class="tablaTitle">
+                                                                                  <LABELC nombre="lblTF" ancho="220" alto="27" filas="1" id="datosTitleLeft" cod="198" valor="" enviaroculto="N"/>
+                                                                                  </TD>
+                                    </TR>
+                                    <TR>
+                                      <TD height="185"  colspan="2">
+                                         <ARBOLLISTA x="20" y="31" nombre="miarbol"
+                                                      ancho="551" alto="168" colorf=""
+                                                      id="['datosCamposLeftImpar','datosCamposCenterImpar','datosCamposCenterImpar']" 
+                                                      imgOpen="plus.gif"
+                                                      imgClose="minus.gif"
+                                                      imgChk0="close_no.gif"
+                                                      imgChk1="close_up.gif"
+                                                      imgHueco="b2.gif"
+                                                      checkCascade="false"
+                                                      anchos="[360,88,10]"
+                                                      indent="5" multisel="N" incx="0"
+                                                      incy="5" seleccionUnica="S">
+                                         </ARBOLLISTA>
+                                                                                  <!--  -->
+                                      </TD>
+                                    </TR>
+                                  </TABLE>
+                                </TD>
+                             </TR>
+                           
+                                                      </TABLE>
+                         </TD>
+                      </TR>
+                      <TR>
+                         <TD align="center">
+                           <IMG src="b.gif" witdh="8" height="8"/>
+                         </TD>
+                      </TR>
+                    </TABLE>
+                  </TD>
+                </TR>
+             </TABLE>
+           
+    </CAPA>
+<CAPA  nombre="capaBotonEliminar" visibilidad="hidden" alto="30" ancho="581" borde="n" imagenf="" repeat="" padding="0"  contravsb="" x="12" y="394" zindex="">
+         
+         <table width="581" border="0" cellspacing="1" cellpadding="0" bordercolor="#CCCCCC" bgcolor="#CCCCCC">
+                  <tr>
+                           <td>
+                                    <BOTON nombre="btnEliminar" ID="botonContenido" tipo="html" accion="javascript:fBorrar();" estado="false" cod="1254" />
+                           </td>
+                  </tr>
+         </table>
+</CAPA>
+
+</FORMULARIO>
+
+</PAGINA>

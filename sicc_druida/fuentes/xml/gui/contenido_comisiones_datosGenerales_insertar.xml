@@ -1,0 +1,953 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_comisiones_datosGenerales_insertar.xml,v 1.2 2010/08/24 22:52:57 peextsapaza Exp $
+   prueba arbol 
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+<PAGINA nombre="contenido_comisiones_datosGenerales_insertar" cod="0515" titulo="Insertar comisiones" estilos="estilosB3.css" colorf="#F0F0F0" msgle="" onload="onLoadPag();" xml:lang="es">
+
+<JS src="sicc_util.js"></JS> 
+<JS src="PaginacionSicc.js"></JS>
+<JS src="DruidaTransactionMare.js"></JS>
+<JS src="i18NJS.js"/>
+
+<JAVASCRIPT>
+<![CDATA[ 
+
+function onLoadPag() {
+  configurarMenuSecundario("formulario");    
+  
+  //1° Seteando indicador comparativo
+  var varIndComparativo = get("formulario.varIndComparativo");
+  if(varIndComparativo!="") {
+	  if(varIndComparativo=="true")  
+		set("formulario.rbComparativo", "S");
+	  else
+		set("formulario.rbComparativo", "N");
+
+		if (get("formulario.opcionMenu") == "insertar") {
+		  document.all.rbComparativo[0].disabled= true;
+		  document.all.rbComparativo[1].disabled= true;
+		}
+
+  }
+
+/*agregado ciglesias incidencia DBLG700000207 inicio*/
+
+if (get("formulario.opcionMenu") == "modificar") {
+  var desComparativo = get("formulario.varDeshabilitarComparativo");
+  if(desComparativo != "") {
+	  if(desComparativo=="true") {
+		  document.all.rbComparativo[0].disabled= true;
+		  document.all.rbComparativo[1].disabled= true;
+	  } else {
+		  document.all.rbComparativo[0].disabled= false;
+		  document.all.rbComparativo[1].disabled= false;
+	  }
+
+  }}
+/*agregado ciglesias incidencia DBLG700000207 fin*/
+
+  //2° Seteando indicador tratamiento diferencial
+  var varIndTratamientoDif = get("formulario.varIndTratamientoDif");  
+  if(varIndTratamientoDif!="") {
+	if(varIndTratamientoDif=="true")
+		set("formulario.rbTratamientoDiferencialAntigua", "S");
+	else
+		set("formulario.rbTratamientoDiferencialAntigua", "N");
+
+ 	if (get("formulario.opcionMenu") == "insertar") {
+			document.all.rbTratamientoDiferencialAntigua[0].disabled = true;
+			document.all.rbTratamientoDiferencialAntigua[1].disabled = true;
+	}
+  }
+
+/*agregado ciglesias incidencia DBLG700000207 inicio*/
+ 	if (get("formulario.opcionMenu") == "modificar") {
+ var desTratDif = get("formulario.varDeshabilitarTratDif");
+  if(desTratDif!="") {
+	  if(desTratDif=="true") {
+			document.all.rbTratamientoDiferencialAntigua[0].disabled = true;
+			document.all.rbTratamientoDiferencialAntigua[1].disabled = true;
+	  } else {
+			document.all.rbTratamientoDiferencialAntigua[0].disabled = false;
+			document.all.rbTratamientoDiferencialAntigua[1].disabled = false;
+	  }
+
+  }}
+/*agregado ciglesias incidencia DBLG700000207 fin*/
+
+  //3° Obtengo los valores a setear en la pantalla
+  var opcionMenu = get("formulario.opcionMenu");
+  if((opcionMenu == "consultar") || (opcionMenu == "modificar") || (opcionMenu == "insertar")) {	
+	var sDescripcionComision = get("formulario.sDescripcionComision");
+	var sOidMarca = get("formulario.sOidMarca");
+	var sOidAccesos = get("formulario.sOidAccesos");
+	var marcoAccesos = get("formulario.marcoAccesos");
+	var sOidPeriodoDesde = get("formulario.sOidPeriodoDesde");
+	var sOidPeriodoHasta = get("formulario.sOidPeriodoHasta");
+	var sNumeroPeriodosEspera = get("formulario.sNumeroPeriodosEspera");
+
+	// vbongiov -- Cambio 20090913 -- 5/08/2009
+	var sConsideraSabDomFer = get("formulario.sConsideraSabDomFer");
+	var sDsctoImpstoVtaPagos = get("formulario.sDsctoImpstoVtaPagos");
+	
+	// sapaza -- PER-SiCC-2010-0478 -- 20/08/2010
+	var sComisionEscalonada = get("formulario.sComisionEscalonada");
+	
+	//4° Seteando descripcion comision
+	set("formulario.txtDescripcionComision", sDescripcionComision);
+
+	//5° Seteando marca
+	var arraySeteo = new Array();
+	arraySeteo[0] = sOidMarca;
+	set("formulario.cbMarca", arraySeteo);
+
+	//6°a Seteando los accesos que vienen de la primer pantalla
+	var arrayMarcarAccesos = marcoAccesos.split(",");
+	set("formulario.cbAcceso", arrayMarcarAccesos);
+	if(sOidAccesos!="") {
+		//Se pisaran cuando venga de otra pestaña
+		var arrayAccesos = sOidAccesos.split(",");
+		set("formulario.cbAcceso", arrayAccesos);
+	}	
+
+	//7° Seteando periodos espera
+	set("formulario.txtNumPeriodosEspera", sNumeroPeriodosEspera);
+
+    // vbongiov -- Cambio 20090913 -- 5/08/2009
+	set("formulario.ckConsideraSabDomFer", sConsideraSabDomFer);
+	set("formulario.ckDsctoImpstoVtaPagos", sDsctoImpstoVtaPagos);
+
+	// sapaza -- PER-SiCC-2010-0478 -- 20/08/2010
+	set("formulario.ckComisionEscalonada", sComisionEscalonada);
+	
+	//8° Se recarga los combos de periodos dependiendo de la marca seleccionada,
+	//ademas queda seleccionado el que eligio el usuario
+	recargoCombosPeriodos();
+  }
+
+  //9° En una modificacion, si es solicitud autorizada, solo se permite modificar
+  //los campos periodo hasta y periodos espera
+  var solicitudAutorizada = get("formulario.solicitudAutorizada");
+  if(solicitudAutorizada=="true") {
+	document.getElementById("txtDescripcionComision").disabled = true;
+	document.getElementById("cbMarca").disabled = true;
+	document.getElementById("cbAcceso").disabled = true;
+	document.getElementById("cbPeriodoDesde").disabled = true;   
+
+	// sapaza -- PER-SiCC-2010-0478 -- 20/08/2010
+	document.getElementById("ckComisionEscalonada").disabled = true;
+  }
+
+  //10° Si estamos en el consultar deshabilito todos los campos
+  if(opcionMenu == "consultar") {
+  	document.getElementById("txtDescripcionComision").disabled = true;
+	document.getElementById("cbMarca").disabled = true;
+	document.getElementById("cbAcceso").disabled = true;
+	document.getElementById("cbPeriodoDesde").disabled = true;
+	document.getElementById("cbPeriodoHasta").disabled = true;
+	document.getElementById("txtNumPeriodosEspera").disabled = true;
+    document.all.rbComparativo[0].disabled= true;
+    document.all.rbComparativo[1].disabled= true;
+	document.all.rbTratamientoDiferencialAntigua[0].disabled = true;
+	document.all.rbTratamientoDiferencialAntigua[1].disabled = true;
+
+	// vbongiov -- Cambio 20090913 -- 5/08/2009
+	document.getElementById("ckConsideraSabDomFer").disabled = true;
+	document.getElementById("ckDsctoImpstoVtaPagos").disabled = true;
+
+	// sapaza -- PER-SiCC-2010-0478 -- 20/08/2010
+	document.getElementById("ckComisionEscalonada").disabled = true;
+
+	// 23192 - dmorello, 30/05/2006: Se habilita fuera del IF el botón Atrás del menú secundario,
+	// ya que otras opciones del menú también lo requieren
+	//btnProxy(2, '1');  
+  }
+
+  // 23192 - dmorello, 30/05/2006: Se habilita el botón Atrás si corresponde
+  if (opcionMenu != "insertar") {
+	btnProxy(2,'1');
+  } else {
+	btnProxy(2,'0');
+  }
+
+
+  //11° Se pone el foco en la caja de texto descripcion, salvo que este en el consultar
+  if(opcionMenu!="consultar") {
+	  focoDescripcion();
+  }
+
+  if(opcionMenu == "modificar") {
+	btnProxy(4, '0');  
+  }
+}  
+
+function recargoCombosPeriodos() {
+	var valor = get("formulario.cbMarca");
+  
+	if(valor=="") {
+		var objArr = document.all['cbPeriodoDesde'];
+		for(var i=0; i < objArr.length; i++){
+			if(objArr[i].tagName && objArr[i].tagName.toUpperCase()=="SELECT"){
+				if (!objArr[i].disabled) {
+					var aCombo = new Array(new Array("",""));
+					set_combo('formulario.cbPeriodoDesde',aCombo, []);				
+		        }
+			 }
+	     }
+    
+		var objArr = document.all['cbPeriodoHasta'];
+	    for(var i=0; i < objArr.length; i++){
+		    if(objArr[i].tagName && objArr[i].tagName.toUpperCase()=="SELECT"){
+			    if (!objArr[i].disabled) {
+				    var aCombo = new Array(new Array("",""));
+					set_combo('formulario.cbPeriodoHasta',aCombo, []);				
+	            }
+		     }
+	     }
+
+		return;
+	}
+
+	var arr = new Array();
+	arr[arr.length]=new Array("marca", get("formulario.cbMarca"));
+	arr[arr.length]=new Array("pais", get("formulario.varPais"));
+	arr[arr.length]=new Array("canal", get("formulario.varOidCanal"));
+  
+	recargaCombo("formulario.cbPeriodoDesde", 'CRAObtienePeriodos', 'es.indra.sicc.dtos.cra.DTOPeriodo', arr, "marcaComboPeriodosDesde(datos);");
+}
+
+function marcaComboPeriodosDesde(datos) {
+	var datosNuevo = new Array();
+	datosNuevo[0] = ["",""];
+
+	for (var i = 0; i < datos.length; i++ )
+		datosNuevo[i+1]  = datos[i];
+
+	set_combo("formulario.cbPeriodoDesde", datosNuevo);
+	var sOidPeriodoDesde = get("formulario.sOidPeriodoDesde");
+	var periodoSeleccionado = new Array();
+	periodoSeleccionado = sOidPeriodoDesde.split(",");	  
+	set("formulario.cbPeriodoDesde", periodoSeleccionado);
+
+	recargaComboPeriodoHasta();
+}
+
+function recargaComboPeriodoHasta() {
+  var valor = get("formulario.cbPeriodoDesde");
+  
+  if(valor=="") {    
+	var objArr = document.all['cbPeriodoHasta'];
+    for(var i=0; i < objArr.length; i++){
+	    if(objArr[i].tagName && objArr[i].tagName.toUpperCase()=="SELECT"){
+		    if (!objArr[i].disabled) {
+			    var aCombo = new Array(new Array("",""));
+				set_combo('formulario.cbPeriodoHasta',aCombo, []);				
+            }
+         }
+     }
+
+	return;
+  }
+
+  var arr = new Array();
+  arr[arr.length]=new Array("oidPais", get("formulario.varPais"));
+  arr[arr.length]=new Array("marca", get("formulario.cbMarca"));
+  arr[arr.length]=new Array("canal", get("formulario.varOidCanal"));
+  arr[arr.length]=new Array("oid", get("formulario.cbPeriodoDesde"));
+  
+  recargaCombo("formulario.cbPeriodoHasta", 'COMObtenerPeriodosMayores', 'es.indra.sicc.dtos.cra.DTOPeriodo', arr, "marcaComboPeriodosHasta(datos);");
+}
+
+function marcaComboPeriodosHasta(datos) {
+	var datosNuevo = new Array();
+	datosNuevo[0] = ["",""];
+
+	for (var i = 0; i < datos.length; i++ )
+		datosNuevo[i+1]  = datos[i];
+
+	set_combo("formulario.cbPeriodoHasta", datosNuevo);
+	var sOidPeriodoHasta = get("formulario.sOidPeriodoHasta");
+	var periodoSeleccionado = new Array();
+	periodoSeleccionado = sOidPeriodoHasta.split(",");	  
+	set("formulario.cbPeriodoHasta", periodoSeleccionado)
+}
+
+function onTabNumeroPeriodos() {
+	if(document.all.rbComparativo[0].disabled!=true) {
+			focoIndicadorComparativo();
+	}
+	else {
+		if(document.all.rbTratamientoDiferencialAntigua[0].disabled!=true) {
+			focoTratamientoDiferencial();
+		}
+		else {
+			focoDescripcion();
+		}
+	}	
+}
+
+function onTabComparativo() {
+	if(document.all.rbTratamientoDiferencialAntigua[0].disabled!=true) {
+		focoTratamientoDiferencial();
+	}
+	else {
+		focoDescripcion();
+	}
+}
+
+function focoNumeroPeriodosEspera() {
+	focaliza("formulario.txtNumPeriodosEspera");
+}
+
+function onShtabTratamientoDiferencial() {
+	if(document.all.rbComparativo[0].disabled!=true) {
+		focoIndicadorComparativo();
+	}
+	else {
+		focoNumeroPeriodosEspera();
+	}	
+}
+
+function focoDescripcion() {
+  focaliza("formulario.txtDescripcionComision");
+}
+
+function focoIndicadorComparativo() {
+	focaliza("formulario.rbComparativo");
+}
+
+function focoTratamientoDiferencial() {
+	focaliza("formulario.rbTratamientoDiferencialAntigua");
+}
+
+function onShTabDescripcion() {
+	
+	focaliza("formulario.ckDsctoImpstoVtaPagos");
+		
+}
+
+function onSeleccionaMarca() {  
+  var valor = get("formulario.cbMarca");
+  
+  if(valor=="") {
+    var objArr = document.all['cbPeriodoDesde'];
+    for(var i=0; i < objArr.length; i++){
+	    if(objArr[i].tagName && objArr[i].tagName.toUpperCase()=="SELECT"){
+		    if (!objArr[i].disabled) {
+			    var aCombo = new Array(new Array("",""));
+				set_combo('formulario.cbPeriodoDesde',aCombo, []);				
+            }
+         }
+     }
+    
+	var objArr = document.all['cbPeriodoHasta'];
+    for(var i=0; i < objArr.length; i++){
+	    if(objArr[i].tagName && objArr[i].tagName.toUpperCase()=="SELECT"){
+		    if (!objArr[i].disabled) {
+			    var aCombo = new Array(new Array("",""));
+				set_combo('formulario.cbPeriodoHasta',aCombo, []);				
+            }
+         }
+     }
+
+	return;
+  }
+
+  var arr = new Array();
+  arr[arr.length]=new Array("marca", get("formulario.cbMarca"));
+  arr[arr.length]=new Array("pais", get("formulario.varPais"));
+  arr[arr.length]=new Array("canal", get("formulario.varOidCanal"));
+  
+  recargaCombo("formulario.cbPeriodoDesde", 'CRAObtienePeriodos', 'es.indra.sicc.dtos.cra.DTOPeriodo', arr);
+}
+
+function onChangePeriodoDesde() {
+  var valor = get("formulario.cbPeriodoDesde");
+  
+  if(valor=="") {    
+	var objArr = document.all['cbPeriodoHasta'];
+    for(var i=0; i < objArr.length; i++){
+	    if(objArr[i].tagName && objArr[i].tagName.toUpperCase()=="SELECT"){
+		    if (!objArr[i].disabled) {
+			    var aCombo = new Array(new Array("",""));
+				set_combo('formulario.cbPeriodoHasta',aCombo, []);				
+            }
+         }
+     }
+
+	return;
+  }
+
+  var arr = new Array();
+  arr[arr.length]=new Array("oidPais", get("formulario.varPais"));
+  arr[arr.length]=new Array("marca", get("formulario.cbMarca"));
+  arr[arr.length]=new Array("canal", get("formulario.varOidCanal"));
+  arr[arr.length]=new Array("oid", get("formulario.cbPeriodoDesde"));
+  
+  recargaCombo("formulario.cbPeriodoHasta", 'COMObtenerPeriodosMayores', 'es.indra.sicc.dtos.cra.DTOPeriodo', arr);
+}
+
+function onClickPestanya(valor) {  
+	var opcionMenu = get("formulario.opcionMenu");
+    if(!sicc_validaciones_generales())
+		return;
+
+   	var estadoVentana = get("formulario.estadoVentana");
+	var marca = get("formulario.cbMarca");
+	var descMarca = get("formulario.cbMarca", "T");
+	var canal = get("formulario.varOidCanal");
+ 	var descCanal = get("formulario.descCanal");
+	var acceso = get("formulario.cbAcceso");
+	var periodoDesde = get("formulario.cbPeriodoDesde");
+	var periodoHasta = get("formulario.cbPeriodoHasta");
+	var periodosEspera = get("formulario.txtNumPeriodosEspera");
+	var varIndComparativo = get("formulario.rbComparativo");
+
+	// vbongiov -- Cambio 20090913 -- 5/08/2009
+	var consideraSabDomFer = get("formulario.ckConsideraSabDomFer");
+	var dsctoImpstoVtaPagos = get("formulario.ckDsctoImpstoVtaPagos");
+
+	// sapaza -- PER-SiCC-2010-0478 -- 20/08/2010
+	var comisionEscalonada = get("formulario.ckComisionEscalonada");
+	
+	if(varIndComparativo=="S"){
+		varIndComparativo = "true";
+	}
+	else {
+		varIndComparativo = "false";
+	}
+
+	var varIndTratamientoDif = get("formulario.rbTratamientoDiferencialAntigua");
+	if(varIndTratamientoDif=="S") {
+		varIndTratamientoDif = "true";
+	}
+	else {
+		varIndTratamientoDif = "false";
+	}
+
+   	var varOidPlantilla = get("formulario.varOidPlantilla");
+
+	var arrayaccesos = new Array();
+	var j = 0;
+	for(var i=0 ;i<acceso.length; i++) {
+		var temp = acceso[i];
+		if(temp!='') {
+			arrayaccesos[j] = acceso[i];
+			j++;
+		}
+	}
+			  
+	set("formulario.marca", marca);
+	set("formulario.descMarca", descMarca);
+	set("formulario.canal", canal);
+  	set("formulario.descCanal", descCanal);
+	set("formulario.acceso", arrayaccesos);
+	set("formulario.periodoDesde", periodoDesde);
+	set("formulario.periodoHasta", periodoHasta);
+	set("formulario.periodosEspera", periodosEspera);
+	set("formulario.varIndComparativo", varIndComparativo);
+	set("formulario.varIndTratamientoDif", varIndTratamientoDif);
+	set("formulario.varOidPlantilla", varOidPlantilla);
+
+	// vbongiov -- Cambio 20090913 -- 5/08/2009
+	set("formulario.consideraSabDomFer", consideraSabDomFer);
+	set("formulario.dsctoImpstoVtaPagos", dsctoImpstoVtaPagos);
+	
+	// sapaza -- PER-SiCC-2010-0478 -- 20/08/2010
+	set("formulario.comisionEscalonada", comisionEscalonada);
+			  
+	if(valor=="Productos") {
+		set("formulario.idPestanyaDest", "2");
+	}
+	else if(valor=="Clientes") {
+		set("formulario.idPestanyaDest", "3");
+	}
+	else if(valor=="DatosCalculo") {
+		set("formulario.idPestanyaDest", "4");
+	}
+	// sapaza -- PER-SiCC-2010-0478 -- 20/08/2010
+	else if(valor=="DatosComisionEscalonada") {
+		set("formulario.idPestanyaDest", "5");
+	}
+
+	set("formulario.conectorAction", "LPMantenimientoComisionesDatosGenerales");
+ 	set("formulario.titulo", get("formulario.titulo"));
+	set("formulario.oidTipoPlantilla", get("formulario.oidTipoPlantilla"));
+	set("formulario.accion", "almacenar");
+  	set("formulario.opcionMenu", opcionMenu);
+  	set("formulario.estadoVentana", estadoVentana);
+	enviaSICC("formulario");     
+}
+
+function fGuardar() {
+  onClickGuardar();
+}
+
+function onClickGuardar() {
+  if(!sicc_validaciones_generales())
+    return;
+
+  var marca = get("formulario.cbMarca");
+  var descMarca = get("formulario.cbMarca", "T");
+  var canal = get("formulario.varOidCanal");
+  var descCanal = get("formulario.descCanal");
+  var acceso = get("formulario.cbAcceso");
+  var periodoDesde = get("formulario.cbPeriodoDesde");
+  var periodoHasta = get("formulario.cbPeriodoHasta");
+  var periodosEspera = get("formulario.txtNumPeriodosEspera");
+  var varIndComparativo = get("formulario.rbComparativo");
+
+  // vbongiov -- Cambio 20090913 -- 5/08/2009
+  var consideraSabDomFer = get("formulario.ckConsideraSabDomFer");
+  var dsctoImpstoVtaPagos = get("formulario.ckDsctoImpstoVtaPagos");
+
+  // sapaza -- PER-SiCC-2010-0478 -- 20/08/2010
+  var comisionEscalonada = get("formulario.ckComisionEscalonada");
+
+	if(varIndComparativo=="S"){
+		varIndComparativo = "true";
+	}
+	else {
+		varIndComparativo = "false";
+	}
+
+	var varIndTratamientoDif = get("formulario.rbTratamientoDiferencialAntigua");
+	if(varIndTratamientoDif=="S") {
+		varIndTratamientoDif = "true";
+	}
+	else {
+		varIndTratamientoDif = "false";
+	}
+
+  var oidTipoPlantilla = get("formulario.oidTipoPlantilla");
+  
+  set("formulario.marca", marca);
+  set("formulario.descMarca", descMarca);
+  set("formulario.canal", canal);
+  set("formulario.descCanal", descCanal);
+  set("formulario.acceso", acceso);
+  set("formulario.periodoDesde", periodoDesde);
+  set("formulario.periodoHasta", periodoHasta);
+  set("formulario.periodosEspera", periodosEspera);
+  set("formulario.varIndComparativo", varIndComparativo);
+  set("formulario.varIndTratamientoDif", varIndTratamientoDif);
+
+  // vbongiov -- Cambio 20090913 -- 5/08/2009
+  set("formulario.consideraSabDomFer", consideraSabDomFer);
+  set("formulario.dsctoImpstoVtaPagos", dsctoImpstoVtaPagos);
+
+  // sapaza -- PER-SiCC-2010-0478 -- 20/08/2010
+  set("formulario.comisionEscalonada", comisionEscalonada);
+
+  var datosClientes = get("formulario.datosPestanyaClientes");
+  var datosPestanyaDatosCalculo = get("formulario.datosPestanyaDatosCalculo");
+
+  if((oidTipoPlantilla=="") && (datosPestanyaDatosCalculo=="false")) {
+	GestionarMensaje('1544',null,null,null)
+	return false;
+  }
+
+  if((datosClientes=="false") || (datosPestanyaDatosCalculo=="false")) {
+	var resp = GestionarMensaje('1543',null,null,null);
+
+	if(resp==true) {
+		eval("formulario").oculto= "S";
+		set("formulario.conectorAction", "LPMantenimientoComisionesDatosGenerales");
+		set("formulario.accion", "guardar");
+		enviaSICC("formulario");
+	}
+	else {
+		return;
+	}
+  }
+  else {
+	  eval("formulario").oculto= "S";
+	  set("formulario.conectorAction", "LPMantenimientoComisionesDatosGenerales");
+	  set("formulario.accion", "guardar");
+	  enviaSICC("formulario");
+  }  
+}
+
+function poneManito(nombre) {
+  var pestana = document.getElementById(nombre);
+
+  if(!validarComisionEscalonada(nombre))
+  	return false;
+  else	
+    pestana.style.cursor = "hand";
+}
+
+function validarComisionEscalonada(nombre) {
+  var sComisionEscalonada = get("formulario.sComisionEscalonada");
+  
+  if(nombre == "DatosCalculo" && sComisionEscalonada == "S")
+  	return false;
+
+  if(nombre == "DatosComisionEscalonada" && sComisionEscalonada !="S")
+  	return false;
+  
+  return true;
+}
+
+function quitarManito(nombre) {
+  var pestana = document.getElementById(nombre);
+  pestana.style.cursor = "";
+}
+
+function actualizarComisionEscalonada() {
+  	var comisionEscalonada = get("formulario.ckComisionEscalonada");
+  	set("formulario.sComisionEscalonada", comisionEscalonada);
+}    
+
+function fErrorAlGuardar() {
+	focoDescripcion();	
+}
+
+function fLimpiar() {
+	onLoadPag();
+//	recargoCombosPeriodos();
+	//limpiarRadioButtons();
+//	focoDescripcion();
+}
+
+function limpiarRadioButtons() {
+	document.all.rbComparativo[0].disabled= false;
+	document.all.rbComparativo[1].disabled= false;
+	document.all.rbTratamientoDiferencialAntigua[0].disabled = false;
+	document.all.rbTratamientoDiferencialAntigua[1].disabled = false;
+}
+
+function reInicio() {
+	focoDescripcion();
+}
+
+function focoIndicadorComparativo() {
+	focaliza("formulario.rbComparativo");
+}
+
+// Modificado por incidencia 23192
+function fVolver() {
+	//if(get("formulario.estadoVentana")=="M") {
+	//	window.close();
+	//}
+	//else {
+	//	if(get("formulario.titulo")=="ConsultarComisiones") {
+	//		set("formulario.conectorAction", "LPConsultarComisiones");
+  	//		enviaSICC('formulario', '', '', 'N');
+	//	}
+	//	else {
+	//		set("formulario.conectorAction", "LPEliminarComisiones");
+  	//		enviaSICC('formulario', '', '', 'N');
+	//	}
+	//}
+
+	window.close();
+}
+
+]]> 
+</JAVASCRIPT>	
+
+<VALIDACION>
+  <ELEMENTO name="cbMarca" required="true" cod="6"/>
+  <ELEMENTO name="cbAcceso" required="true" cod="10"/>  
+  <ELEMENTO name="cbPeriodoDesde" required="true" cod="1175"/>
+  <ELEMENTO name="cbPeriodoHasta" required="true" cod="1176"/>  
+  <ELEMENTO name="txtNumPeriodosEspera" required="false" cod="1718" format="e" min="0" max="99"/>     
+  <ELEMENTO name="rbComparativo" required="true" cod="1719"/>
+  <ELEMENTO name="rbTratamientoDiferencialAntigua" required="true" cod="1700"/>
+</VALIDACION>
+
+<!-- Barra Modificar comisiones cod="0520"
+     Barra Consultar comisiones cod="0510"
+     Barra Eliminar comisiones cod="0558"-->
+<FORMULARIO nombre="formulario">
+<VAR nombre="estadoVentana" valor=""/>
+<VAR nombre="oidTipoPlantilla" valor=""/>
+<VAR nombre="titulo" valor=""/>
+
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="accion" valor=""/>
+<VAR nombre="errCodigo" valor=""/> 
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="varPais" valor=""/> 
+<VAR nombre="varIdioma" valor=""/>
+
+<VAR nombre="varOidPlantilla" valor=""/> 
+<VAR nombre="varOidCanal" valor=""/>
+<VAR nombre="varIndComparativo" valor=""/> 
+<VAR nombre="varIndTratamientoDif" valor=""/>
+<VAR nombre="idPestanyaDest" valor=""/>
+
+<VAR nombre="marca" valor=""/>
+<VAR nombre="descMarca" valor=""/>
+<VAR nombre="canal" valor=""/>
+<VAR nombre="descCanal" valor=""/>
+<VAR nombre="acceso" valor=""/>
+<VAR nombre="periodoDesde" valor=""/>
+<VAR nombre="periodoHasta" valor=""/>
+<VAR nombre="periodosEspera" valor=""/>
+<VAR nombre="comparativo" valor=""/>
+<VAR nombre="indTratamientoDif" valor=""/>
+
+<VAR nombre="consideraSabDomFer" valor=""/>
+<VAR nombre="dsctoImpstoVtaPagos" valor=""/>
+<VAR nombre="comisionEscalonada" valor=""/>
+
+<VAR nombre="sDescripcionComision" valor=""/>
+<VAR nombre="sOidMarca" valor=""/>
+<VAR nombre="sOidAccesos" valor=""/>
+<VAR nombre="sOidPeriodoDesde" valor=""/>
+<VAR nombre="sOidPeriodoHasta" valor=""/>
+<VAR nombre="sNumeroPeriodosEspera" valor=""/>
+
+<VAR nombre="sConsideraSabDomFer" valor=""/>
+<VAR nombre="sDsctoImpstoVtaPagos" valor=""/>
+<VAR nombre="sComisionEscalonada" valor=""/>
+
+<VAR nombre="opcionMenu" valor=""/>
+<VAR nombre="solicitudAutorizada" valor=""/>
+
+<VAR nombre="datosPestanyaClientes" valor=""/>
+<VAR nombre="datosPestanyaDatosCalculo" valor=""/>
+<VAR nombre="marcoAccesos" valor=""/>
+
+
+<VAR nombre="varDeshabilitarTratDif" valor=""/>
+<VAR nombre="varDeshabilitarComparativo" valor=""/>
+
+<CAPA nombre="capa1" >
+<table width="100%" height="100%" border="0" align="center" cellpadding="0" cellspacing="0" class="menu4">
+  <tr> 
+    <td width="12" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="12" height="30"/></td>
+    <td nowrap="nowrap" class="menu5texto">&nbsp;</td>
+    <td width="10" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+   <td width="92" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" bgcolor="#496A9A" >
+        <tr align="center"> 
+          <td nowrap="nowrap"><LABELC nombre="lblDGC"  alto="13" filas="1" valor="" id="menu5textoblanca" cod="00543"/></td>
+        </tr>
+      </table>
+    </td>
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto">
+    <table width="75" border="1" align="center" cellpadding="1" cellspacing="0" ID="Productos"
+    bordercolor="#496A9A" onclick="onClickPestanya('Productos');" onmouseover="poneManito('Productos');" >
+        <tr align="center"> 
+          <td nowrap="nowrap" ><LABELC nombre="lblProductos"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="0094"/></td>
+        </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto">
+    <table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" ID="Clientes"
+        onclick="onClickPestanya('Clientes');" onmouseover="poneManito('Clientes');">
+        <tr align="center"> 
+          <td nowrap="nowrap" ><LABELC nombre="lblClientes"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="0026"/></td>
+        </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto">
+    <table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" ID="DatosCalculo"
+    onclick="if(validarComisionEscalonada('DatosCalculo'))onClickPestanya('DatosCalculo');" onmouseover="poneManito('DatosCalculo');" onmouseout="quitarManito('DatosCalculo');">
+        <tr align="center"> 
+          <td nowrap="nowrap"  ><LABELC nombre="lblDatosC"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00544" /></td>
+        </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto">
+    <table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" ID="DatosComisionEscalonada"
+    onclick="if(validarComisionEscalonada('DatosComisionEscalonada'))onClickPestanya('DatosComisionEscalonada');" onmouseover="poneManito('DatosComisionEscalonada');" onmouseout="quitarManito('DatosComisionEscalonada');">
+        <tr align="center"> 
+          <td nowrap="nowrap"  ><LABELC nombre="lblDatosEscalonada"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="3462" /></td>
+        </tr>
+      </table>
+   </td>
+   
+    <td width="16" class="menu5texto"><IMG src="b.gif" width="12" height="8"/></td>
+  </tr>
+</table>              
+
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    
+
+     <tr> 
+      <td><IMG src="b.gif"/></td>
+      
+      <td>
+	<fieldset><legend class="legend"><LABELC nombre="lblDatosComision"  alto="13" filas="1" valor="" id="legend" cod="00363"/></legend> 
+	<table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+          <!---primera fila-->
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                                      
+                   <td colspan="3"><LABELC nombre="lblDescripcionComision"  alto="13" filas="1" valor="" id="datosTitle" cod="1710"/></td> 
+                   <td><IMG src="b.gif" width="25" height="8"/></td>                                      
+                   <td><LABELC nombre="lblMarca"  alto="13" filas="1" valor="" id="datosTitle" cod="6"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>   
+                    <td  nowrap="nowrap" valign="bottom">
+                      <CTEXTO nombre="txtDescripcionComision" id="datosCampos" max="50" tipo="" 
+                      onchange="" req="N" size="50" valor="" validacion="" onshtab="onShTabDescripcion();"/></td>
+                    <td><IMG src="b.gif" width="8" height="8"/></td>
+                    <td><IMG src="iconmultidioma.gif" width="21" height="15" onclick="levantarI18N('formulario','1');"/></td> 
+                   <td><IMG src="b.gif" width="25" height="8"/></td>   
+                   <td  nowrap="nowrap" >
+                    <COMBO nombre="cbMarca" id="datosCampos" size="1" multiple="N" 
+                    req="S" valorinicial="" textoinicial="" onchange="onSeleccionaMarca();">
+                      	<ROWSET>
+                      	        		        		        
+                      	</ROWSET>
+                    </COMBO>
+                   </td>  
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+         </td></tr>
+         <tr><td>
+          <!---primera fila-->
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                                      
+                   <td><LABELC nombre="lblCanal" alto="13" filas="1" valor="" id="datosTitle" cod="7"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lblAcceso"  alto="13" filas="1" valor="" id="datosTitle" cod="10"/></td>                                     
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>   
+                   <td  nowrap="nowrap" valign="top"><LABELC nombre="lbldtCanal" alto="13" filas="1" valor="" id="datosCampos" /></td>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>         
+                   <td  nowrap="nowrap">
+                      <COMBO nombre="cbAcceso" id="datosCampos" size="5" multiple="S" req="S" valorinicial="" textoinicial="">
+                      	<ROWSET>
+	                      
+                      	</ROWSET>
+                      </COMBO>
+                   </td>                               
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+         </td></tr>
+           <tr><td> 
+       	       <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td><LABELC nombre="lblPeriodoDesde"  alto="13" filas="1" valor="" id="datosTitle" cod="1175"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lblPeriodoHasta"  alto="13" filas="1" valor="" id="datosTitle" cod="1176"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lblNumPeriodosEspera"  alto="13" filas="1" valor="Tipo período desde" id="datosTitle" cod="1718"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lblComparativo"  alto="13" filas="1" valor="" id="datosTitle" cod="1719"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lblTratamientoDiferencialAntiguas"  alto="13" filas="1" valor="Tipo período hasta" id="datosTitle" cod="1700"/></td>
+
+				   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lblConsideraSabDomFer"  alto="13" filas="1" valor="" id="datosTitle" cod="3440"/></td>
+				   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lblDsctoImpstoVtaPagos"  alto="13" filas="1" valor="" id="datosTitle" cod="3441"/></td>
+				   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lblComisionEscalonada"  alto="13" filas="1" valor="" id="datosTitle" cod="3461"/></td>
+
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td  nowrap="nowrap">
+                      <COMBO nombre="cbPeriodoDesde" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onchange="onChangePeriodoDesde();">
+                      	<ROWSET>
+                      	</ROWSET>
+                      </COMBO>
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td  nowrap="nowrap">
+                      <COMBO nombre="cbPeriodoHasta" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="">
+                      	<ROWSET>
+                      	</ROWSET>
+                      </COMBO>
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>                    
+                   <td  nowrap="nowrap" valign="bottom">
+                      <CTEXTO nombre="txtNumPeriodosEspera" id="datosCampos" max="2" tipo="" 
+                      onchange="" req="N" size="2" valor="" validacion="" />
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td  nowrap="nowrap" valign="bottom">
+                         <table width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td nowrap="nowrap" class="datosCampos">
+        		  <RADIOB nombre="rbComparativo" tipo="H" id="datosCampos" req="S" ontab="onTabComparativo();">
+				<RBINPUT valor="S" check="N" onfocus="" id="datosCampos" cod="117"></RBINPUT>
+				<RBINPUT valor="N" check="N" onfocus="" id="datosCampos" cod="87"></RBINPUT>
+			  </RADIOB>
+		         </td></tr></table>
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td  nowrap="nowrap" valign="bottom">
+                         <table width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td nowrap="nowrap" class="datosCampos">
+        		  <RADIOB nombre="rbTratamientoDiferencialAntigua" tipo="H" id="datosCampos" req="S"  onshtab="onShtabTratamientoDiferencial();">
+				<RBINPUT valor="S" check="N" onfocus="" id="datosCampos" cod="117" ></RBINPUT>
+				<RBINPUT valor="N" check="N" onfocus="" id="datosCampos" cod="87" ></RBINPUT>
+			  </RADIOB>
+		         </td></tr></table>
+                   </td>                  
+				   
+				   <td><IMG src="b.gif" width="25" height="8"/></td>                    
+                   <td  nowrap="nowrap" valign="bottom">
+                      <CHECKBOX nombre="ckConsideraSabDomFer" id="datosCampos" onclick="" check="N"/>
+                   </td>
+				   <td><IMG src="b.gif" width="25" height="8"/></td>                    
+                   <td  nowrap="nowrap" valign="bottom">
+                      <CHECKBOX nombre="ckDsctoImpstoVtaPagos" id="datosCampos" onclick="" check="N"/>
+                   </td>
+				   <td><IMG src="b.gif" width="25" height="8"/></td>                    
+                   <td  nowrap="nowrap" valign="bottom">
+                      <CHECKBOX nombre="ckComisionEscalonada" id="datosCampos" onclick="actualizarComisionEscalonada();" check="N" ontab="focoDescripcion();"/>
+                   </td>
+
+
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+            </td></tr>
+           </table>
+        </fieldset>        
+      </td>      
+      <td><IMG src="b.gif" /></td>      
+    </tr> 
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+  
+
+ </CAPA>
+ </FORMULARIO>
+</PAGINA>           

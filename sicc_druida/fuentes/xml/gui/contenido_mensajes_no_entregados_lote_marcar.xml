@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_mensajes_no_entregados_lote_marcar.xml,v 1.1 2009/12/03 18:45:16 pecbazalar Exp $
+   EDU
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_mensajes_no_entregados_lote_marcar" cod="0266" titulo="Marcar Mensajes No Entregados por Lote" estilos="estilosB3.css" colorf="#F0F0F0"
+        msgle="Marcar Mensajes No Entregados por Lote" onload="onLoadPag();" xml:lang="es">
+        
+<JS src="sicc_util.js"/>
+<JS src="PaginacionSicc.js"/>   
+<JS src="DruidaTransactionMare.js"/> 
+
+<JAVASCRIPT>
+ <![CDATA[    
+      
+	function onLoadPag()   
+	{
+	    DrdEnsanchaConMargenDcho('listado1',12);
+      configurarMenuSecundario("frmFormulario");                //Se carga el menu secundario
+      
+     DrdEnsanchaConMargenDcho('listado1',12);                    
+     if (get('frmFormulario.ListadoDisponible') == "SI") {   
+              mostrarListaEditable();   
+     } else {    
+              ocultarListaEditable();   
+     }
+     posicionarCombo();
+     eval (ON_RSZ);  
+	}
+  
+  
+  function ocultarListaEditable() {   
+      document.all["Cplistado1"].style.visibility='hidden';
+	    document.all["CpLin1listado1"].style.visibility='hidden';
+	    document.all["CpLin2listado1"].style.visibility='hidden';
+	    document.all["CpLin3listado1"].style.visibility='hidden';
+	    document.all["CpLin4listado1"].style.visibility='hidden';
+
+	    document.all["primera1Div"].style.visibility='hidden';
+	    document.all["ret1Div"].style.visibility='hidden';
+	    document.all["ava1Div"].style.visibility='hidden';
+	    document.all["separaDiv"].style.visibility='hidden';   
+          }   
+    
+    
+  function mostrarListaEditable() {   
+      document.all["Cplistado1"].style.visibility='';
+	    document.all["CpLin1listado1"].style.visibility='';
+	    document.all["CpLin2listado1"].style.visibility='';
+	    document.all["CpLin3listado1"].style.visibility='';
+	    document.all["CpLin4listado1"].style.visibility='';
+
+	    document.all["primera1Div"].style.visibility='';
+	    document.all["ret1Div"].style.visibility='';
+	    document.all["ava1Div"].style.visibility='';
+	    document.all["separaDiv"].style.visibility='';   
+          } 
+  function onClickGuardar(){
+      var valoresEditados = tomaValoresEditadosLista();
+      //alert(valoresEditados);
+      set('frmFormulario.conectorAction', 'LPMarcarMensajesNoEnviadosLotes');
+      set('frmFormulario.valoresEditadosLista', valoresEditados);
+      set('frmFormulario.accion', 'guardar');
+      enviaSICC('frmFormulario');
+      
+  }
+  
+  function onClickBuscar(){
+      set('frmFormulario.oidLote', get('frmFormulario.cbIdentificadorLote')); 
+      set('frmFormulario.conectorAction', 'LPMarcarMensajesNoEnviadosLotes');
+      set('frmFormulario.accion', 'buscar');
+      enviaSICC('frmFormulario');
+      
+  }
+  
+  function posicionarCombo() {    
+                   var iSeleccionadoM = new Array();    
+                   iSeleccionadoM[0] = get('frmFormulario.oidLote');    
+                   set('frmFormulario.cbIdentificadorLote',iSeleccionadoM); 
+
+          }   
+   
+  function tomaValoresEditadosLista(){
+  valoresConcatenados = "";
+  listado1.save();
+  var lista = listado1.datos;
+  var filas = listado1.datos.length;
+  var columnas = lista[0].length;
+  
+  for ( var i = 0; i < filas; i++) {
+    for(var j=0;j<columnas;j++){
+      if(valoresConcatenados=="" || j==0) {
+                valoresConcatenados = valoresConcatenados + lista[i][j];
+            }
+            else {
+            	  valoresConcatenados = valoresConcatenados +"^"+ lista[i][j];
+            }
+      }
+      if (i!=filas-1){
+      valoresConcatenados = valoresConcatenados + "|";}
+      
+    }
+    return valoresConcatenados;
+  }
+  
+  function fGuardar(){
+  onClickGuardar();
+  }
+  
+function modificaFormatoFecha(formatoFechaUsuario){
+if(formatoFechaUsuario==null){
+	return;}
+
+var arrFormatoFecha = null;
+var strFecha = formatoFechaUsuario.replace('-', '/');
+
+arrFormatoFecha = strFecha.split("/");
+
+for(var i=0;i<3;i++){
+if(arrFormatoFecha[i].charAt(0)=="d" || arrFormatoFecha[i].charAt(0)=="D"){arrFormatoFecha[i]="D";} 
+	else 
+if(arrFormatoFecha[i].charAt(0)=="m" || arrFormatoFecha[i].charAt(0)=="M"){arrFormatoFecha[i]="M";}
+		else 
+if(arrFormatoFecha[i].charAt(0)=="y" || arrFormatoFecha[i].charAt(0)=="Y"){arrFormatoFecha[i]="Y";}
+			else 
+if(arrFormatoFecha[i].charAt(0)=="a" || arrFormatoFecha[i].charAt(0)=="A"){arrFormatoFecha[i]="y";}
+}
+var a= arrFormatoFecha[0];
+var b= arrFormatoFecha[1];
+var c= arrFormatoFecha[2];
+//alert(a+"/"+b+"/"+c);
+return a+"/"+b+"/"+c;
+}
+
+function obtenerPosicionListaEditable(clave, lista){
+  this.posicion = 0;
+  if (lista.codSeleccionados().length > 0){
+     for(var k=0;k<lista.datos.length;k++) {
+           if (lista.datos[k][0] == clave) {
+              posicion=k;
+              break;
+           }
+     }         
+     return posicion;
+   }
+}
+
+function verificaFecha(){
+var formatoFechaUsuario = get('frmFormulario.hFormatoFechaPais');
+//alert("formatoFechaUsuario: "+formatoFechaUsuario);
+var formato = modificaFormatoFecha(formatoFechaUsuario);
+var laFecha = window.event.srcElement;
+var valorFecha = laFecha.value;
+//alert("Fecha ingresada:"+valorFecha);
+var msgValidaFecha = ValidaFecha(valorFecha,formato,valorFecha,valorFecha);
+if (msgValidaFecha != 'OK') {
+// no dejamos salir de la caja de texto y lanza mensaje
+event.returnValue=false;
+event.cancelBubble=true;   
+cdos_mostrarAlert(msgValidaFecha);}
+
+}
+
+  
+  ]]>
+  
+  
+  </JAVASCRIPT>
+
+<FORMULARIO nombre="frmFormulario">
+<VAR nombre="conectorAction" valor="LPMarcarMensajesNoEnviadosLotes"/>
+<VAR nombre="accion" valor=""/>
+<VAR nombre="errCodigo" valor=""/> 
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="oidIdioma" valor=""/>
+<VAR nombre="oidPais" valor=""/>
+<VAR nombre="oidLote" valor=""/>
+<VAR nombre="valoresEditadosLista" valor=""/>
+<VAR nombre="ListadoDisponible" valor=""/>
+<VAR nombre="hFormatoFechaPais" valor=""/>
+<VAR nombre="errorValidaDatos" valor=""/>
+<VAR nombre="msgValidaDatos" valor=""/>
+
+
+<CAPA nombre="capaEspacio1" x="0" y="0">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblCriteriosBusqueda" alto="13" filas="1" valor="" id="legend" cod="0075"/></legend>
+          <!---primera fila-->
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr> <td>
+                <table width="504" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblIdentificadorLote" alto="13" filas="1" valor="" id="datosTitle" cod="893"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td>
+		     <COMBO nombre="cbIdentificadorLote" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" ontab="document.all.btnBuscar.focus();" onshtab="document.all.btnBuscar.focus();">
+		       <ROWSET>
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td colspan="3"><IMG src="b.gif" width="8" height="7"/></td>
+                </tr>
+              </table>
+              </td>
+                </tr>
+              </table>
+       <!---fin primera fila-->
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+	<fieldset>
+	  <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	    <tr>
+	      <td class="botonera">
+                <BOTON nombre="btnBuscar" ID="botonContenido" tipo="html" accion="onClickBuscar();" estado="false" cod="1" ontab="focaliza('frmFormulario.cbIdentificadorLote');" onshtab="focaliza('frmFormulario.cbIdentificadorLote');"/>
+              </td>
+	    </tr>    
+	  </table>        
+	</fieldset>
+      </td>
+      <td><IMG src="b.gif" width="8" height="12"/></td>
+    </tr>     
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+
+  <LISTAEDITABLE nombre="listado1" ancho="507" alto="291" x="12" y="122" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+	<BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+	<BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+	<BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+      <LINEAS>
+	<GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="1" horizTitulo="1" horizBase="1"/> 
+	<COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00135" ID="datosTitle" />
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+        <COL ancho="120" minimizable="S" minimizada="N"/>
+        <COL ancho="100" minimizable="S" minimizada="N"/>
+        <COL ancho="100" minimizable="S" minimizada="N"/>
+        <COL ancho="150" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+      </COLUMNAS>
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+	<COL colFondo="" ID="EstCab" cod="818"></COL>
+	<COL colFondo="" ID="EstCab" cod="30"></COL> 
+	<COL colFondo="" ID="EstCab" cod="263"></COL> 
+	<COL colFondo="" ID="EstCab" cod="874"></COL> 
+	<COL colFondo="" ID="EstCab" cod="169"></COL> 
+      </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+             coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+             onLoad="" colorSelecc="#D0D9E8">
+       <COL tipo="texto" ID="EstDat"/>
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/>
+       <COL tipo="cajatexto" nombre="Texto1" size="11" max="10" IDOBJ="EstCajaDatForm" ID="EstDat2" onchange="verificaFecha();"/> 
+       <COL tipo="areatexto" nombre="AreaTxt1" IDOBJ="EstCajaDatForm2" rows="2" cols="50" ID="EstDat"/> 
+      </DATOS>
+      <ROWSET>
+	<ROW ID="1">
+	  <CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="COD0" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxx1" />
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxx1" />
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxx1" />
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+	</ROW>
+	<ROW ID="2">
+	  <CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="COD1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxx1" />
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxx1" />
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxx1" />
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+	</ROW>
+	<ROW ID="3">
+	  <CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="COD2" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxx1" />
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxx1" />
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxx1" />
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+	</ROW>
+	<ROW ID="1">
+	  <CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="COD3" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxx1" />
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxx1" />
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxx1" />
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+	</ROW>
+	<ROW ID="2">
+	  <CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="COD4" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxx1" />
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxx1" />
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxx1" />
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+	</ROW>
+      </ROWSET>
+      <PAGINADO nombre="mipgndo" ancho="507" sep="$" x="12" class="botonera" y="390" control="|" conector="conector_prototipo_2" rowset="" cargainicial="N">
+    	<BOTON nombre="ret1" x="37" y="394" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+    	<BOTON nombre="ava1" x="52" y="394" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>        
+      </PAGINADO>
+   </LISTAEDITABLE>
+
+    <BOTON nombre="primera1" x="20" y="394" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();"/>  
+    <BOTON nombre="separa" x="59" y="390" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />       
+
+ <CAPA nombre="capaEspacio" alto="12" ancho="50" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="418" zindex=""/>
+ 
+</FORMULARIO>
+</PAGINA>        

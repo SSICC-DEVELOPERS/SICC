@@ -1,0 +1,471 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_matriz_precios_enviar" cod="" titulo="" estilos="estilosB3.css" colorf="#F0F0F0"
+        msgle="" onload="onLoadPag()" xml:lang="es" >
+
+		<JS src="DruidaTransactionMare.js"/>
+		<JS src="sicc_util.js"/>
+		<JS src="PaginacionSicc.js"/>
+
+  <JAVASCRIPT>
+ <![CDATA[
+		
+	//----------------------------------------------------------------------------------------------------------------------	
+    function onLoadPag() {
+      
+		configurarMenuSecundario("frmGenerarFichero");
+	    mostrarCodigoError();
+       
+      if(get('frmGenerarFichero.accion')==""){
+		txt_to('lblLote',get('frmGenerarFichero.labelLote'));
+		set('frmGenerarFichero.txtDescLote', get('frmGenerarFichero.labelDescripcion'));
+		
+		if (get('frmGenerarFichero.casoDeUso') == "EnviarConsultoras") {
+			desactivarCombos();
+		} 
+        seleccionarOid();
+        focaliza("frmGenerarFichero.cbMarca"); 	                
+      }
+      if(get('frmGenerarFichero.accion')=='Aceptar'){
+        
+      }
+	}
+//---------------------------------------------------------------------------------------------------------------------------
+ function fGuardar(){
+        cargarFichero();
+        /*
+        if(get('frmGenerarFichero.casoDeUso')=='EnviarMatrizDePrecios'){
+           set('frmGenerarFichero.accion','Guardar');
+           set("frmGenerarFichero.conectorAction", "LPGenerarFicheroDeEnviarMatrizPrecios");
+           enviaSICC('frmGenerarFichero');  
+        } else if (get('frmGenerarFichero.casoDeUso')=='EnviarRangoCampanyas'){
+  		   set('frmGenerarFichero.accion','Guardar');
+      	}
+        */
+
+      }
+//------------------------------------------------------------------------------------------------------------------------------
+  function mostrarCodigoError()
+   {           
+     var vErrCodigo = get('frmGenerarFichero.errCodigo');
+     var vErrDescrip = get('frmGenerarFichero.errDescripcion');
+                    
+     if (get('frmGenerarFichero.errDescripcion')!='')               
+     {
+        var wnd = fMostrarMensajeError( vErrCodigo,vErrDescrip);
+     }	                
+   }
+//-----------------------------------------------------------------------------------------
+   //--Disabled Combos--
+   function desactivarCombos(){
+  
+    var obj = document.all.tags("SELECT");
+    for(var i = 0; i<obj.length;i++){
+     
+      if(obj.item(i).name=="cbAcceso"){ 
+        obj.item(i).disabled=true;
+       
+      }
+      if(obj.item(i).name=="cbPeriodoDesde"){ 
+        obj.item(i).disabled=true;
+        
+      }
+      if(obj.item(i).name=="cbPeriodoHasta"){ 
+        obj.item(i).disabled=true;
+        
+      }
+    }
+    
+   }
+
+   //---------------------------------------------------------------------------
+  //Enabled Combos
+  
+  function activarCombos(combo){
+    //if(get('frmGenerarFichero.hOidCanal')==""){
+    //return;
+    //}
+    var cboEnabled = document.getElementById(combo);
+    cboEnabled.disabled=false; 
+  }
+
+
+
+//------------------------------------------------------------------------------------------
+function EventoMarca(){
+   if(get('frmGenerarFichero.statusPeriodo')== "1")  {
+     limpiarCombo("cbPeriodoDesde");
+     limpiarCombo("cbPeriodoHasta");
+     //loadPeriodos();
+     }
+}
+
+//---------------------------------------------------------------------------------------------
+  function limpiarCombo(combo){
+       var cboEnabled = document.getElementById(combo);
+      if( get('frmGenerarFichero.statusAcceso')=="1" || get('frmGenerarFichero.statusPeriodo')=="1" ){
+         
+        opciones = cboEnabled.options;
+        for(var i=0;i<opciones.length-1;i++){
+          
+          cboEnabled.options.remove(i);
+        
+        }
+        var seleccionado = cboEnabled.selectedIndex;
+         if(seleccionado!= -1){
+            
+            cboEnabled.options.remove(seleccionado);
+          }
+      }
+  }
+
+  //---------------------------------------------------------------------------------
+ //--Selecciona los oid de los combos auxiliares  
+ function seleccionarOid(){
+    
+    var cboMarcaAux = document.getElementById("cbMarcaAux");
+    var cboCanalAux = document.getElementById("cbCanalAux");
+    var cboMarca = document.getElementById("cbMarca");
+    var cboCanal = document.getElementById("cbCanal");
+    var optionMarca = document.createElement("OPTION");
+    var optionCanal = document.createElement("OPTION");
+    
+    for(var i=0;i<cboMarcaAux.length;i++){
+      if(i==0){
+     // alert(cboMarcaAux.item(i).innerText);
+     //   cboMarca.options.add(optionMarca);
+     //   optionMarca.innerText = cboMarcaAux.item(i).innerText;
+     //   optionMarca.value = i;
+        
+     //   cboCanal.options.add(optionCanal);
+    //    optionCanal.innerText = cboCanalAux.item(i).innerText;  
+       optionCanal.value = i;  
+      }else{
+      
+        if(cboMarcaAux.item(i-1).value != cboMarcaAux.item(i).value){
+         var optionMarca = document.createElement("OPTION");
+         cboMarca.options.add(optionMarca);
+         optionMarca.innerText = cboMarcaAux.item(i).innerText;
+         optionMarca.value = cboMarcaAux.item(i).value;
+        
+        }
+       
+        if(cboCanalAux.item(i-1).value != cboCanalAux.item(i).value){
+         var optionCanal = document.createElement("OPTION");
+         cboCanal.options.add(optionCanal);
+         optionCanal.innerText = cboCanalAux.item(i).innerText;  
+         optionCanal.value = cboCanalAux.item(i).value;  
+        }
+        
+      }
+    }
+  }
+ //---------------------------------------------------------------------------------------------------  
+
+ function cargarFichero(){
+    var cboMarca = document.getElementById("cbMarca");
+    var cboCanal = document.getElementById("cbCanal");
+    var cboAcceso = document.getElementById("cbAcceso");
+    var cboDesde = document.getElementById("cbPeriodoDesde");
+    var cboHasta = document.getElementById("cbPeriodoHasta");
+    var item = 0;
+    
+      
+    items= cboMarca.selectedIndex;
+    set("frmGenerarFichero.marca", cboMarca.item(items).value);//innerText
+
+    items= cboCanal.selectedIndex;
+    set("frmGenerarFichero.canal", cboCanal.item(items).value);//innerText
+
+    items= cboAcceso.selectedIndex;
+    set("frmGenerarFichero.acceso", cboAcceso.item(items).value);//innerText
+      
+
+    items= cboDesde.selectedIndex;
+    set("frmGenerarFichero.desde", cboDesde.item(items).value);//innerText
+     
+
+    items= cboHasta.selectedIndex;
+    set("frmGenerarFichero.hasta", cboHasta.item(items).value);//innerText
+
+    set('frmGenerarFichero.accion',"GenerarFichero");
+    if(get('frmGenerarFichero.casoDeUso')=='MatrizPrecios'){
+      eval("frmGenerarFichero").oculto= "S";    
+      set("frmGenerarFichero.accion", "Guardar");
+      set("frmGenerarFichero.conectorAction", "LPGenerarFicheroMatrizPrecios");
+     
+    } else if(get('frmGenerarFichero.casoDeUso')=='EnviarMatrizDePrecios'){
+    
+      eval("frmGenerarFichero").oculto= "S";   
+      set("frmGenerarFichero.accion", "Guardar");
+      set("frmGenerarFichero.conectorAction", "LPGenerarFicheroDeEnviarMatrizPrecios");
+    } else if (get('frmGenerarFichero.casoDeUso')=='EnviarRangoCampanyas'){
+      set('frmGenerarFichero.accion','Guardar');
+      set("frmGenerarFichero.conectorAction", "LPEnviarRangoCampanyas");
+  	} 
+    enviaSICC('frmGenerarFichero');
+ }
+
+ //------------------------------------------------------------------------------------------------------
+function errorAlGuardar(){ 
+//alert('errorAlGuardar 1');
+	 docum.get();
+//     alert("Entro a funcion error Descripcion: " + get('frmGenerarFichero.errDescripcion'));
+//     alert("Entro a funcion error Codigo" + get('frmGenerarFichero.errCodigo'));
+     //eval("frmGenerarFichero").oculto="N";
+     //mostrarCodigoError();
+	   focaliza("frmGenerarFichero.cbMarca");
+     
+}
+
+function ok(){
+  fMostrarMensajeExito('insertar');
+}
+ 
+function TabShift(name){
+	var obj=document.getElementsByName(name);
+	obj.item(0).focus();	
+}
+
+function TabUp(name){
+	focaliza("frmGenerarFichero." + name);	
+}
+
+function onchangeMarca() {
+	//recargaCombos();
+}
+
+
+function onchangeCanal() {
+	//loadComboAcceso('cbAcceso');
+	set('frmGenerarFichero.hidCargarAcceso', '1');
+	set('frmGenerarFichero.hidCargarPeriodo', '0');
+	recargaCombos();
+}
+
+function recargaCombos() {
+	if (get('frmGenerarFichero.hidCargarAcceso') == 1) {
+		recargaCombo('frmGenerarFichero.cbAcceso', 
+                      'SEGObtenerAccesosPorCanal', 
+                      'es.indra.sicc.dtos.seg.DTOAccesosPorCanal', 
+                      [ ['oidIdioma', get('frmGenerarFichero.hidIdioma')],
+                         ['oidCanal', get('frmGenerarFichero.cbCanal')] ] );
+	} else if (get('frmGenerarFichero.hidCargarPeriodo') == 1) {
+		var arr = new Array();
+        arr[arr.length]=new Array('pais', get('frmGenerarFichero.hidPais'));
+        arr[arr.length]=new Array('marca', get('frmGenerarFichero.cbMarca'));
+        arr[arr.length]=new Array('canal', get('frmGenerarFichero.cbCanal'));
+        arr[arr.length]=new Array('acceso', get('frmGenerarFichero.cbAcceso'));
+
+        recargaCombo('frmGenerarFichero.cbPeriodoDesde', 'CRAObtienePeriodosFecha', 'es.indra.sicc.dtos.cra.DTOPeriodo', arr);
+        recargaCombo('frmGenerarFichero.cbPeriodoHasta', 'CRAObtienePeriodosFecha', 'es.indra.sicc.dtos.cra.DTOPeriodo', arr);	   
+
+	}
+         
+}
+
+
+function onchangeAcceso() {
+	set('frmGenerarFichero.hidCargarPeriodo', '1');
+	set('frmGenerarFichero.hidCargarAcceso', '0');
+	recargaCombos();
+}
+
+	  function fLimpiar() {
+		txt_to('lblLote',get('frmGenerarFichero.labelLote'));
+		set('frmGenerarFichero.txtDescLote', get('frmGenerarFichero.labelDescripcion'));
+		set('frmGenerarFichero.txtObservaciones','');
+	  }
+ ]]> 
+  </JAVASCRIPT>
+  <FORMULARIO nombre="frmGenerarFichero" oculto ="S">
+	 <VAR nombre="accion" valor=""/>
+	 <VAR nombre="conectorAction" valor=""/>
+	 <VAR nombre="errCodigo" valor=""/>
+	 <VAR nombre="errDescripcion" valor=""/>
+     <VAR nombre="hOidCanal" valor=""/>
+     <VAR nombre="hOidMarca" valor=""/>
+     <VAR nombre="statusAcceso" valor=""/>
+     <VAR nombre="statusPeriodo" valor=""/>
+	 <VAR nombre="labelLote" valor=""/>
+     <VAR nombre="labelDescripcion" valor=""/>
+     <VAR nombre="marca" valor=""/>
+     <VAR nombre="canal" valor=""/>
+     <VAR nombre="acceso" valor=""/>
+     <VAR nombre="casoDeUso" valor=""/>
+     <VAR nombre="desde" valor=""/>
+     <VAR nombre="hasta" valor=""/>
+     <VAR nombre="ejecutar" valor=""/>
+     <VAR nombre="ejecutarError" valor=""/>
+     <VAR nombre="hidPais" valor=""/>
+     <VAR nombre="hidIdioma" valor=""/>
+     <VAR nombre="hidCanal" valor=""/>
+     <VAR nombre="hidMarca" valor=""/>
+     <VAR nombre="hidCargarAcceso" valor="0"/>
+     <VAR nombre="hidCargarPeriodo" valor="0"/>
+
+	  <table width="100%" border="0" cellspacing="0" cellpadding="0" >
+          <tr>
+            <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+            <td width="750"><IMG src="b.gif"/></td>
+            <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+          </tr>
+          
+          <tr> 
+            <td><IMG src="b.gif"/></td>
+            <td>
+              <fieldset>
+                 <legend class="legend"><LABELC nombre="lblDatosSolicitud"  alto="13" filas="1" valor="" id="legend" cod="00263"/></legend>
+                      <table width="50%" border="0" cellspacing="0" cellpadding="0">
+                          <tr>
+                              <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+                            <td width="750" ><IMG src="b.gif"/></td>
+                              <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+                          </tr>
+                          <tr>
+                            <td ><IMG src="b.gif" width="8" height="8"/></td>
+                            <td ><LABELC nombre="lblCodMarca" ancho="100" alto="17" filas="1" valor="" id="datosTitle" cod="0069"/></td>
+                            <td ><IMG src="b.gif" width="8" height="8"/></td>
+                            <td ><LABELC nombre="lblCodCanal" ancho="100" alto="17" filas="1" valor="" id="datosTitle" cod="00217"/></td>
+                            <td ><IMG src="b.gif" width="8" height="8"/></td>
+                          </tr>
+                           <tr>
+                            <td ><IMG src="b.gif" width="8" height="8"/></td>                   
+                            <td nowrap="nowrap" >
+                                <COMBO nombre="cbMarca" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onshtab="TabShift('txtObservaciones');" onchange="onchangeMarca();" >
+                                <ROWSET>
+                                </ROWSET>
+                                </COMBO>
+                            </td>     
+                            <td width="2"><IMG src="b.gif" width="25" height="8"/></td>                
+                            <td nowrap="nowrap">
+                                <COMBO nombre="cbCanal" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onchange="onchangeCanal();">
+                                <ROWSET>
+                                </ROWSET>
+                                </COMBO>
+                            </td> 
+                            <td ><IMG src="b.gif" width="25" height="8"/></td> 
+                          </tr>  
+                      </table>  
+                      <table width="75%" border="0" cellspacing="0" cellpadding="0">
+                          <tr>
+                              <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+                              <td width="750" ><IMG src="b.gif"/></td>
+                              <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+                          </tr>
+                          <tr>
+                            <td ><IMG src="b.gif" width="8" height="8"/></td>
+                            <td ><LABELC nombre="lblCodAcceso" ancho="100" alto="17" filas="1" valor="" id="datosTitle" cod="00468"/></td>
+                            <td ><IMG src="b.gif" width="8" height="8"/></td>
+                            <td ><LABELC nombre="lblCodPeriodoDesde" ancho="100" alto="17" filas="1" valor="" id="datosTitle" cod="1175"/></td>
+                            <td ><IMG src="b.gif" width="8" height="8"/></td>
+                            <td ><LABELC nombre="lblCodPeriodoHasta" ancho="100" alto="17" filas="1" valor="" id="datosTitle" cod="1176"/></td>
+							<td ><IMG src="b.gif" width="8" height="8"/></td>
+                            <td ><IMG src="b.gif" width="8" height="8"/></td>
+                          </tr>
+                           <tr>
+                            <td ><IMG src="b.gif" width="8" height="8"/></td>                   
+                            <td nowrap="nowrap" >
+                                <COMBO nombre="cbAcceso" id="datosCampos" size="1" multiple="N" req="" valorinicial="" textoinicial="" onshtab="TabShift('cbCanal');" onchange="onchangeAcceso();" >
+                                <ROWSET>
+                                </ROWSET>
+                                </COMBO>
+                            </td>     
+                            <td width="2"><IMG src="b.gif" width="25" height="8"/></td>                
+                            <td nowrap="nowrap">
+                                 <COMBO nombre="cbPeriodoDesde" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onshtab="TabShift('cbAcceso');" >
+                                <ROWSET>
+                                </ROWSET>
+                                </COMBO> 
+                            </td> 
+                            <td ><IMG src="b.gif" width="25" height="8"/></td> 
+                            <td nowrap="nowrap">
+                             <COMBO nombre="cbPeriodoHasta" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" onshtab="TabShift('cbPeriodoDesde');" >
+                                <ROWSET>
+                                </ROWSET>
+                                </COMBO>
+                            </td>
+                          </tr>  
+                      </table> 
+                       <table width="50%" border="0" cellspacing="0" cellpadding="0">
+                       <tr>
+                              <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+                            <td width="750" ><IMG src="b.gif"/></td>
+                              <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+                          </tr>
+                          <tr>
+                            <td ><IMG src="b.gif" width="8" height="8"/></td>
+                            <td ><LABELC nombre="lblNroLote" ancho="100" alto="17" filas="1" valor="" id="datosTitle" cod="680"/></td>
+                            <td ><IMG src="b.gif" width="8" height="8"/></td>
+                            <td ><LABELC nombre="lblDescrLote" ancho="100" alto="17" filas="1" valor="" id="datosTitle" cod="844"/></td>
+                            <td ><IMG src="b.gif" width="8" height="8"/></td>
+                          </tr>
+                           <tr>
+                            <td ><IMG src="b.gif" width="8" height="8"/></td>                   
+                            <td ><LABELC nombre="lblLote" ancho="100" alto="17" filas="1" valor="" id="datosTitle" cod=""/></td>
+                            <td width="2"><IMG src="b.gif" width="25" height="8"/></td>                
+                            <td nowrap="nowrap">
+                                <CTEXTO nombre="txtDescLote" id="datosCampos" req="S" size="50%" readonly="N" onshtab="TabShift('cbPeriodoHasta');" />
+                            </td> 
+                            <td ><IMG src="b.gif" width="25" height="8"/></td> 
+                          </tr>  
+                      </table>
+                      <table width="22%" border="0" cellspacing="0" cellpadding="0">
+                          <tr>
+                            <td ><IMG src="b.gif" width="8" height="8"/></td>
+                            <td ><LABELC nombre="lblObserv2" ancho="100" alto="17" filas="1" valor="" id="datosTitle" cod="169"/></td>
+                            
+                            
+                          </tr>
+                           <tr>
+                            <td ><IMG src="b.gif" width="8" height="8"/></td>                      
+                            <td nowrap="nowrap">
+                                 <AREATEXTO nombre="txtObservaciones"  req="N" id="datosCampos" rows="2" cols="80" size="100" onshtab="TabShift('txtDescLote');" ontab="TabUp('cbMarca');" />
+                            </td> 
+                            
+                          </tr>  
+                      </table>
+             </fieldset>
+            </td>
+            <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+          </tr>
+
+        <!--1 Termina el marco-->
+      </table>
+
+	  <CAPA nombre="capa1" visibilidad ="hidden">
+<!--combo auxiliar de marca-->
+<COMBO nombre="cbMarcaAux" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" onchange="">
+                     		<ROWSET>
+                          
+               
+                        </ROWSET>
+                   	</COMBO>
+     <!--combo auxiliar de canal-->  
+
+     <COMBO nombre="cbCanalAux" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" onchange="">
+                     		<ROWSET>
+                           
+                        </ROWSET>
+                   	</COMBO>
+<COMBO nombre="cbAcc" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                     		<ROWSET>
+                            
+                        </ROWSET>
+                   	</COMBO>
+<COMBO nombre="cbDsde" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                     		<ROWSET>
+                            
+                        </ROWSET>
+                   	</COMBO>
+<COMBO nombre="cbHasta" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                     		<ROWSET>
+                          
+                        </ROWSET>
+                   	</COMBO>
+</CAPA>
+
+  </FORMULARIO>
+</PAGINA>

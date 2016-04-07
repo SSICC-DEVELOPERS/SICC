@@ -1,0 +1,360 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_matriz_facturacion_consultar.xml,v 1.1 2003/11/17 
+10:08:25 mfabasca Exp $
+   prueba arbol 
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_matriz_facturacion_consultar" 
+titulo="" estilos="estilosB3.css" colorf="#F0F0F0" 
+	msgle="Consultar Matriz de Facturacion" cod="0179" onload="onLoadPag();" 
+xml:lang="es">
+
+<!--Código JS para posicionar y ocultar las listas-->
+<JS src="PaginacionSicc.js"/>
+<JS src="sicc_util.js"/>
+<JS src="DruidaTransactionMare.js"/>
+
+<JAVASCRIPT>
+<![CDATA[ 
+    function fLimpiar(){
+        focaliza('frmmatrizfacturacionconsultar.cbEstrategia');
+    }
+    
+    function validarCampos(){        
+        if(!sicc_validaciones_generales()){
+            return false;
+        }else{
+            return true;
+        }
+    }
+
+    function onLoadPag(){
+        configurarMenuSecundario('frmmatrizfacturacionconsultar');
+        fMostrarMensajeError();
+        cargarDatos();
+        ocultaCapas();
+        btnProxy(2,0);
+        fMostrarMensajeError();
+		focaliza('frmmatrizfacturacionconsultar.cbEstrategia');
+		
+    }
+
+    function cargarDatos(){
+        set("frmmatrizfacturacionconsultar.txtCodigoVenta", get("frmmatrizfacturacionconsultar.hidCodVenta"));
+        set("frmmatrizfacturacionconsultar.txtCodigoProducto", get("frmmatrizfacturacionconsultar.hidCodProducto"));
+        set("frmmatrizfacturacionconsultar.txtDescripcionProducto", get("frmmatrizfacturacionconsultar.hidDescripcionProdu"));
+       
+        /*iSeleccionado = new Array(); 
+        iSeleccionado[0] = get('frmmatrizfacturacionconsultar.hidTipoOferta')==""?"0":get('frmmatrizfacturacionconsultar.hidTipoOferta');
+        set('frmmatrizfacturacionconsultar.cbTiposOferta',iSeleccionado);*/
+    }
+
+    function ocultaCapas(){
+        document.all["Cplistado1"].style.visibility='hidden';
+        document.all["CpLin1listado1"].style.visibility='hidden';
+        document.all["CpLin2listado1"].style.visibility='hidden';
+        document.all["CpLin3listado1"].style.visibility='hidden';
+        document.all["CpLin4listado1"].style.visibility='hidden';
+
+        document.all["primera1Div"].style.visibility='hidden';
+        document.all["separaDiv"].style.visibility='hidden';
+        document.all["ret1Div"].style.visibility='hidden';
+        document.all["ava1Div"].style.visibility='hidden';
+        // document.all["DetalleDiv"].style.visibility='hidden';	
+    }
+    
+    function muestraCapas(){
+        document.all["Cplistado1"].style.visibility='visible';
+        document.all["CpLin1listado1"].style.visibility='visible';
+        document.all["CpLin2listado1"].style.visibility='visible';
+        document.all["CpLin3listado1"].style.visibility='visible';
+        document.all["CpLin4listado1"].style.visibility='visible';
+
+        document.all["primera1Div"].style.visibility='visible';
+        document.all["separaDiv"].style.visibility='visible';
+        document.all["ret1Div"].style.visibility='visible';
+        document.all["ava1Div"].style.visibility='visible';
+        // document.all["DetalleDiv"].style.visibility='visible';	
+    }
+
+    function buscar() {
+        if (validarCampos()){
+            configurarPaginado(mipgndo,"PREConsultarMF","ConectorConsultarMF","es.indra.sicc.dtos.pre.DTOEConsultarMF", armarArray());
+            //listado1.reajusta();
+        }
+    }
+
+    function armarArray(){
+          var arrDatos = new Array();
+          var i=0;
+          if (get('frmmatrizfacturacionconsultar.txtCodigoVenta')!='') {
+            arrDatos[i] = new Array('codigoVenta',get('frmmatrizfacturacionconsultar.txtCodigoVenta'));
+            i++;
+          }
+          if (get('frmmatrizfacturacionconsultar.txtCodigoProducto')!='') {
+            arrDatos[i] = new Array('codigoProducto',get('frmmatrizfacturacionconsultar.txtCodigoProducto'));
+            i++;
+          }
+          if (get('frmmatrizfacturacionconsultar.txtDescripcionProducto')!='') {
+            arrDatos[i] = new Array('descripcionProducto',get('frmmatrizfacturacionconsultar.txtDescripcionProducto'));
+            i++;         
+          }
+          if (get('frmmatrizfacturacionconsultar.cbTiposOferta')!='') {
+            arrDatos[i] = new Array('oidTipoOferta',get('frmmatrizfacturacionconsultar.cbTiposOferta'));
+            i++;         
+          }
+		  if (get('frmmatrizfacturacionconsultar.cbEstrategia')!=''){
+			var arrOidsEstrategias = get('frmmatrizfacturacionconsultar.cbEstrategia');
+			var stringArrOidsEstrategias = arrOidsEstrategias.join();
+			// Se quita la primer coma si eligio el primer campo (que es vacio) del combo multiseleccion
+			if(stringArrOidsEstrategias.substring(0,1)==','){
+				stringArrOidsEstrategias = stringArrOidsEstrategias.substring(1);
+			}
+			arrDatos[i] = new Array ('oidsEstrategia',stringArrOidsEstrategias);
+			i++;
+		  }
+
+          arrDatos[i] = new Array('oidCabeceraMF',get('frmmatrizfacturacionconsultar.varOidCabeceraMF'));
+		  		 
+          return arrDatos;
+    }
+
+    function muestraLista( ultima, rowset){
+        var tamano = rowset.length;
+        if (tamano > 0) {
+            muestraCapas();
+            DrdEnsanchaConMargenDcho('listado1',12); 		 
+            eval (ON_RSZ);
+			focaliza('frmmatrizfacturacionconsultar.cbEstrategia');
+            return true;
+        } else {
+            ocultaCapas();
+			focaliza('frmmatrizfacturacionconsultar.cbEstrategia');
+            return false;
+        }
+    }
+    
+]]> 
+<VALIDACION>
+  <ELEMENTO name="txtCodigoVenta" required="false" cod="336"/>
+  <ELEMENTO name="txtCodigoProducto" required="false" cod="337"/>
+  <ELEMENTO name="cbTiposOferta" required="false" cod= "578"/>
+</VALIDACION>
+</JAVASCRIPT>
+  
+ <!-- Fin Código JS para posicionar y ocultar las listas-->
+  
+  <FORMULARIO nombre="frmmatrizfacturacionconsultar">
+
+  <VAR nombre="accion" valor=""/>
+  <VAR nombre="conectorAction" valor="LPConsultarMatrizFacturacion"/>  
+  <VAR nombre="hidCodVenta" valor=""/>
+  <VAR nombre="hidCodProducto" valor=""/>
+  <VAR nombre="hidDescripcionProdu" valor=""/>
+  <VAR nombre="hidTipoOferta" valor=""/>
+  <VAR nombre="errCodigo" valor=""/>
+  <VAR nombre="errDescripcion" valor=""/>
+  <VAR nombre="hidParametro" valor=""/>
+  <VAR nombre="varOidCabeceraMF" valor=""/>
+
+  <CAPA nombre="capaFormulario" alto="489" ancho="100%" colorf="" 
+borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" zindex="" 
+x="0" y="0">
+
+    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+      <tr>
+        <td width="12" align="center"><IMG src="b.gif" width="12" 
+height="12"/></td>
+        <td width="750"><IMG src="b.gif"/></td>
+        <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+      </tr>
+      <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <legend class="legend"><LABELC nombre="lblCriteriosbusqueda" alto="13" filas="1" valor="Criterios de búsqueda" id="legend"/></legend>
+            <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+              <tr> <td>
+              <table width="639" border="0" align="left" cellspacing="0" cellpadding="0">
+              <tr> 
+                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr>
+              <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td><LABELC nombre="lblEstrategia" alto="13" filas="1" id="datosTitle" cod="478"/></td>
+                <td><IMG src="b.gif" width="25" height="8"/></td>
+                <td><LABELC nombre="lblCodigoVenta" alto="13" filas="1" valor="" id="datosTitle" cod="336" /></td>
+                <td><IMG src="b.gif" width="25" height="8"/></td>
+                <td><LABELC nombre="lblCodigoProducto" alto="13" filas="1" valor="" id="datosTitle" cod="337"/></td>
+                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr> 
+              <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td>                        
+		  <COMBO  nombre="cbEstrategia" textoinicial="" valorinicial="" req="N" multiple="S" size="5" id="datosCampos" onshtab="focalizaBotonHTML('botonContenido','btnBuscar');">
+		    <ROWSET>
+		    </ROWSET>
+	          </COMBO>
+	        </td>
+	        <td><IMG src="b.gif" width="25" height="8"/></td>
+                <td nowrap="nowrap" valign="top"><CTEXTO nombre="txtCodigoVenta" id="datosCampos" max="18" tipo="" onchange="" req="N" size="23" valor="" validacion="" onshtab="focaliza('frmmatrizfacturacionconsultar.cbEstrategia');"/></td>
+                <td><IMG src="b.gif" width="25" height="8"/></td>
+                <td nowrap="nowrap" valign="top"><CTEXTO nombre="txtCodigoProducto" id="datosCampos" max="20" tipo="" onchange="" req="N" size="26" valor="" validacion="" /></td>
+                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr>
+              <tr> 
+                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr>
+            </table>
+            </td>
+              </tr>
+              <tr> <td>
+              <table width="639" border="0" align="left" cellspacing="0" cellpadding="0">
+              
+              <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td><LABELC nombre="lblDescripcionProducto" alto="13" filas="1" valor="" id="datosTitle" cod="338"/></td>  
+                <td><IMG src="b.gif" width="25" height="8"/></td>
+                <td><LABELC nombre="lblTiposOferta" alto="13" filas="1" valor="" id="datosTitle" cod="578"/></td>
+                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr> 
+              <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td valign="bottom"><CTEXTO nombre="txtDescripcionProducto" id="datosCampos" max="40" tipo="" onchange="" req="N" size="40" valor="" validacion="" /></td>
+		<td><IMG src="b.gif" width="25" height="8"/></td>
+                <td nowrap="nowrap">
+                  <COMBO nombre="cbTiposOferta" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                    <ROWSET>
+                    </ROWSET>
+                  </COMBO> 
+                </td> 
+                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr>
+              <tr> 
+                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr>
+            </table>
+            </td>
+              </tr>
+            </table>
+          </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr> 
+      <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnBuscar" ID="botonContenido" tipo="html" accion="buscar();" estado="false" cod="1" ontab="focaliza('frmmatrizfacturacionconsultar.cbEstrategia');"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>       
+      <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750"><IMG src="b.gif"/></td>
+      	<td width="12"><IMG src="b.gif" width="12" height="12"/></td>
+      </tr>
+    </table>
+</CAPA> 
+    <LISTAEDITABLE nombre="listado1" ancho="642" alto="317" x="12" y="210" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+	<BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+	<BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+	<BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+      <LINEAS>
+	<GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="1" horizTitulo="1" horizBase="1"/> 
+	<COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00135" ID="datosTitle" />
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/>
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="120" minimizable="S" minimizada="N"/> 
+        <COL ancho="120" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="130" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="130" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+      </COLUMNAS>
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+      <COL colFondo="" ID="EstCab" cod="478">Estrategia</COL> 
+        <COL colFondo="" ID="EstCab" align="center" cod="336">Cód. venta</COL> 
+        <COL colFondo="" ID="EstCab" cod="337">Cód. producto</COL> 
+        <COL colFondo="" ID="EstCab" cod="9">Descripción</COL> 
+        <COL colFondo="" ID="EstCab" cod="579">Producto principal</COL> 
+        <COL colFondo="" ID="EstCab" cod="0012">Producto asociado</COL> 
+        <COL colFondo="" ID="EstCab" cod="580">Grupo/Paquete</COL> 
+        <COL colFondo="" ID="EstCab" cod="608">Tipo oferta</COL> 
+        <COL colFondo="" ID="EstCab" cod="581">Ciclo de vida</COL> 
+        <COL colFondo="" ID="EstCab" cod="582">Valor unitario</COL> 
+        <COL colFondo="" ID="EstCab" cod="529">Factor repetición</COL> 
+        <COL colFondo="" ID="EstCab" cod="583">Valor total</COL> 
+        <COL colFondo="" ID="EstCab" cod="466">Comisionable</COL> 
+        <COL colFondo="" ID="EstCab" cod="468">Estadisticable</COL>
+        <COL colFondo="" ID="EstCab" cod="449">Unidades estimadas</COL> 
+        <COL colFondo="" ID="EstCab" cod="548">Venta exclusiva</COL> 
+        <COL colFondo="" ID="EstCab" cod="493">Digitable</COL> 
+        <COL colFondo="" ID="EstCab" cod="541">Forma pago</COL> 
+      </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+             coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" onLoad="" colorSelecc="#D0D9E8">
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/>
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/>
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/>
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/>
+       <COL tipo="texto" ID="EstDat2"/> 
+      </DATOS>
+      <ROWSET>
+      </ROWSET>
+      <PAGINADO nombre="mipgndo" ancho="642" sep="$" x="12" class="botonera" y="504" control="" conector="" rowset="" cargainicial="N" onload="procesarPaginado(mipgndo,msgError, ultima, rowset, 'muestraLista(ultima, rowset)')">
+    	<BOTON nombre="ret1" x="37" y="508" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+    	<BOTON nombre="ava1" x="52" y="508" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>        
+      </PAGINADO>
+   </LISTAEDITABLE>
+
+    <BOTON nombre="primera1" x="20" y="508" ID="botonContenido" img="primera_on" tipo="1" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();"/>  
+    <BOTON nombre="separa" x="59" y="504" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />       
+
+ <CAPA nombre="capaEspacio" alto="12" ancho="50" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="527" zindex=""/>        
+ </FORMULARIO>
+</PAGINA>     

@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+/**
+ * Copyright 2003 © por Indra Sistemas,S.A.. Todos los derechos reservados.
+ * Avda. de Bruselas, 35
+ * Parque Empresarial Arroyo de la Vega
+ * 28108 Alcobendas, Madrid
+ * España
+ *
+ * Privado y Confidencial.
+ * La información contenida en este documento es propiedad de Indra sistemas.
+ * Para uso exclusivo de empleados autorizados no permitiéndose
+ * la distribución de este código sin permiso expreso.
+ */
+-->
+<!--
+   INDRA/CDOS/SICC
+   $Id: Contenido_calendario_insertar.xml,v 1.1 2009/12/03 18:45:32 pecbazalar Exp $
+   DESC
+   DRUIDATARGET=/../../config/scripts/iniciales
+-->
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+<PAGINA nombre="contenido_calendario_insertar" titulo="Insertar Calendario"
+        estilos="estilosB3.css" colorf="#F0F0F0" msgle="Insertar Calendario"
+        onload="onLoadCargarBarra();" xml:lang="es" cod="086">
+  
+   <JS src="sicc_util.js"/>   
+   <JS src="DruidaTransactionMare.js"/>   
+   <JAVASCRIPT>    
+     <![CDATA[     
+          
+          function onLoadCargarBarra(){
+          
+              configurarMenuSecundario('frmContenido');   
+              fMostrarMensajeError();   
+              cargarMarcaCanalDefecto();   
+              focaliza( 'frmContenido.txtAnio' );   
+			  //deselecciona cmbGruposZonas	
+			  iSeleccionado = new Array(); 
+			  iSeleccionado[0] = '';
+			  set('frmContenido.cmbGruposZonas', iSeleccionado);
+		  }   
+
+          function cargarMarcaCanalDefecto(){   
+            var marcaDefecto = get( 'frmContenido.hMarcaDefecto' );   
+            var canalDefecto = get( 'frmContenido.hCanalDefecto' );   
+            var aMarca = new Array( marcaDefecto );   
+            var aCanal = new Array( canalDefecto );   
+    
+            if( get( 'frmContenido.accion' ) == 'muestraInsercion' ){   
+              set( 'frmContenido.cmbMarca', aMarca );   
+              set( 'frmContenido.cmbCanal', aCanal );   
+              changeComboMarcaCanal();   
+            }   
+          }   
+        
+          function changeComboMarcaCanal(){   
+            var marca = (( get( 'frmContenido.cmbMarca' ) != null ) ? get( 'frmContenido.cmbMarca' ) : null);   
+            var canal = (( get( 'frmContenido.cmbCanal' ) != null ) ? get( 'frmContenido.cmbCanal' ) : null);   
+                      
+            //if( marca != null && marca[0] != '' && canal != null && canal[0] != '' ){   
+              recargaCombo('frmContenido.cmbGruposZonas', 'CRAObtieneGruposZonas', 'es.indra.sicc.dtos.cra.DTOGrupoZonas', makeParameter() );   
+            //}   
+          }           
+            
+          function makeParameter(){   
+    
+            var marca = get( 'frmContenido.cmbMarca' );   
+            var canal = get( 'frmContenido.cmbCanal' );   
+            var pais = get( 'frmContenido.hPais' );   
+            var idioma = get( 'frmContenido.hIdioma' );   
+            var programa = get( 'frmContenido.hPrograma' );   
+            var IPCliente = get( 'frmContenido.hIPCliente' );   
+    
+            var array = new Array();   
+            var i=0;   
+    
+            array[i] = new Array('oidMarca', marca);   
+            i++;   
+               
+            array[i] = new Array('oidCanal', canal);   
+            i++;   
+    
+            array[i] = new Array('oidPais', pais);   
+            i++;   
+               
+            array[i] = new Array('oidIdioma', idioma);   
+            i++;   
+    
+            array[i] = new Array('programa', programa);   
+            i++;   
+    
+            array[i] = new Array('ipCliente', IPCliente);   
+               
+            return array;   
+          }   
+    
+          function fGuardar(){   
+               
+            if(!sicc_validaciones_generales()){   
+                   return false;   
+            }   
+            if (!validaAnio()){   
+                   return false;   
+            }   
+            //validar campos   
+            if(fValidarCTEXT( 'frmContenido.txtAnio' )  && fValidarCOMBO( 'frmContenido.cmbMarca' ) &&   
+               fValidarCOMBO( 'frmContenido.cmbCanal' ) && fValidarCOMBO( 'frmContenido.cmbGruposZonas' )){   
+              //Guardar   
+              if( esNumero( get( 'frmContenido.txtAnio' ) )=='OK' ){   
+                 set( 'frmContenido.conectorAction', 'LPMantieneCalendario' );   
+                 set( 'frmContenido.accion', 'guardar' );   
+					  eval("frmContenido.oculto = 'N'");
+                 enviaSICC( 'frmContenido' );   
+              }   
+              else{   
+                 GestionarMensaje( '2555' );   
+              }   
+            }   
+          }   
+    
+          function fLimpiar(){   
+            set( 'frmContenido.txtAnio', '' );   
+            document.all.tags("INPUT").txtSabados[0].checked=true;   
+            document.all.tags("INPUT").txtDomingos[0].checked=true;   
+            cargarMarcaCanalDefecto();   
+            focaliza( 'frmContenido.txtAnio' );   
+            iSeleccionado = new Array(); 
+            iSeleccionado[0] = '';
+            set('frmContenido.cmbGruposZonas', iSeleccionado);
+          }   
+    
+          function validaAnio(){   
+              var anio = get('frmContenido.txtAnio');   
+              var today = new Date();   
+              if (today.getYear()>anio){   
+                   GestionarMensaje( '2566' );   
+                   focaliza( 'frmContenido.txtAnio' );   
+                   return false;   
+              }   
+              return true;   
+          }   
+    
+    
+       ]]> 
+
+  </JAVASCRIPT>
+  <VALIDACION>
+      <ELEMENTO name="txtAnio" required="true" cod="171" />
+      <ELEMENTO name="cmbMarca" required="true" cod="6" />
+      <ELEMENTO name="cmbCanal" required="true" cod="7" />
+      <ELEMENTO name="cmbGruposZonas" required="true" cod="180" />
+	</VALIDACION>  
+  <FORMULARIO nombre="frmContenido" oculto ="S">
+  
+    <VAR nombre="accion" valor=""/>
+    <VAR nombre="conectorAction" valor=""/>
+    <VAR nombre="errCodigo" valor=""/>
+    <VAR nombre="errDescripcion" valor=""/>
+
+    <VAR nombre="hPais" valor=""/>
+    <VAR nombre="hIdioma" valor=""/>
+    <VAR nombre="hPrograma" valor=""/>
+    <VAR nombre="hIPCliente" valor=""/>
+
+    <VAR nombre="hMarcaDefecto" valor=""/>
+    <VAR nombre="hCanalDefecto" valor=""/>
+    
+    <VAR nombre="opcionMenu" valor=""/>
+    <VAR nombre="hCasoDeUso" valor=""/>
+
+
+    <CAPA nombre="capaContenido" colorf="#F0F0F0" borde="0" imagenf="" repeat=""
+          padding="" visibilidad="" contravsb="" x="0" y="0" zindex="">
+      <table width="100%" border="0" cellspacing="0" cellpadding="0">
+        <tr>
+          <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+          <td width="750"><IMG src="b.gif"/></td>
+          <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+        </tr>
+        <tr>
+          <td><IMG src="b.gif"/></td>
+          <td><fieldset>
+              <legend class="legend">
+              <!-- Datos de calendario -->
+              <LABELC nombre="lblDatosCal" alto="13" filas="1" valor=""
+                        id="legend" cod="00492"/>
+              </legend>
+              <!---primera fila-->
+              <table width="100%" border="0" align="center" cellspacing="0"
+                     cellpadding="0">
+                <tr>
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                  <td><IMG src="b.gif" width="8" height="8"/></td>
+                  <td><LABELC nombre="etiqueta1" alto="13" filas="1" valor=""
+                            id="datosTitle" cod="5"/>
+                  </td>
+                  <td><IMG src="b.gif" width="25" height="8"/></td>
+                  <td><LABELC nombre="etiqueta2" alto="13" filas="1" valor=""
+                            id="datosTitle" cod="171"/>
+                  </td>
+                  <td><IMG src="b.gif" width="25" height="8"/></td>
+                  <td colspan="7"><LABELC nombre="etiqueta3" alto="13" filas="1" valor=""
+                            id="datosTitle" cod="177"/>
+                  </td>
+                  <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                  <td><IMG src="b.gif" width="8" height="8"/></td>
+                  <td nowrap="nowrap"><LABELC nombre="lblContenidoPais" alto="13" filas="1"
+                            valor="" id="datosCampos" codi="5"/>
+                  </td>
+                  <td><IMG src="b.gif" width="25" height="8"/></td>
+                  <td nowrap="nowrap"><CTEXTO nombre="txtAnio" id="datosCampos" max="4" tipo=""
+                            onchange="validaAnio();" size="5" valor="" req="S"
+                            onshtab="focaliza('frmContenido.cmbGruposZonas');"
+                            validacion=""/>
+                  </td>
+                  <td><IMG src="b.gif" width="25" height="8"/></td>
+                  <td nowrap="nowrap"><CHECKBOX nombre="txtSabados" class="" id="txtSabados"
+                              max="1" tipo="" onchange="" req="N" size="1"
+                              check="S" valor="" validacion=""/>
+                  </td>
+                  <td><IMG src="b.gif" width="8" height="8"/></td>
+                  <td><LABELC nombre="etiqueta33" alto="13" filas="1" valor=""
+                            id="datosCampos" cod="178"/>
+                  </td>
+                  <td><IMG src="b.gif" width="8" height="8"/></td>
+                  <td nowrap="nowrap"><CHECKBOX nombre="txtDomingos" class="datosCampos"
+                              id="txtDomingos" max="1" tipo="" onchange=""
+                              req="N" size="1" check="S" valor="" validacion=""/>
+                  </td>
+                  <td><LABELC nombre="etiqueta32" alto="13" filas="1" valor=""
+                            id="datosCampos" cod="179"/>
+                  </td>
+                  <td><IMG src="b.gif" width="8" height="8"/></td>
+                  <td width="100%">
+                    <IMG src="b.gif" width="8" height="8"/>
+                  </td>
+                </tr>
+                <tr>
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+              </table>
+              <!---fin primera fila-->
+              <table width="100%" border="0" align="center" cellspacing="0"
+                     cellpadding="0">
+                <tr>
+                  <td><IMG src="b.gif" width="8" height="8"/></td>
+                  <td><LABELC nombre="lblMarca" alto="13" filas="1" valor=""
+                            id="datosTitle" cod="6"/>
+                  </td>
+                  <td><IMG src="b.gif" width="25" height="8"/></td>
+                  <td><LABELC nombre="lblCanales" alto="13" filas="1" valor=""
+                            id="datosTitle" cod="7"/>
+                  </td>
+                  <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                  <td><IMG src="b.gif" width="8" height="8"/></td>
+                  <td nowrap="nowrap"><COMBO nombre="cmbMarca" id="datosCampos" size="1"
+                           multiple="N" req="S" valorinicial="" textoinicial=""
+                           onchange="changeComboMarcaCanal();">
+                      <ROWSET>
+                      </ROWSET>
+                    </COMBO>
+                  </td>
+                  <td><IMG src="b.gif" width="25" height="8"/></td>
+                  <td nowrap="nowrap" valign="top">
+                    <COMBO nombre="cmbCanal" id="datosCampos" size="1"
+                           multiple="N" req="S" valorinicial="" textoinicial=""
+                           onchange="changeComboMarcaCanal();">
+                      <ROWSET>
+                      </ROWSET>
+                    </COMBO>
+                    <!--CRAObtieneGruposZonas-->
+                  </td>
+                  <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                  <td colspan="4" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+              </table>
+              <table width="100%" border="0" align="center" cellspacing="0"
+                     cellpadding="0">
+                <tr>
+                  <td><IMG src="b.gif" width="8" height="8"/></td>
+                  <td><LABELC nombre="lblGrupoZonas" alto="13" filas="1" valor=""
+                            id="datosTitle" cod="180"/>
+                  </td>
+                  <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                  <td><IMG src="b.gif" width="8" height="8"/></td>
+                  <td nowrap="nowrap">
+                    <COMBO nombre="cmbGruposZonas" id="datosCampos" size="5"
+                           multiple="S" req="S" valorinicial="" textoinicial=""
+                           ontab="focaliza('frmContenido.txtAnio');" >
+                      <ROWSET>
+                      </ROWSET>
+                    </COMBO>
+                  </td>
+                  <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+              </table>
+            </fieldset>
+          </td>
+          <td><IMG src="b.gif"/></td>
+        </tr>
+        <tr>
+          <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+          <td width="750"><IMG src="b.gif"/></td>
+          <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+        </tr>
+      </table>
+    </CAPA>
+  </FORMULARIO>
+</PAGINA>

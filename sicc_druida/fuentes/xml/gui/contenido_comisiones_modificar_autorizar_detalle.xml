@@ -1,0 +1,435 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_comisiones_modificar_autorizar_detalle.xml,v 1.1 2009/12/03 18:45:37 pecbazalar Exp $
+   prueba arbol 
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+<PAGINA nombre="contenido_comisiones_modificar_autorizar_detalle" cod="0509" titulo="Autorizar modificación de comisiones" estilos="estilosB3.css" colorf="#F0F0F0" 
+	msgle="" onload="onLoadPag();" xml:lang="es">
+<JS src="sicc_util.js"></JS> 
+<JS src="PaginacionSicc.js"></JS>
+<JS src="DruidaTransactionMare.js"></JS>
+<JS src="valida.js"></JS>
+ <JAVASCRIPT>
+ <![CDATA[ 
+
+ function onLoadPag()
+ {  configurarMenuSecundario("formulario");
+	fMostrarMensajeError();	  
+	focalizaBotonHTML('botonContenido','btnAceptar');
+
+	btnProxy(1,0);
+	btnProxy(2,1);
+	btnProxy(3,0);
+	btnProxy(4,0);
+	btnProxy(5,0);
+	btnProxy(6,1);
+	btnProxy(7,1);
+	btnProxy(8,1);
+	btnProxy(9,0);
+	btnProxy(10,1);
+ }
+ 
+ /*Este método se ejecuta cuando pulsa sobre btnAceptar. 
+	Proceso: 
+	======= 
+	Si varFechaInicioVigorModificacion <= varFechaInicioPeriodoActual 
+	    Se muestra el mensaje de error UICOM0001 
+	    (No se puede aceptar una modificación cuyo periodo de entrada en vigor es anterior al periodo actual) 
+	    y no se continua el flujo del metodo. 
+	Fin del Si 
+
+	Se invoca LPMantenimientoComisiones a través de un EnviarOculto con: 
+	accion = "ConfirmarAceptar" 
+	oidComision = varOidComisionPendiente
+ */
+ function onClickAceptar()
+ {
+    //alert('varFechaInicioVigorModificacion:  ' + get("formulario.varFechaInicioVigorModificacion") + ' varFechaInicioPeriodoActual:  ' + //get("formulario.varFechaInicioPeriodoActual"));
+	if(ComparaFechas(get("formulario.varFechaInicioVigorModificacion"), get("formulario.varFechaInicioPeriodoActual")) == 1 ||    ComparaFechas(get("formulario.varFechaInicioVigorModificacion"), get("formulario.varFechaInicioPeriodoActual")) == 0 )
+	{    // Se muestra el mensaje de error UICOM0001 
+	     GestionarMensaje('UICOM0001');
+	}
+	else 
+	{	 //alert(get('formulario.oidComision'));
+		 eval('formulario').oculto = 'S'
+		 set('formulario.conectorAction', 'LPMantenimientoComisiones')
+		 set('formulario.accion', 'ConfirmarAceptar')
+		 enviaSICC('formulario', null, null, 'N')		 
+	}
+ }
+
+ function fVolver()	{ window.close(); }
+
+  /*Este método se ejecuta cuando pulsa sobre btnRechazar. 
+	Proceso: 
+	======= 
+	Se invoca LPMantenimientoComisiones a través de un EnviarOculto con: 
+	accion = "ConfirmarRechazar" 
+	oidComision = varOidComisionPendiente
+	*/
+  function onClickRechazar()
+  {
+    //if(sicc_validaciones_generales()) 
+	//{	 
+		 //alert(get('formulario.oidComision'));
+		 eval('formulario').oculto = 'S'
+		 set('formulario.conectorAction', 'LPMantenimientoComisiones')
+		 set('formulario.accion', 'ConfirmarRechazar')
+		 enviaSICC('formulario', null, null, 'N')
+	//}
+  }
+  
+  /*Este método se ejecuta cuando pulsa sobre btnConsultarPendiente. 
+	Proceso: 
+	======= 
+	Se abre una ventana emergente modal y en la nueva ventana se invoca LPMantenimientoComisiones con: 
+	accion = "ConsultarComision" 
+	oidComision = varOidComisionPendiente 
+
+	========== inc. BELC300014680
+	Todas estas llamadas deben hacerse a "LPMantenimientoComisionesDatosGenerales" con acción "" y
+    opcionMenu = "consultar", también se pasa el oid de la comisión que se está consultando.
+  */
+  function onClickConsultarPendiente()
+  {
+	  obj = new Object()
+	  obj.oidComision = get("formulario.varOidComisionPendiente")
+   	  obj.titulo = "ConsultarComisiones"
+	  obj.opcionMenu = "consultar"
+   	  obj.estadoVentana = "M"
+	  vWnd = mostrarModalSICC('LPMantenimientoComisionesDatosGenerales','',obj, 850,500)
+  }
+
+  /*Este método se ejecuta cuando pulsa sobre btnConsultarVigente. 
+	Proceso: 
+	======= 
+	Se abre una ventana emergente modal y en la nueva ventana se invoca LPMantenimientoComisiones con: 
+	accion = "ConsultarComision" 
+	oidComision = varOidComisionVigente
+
+	========== inc. BELC300014680
+	Todas estas llamadas deben hacerse a "LPMantenimientoComisionesDatosGenerales" con acción "" y
+    opcionMenu = "consultar", también se pasa el oid de la comisión que se está consultando.
+	*/
+  function onClickConsultarVigente()
+  {
+	  obj = new Object()
+	  obj.oidComision = get("formulario.varOidComisionVigente")
+   	  obj.titulo = "ConsultarComisiones"
+	  obj.opcionMenu = "consultar"
+  	  obj.estadoVentana = "M"
+	  vWnd = mostrarModalSICC('LPMantenimientoComisionesDatosGenerales','',obj, 850,500)
+  }
+
+ ]]> 
+</JAVASCRIPT>
+
+<FORMULARIO nombre="formulario" oculto="N" >
+<VAR nombre="estadoVentana" valor=""/>
+<VAR nombre="titulo" valor=""/>
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="errCodigo" valor=""/> 
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="varOidIdioma" valor=""/>
+<VAR nombre="varOidPais" valor=""/>
+
+<VAR nombre="accion" valor="" />
+
+<VAR nombre="varOidComisionPendiente" valor="" />
+<VAR nombre="varFechaInicioVigorModificacion" valor="" />
+<VAR nombre="varOidComisionVigente" valor="" />
+<VAR nombre="oidComision" valor="" />
+<VAR nombre="varFechaInicioPeriodoActual" valor="" />
+
+<VAR nombre="cerrarVentana" valor="" />
+
+<CAPA nombre="capaContenido" >
+
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+     <tr> 
+      <td><IMG src="b.gif"/></td>
+      
+      <td>
+	<fieldset><legend class="legend"><LABELC nombre="lblVersionesConsultar"  alto="13" filas="1" valor="" id="legend" cod="00351"/></legend> 
+            <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+             
+		    <tr>
+		       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+		     	<td width="750" ><IMG src="b.gif"/></td>
+		      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+		    </tr>
+		    <tr> 
+		      <td><IMG src="b.gif"/></td>		      
+		      <td>
+			<fieldset><legend class="legend">
+			<LABELC nombre="lblVersionPendienteAutorizacion" alto="13" filas="1" cod="00541" valor="" id="legend"/></legend> 
+			<table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+		          <tr><td>
+		          <!---primera fila-->
+		              <table width="609" border="0" align="left" cellspacing="0" cellpadding="0">
+		                <tr> 
+		                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+		                </tr>
+		                <tr>
+		                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+		                   <td><LABELC nombre="lblCodComisionVersionPendienteAutorizacion" alto="13" filas="1" valor="" id="datosTitle" cod="1709"/></td>                   
+		                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+		                   <td><LABELC nombre="lblVersionVersionPendienteAutorizacion" alto="13" filas="1" valor="" id="datosTitle" cod="1607"/></td>                   
+		                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+		                   <td><LABELC nombre="lblDescripcionComisionVersionPendienteAutorizacion" alto="13" filas="1" valor="" id="datosTitle" cod="1710"/></td>
+		                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+		                    <td><LABELC nombre="lblTipoComisionVersionPendienteAutorizacion" alto="13" filas="1" valor="" id="datosTitle" cod="1857"/></td>
+		                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+		                </tr> 
+		               <tr>
+		                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+		                   <td><LABELC nombre="lblCodComisionPendiente" alto="13" filas="1" valor="" id="datosCampos" /></td>                
+		                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+		                   <td><LABELC nombre="lblVersionPendiente" alto="13" filas="1" valor="" id="datosCampos" /></td>                   
+		                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+		                   <td><LABELC nombre="lblDescripcionPendiente" alto="13" filas="1" valor="" id="datosCampos" /></td>
+		                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+		                    <td><LABELC nombre="lblTipoPendiente" alto="13" filas="1" valor="" id="datosCampos" /></td>
+		                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+		                </tr> 
+		                <tr>
+		                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+		                </tr>                
+		              </table>
+		        </td></tr>
+		           <tr><td>
+		      
+		               <table width="609" border="0" align="left" cellspacing="0" cellpadding="0">
+		
+		                <tr>
+		                   <td><IMG src="b.gif" width="8" height="8"/></td>  
+		                   <td><LABELC nombre="lblMarcaVersionPendienteAutorizacion" alto="13" filas="1" valor="" id="datosTitle" cod="6"/></td>                                    
+		                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+		                   <td><LABELC nombre="lblCanalVersionPendienteAutorizacion" alto="13" filas="1" valor="" id="datosTitle" cod="7"/></td>
+		                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+		                   <td><LABELC nombre="lblAccesoVersionPendienteAutorizacion" alto="13" filas="1" valor="" id="datosTitle" cod="10"/></td>
+		                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+		                </tr> 
+		                 <tr>
+		                   <td><IMG src="b.gif" width="8" height="8"/></td>  
+		                   <td><LABELC nombre="lblMarcaPendiente" alto="13" filas="1" valor="" id="datosCampos" /></td>       
+		                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+		                   <td><LABELC nombre="lblCanalPendiente" alto="13" filas="1" valor="" id="datosCampos"/></td>
+		                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+		                   <td><LABELC nombre="lblAccesoPendiente" alto="13" filas="1" valor="" id="datosCampos" /></td>
+		                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+		                </tr> 
+		                <tr>
+		                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+		                </tr>                
+		              </table>
+		             </td></tr>
+		              <tr><td>
+		      
+		               <table width="609" border="0" align="left" cellspacing="0" cellpadding="0">
+		
+		                <tr>
+		                   <td><IMG src="b.gif" width="8" height="8"/></td>  
+		                   <td><LABELC nombre="lblConceptoVersionPendienteAutorizacion" alto="13" filas="1" valor="" id="datosTitle" cod="1711"/></td>                                    
+		                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+		                </tr> 
+		                 <tr>
+		                   <td><IMG src="b.gif" width="8" height="8"/></td>  
+		                   <td><LABELC nombre="lblConceptoPendiente"  ancho="300" alto="45" filas="3" valor="" id="datosCampos" /></td>                                    
+		                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+		                </tr> 
+		                <tr>
+		                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+		                </tr>                
+		              </table>
+		             </td></tr>
+		           </table>
+		        </fieldset>        
+		      </td>
+		      
+		      <td><IMG src="b.gif" /></td>
+		      
+		    </tr> 
+		    <tr> 
+		        <td><IMG src="b.gif"/></td>
+		        <td>
+			  <fieldset>
+			    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+			      <tr>
+			        <td class="botonera">
+				       <BOTON nombre="btnConsultar1" ID="botonContenido" tipo="html" accion="onClickConsultarPendiente();" estado="false" cod="150" onshtab="focalizaBotonHTML('botonContenido','btnRechazar');" />
+			        </td>
+			      </tr>    
+			    </table>        
+			  </fieldset>
+		        </td>
+		        <td><IMG src="b.gif" width="8" height="12"/></td>
+		    </tr>   
+		    <tr >
+		       	<td width="12" align="center"><IMG src="b.gif" width="12" height="15"/></td>
+		     	<td width="750" ><IMG src="b.gif"/></td>
+		      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+		    </tr>           
+              </table>
+           </td></tr>
+           <tr><td>
+               <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+             	    <tr> 
+		      <td><IMG src="b.gif"/></td>
+		      
+		      <td>
+			<fieldset><legend class="legend"><LABELC nombre="lblVersionVigente2" alto="13" filas="1" cod="00542" valor="" id="legend" /></legend> 
+			<table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+		         <tr><td>
+		          <!---primera fila-->
+		              <table width="609" border="0" align="left" cellspacing="0" cellpadding="0">
+		                <tr> 
+		                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+		                </tr>
+		                <tr>
+		                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+		                   <td><LABELC nombre="lblCodComisionVersionVigente" alto="13" filas="1" valor="" id="datosTitle" cod="1709"/></td>                   
+		                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+		                   <td><LABELC nombre="lblVersionVersionVigente" alto="13" filas="1" valor="" id="datosTitle" cod="1607"/></td>                   
+		                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+		                   <td><LABELC nombre="lblDescripcionComisionVersionVigente" alto="13" filas="1" valor="" id="datosTitle" cod="1710"/></td>
+		                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+		                    <td><LABELC nombre="lblTipoComisionVersionVigente" alto="13" filas="1" valor="" id="datosTitle" cod="1857"/></td>
+		                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+		                </tr> 
+		               <tr>
+		                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+		                   <td><LABELC nombre="lblCodComisionVigente" alto="13" filas="1" valor="" id="datosCampos" /></td>                   
+		                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+		                   <td><LABELC nombre="lblVersionVigente" alto="13" filas="1" valor="" id="datosCampos" /></td>                   
+		                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+		                   <td><LABELC nombre="lblDescripcionVigente" alto="13" filas="1" valor="" id="datosCampos" /></td>
+		                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+		                    <td><LABELC nombre="lblTipoVigente" alto="13" filas="1" valor="" id="datosCampos" /></td>
+		                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+		                </tr> 
+		                <tr>
+		                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+		                </tr>                
+		              </table>
+		        </td></tr>
+		           <tr><td>
+		      
+		               <table width="609" border="0" align="left" cellspacing="0" cellpadding="0">
+		
+		                <tr>
+		                   <td><IMG src="b.gif" width="8" height="8"/></td>  
+		                   <td><LABELC nombre="lblMarcaVersionVigente" alto="13" filas="1" valor="" id="datosTitle" cod="6"/></td>                                    
+		                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+		                   <td><LABELC nombre="lblCanalVersionVigente" alto="13" filas="1" valor="" id="datosTitle" cod="7"/></td>
+		                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+		                   <td><LABELC nombre="lblAccesoVersionVigente" alto="13" filas="1" valor="" id="datosTitle" cod="10"/></td>
+		                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+		                </tr> 
+		                 <tr>
+		                   <td><IMG src="b.gif" width="8" height="8"/></td>  
+		                   <td><LABELC nombre="lblMarcaVigente" alto="13" filas="1" valor="" id="datosCampos" /></td>                                    
+		                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+		                   <td><LABELC nombre="lblCanalVigente" alto="13" filas="1" valor="" id="datosCampos"/></td>
+		                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+		                   <td><LABELC nombre="lblAccesoVigente" alto="13" filas="1" valor="" id="datosCampos" /></td>
+		                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+		                </tr> 
+		                <tr>
+		                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+		                </tr>                
+		              </table>
+		             </td></tr>
+		              <tr><td>
+		      
+		               <table width="609" border="0" align="left" cellspacing="0" cellpadding="0">
+		
+		                <tr>
+		                   <td><IMG src="b.gif" width="8" height="8"/></td>  
+		                   <td><LABELC nombre="lblConceptoVersionVigente" alto="13" filas="1" valor="" id="datosTitle" cod="1711"/></td>                                    
+		                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+		                </tr> 
+		                 <tr>
+		                   <td><IMG src="b.gif" width="8" height="8"/></td>  
+		                   <td><LABELC nombre="lblConceptoVigente"  ancho="300" alto="45" filas="3" valor="" id="datosCampos" /></td>                                    
+		                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+		                </tr> 
+		                <tr>
+		                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+		                </tr>                
+		              </table>
+		             </td></tr>
+		           </table>
+		        </fieldset>        
+		      </td>		      
+		      <td><IMG src="b.gif" /></td>
+		    </tr>
+		    <tr> 
+		        <td><IMG src="b.gif"/></td>
+		        <td>
+			  <fieldset>
+			    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+			      <tr>
+			        <td class="botonera">
+				  <BOTON nombre="btnConsultar2" ID="botonContenido" tipo="html" accion="onClickConsultarVigente();" estado="false" cod="150"/>
+			        </td>
+			      </tr>    
+			    </table>        
+			  </fieldset>
+		        </td>
+		        <td><IMG src="b.gif" width="8" height="12"/></td>
+		    </tr>   
+		    <tr>
+		       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+		     	<td width="750" ><IMG src="b.gif"/></td>
+		      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+		    </tr>           
+              </table>
+           </td></tr>
+           </table>
+        </fieldset>        
+      </td>      
+      <td><IMG src="b.gif" /></td>      
+    </tr> 
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnAceptar" ID="botonContenido" tipo="html" accion="onClickAceptar();" estado="false" cod="12" />
+		  <BOTON nombre="btnRechazar" ID="botonContenido" tipo="html" accion="onClickRechazar();" estado="false" cod="979" ontab="focalizaBotonHTML('botonContenido','btnConsultar1');"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+    </tr>      
+    
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+  
+  
+  
+</CAPA> 
+ 
+ </FORMULARIO>
+</PAGINA>           

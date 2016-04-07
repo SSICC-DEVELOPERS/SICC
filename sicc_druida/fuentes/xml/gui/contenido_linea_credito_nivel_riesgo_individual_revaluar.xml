@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_linea_credito_nivel_riesgo_individual_revaluar.xml,v 1.1 2009/12/03 18:45:56 pecbazalar Exp $
+   EDU
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_linea_credito_nivel_riesgo_individual_revaluar" cod="0295" titulo="" estilos="estilosB3.css" 
+        colorf="#F0F0F0" msgle="" onload="onLoadPag();" xml:lang="es">
+
+
+<JS src="sicc_util.js"/>
+<JS src="DruidaTransactionMare.js"/>
+<JAVASCRIPT>
+  <![CDATA[ 
+  
+     function onLoadPag()   
+      {
+          var hayErrores = chequeaErrores();
+          
+            
+            configurarMenuSecundario("frmFormulario");
+            desactivarCombos();
+            del_combo('frmFormulario.cmbTipoReevaluacion',0);
+            focaliza('frmFormulario.txtCodigoCliente');
+          
+          
+      }
+      //-----------------------------------------------------------
+       function accionBuscarCliente() {
+          focaliza("frmFormulario.txtCodigoCliente");
+          var obj = new Object();
+              var whnd = mostrarModalSICC('LPBusquedaRapidaCliente','',obj);
+              if(whnd==null){
+
+              }else{
+                  var oid;
+                  var oid = whnd[0];
+                  var cod = whnd[1];
+                  var nombre1 = whnd[2];
+                  var nombre2 = whnd[3];
+                  var apellido1 = whnd[4];
+                  var apellido2 = whnd[5];
+                  set("frmFormulario.txtCodigoCliente", cod);
+                  
+                  onChangeCliente();
+              }  
+        }
+      //---------------------------------------------------------------
+      
+      function onChangeCliente(){
+      
+                
+             
+               var arr = new Array();
+               arr[arr.length] = new Array("oidPais", get('frmFormulario.hPais'));
+               arr[arr.length] = new Array("oidIdioma", get('frmFormulario.hIdioma'));
+               arr[arr.length] = new Array("codigoCliente", get('frmFormulario.txtCodigoCliente'));
+                  recargaCombo('frmFormulario.cbMarca','MAEMarcasClienteUnidadAdministrativa',
+                                  'es.indra.sicc.dtos.mae.DTOCodigoCliente',arr); 
+                                  activarCombos("cbMarca");
+                                  
+                
+                recargaCombo('frmFormulario.cbCanal','MAECanalesClienteUnidadAdministrativa',
+                                  'es.indra.sicc.dtos.mae.DTOCodigoCliente',arr); 
+                                   activarCombos("cbCanal");
+                                   
+                
+          
+                               
+        }
+        
+        //----------------------------------------------------------------
+        
+        function onClickReevaluar (){
+          if(sicc_validaciones_generales()){
+            guardarSeleccionados();
+            set('frmFormulario.accion','Reevaluar');
+            eval('frmFormulario').oculto = 'S';
+            set('frmFormulario.conectorAction', 'LPCreditoRiesgoIndividual');
+            enviaSICC('frmFormulario'); 
+          }
+        }
+        //--------------------------------------------------------------
+        
+        function guardarSeleccionados(){
+           var cmb = document.getElementById("cmbTipoReevaluacion");
+           var option = cmb.options;
+           var oid = new Array(2);
+           for(var i = 0; i < option.length;i++){
+              if(option.item(i).selected == true){
+                    oid[i] = option(i).value;   
+              }
+           }
+           set('frmFormulario.hvalOids',oid);
+           
+        }
+        
+        //---------------------------------------------------------------
+        
+         function TabUp(){
+          //focaliza("frmFormulario.txtCodigoCliente");	
+          var obj=document.getElementsByName("txtCodigoCliente");
+          obj.item(0).focus();
+         }
+        
+        function TabShift(){
+          var obj=document.getElementsByName("btnReevaluar");
+          obj.item(0).focus();
+        }
+        
+        //----Completa con 0 los digitos en txtCliente-----
+          function llenarDigitos(){
+              var txt  = document.getElementsByName("txtCodigoCliente").item(0);
+              if(get('frmFormulario.txtCodigoCliente') != ''){
+              
+              var valor = new Array(10);
+              var valoraux = new Array();
+              
+              valor = txt.value;
+              alert(txt);
+             
+              var con = Math.abs(11);
+              var dif = con-valor.length;
+              if(valor.length == con){
+                return;
+              }
+             if(valor.length < con){
+                  for(var i=0; i<dif;i++){
+                   valoraux= valoraux + '0';
+                }
+                valoraux= valoraux + valor;
+                txt.value= valoraux
+                onChangeCliente();
+              }else{ 
+                  txt.value= "";
+            
+            }
+          }else{
+              accion('frmFormulario.cbMarca', '.disabled=true');
+              set_combo('frmFormulario.cbMarca', ['','']);
+        
+              accion('frmFormulario.cbCanal', '.disabled=true');
+              set_combo('frmFormulario.cbCanal', ['','']);
+              
+              focaliza('frmFormulario.cbClaseSolicitud');
+          }
+        }
+        
+        function mensajeLP(cod){
+           GestionarMensaje(cod, get('frmFormulario.txtCodigoCliente') , null, null); 
+		   focaliza('frmFormulario.txtCodigoCliente');
+        }
+        
+        //--Disabled Combos--
+   function desactivarCombos(){
+  
+    var obj = document.all.tags("SELECT");
+    for(var i = 0; i<obj.length;i++){
+     
+      if(obj.item(i).name=="cbMarca"){ 
+        obj.item(i).disabled=true;
+       
+      }
+      if(obj.item(i).name=="cbCanal"){ 
+        obj.item(i).disabled=true;
+        
+      }
+      
+    }
+    
+   }
+     //--------------------
+    function activarCombos(combo){
+    var cboEnabled = document.getElementById(combo);
+    cboEnabled.disabled=false; 
+  } 
+  
+  //-------------------------------
+  function limpiarCombos(){
+     
+      var cmb1 = document.getElementById("cbMarca");
+			var cmb = document.getElementById("cbCanal");
+      var opt1 = cmb1.options;
+      var opt = cmb.options;
+        
+         for(var i=0;i < opt1.length;i++){
+					cmb1.all.item(i).text="";
+				}
+        
+        for(var i=0;i < opt.length;i++){
+					cmb.all.item(i).text="";
+				}
+      		
+  }
+  //********************************
+  function fLimpiar(){
+    
+    accion('frmFormulario.cbMarca', '.disabled=true');
+        set_combo('frmFormulario.cbMarca', ['','']);
+        
+    accion('frmFormulario.cbCanal', '.disabled=true');
+        set_combo('frmFormulario.cbCanal', ['','']);
+        
+     focaliza('frmFormulario.txtCodigoCliente');   
+
+  }
+  
+  //------------------------------------------
+  
+  function  chequeaErrores()
+	{
+		var errCod = get("frmFormulario.errCodigo");
+
+		if (errCod != null)
+		{
+				fMostrarMensajeError();
+				return true;
+		}
+   
+		return false;
+
+	}
+  function foc(){
+    
+    focaliza('frmFormulario.txtCodigoCliente');
+  }
+  
+ 
+
+
+  ]]>
+  <VALIDACION>
+	<ELEMENTO name="txtCodigoCliente" required="true" cod="263"/>
+	<ELEMENTO name="cbMarca" required="true" cod="6"/>
+	<ELEMENTO name="cbCanal" required="true" cod="7"/>
+	<ELEMENTO name="cbClaseSolicitud" required="true" cod="814"/>
+  <ELEMENTO name="cmbTipoReevaluacion" required="true" cod="1003"/>
+</VALIDACION>
+</JAVASCRIPT>
+
+<FORMULARIO nombre="frmFormulario">
+   <VAR nombre="accion" valor=""/>
+	 <VAR nombre="conectorAction" valor=""/>
+	 <VAR nombre="errCodigo" valor=""/>
+	 <VAR nombre="errDescripcion" valor=""/>
+   <VAR nombre="hPais" valor=""/>
+   <VAR nombre="hIdioma" valor=""/>
+   <VAR nombre="hvalOids" valor=""/>
+   <VAR nombre="hConstMsg" valor=""/>
+   <VAR nombre="ejecutar" valor=""/>
+   <VAR nombre="ejecutarError" valor=""/>
+   <VAR nombre="tabCodClie" valor=""/>
+   
+   
+   
+<CAPA nombre="capaEspacio1" x="0" y="0">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblDatosAReevaluar" alto="13" filas="1" valor="" id="legend" cod="00163"/></legend>
+       <!---primera fila-->
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td colspan="3"><LABELC nombre="lblCodigoCliente" alto="13" filas="1" valor="" id="datosTitle" cod="263"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblMarca" alto="13" filas="1" valor="" id="datosTitle" cod="6"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblCanal" alto="13" filas="1" valor="" id="datosTitle" cod="7"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+		   <td nowrap="nowrap"><CTEXTO nombre="txtCodigoCliente" id="datosCampos" max="15" tipo="" onchange="llenarDigitos();" req="S" size="15" valor="" validacion="" onshtab="TabShift();"/></td>
+		   <td><IMG src="b.gif" width="8" height="8" /></td>
+                   <td><IMG src="iconBuscar.gif" onclick ="accionBuscarCliente();"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td nowrap="nowrap">
+		     <COMBO nombre="cbMarca" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="">
+		       <ROWSET>
+              
+                  
+               
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td nowrap="nowrap">
+		     <COMBO nombre="cbCanal" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="">
+		       <ROWSET>
+              
+                  
+               
+               
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+		   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+              </table>
+       <!---fin primera fila-->
+       <!---segunda fila-->
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblClaseSolicitud" alto="13" filas="1" valor="" id="datosTitle" cod="814"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblTipoReevaluacion" alto="13" filas="1" valor="" id="datosTitle" cod="1003"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td valign="top" nowrap="nowrap">
+		     <COMBO nombre="cbClaseSolicitud" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="">
+		       <ROWSET>
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap">
+		     <COMBO nombre="cmbTipoReevaluacion" id="datosCampos" size="2" multiple="S" req="S" valorinicial="" textoinicial="">
+            <ROWSET>
+              
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+		   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="3"><IMG src="b.gif" width="8" height="7"/></td>
+                </tr>
+              </table>
+       <!---fin segunda fila-->
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnReevaluar" ID="botonContenido" tipo="html" accion="onClickReevaluar();" estado="false" cod="980" ontab="TabUp();"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>        
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+</FORMULARIO>
+</PAGINA>                                       

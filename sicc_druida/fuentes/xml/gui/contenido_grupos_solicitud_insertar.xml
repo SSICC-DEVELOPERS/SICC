@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_grupos_solicitud_insertar.xml,v 1.1 2009/12/03 18:45:44 pecbazalar Exp $
+   prueba arbol 
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+<PAGINA nombre="contenido_grupos_solicitud_insertar" cod="0646" titulo="" estilos="estilosB3.css" colorf="#F0F0F0" 
+	msgle="" onload="onLoadPag()" xml:lang="es">
+
+<JS src="sicc_util.js"/> 
+<JS src="i18NJS.js"/>  
+ <JAVASCRIPT>
+ <![CDATA[ 
+
+/**
+ * Sistema:     Belcorp
+ * Modulo:      INC
+ * Fecha:       
+ * @version     
+ * @autor       
+ *
+ * @modified	Marcelo J. Maidana
+ * Fecha:		15/07/2005
+ * Descripcion	Si el accion es 'detalleGrupo', no se 
+ * deshabilita el combo, para que permita scroll.
+ * (Inc. BELC300014812 - DBLG200000327).
+ *  ultima modificacion por Noziglia C.
+ */
+function onLoadPag() { 
+	configurarMenuSecundario("frmFormulario");
+	var hayErrores = chequeaErrores();
+		 
+	if (hayErrores != true){
+		//muestraSeleccionAnterior();
+		//cargaComboDias();
+		return;
+	}
+
+	if(get('frmFormulario.accion')=='modificaGrupo'){
+		btnProxy(2, 1);
+		var val=get('frmFormulario.txtDescripcion');
+		set('frmFormulario.valAnteriores',val);
+		accion('frmFormulario.txtCodGrupoSolicitud','.disabled=true');
+		selecValores();
+	}
+
+	if(get('frmFormulario.accion')=='detalleGrupo'){
+		//selecValores();
+		accion('frmFormulario.txtCodGrupoSolicitud','.disabled=true');
+		accion('frmFormulario.txtDescripcion','.disabled=true');
+	}
+
+	if(get('frmFormulario.accion')==''){
+		focaliza("frmFormulario.txtCodGrupoSolicitud", "");
+	}
+}
+
+function  chequeaErrores()
+	{
+		var errCod = get("frmFormulario.errCodigo");
+
+		if (errCod != null)
+		{
+				fMostrarMensajeError();
+				return true;
+		}
+
+		return false;
+
+	}
+
+function fGuardar(){
+    if(!sicc_validaciones_generales()){
+        return;    
+    }
+		
+    //if(!fValidarCTEXT('frmFormulario.txtCodGrupoSolicitud')){focaliza(frmFormulario.txtCodGrupoSolicitud)};
+    //if(!fValidarCOMBO('frmFormulario.cbCodTipoSolicitud')){focaliza(frmFormulario.cbCodTipoSolicitud)};
+    //if(fValidarCTEXT('frmFormulario.txtDescripcion'));
+    
+    armaLista();
+    
+    var x= get('frmFormulario.txtCodGrupoSolicitud');
+    set('frmFormulario.txtCodGrupoSolicitud', x.toUpperCase());
+    
+    //reload_insertar();
+    
+    set('frmFormulario.accion','guardar');
+    set('frmFormulario.conectorAction','LPGrupoSolicitud');
+
+    var tipoSolic = get('frmFormulario.cbCodTipoSolicitud'); 
+    set('frmFormulario.cbCodTipoSolicitud', tipoSolic); 
+
+    enviaSICC('frmFormulario');
+    focaliza('frmFormulario.txtCodGrupoSolicitud');
+}
+
+	//*************************************
+	function borraElemCombo(){
+		var coll = document.all.tags("SELECT");
+		var it = coll(0).options;
+		var lista = new Array();
+		var indice=0;
+		//LLenamos la lista
+		for(var i=0;i<it.length;i++){
+			if(it(i).selected){
+				lista[indice]=it(i).value;
+				indice++;	
+			} 
+		}
+		
+		
+		//Eliminar elemento del combo
+		for(var i=0;i<lista.length;i++){
+			for(var x=0;x<=it.length+1;x++){
+			    
+				if(lista[i]==it(x).value){
+					coll(0).remove(x);
+					break;
+				}
+			}
+			var it = coll(0).options;
+			
+		}
+		
+		
+		
+	}
+
+//*****************Arma la lista para el vector solicitudes****************************************
+function armaLista(){
+		var coll = document.all.tags("SELECT");
+		var it = coll(0).options;
+		var lista = new Array();
+		var indice=0;
+		//LLenamos la lista
+		for(var i=0;i<it.length;i++){
+			if(it(i).selected){
+				lista[indice]=it(i).value;
+				indice++;	
+			} 
+		}
+		set('frmFormulario.valorSeleccionado',lista);
+}
+//**********************************************************
+	function reload_insertar(operacionCorrecta){ 
+	/*borraElemCombo();
+	fLimpiarGenericoSICC();*/
+	//envia_sicc(
+	/*alert('LLega aca reload');
+	alert('operacion correcta es ' +  operacionCorrecta);*/
+	if(operacionCorrecta == true){
+		 fLimpiar();
+	}
+	
+	focaliza("frmFormulario.txtCodGrupoSolicitud", "");
+
+	}
+
+//***********************************************************************
+
+/**
+ * Sistema:     Belcorp
+ * Modulo:      INC
+ * Fecha:       
+ * @version     
+ * @autor       
+ *
+ * @modified	Marcelo J. Maidana
+ * Fecha:		15/07/2005
+ * Descripcion	Si el caso de uso es consulta, se posiciona el combo
+ * con sus valores originales. (Inc. BELC300014812 - DBLG200000327).
+ * Ultima modificacion por Noziglia C.
+ */
+function val_Combo(){
+	//Si es consulta, se dejan seleccionados los valores originales.
+	//No se deshabilita el combo para que permita scroll.
+	//(Inc. BELC300014812 - DBLG200000327)
+	if(get('frmFormulario.accion')=='detalleGrupo'){
+
+		set('frmFormulario.cbCodTipoSolicitud','.disabled=true');
+
+		//selecValores();
+		return false;
+	}
+
+	//var descrip=get('frmFormulario.cbCodTipoSolicitud','T');
+	var valLoad = new Array(get('frmFormulario.cbCodTipoSolicitud'),get('frmFormulario.valorSeleccionado'));
+	//var elem=new Array(valor,descrip);
+     set('frmFormulario.valorSeleccionado',valLoad);	
+}
+//**********************************************************************
+
+function selecValores(){
+    //Elementos del combo
+    var coll = document.all.tags("SELECT");
+	var it = coll(0).options;
+	
+	//Valores devueltos desde el DTO
+	var cad=get('frmFormulario.lista');
+
+	//alert(cad);
+
+	var val = new Array();
+		val= cad.split(",");
+		for(var i=0;i<(val.length)-1;i++){
+			for(var x=1;x<=it.length;x++){
+				if(val[i]==it(x).value){
+					it(Math.abs(x)).selected=true;
+				     break;
+				}
+			}
+		}
+	
+		
+		
+}
+//*********************************************
+function fLimpiar() {  
+	if(get('frmFormulario.accion')=='modificaGrupo')	{
+		//var cad=get('frmFormulario.valAnteriores');
+		//var val = new Array();
+		//val= cad.split(',');
+		//set('frmFormulario.txtDescripcion',get('frmFormulario.valAnteriores'));
+		selecValores();		
+	}else{	
+		set('frmFormulario.txtCodGrupoSolicitud','');
+		set('frmFormulario.txtDescripcion','');
+		set('frmFormulario.cbCodTipoSolicitud',  new Array() );
+		focaliza('frmFormulario.txtCodGrupoSolicitud');
+		set('frmFormulario.valorSeleccionado','');
+		limpiaI18N('frmFormulario', 1)	;
+	}
+}
+
+//*************************************************************
+function TabUp(){
+	if(get('frmFormulario.accion')=='')
+	{
+			focaliza('frmFormulario.txtCodGrupoSolicitud');		
+	}else{
+		focaliza('frmFormulario.txtDescripcion');
+	}
+}
+
+function TabShift(){
+	focaliza('frmFormulario.txtDescripcion');	
+}
+
+function fVolver() {    
+      window.close();
+    }
+
+function prueba(){
+
+	alert('click');
+
+	event.returnValue = false;
+	return false;
+
+}
+
+
+  ]]> 
+  </JAVASCRIPT>
+
+  
+
+<!--Barra Modificar grupos solicitud cod="0647"
+    Barra Consultar grupos solicitud cod="0648"
+    Barra Eliminar grupos solicitud cod="0649"-->
+ 
+<FORMULARIO nombre="frmFormulario" oculto="S">
+<VAR nombre="accion" valor=""/>
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="casoDeUso" valor=""/>
+<VAR nombre="oidGrupoSol" valor=""/>
+<VAR nombre="valorSeleccionado" valor=""/>
+<VAR nombre="lista" valor=""/>
+<VAR nombre="valAnteriores" valor=""/>
+<VAR nombre="errCodigo" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="rec" valor=""/>
+<CAPA nombre="valCombo" >
+
+<VALIDACION>
+						<ELEMENTO name="txtCodGrupoSolicitud" required="true" cod="2249" />
+						<ELEMENTO name="cbCodTipoSolicitud" required="true" cod="415" />
+						<ELEMENTO name="txtDescripcion" required="true" cod="9" />
+</VALIDACION>
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblDatosAlta" alto="13" filas="1" cod="00127" id="legend" /></legend>
+          <!---primera fila-->
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                  <td><IMG src="b.gif" width="8" height="8"/></td>
+                  <td><LABELC nombre="lblCodGrupoSolicitud" alto="13" filas="1" valor="" id="datosTitle" cod="2249"/></td>
+                  <td><IMG src="b.gif" width="25" height="8"/></td>
+                  <td><LABELC nombre="lblCodTipoSolicitud" alto="13" filas="1" valor="" id="datosTitle" cod="415"/></td>
+                  <td><IMG src="b.gif" width="25" height="8"/></td>
+                  <td colspan="3"><LABELC nombre="lblDescripcion" alto="13" filas="1" valor="" id="datosTitle" cod="9"/></td>
+                  <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                  <td><IMG src="b.gif" width="8" height="8"/></td>
+                  <td valign="top" nowrap="nowrap"><CTEXTO nombre="txtCodGrupoSolicitud" id="datosCampos" max="2" tipo="" onchange="" req="S" size="2" valor="" validacion="" onshtab="TabShift();" /></td>
+				  
+                  <td><IMG src="b.gif" width="25" height="8"/></td>
+                  <td nowrap="nowrap">
+                    <COMBO nombre="cbCodTipoSolicitud" id="datosCampos" size="5" multiple="S" req="S" valorinicial="" textoinicial="" onchange="val_Combo();">
+                      <ROWSET>	
+                        
+                     </ROWSET>
+                    </COMBO>
+                  </td>
+                  <td><IMG src="b.gif" width="25" height="8"/></td>
+                  <td valign="top" nowrap="nowrap"><CTEXTO nombre="txtDescripcion" id="datosCampos" max="40" tipo="" onchange="" req="S" size="40" valor="" validacion="" ontab="TabUp();"/></td>
+		  <td><IMG src="b.gif" width="8" height="8"/></td>
+		  <td valign="top"><IMG src="iconmultidioma.gif" width="21" height="15" onclick="levantarI18N('frmFormulario', '1');"/></td>
+		  <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+              </table>
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+				
+</CAPA> 
+</FORMULARIO>
+</PAGINA> 

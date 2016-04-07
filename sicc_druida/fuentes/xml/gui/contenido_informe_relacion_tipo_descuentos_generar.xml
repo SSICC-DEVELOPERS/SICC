@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_informe_relacion_tipo_descuentos_generar.xml,v 1.1 2009/12/03 18:45:29 pecbazalar Exp $
+   contenido DTO
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_informe_relacion_tipo_descuentos_generar" cod="0750" titulo="Generar Informe Relación de tipos de descuentos" estilos="estilosB3.css" colorf="#F0F0F0" 
+	msgle="" onload="onLoad()" xml:lang="es">
+<JS src="sicc_util.js"/>   
+   <JS src="PaginacionSicc.js"/>    
+   <JS src="DruidaTransactionMare.js"/>
+
+
+<JAVASCRIPT>
+  <![CDATA[ 
+   
+   function onLoad(){
+      configurarMenuSecundario('Formulario');
+      fMostrarMensajeError();
+      setearPais();
+      focaliza('Formulario.cbPais');
+   }
+//------------------------------------------------------------------------------   
+   function generar(formato){
+      
+      if(sicc_validaciones_generales()){
+          var a = new Object();
+          a.accion = 'generar';
+          a.paisSelec = get('Formulario.cbPais');  
+          a.tipoDescuento = quitarItemVacio(get('Formulario.cbTipoDescuento'));
+          a.numeroDescuento = get('Formulario.cbNumDescuento');             
+          mostrarModalSICC('DTORelacionTipoDescuento','generar', a);  
+    
+      }
+
+   }
+
+//------------------------------------------------------------------------------   
+   function recolectarParametros(){
+      
+           
+      set('Formulario.paisSelec', get('Formulario.cbPais') );  
+      set('Formulario.tipoDescuento', quitarItemVacio(get('Formulario.cbTipoDescuento')));
+      set('Formulario.numeroDescuento', get('Formulario.cbNumDescuento'));     
+   
+   }
+ 
+   
+//------------------------------------------------------------------------------      
+
+   function fLimpiar(){
+      var aCombo = new Array(new Array("",""));
+      set_combo('Formulario.cbTipoDescuento', aCombo, []);
+      set_combo('Formulario.cbNumDescuento', aCombo, []);
+      
+      focaliza('Formulario.cbPais');
+ 
+   }
+//------------------------------------------------------------------------------         
+
+
+   function setearPais(){
+      var pais = get('Formulario.pais');
+      
+      iSeleccionado = new Array(); 
+      iSeleccionado[0] = pais;
+      set('Formulario.cbPais',iSeleccionado);
+   }
+
+//------------------------------------------------------------------------------        
+
+   
+   function cambioTipoDescuento(){
+     opciones = new Array();
+     set_combo('Formulario.cbNumDescuento',opciones);                      
+     var tipoDescuento = get('Formulario.cbTipoDescuento','V');
+     var pais = get('Formulario.cbPais');
+     combo_add('Formulario.cbNumDescuento', '', '');
+     
+     for(var k=0;k<ListaNumeroDescuento.datos.longitud;k++) {
+       for(var y=0;y<tipoDescuento.length;y++){
+          if (ListaNumeroDescuento.datos.ij(k,1) == tipoDescuento[y] &&
+              ListaNumeroDescuento.datos.ij(k,0) == pais){ 			 
+               combo_add('Formulario.cbNumDescuento',ListaNumeroDescuento.datos.ij(k,2),ListaNumeroDescuento.datos.ij(k,3));
+          }
+        }
+      }
+   }
+   
+//******************************************************************************
+
+   function onChangePais(){
+       var pais   = get('Formulario.cbPais');
+	   var idioma = get('Formulario.idioma');
+
+	   var arr = new Array();
+	   arr[arr.length] = ['oidPais', pais];
+	   arr[arr.length] = ['oidIdioma', idioma];
+
+	   if(pais != ''){
+	      recargaCombo('Formulario.cbTipoDescuento', 'DTORecargaTipoDescuento', 'es.indra.sicc.util.DTOBelcorp', arr);
+	   }
+       var aCombo = new Array(new Array("",""));
+       set_combo('Formulario.cbNumDescuento', aCombo, []);
+   }
+
+//******************************************************************************
+
+   function quitarItemVacio(elemento){
+      var elementoADevolver = new Array();
+      
+      for(var k=0;k<elemento.length;k++) {
+         if (elemento[k] != ''){ 			 
+            elementoADevolver[elementoADevolver.length] = elemento[k];
+         }
+      }
+        
+      return elementoADevolver;
+      
+   }
+
+  ]]> 
+</JAVASCRIPT>
+
+<VALIDACION>
+    
+    <ELEMENTO name="cbPais" required="true" cod="6"/>
+    <ELEMENTO name="cbTipoDescuento" required="true" cod="1940"/>
+    <ELEMENTO name="cbNumDescuento" required="true" cod="933"/>
+    
+    
+
+   
+</VALIDACION>
+
+
+<FORMULARIO nombre="Formulario">
+<VAR nombre="accion" valor="" />
+<VAR nombre="conectorAction" valor="" />
+<VAR nombre="casoDeUso" valor=""/>
+<VAR nombre="errCodigo" valor="" />
+<VAR nombre="errDescripcion" valor="" />
+<VAR nombre="idioma" valor="" />
+
+<VAR nombre="pais" valor=""/>
+<VAR nombre="paisSelec" valor=""/>
+<VAR nombre="tipoDescuento" valor="" />
+<VAR nombre="numeroDescuento" valor="" />
+
+
+<CAPA nombre="capa">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblCriteriosSeleccion"  alto="13" filas="1" valor="" id="legend" cod="00275"/></legend>
+          <!---primera fila-->
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          
+          <tr><td>
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblPais"  alto="13" filas="1" id="datosTitle" cod="5" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap">
+                     <COMBO nombre="cbPais" size="1" multiple="N" valorinicial="" textoinicial="" id="datosCampos" req="S"  onshtab="focalizaBotonHTML('botonContenido','btnGenerarInforme');" onchange="onChangePais();">
+                	<ROWSET>
+                  	
+                  	</ROWSET>	
+	             </COMBO> 
+                   </td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>
+         
+          <tr><td>
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblTipoDescuento"  alto="13" filas="1" id="datosTitle" cod="1940" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblNumDescuento"  alto="13" filas="1" id="datosTitle" cod="933" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap">
+                     <COMBO nombre="cbTipoDescuento" size="5" multiple="S" valorinicial="" textoinicial="" id="datosCampos" req="S" onchange="cambioTipoDescuento();">
+                	<ROWSET>
+                  	
+                  	</ROWSET>	
+	             </COMBO> 
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" valign="top">
+                     <COMBO nombre="cbNumDescuento" size="1" multiple="N" valorinicial="" textoinicial="" id="datosCampos" req="S">
+                	<ROWSET>
+                  	
+                  	</ROWSET>	
+	             </COMBO> 
+	           </td>
+	           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+              </table>
+            </td></tr>
+           
+           </table>
+       <!---fin primera fila-->
+         
+        
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnGenerarInforme" ID="botonContenido" tipo="html" accion="generar();" estado="false" cod="2495" ontab="focaliza('Formulario.cbPais')"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>       
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+ </CAPA>                                                                                                                                                           
+</FORMULARIO>
+</PAGINA>

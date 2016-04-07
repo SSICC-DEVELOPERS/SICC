@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_caja_cerrar_detalle.xml,v 1.1 2009/12/03 18:43:57 pecbazalar Exp $
+   BEL
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+<PAGINA nombre="contenido_caja_cerrar_detalle" cod="0474" titulo="Cerrar una caja" estilos="estilosB3.css" colorf="#F0F0F0"
+        msgle="" onload="cargarPagina();" xml:lang="es" >
+
+<JS src="sicc_util.js"/>
+<JS src="DruidaTransactionMare.js"/>     
+<JS src="validaciones_sicc.js"/>
+<JAVASCRIPT>
+  <![CDATA[ 
+
+    var varNoLimpiarSICC = true;
+    function cargarPagina(){
+
+       
+       configurarMenuSecundario('frmFormulario');
+       focaliza('frmFormulario.cbMedioPago');
+
+       //obtengo el oid y la desc de los hiddens, armo una tupla y la pongo en el combo
+       var oidMoneda  = get('frmFormulario.hOidComboMoneda');
+       var descMoneda = get('frmFormulario.hDescComboMoneda');
+       
+            
+       var aCombo = new Array();
+       aCombo[0] = ['',''];
+       aCombo[1] = [oidMoneda,descMoneda];
+       
+       set_combo('frmFormulario.cbMoneda', aCombo);
+
+        if(get('frmFormulario.accion') == 'modificar'){
+
+          iSeleccionado = new Array(); 
+          
+          iSeleccionado[0] = get('frmFormulario.hMedioPago');
+          set('frmFormulario.cbMedioPago',iSeleccionado);
+
+          iSeleccionado2 = new Array();  
+          iSeleccionado2[0] = get('frmFormulario.hMoneda')
+          set('frmFormulario.cbMoneda',iSeleccionado2);
+      
+          set('frmFormulario.txtImporte', get('frmFormulario.hImporte'));
+          set('frmFormulario.txtImporteDivisa', get('frmFormulario.hImporteDivisa'));
+       }else{
+         accion('frmFormulario.txtImporteDivisa', '.disabled = true');
+       }
+       
+
+    }
+
+//------------------------------------------------------------------------------    
+   function fGuardar(){
+   
+	  if(sicc_validaciones_generales()){
+
+         var descMedioPago = get('frmFormulario.cbMedioPago', 'T');
+         var descMoneda    = get('frmFormulario.cbMoneda', 'T');
+         var importe       = get('frmFormulario.txtImporte');
+         var importeDivisa = get('frmFormulario.txtImporteDivisa');
+         var oidMedioPago  = get('frmFormulario.cbMedioPago');
+         var oidMoneda     = get('frmFormulario.cbMoneda');
+
+         var arr = new Array();
+         
+         arr[0] = descMedioPago;
+         arr[1] = descMoneda;
+         arr[2] = importe;  
+         arr[3] = importeDivisa;
+         arr[4] = oidMedioPago;
+         arr[5] = oidMoneda;
+    
+         returnValue = arr;
+         this.close();
+      }
+   }
+
+//------------------------------------------------------------------------------
+/*function validarImporte(){
+     
+     var importe = new String(get('formularios.txtImporte'));
+     var importeCaracter = importe.charAt(0);
+     var importeDivisa = new String(get('formularios.txtImporteDivisa'));
+     var importeDivisaCaracter = importeDivisaCaracter = importeDivisa.charAt(0);
+     var banderaTemp = false;
+     var bandera = true;
+     var numeros = new Array();
+     numeros = ['1','2','3','4','5','6','7','8','9','0'];
+     
+     
+     //aca valida el importe
+     if(importeCaracter != ''){
+        for(var k=0;k<numeros.length;k++) {
+           if(importeCaracter == numeros[k]){
+              banderaTemp = true;
+           }else if(importeCaracter == '-' && k==0){
+			  banderaTemp = true;
+		   }else{
+			  banderaTemp = false;
+			  k = numeros.length;
+		   }
+        }
+
+     }
+     
+      //aca valida el importe Divisa
+     if(importeDivisaCaracter != ''){
+        for(var k=0;k<numeros.length;k++) {
+           if(importeDivisaCaracter == numeros[k]){
+              banderaTemp = true;
+           }else if(importeDivisaCaracter == '-' && k==0){
+			  banderaTemp = true;
+		   }else{
+			  banderaTemp = false;
+			  k = numeros.length;
+		   }
+        }
+     }
+        
+     if(banderaTemp){
+        return true;
+     }else{
+        return false;
+     }
+ 
+  }*/
+
+
+
+//---------------------------------------------------------------------
+   function monedaOnChange(){
+      if(get('frmFormulario.cbMoneda') != ''){
+         set('frmFormulario.txtImporte', '');
+         accion('frmFormulario.txtImporte', '.disabled=true');
+         accion('frmFormulario.txtImporteDivisa', '.disabled=false');
+         sicc_cambiar_estado('txtImporte', false);
+         sicc_cambiar_estado('txtImporteDivisa', true);
+      }else{
+        set('frmFormulario.txtImporteDivisa', '');
+        accion('frmFormulario.txtImporteDivisa', '.disabled = true');
+        accion('frmFormulario.txtImporte', '.disabled = false');
+        sicc_cambiar_estado('txtImporteDivisa', false);
+        sicc_cambiar_estado('txtImporte', true);
+      }
+   }
+//------------------------------------------------------------------------------
+   function fLimpiar(){
+      cargaPantalla();   
+
+   }
+//------------------------------------------------------------------------------
+
+   function cargaPantalla(){
+      if(get('frmFormulario.accion') == 'modificar'){
+
+          iSeleccionado = new Array(); 
+         
+          iSeleccionado[0] = get('frmFormulario.hMedioPago');
+          set('frmFormulario.cbMedioPago',iSeleccionado);
+
+          iSeleccionado2 = new Array();  
+          iSeleccionado2[0] = get('frmFormulario.hMoneda')
+          set('frmFormulario.cbMoneda',iSeleccionado2);
+      
+          if(get('frmFormulario.hImporte') != ''){
+             set('frmFormulario.txtImporteDivisa', '');
+             accion('frmFormulario.txtImporteDivisa', '.disabled = true');
+             accion('frmFormulario.txtImporte', '.disabled = false');
+             sicc_cambiar_estado('txtImporte', true);
+             sicc_cambiar_estado('txtImporteDivisa', false);
+             set('frmFormulario.txtImporte', get('frmFormulario.hImporte'));
+          }else{
+             set('frmFormulario.txtImporte', '');
+             accion('frmFormulario.txtImporteDivisa', '.disabled = false');
+             accion('frmFormulario.txtImporte', '.disabled = true');
+             sicc_cambiar_estado('txtImporte', false);
+             sicc_cambiar_estado('txtImporteDivisa', true);
+             set('frmFormulario.txtImporteDivisa', get('frmFormulario.hImporteDivisa'));
+          }
+       }else{
+          set('frmFormulario.cbMedioPago','');    
+          set('frmFormulario.cbMoneda','');
+          set('frmFormulario.txtImporte', '');
+          set('frmFormulario.txtImporteDivisa', '');
+         
+       }
+
+       focaliza('frmFormulario.cbMedioPago');
+
+   }
+
+  ]]> 
+
+  <VALIDACION>
+     <ELEMENTO name="cbMedioPago" required="true" group="gGuardar"  cod="673"/>
+	 <ELEMENTO name="txtImporte" required="false" format="n" min="-9999999999.99" max="9999999999.99" cod="573" />
+     <ELEMENTO name="txtImporteDivisa" required="false"  format="n"  min="-9999999999.99" max="9999999999.99" cod="668"/>
+  </VALIDACION>
+         
+</JAVASCRIPT>
+    
+         
+
+  
+<FORMULARIO nombre="frmFormulario">
+<VAR nombre="accion" valor=""/>
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="errCodigo" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="hMedioPago" valor=""/>
+<VAR nombre="hMoneda" valor=""/>
+<VAR nombre="hImporte" valor=""/>
+<VAR nombre="hImporteDivisa" valor=""/>
+<VAR nombre="hOidComboMoneda" valor=""/>
+<VAR nombre="hDescComboMoneda" valor=""/>
+<VAR nombre="hTipoCambio" valor=""/>
+
+ <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblDatosDetalle" alto="13" filas="1" valor="" id="legend" cod="00133"/></legend>
+          <!---primera fila-->
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr><td> 
+	                <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+	                <tr> 
+	                  <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+	                </tr>
+	                <tr>
+	                   <td><IMG src="b.gif" width="8" height="8"/></td>
+	                   <td><LABELC nombre="lblMedioPago" alto="13" filas="1" valor="" id="datosTitle" cod="673"/></td>
+	                   <td><IMG src="b.gif" width="25" height="8"/></td>
+	                   <td><LABELC nombre="lblMoneda" alto="13" filas="1" valor="" id="datosTitle" cod="1216"/></td>
+	                   <td><IMG src="b.gif" width="25" height="8"/></td>
+	                   <td><LABELC nombre="lblImporte" alto="13" filas="1" valor="" id="datosTitle" cod="573"/></td>
+	                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                </tr> 
+	                <tr>
+	                   <td><IMG src="b.gif" width="8" height="8"/></td>
+	                   <td nowrap="nowrap">
+	                      <COMBO nombre="cbMedioPago" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onshtab="focalizaBotonHTML('botonContenido','btnAceptar')">
+	                      	<ROWSET>
+	                      	</ROWSET>
+	                      </COMBO>
+	                   </td>
+	                   <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td valign="bottom">
+	                      <COMBO nombre="cbMoneda" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" onchange="monedaOnChange();">
+	                      	<ROWSET>
+	                      	
+	                      	</ROWSET>
+	                      </COMBO>
+	                   </td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                   <td nowrap="nowrap" valign="bottom"><CTEXTO nombre="txtImporte" id="datosCampos" max="13" onchange="" req="N" size="19" valor="" validacion="" /></td>
+	                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                </tr>
+	                <tr>
+	                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+	                </tr> 
+	              </table>
+	       
+              </td></tr>
+              <tr><td> 
+	               <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+	                <tr>
+	                   <td><IMG src="b.gif" width="8" height="8"/></td>
+	                   <td><LABELC nombre="lblImporteDivisa" alto="13" filas="1" valor="" id="datosTitle" cod="668"/></td>
+	                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+	                </tr>
+	                <tr>
+	                   <td><IMG src="b.gif" width="8" height="8"/></td>
+	                   <td nowrap="nowrap"><CTEXTO nombre="txtImporteDivisa" id="datosCampos" max="13" tipo="" onchange="" req="N" size="19" valor="" validacion="" /></td>
+	                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+	                </tr>
+		        <tr> 
+	                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+	                </tr> 
+	              </table>
+              </td></tr>
+      
+            
+              </table>
+       
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnAceptar" ID="botonContenido" tipo="html" accion="fGuardar();" estado="false" cod="12" ontab="focaliza('frmFormulario.cbMedioPago')"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>       
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+  
+</FORMULARIO>
+</PAGINA>

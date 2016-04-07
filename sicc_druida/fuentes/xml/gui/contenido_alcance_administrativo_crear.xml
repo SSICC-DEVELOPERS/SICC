@@ -1,0 +1,605 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_alcance_administrativo_crear.xml,v 1.1 2009/12/03 18:46:19 pecbazalar Exp $
+   GEN
+
+   DRUIDATARGET=/install/cvsiniciales
+   -->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_alcance_administrativo_crear" cod="0644" titulo="Alcance administrativo" 
+estilos="estilosB3.css" colorf="#F0F0F0" msgle="" onload="onLoadPag();" xml:lang="es" >
+      
+      <!--
+           0233 Consultar descuentos
+           0354 Modificar valores de descuentos
+           0343 Eliminar descuentos
+           0664 Crear valores de descuentos           
+        -->         
+        
+<JAVASCRIPT>
+  <![CDATA[ 
+
+    function onLoadPag() {  
+		guardoConExito();
+        DrdEnsanchaConMargenDcho('listado1',12);
+        document.all["Cplistado1"].style.visibility='';
+        document.all["CpLin1listado1"].style.visibility='';
+        document.all["CpLin2listado1"].style.visibility='';
+        document.all["CpLin3listado1"].style.visibility='';
+        document.all["CpLin4listado1"].style.visibility='';
+        document.all["separaDiv"].style.visibility='hidden';
+        document.all["primera1Div"].style.visibility='hidden';
+        document.all["ret1Div"].style.visibility='hidden';
+        document.all["ava1Div"].style.visibility='hidden';
+        document.all["btnSiguienteDiv"].style.visibility='';
+        document.all["btnAnadirDiv"].style.visibility='';
+        eval (ON_RSZ);  
+
+        configurarMenuSecundario('formulario');
+		fMostrarMensajeError();
+        
+        document.getElementById("InsertarP3").style.backgroundColor = "#496A9A";
+        document.getElementById("InsertarP3").style.color = "#FFFFFF";
+
+		ColocarValoresDeLaMatrizDeDescuento();
+		btnProxy(2,"1");
+
+        if (get('formulario.casoDeUso') == 'consultar' || 
+			get('formulario.casoDeUso') == 'modificar'){
+			//btnProxy(2,"1");
+			//btnProxy(3,"0"); 
+			
+			if (get('formulario.casoDeUso') == 'consultar' ){
+				//Deshabilito boton
+				deshabilitarHabilitarBoton('botonContenido','btnAnadir','D');
+				deshabilitarHabilitarBoton('botonContenido','btnEliminar','D');
+				accion('formulario.rbNacional','.disabled=true');
+				document.all.rbNacional[0].disabled=true;
+				document.all.rbNacional[1].disabled=true;
+                focalizaBotonHTML_XY('btnSiguiente');
+                btnProxy(3,"1");
+			}
+		}
+        if (get('formulario.casoDeUso') != 'consultar' )
+            focaliza("formulario.rbNacional","");
+            
+
+        set('formulario.hidUltimoElementoEnLaLista','1'); 
+        
+    }
+
+
+    function navegaPestaniasDetalle(pestanya){
+        set('formulario.conectorAction', 'LPMantenimientoAlcanceAdministrativo');
+        set('formulario.accion', 'siguiente');
+		if (pestanya == 3){
+            set("formulario.hidPestanya", "3");
+    		enviaSICC('formulario');  
+		}
+    }
+
+
+    function accionAniadir() {
+        var vValorNacional = get ('formulario.rbNacional','V');
+        var obj = new Object();
+
+        obj.hidOidDescuento = get('formulario.hidOidDescuento');
+        var whnd = mostrarModalSICC('LPMantenimientoAlcanceAdministrativo',
+		'aniadir',obj,null, 250);
+        if(whnd==null){
+
+        }
+        else{
+	        //var codigo = listado1.generaCodigo(0)+1;
+            var posi = parseInt(get('formulario.hidUltimoElementoEnLaLista'), 10);
+            var codigo = listado1.generaCodigo( posi );
+                    
+                    var datos = codigo + "|" + whnd[0] + "|" +  whnd[1] + "|" +  
+					whnd[2] + "|" +  whnd[3] + "|" +  whnd[4];  
+                    datos = datos + "|" + whnd[5] + "|" +  whnd[6] ;
+
+                    //Se buscan los nuevos datos en la lista                    
+                    if (!existeFila(datos)) {
+                        var newRow = new Array();
+                        newRow = datos.split("|");
+                        listado1.insertar(newRow);
+                        set('formulario.hidUltimoElementoEnLaLista', codigo);
+                    }
+             
+        }
+    }
+    
+    function existeFila(datos)  {
+        listado1.actualizaDat();
+        var codigo = listado1.codigos();
+        var newRow = new Array();
+        newRow = datos.split("|");
+        var flag = false;
+        var a = 0;
+        
+        while( (a < codigo.length ) && (flag == false) ){
+            if( cdos_trim(newRow[1]) == 
+			cdos_trim(listado1.extraeDato(codigo[a], 0)) )
+            {//oidSubgerenciaVentas
+	            if( cdos_trim(newRow[3]) == 
+				cdos_trim(listado1.extraeDato(codigo[a], 2)))
+                {//oidRegion
+                    if( cdos_trim(newRow[5]) == 
+					cdos_trim(listado1.extraeDato(codigo[a], 4)))
+                    {//oidZona
+                        flag = true;
+                        listado1.insertaDato (codigo[a],6,newRow[7]);
+                    }
+                }
+            }			
+            a++;
+		}//while
+        
+        return flag;
+    }
+
+    function accionEliminar() {
+        var cantElementosSel = listado1.codSeleccionados();
+		if ( cantElementosSel.length == 0) {
+			GestionarMensaje("4", null, null, null);
+			return ;
+		}
+		listado1.eliminarSelecc();
+    }
+
+    
+    function siguiente() {      
+	   if(get('formulario.casoDeUso') != 'consultar' ){
+		  if( validarAlcance() ) /* Inc 9820 */{
+				set('formulario.hidAlcance', get ('formulario.rbNacional','V'));			
+				ObtenerInformacionDescuentosDefinidos();
+				set('formulario.conectorAction', 
+				'LPMantenimientoAlcanceAdministrativo');
+				set('formulario.accion', 'siguiente');
+				enviaSICC('formulario');
+    		}
+		}
+		else{
+				set('formulario.hidAlcance', get ('formulario.rbNacional','V'));			
+				ObtenerInformacionDescuentosDefinidos();
+				set('formulario.conectorAction', 
+				'LPMantenimientoAlcanceAdministrativo');
+				set('formulario.accion', 'siguiente');
+				enviaSICC('formulario');
+		}
+        
+    }
+
+	 function fGuardar(){
+        if( validarAlcance() ) { /* Inc 9820 */
+			set('formulario.hidAlcance', get ('formulario.rbNacional','V'));			
+            ObtenerInformacionDescuentosDefinidos();    
+            set('formulario.conectorAction', 
+			'LPMantenimientoAlcanceAdministrativo');
+            //eval('formulario').oculto="S"; 
+            set('formulario.accion', 'guardar');
+            enviaSICC('formulario');
+        }
+	 }
+
+    function accionGuardar() {
+        if( validarAlcance() ) { /* Inc 9820 */
+			set('formulario.hidAlcance', get ('formulario.rbNacional','V'));			
+            ObtenerInformacionDescuentosDefinidos();    
+            set('formulario.conectorAction', 
+			'LPMantenimientoAlcanceAdministrativo');
+            set('formulario.accion', 'siguiente');
+            enviaSICC('formulario');
+        }
+    }
+
+    function ObtenerInformacionDescuentosDefinidos()  {
+        var descuentosAdicionales = listado2String();
+        set('formulario.hidDetalleUnidadesAdmin',descuentosAdicionales);
+    }
+
+	function listado2String(){
+		var codigo = listado1.codigos();
+		var total = "";
+		var longitud = codigo.length;
+
+		for(var a = 0; a < longitud; a++){
+			var toAdd = "";
+			toAdd = "oid:"+ codigo[a];
+
+			if(listado1.extraeDato(codigo[a], 0)!= null && 
+			listado1.extraeDato(codigo[a], 0)!="")
+				toAdd = toAdd + "|" + "sgv:" + 
+				listado1.extraeDato(codigo[a], 0);   
+				//oidSubgerenciaVentas
+			
+			if(listado1.extraeDato(codigo[a], 2)!= null && 
+			listado1.extraeDato(codigo[a], 2)!="")
+				toAdd = toAdd + "|" + "r:"  + 
+				listado1.extraeDato(codigo[a], 2);    
+				//oidRegion
+			
+			if(listado1.extraeDato(codigo[a], 4)!= null && 
+			listado1.extraeDato(codigo[a], 4)!="")
+				toAdd = toAdd + "|" + "z:"  + 
+				listado1.extraeDato(codigo[a], 4);    
+				//oidZona
+			
+			if(listado1.extraeDato(codigo[a], 6)!= null && 
+			listado1.extraeDato(codigo[a], 6)!="")
+				toAdd = toAdd + "|" + "da:"  + 
+				listado1.extraeDato(codigo[a], 6);   
+				//descuentoAdicional
+
+			if(listado1.extraeDato(codigo[a], 1)!= null && 
+			listado1.extraeDato(codigo[a], 1)!="")
+				toAdd = toAdd + "|" + "descsgv:"  + 
+				listado1.extraeDato(codigo[a], 1); 
+				//desc subgerencia ventas
+
+			if(listado1.extraeDato(codigo[a], 3)!= null && 
+			listado1.extraeDato(codigo[a], 3)!="")
+				toAdd = toAdd + "|" + "descr:"  + 
+				listado1.extraeDato(codigo[a], 3); 
+				//desc subgerencia ventas
+		
+			if(listado1.extraeDato(codigo[a], 5)!= null && 
+			listado1.extraeDato(codigo[a], 5)!="")
+				toAdd = toAdd + "|" + "descz:"  + 
+				listado1.extraeDato(codigo[a], 5); 
+				//desc zona
+      	
+			total = total + "$" + toAdd;
+		}		
+		return total;
+	}
+
+
+    function ColocarValoresDeLaMatrizDeDescuento() {
+        if (get('formulario.VisibleAlcance') == 'N') {
+            visibilidad('formulario.rbNacional','hidden');
+        }
+		
+        if (get('formulario.ModificableAlcance') == 'N') {
+            document.all.rbNacional[0].disabled=false;
+            document.all.rbNacional[1].disabled=false;
+        }
+		
+		var primera = get('formulario.primeraEntradaPestanya');			
+
+		if(primera=="S" && get('formulario.casoDeUso') == 'insertar') {
+			var valor = get('formulario.selAlcanceAdministrativoDescuento');			
+		}
+		else {
+			var valor = get('formulario.hidAlcance');
+		}
+
+        set('formulario.rbNacional',valor);
+    }
+
+    function fVolver(){
+	        /*if ( get('formulario.casoDeUso') == "consultar" || 
+			get('formulario.casoDeUso') == "modificar")  {
+				window.close();
+			}
+			else {
+				set("formulario.conectorAction","LPMantenimientoDTO");
+				set("formulario.accion","volver");
+				enviaSICC("formulario");
+			}*/
+
+			onClickPestanya('1');
+    }
+
+    function validarAlcance() { /*Sol Inc 9820*/
+        var respuesta = true;
+        var vDescuento;
+        var vValorNacional = get ('formulario.rbNacional','V');
+        var codigo = listado1.codigos();
+		var longitud = codigo.length;
+        
+        if ( vValorNacional == 'S') {
+            if (codigo.length  > 0) {
+                for(var a = 0; a < longitud ; a++)  {
+                    vDescuento = 
+					cdos_trim(listado1.extraeDato(codigo[a], 6));
+					//descuentoAdicional
+                    if (vDescuento == 0 || vDescuento == '') {
+                        GestionarMensaje('1249', 'Alcance');
+                        respuesta = false;
+                    }
+                }
+            }
+        }
+        else  {
+            if (codigo.length  <= 0) {
+                GestionarMensaje('1430', 'Alcance');
+                respuesta = false;
+            }
+        }
+        return respuesta;
+    }
+    
+	function fLimpiar() {
+        if (get('formulario.casoDeUso') != 'consultar' ){
+            var valor = get('formulario.hidAlcance');
+			set('formulario.rbNacional',valor);
+
+            focaliza('formulario.rbNacional');
+        }
+    }
+
+    function onTabSiguiente() {
+        if (get('formulario.casoDeUso') != 'consultar' )            
+            focalizaBotonHTML_XY('btnAnadir');
+        else {
+            focalizaBotonHTML_XY('btnSiguiente');
+        }
+    }
+    
+    function onShTabSiguiente() {
+        if (get('formulario.casoDeUso') != 'consultar' )
+            focaliza('formulario.rbNacional');
+        else {
+            focalizaBotonHTML_XY('btnSiguiente');
+        }
+    }
+    
+    function accionExitosa(){
+		window.close();
+    }
+
+    function accionError(){
+        fMostrarMensajeError();
+    }
+
+	//Agregado por Cristian Valenzuela - 4/11/2005
+	//(Cambios de incidencia BELC300014763)
+	function onClickPestanya(pestanya) {
+		set("formulario.idPestanyaDest", pestanya);		
+		set("formulario.casoDeUso", get('formulario.casoDeUso'));		
+		set('formulario.hidAlcance', get('formulario.rbNacional','V'));
+
+		if(get('formulario.casoDeUso')!= 'consultar'){
+			if(validarAlcance()) {
+				ObtenerInformacionDescuentosDefinidos();
+				set('formulario.conectorAction', 
+				'LPMantenimientoAlcanceAdministrativo');
+				set('formulario.accion', 'almacenar');              
+				enviaSICC('formulario');
+			}			
+		}
+		else {
+			set('formulario.conectorAction', 
+			'LPMantenimientoAlcanceAdministrativo');
+			set('formulario.accion', 'redirigir');              
+			enviaSICC('formulario');
+		}
+	}
+
+  ]]> 
+</JAVASCRIPT>
+    <JS src="sicc_util.js" />
+    <JS src="PaginacionSicc.js"/>
+    <JS src="DruidaTransactionMare.js"/>
+    <JS src="utilidadesDTO.js"/>
+
+<FORMULARIO nombre="formulario" oculto="N">        
+    <VAR nombre="conectorAction" valor=""/>
+    <VAR nombre="accion" valor=""/>
+	<VAR nombre="hidPais" valor=""/>
+	<VAR nombre="hidIdioma" valor=""/>
+	<VAR nombre="hidDetalleUnidadesAdmin" valor=""/>
+	<VAR nombre="hidOidDescuento" valor=""/>
+    <VAR nombre="hidPestanya" valor=""/>
+    <VAR nombre="casoDeUso" valor=""/>
+	<VAR nombre="hidAlcance" valor=""/>	
+    <VAR nombre="idPestanyaDest" valor=""/>
+	<VAR nombre="hExito" valor=""/>
+	<VAR nombre="primeraEntradaPestanya" valor=""/>	
+
+	<!-- Variables para el control del comportamiento del formulario -->
+	<VAR nombre="VisibleAlcance" valor=""/>
+	<VAR nombre="ObligatorioAlcance" valor=""/>
+	<VAR nombre="ModificableAlcance" valor=""/>
+
+    <VAR nombre="selAlcanceAdministrativoDescuento" valor=""/>	
+    
+    <!-- Variable para mantener los codigos de los elementos en la lista -->
+   	<VAR nombre="hidUltimoElementoEnLaLista" valor=""/>
+
+   <!-- Codigo para armar las pestañas -->
+
+ <table  bgcolor="red" width="100%" height="100%" border="0" align="center" cellpadding="0" cellspacing="0" class="menu5">
+  <tr> 
+    <td width="12" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="12" height="10"/></td>
+    <td nowrap="nowrap" class="menu5texto">&nbsp;</td>
+    <td width="10" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="10" height="0"/></td>
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto">
+	<table width="75" border="0" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A">
+        <tr align="center"> 
+          <td nowrap="nowrap" class="menu5textonegrita">
+	    <a href="#">
+		<DIV ID="InsertarP1" 
+		onmouseover="poneManito('InsertarP1');"
+        onclick="onClickPestanya('0')" 
+        style="width:80px;border-style:solid; border-color:#496A9A;border-width:2px;position:relative;top:3px;text-align:center;color:#496A9A;font-family: Arial, Helvetica, sans-serif;font-size: 11px;font-weight: bold; visibility:visible">Datos generales</DIV>
+	    </a>
+	    </td>
+        </tr>
+      </table>
+   </td>     
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto">
+    <table width="75" border="0" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A">
+        <tr align="center"> 
+          <td nowrap="nowrap" class="menu5textonegrita">
+	    <DIV ID="InsertarP2" 
+		onmouseover="poneManito('InsertarP2');"
+        onclick="onClickPestanya('1')"
+        style="width:80px;border-style:solid; border-color:#496A9A;border-width:2px;position:relative;top:3px;text-align:center;color:#496A9A;font-family: Arial, Helvetica, sans-serif;font-size: 11px;font-weight: bold; visibility:visible">Tipo de cliente</DIV>
+	    </td>
+        </tr>
+      </table>
+   </td>
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto">
+    <table width="75" border="0" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A">
+        <tr align="center"> 
+          <td nowrap="nowrap"  class="menu5textonegrita">
+	    <DIV ID="InsertarP3" 
+        style="width:80px;border-style:solid; border-color:#496A9A;border-width:2px;position:relative;top:3px;text-align:center;color:#496A9A;font-family: Arial, Helvetica, sans-serif;font-size: 11px;font-weight: bold; visibility:visible">Alcance administrativo</DIV>
+	    </td>
+        </tr>
+      </table>
+   </td>   
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto">
+    <table width="75" border="0" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A">
+        <tr align="center"> 
+          <td nowrap="nowrap" class="menu5textonegrita">
+	    <DIV ID="InsertarP4" 
+		onmouseover="poneManito('InsertarP4');"
+        onclick="onClickPestanya('3')"
+        style="width:80px;border-style:solid; border-color:#496A9A;border-width:2px;position:relative;top:3px;text-align:center;color:#496A9A;font-family: Arial, Helvetica, sans-serif;font-size: 11px;font-weight: bold; visibility:visible">Base de cálculo</DIV>
+	    </td>
+        </tr>
+      </table>
+   </td>
+ <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto">
+    <table width="75" border="0" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A">
+        <tr align="center"> 
+          <td nowrap="nowrap" class="menu5textonegrita">
+	    <DIV ID="InsertarP5" 
+		onmouseover="poneManito('InsertarP5');"
+        onclick="onClickPestanya('4')" 
+        style="width:80px;border-style:solid; border-color:#496A9A;border-width:2px;position:relative;top:3px;text-align:center;color:#496A9A;font-family: Arial, Helvetica, sans-serif;font-size: 11px;font-weight: bold; visibility:visible">Aplicación de descuento</DIV>
+	    </td>
+        </tr>
+      </table>
+   </td>
+    <td width="16" class="menu5texto"><IMG src="b.gif" width="12" height="8"/></td>
+  </tr>
+</table>
+
+<!-- Fin código para armar las pestañas -->
+
+
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+	<fieldset><legend class="legend"><LABELC nombre="lblAlcance"  alto="13" filas="1" valor="" cod="00100" id="legend" /></legend>
+	<table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+              <table width="400" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblNacional"  alto="13" filas="1" valor="" id="datosTitle" cod="926"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="105" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+	           <td class="datosCampos">
+        	      <RADIOB nombre="rbNacional" tipo="H" id="datosCampos" onshtab="focalizaBotonHTML('botonContenido','btnEliminar')" ontab="focalizaBotonHTML('botonContenido','btnSiguiente')">
+		        <RBINPUT valor="S" check="N" onfocus="" id="datosCampos" cod="117">yy</RBINPUT>
+		        <RBINPUT valor="N" check="N" onfocus="" id="datosCampos" cod="87">nn</RBINPUT>
+		      </RADIOB>
+		   </td>  
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+             </td></tr>
+           </table>
+        </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr> 
+      <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="24"/></td>
+     	<td width="750"><IMG src="b.gif"/></td>
+      	<td width="12"><IMG src="b.gif" width="12" height="24"/></td>
+      </tr>
+    </table> 
+    <LISTAEDITABLE nombre="listado1" ancho="404" alto="317" x="12" y="119" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+        <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+        <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+        <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+      <LINEAS>
+        <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="0" horizTitulo="1" horizBase="1"/> 
+        <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="0043" ID="datosTitle" />
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+         <COL ancho="30" minimizable="S" minimizada="N" oculta="S"/>
+         <COL ancho="240" minimizable="S" minimizada="N"/>
+         <COL ancho="30" minimizable="S" minimizada="N" oculta="S"/>
+         <COL ancho="240" minimizable="S" minimizada="N"/>
+         <COL ancho="30" minimizable="S" minimizada="N" oculta="S"/>
+         <COL ancho="240" minimizable="S" minimizada="N"/>                  
+         <COL ancho="150" minimizable="S" minimizada="N" orden=""/> 
+      </COLUMNAS>
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+        <COL colFondo="" ID="EstCab" >oidSubgerenciaVentas</COL> 
+        <COL colFondo="" ID="EstCab" align="center" cod="124">Subgerencia ventas</COL>  
+        <COL colFondo="" ID="EstCab" >oidRegion</COL> 
+        <COL colFondo="" ID="EstCab" cod="1308">Regiones</COL> 
+        <COL colFondo="" ID="EstCab" >oidZona</COL> 
+        <COL colFondo="" ID="EstCab" cod="1309">Zonas</COL> 		
+        <COL colFondo="" ID="EstCab" cod="791">Porcentaje adiccional dto.</COL> 
+      </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+             coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+             onLoad="" colorSelecc="#D0D9E8">
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>         
+      </DATOS>
+      <ROWSET>
+	
+      </ROWSET>
+       <PAGINADO nombre="mipgndo" ancho="726" sep="$" x="12" class="botonera" y="413" control="|" conector="" rowset="" cargainicial="N">
+        
+        <BOTON nombre="ret1" x="37" y="417" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+        <BOTON nombre="ava1" x="52" y="417" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>
+        
+    </PAGINADO>
+  </LISTAEDITABLE>
+  <BOTON nombre="primera1" x="20" y="417" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();" />      
+  <BOTON nombre="separa" x="59" y="413" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />      
+  <BOTON nombre="btnSiguiente" x="13" y="414" ID="botonContenido" tipo="html" estado="false" cod="446" accion="siguiente();" 
+        ontab="onTabSiguiente();" onshtab="onShTabSiguiente();"/>
+  <BOTON nombre="btnAnadir" x="79" y="414" ID="botonContenido" tipo="html" estado="false" cod="404" accion="accionAniadir();" 
+        ontab="focalizaBotonHTML_XY('btnEliminar');" onshtab="focalizaBotonHTML_XY('btnSiguiente');"/>
+  <BOTON nombre="btnEliminar" x="127" y="414" ID="botonContenido" tipo="html" estado="false" cod="1254" accion="accionEliminar();" 
+            ontab="focaliza('formulario.rbNacional');" onshtab="focalizaBotonHTML_XY('btnAnadir');"/>
+            
+<CAPA nombre="capaEspacio" alto="12" ancho="2" colorf="#F0F0F0"  borde="0" x="0" y="436">
+</CAPA> 
+	
+</FORMULARIO>
+</PAGINA>

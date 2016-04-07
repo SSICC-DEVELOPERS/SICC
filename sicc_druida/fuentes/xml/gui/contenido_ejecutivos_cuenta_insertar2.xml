@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_ejecutivos_cuenta_insertar2.xml,v 1.1 2009/12/03 18:45:16 pecbazalar Exp $
+   prueba arbol 
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+<PAGINA nombre="contenido_ejecutivos_cuenta_insertar" titulo="Insertar ejecutivos de cuenta" estilos="estilosB3.css" colorf="#F0F0F0" 
+    msgle="Insertar parámetros de cartera" onload="onLoadPag();" xml:lang="es">
+
+<VALIDACION>
+    <ELEMENTO name="cbEjecutivoCuenta" required="true" cod="854" />
+    <ELEMENTO name="cbJerarquia" required="true" cod="1489" />
+</VALIDACION>
+<!--  cod="0440" -->
+<!--Barra Modificar ejecutivos de cuenta cod="0441"
+    Barra Eliminar ejecutivos de cuenta cod="0442"
+    Barra Consultar ejecutivos de cuenta cod="0443"-->
+<JAVASCRIPT>
+  <![CDATA[ 
+
+    function onLoadPag()   {    
+        configurarMenuSecundario('frmInsertarCartera');
+        focaliza('frmInsertarCartera.cbEjecutivoCuenta','');
+        if (get('frmInsertarCartera.casoDeUso') == 'modificarInsert'){
+            focaliza('frmInsertarCartera.cbJerarquia');
+            var iSeleccionado = new Array(); 
+			
+			// Incidencia 21586:	splatas
+			iSeleccionado[0] = get('frmInsertarCartera.oidEjecutivo'); 
+			
+			set('frmInsertarCartera.cbEjecutivoCuenta',iSeleccionado);
+            accion('frmInsertarCartera.cbEjecutivoCuenta','.disabled=true');
+
+            var jSeleccionado = new Array();            
+            jSeleccionado[0] = get('frmInsertarCartera.oidJerarquia'); 
+            set('frmInsertarCartera.cbJerarquia',jSeleccionado);
+
+        }else if (get('frmInsertarCartera.casoDeUso') == 'consultarInsert' ||
+                  get('frmInsertarCartera.casoDeUso') == 'eliminarInsert' ){
+
+            var iSeleccionado = new Array(); 
+            iSeleccionado[0] = get('frmInsertarCartera.IDPrincipal'); 
+            set('frmInsertarCartera.cbEjecutivoCuenta',iSeleccionado);
+            
+            var jSeleccionado = new Array();
+            jSeleccionado[0] = get('frmInsertarCartera.oidJerarquia'); 
+            set('frmInsertarCartera.cbJerarquia',jSeleccionado);
+            accion('frmInsertarCartera.cbEjecutivoCuenta','.disabled=true');
+            accion('frmInsertarCartera.cbJerarquia','.disabled=true');
+        }else{
+            btnProxy(4, '0');
+        }
+    }
+    
+  function pestaniaUnidades(){
+        set('frmInsertarCartera.casoDeUso', get('frmInsertarCartera.casoDeUso'));
+        set('frmInsertarCartera.accion','asignaEjecutivo');
+        set('frmInsertarCartera.focoUltimo','false');        
+        eval('frmInsertarCartera').oculto = 'N';
+        enviaSICC('frmInsertarCartera','','','N');
+  }
+
+  function pestaniaUnidadesFoco(){
+        set('frmInsertarCartera.casoDeUso', get('frmInsertarCartera.casoDeUso'));
+        set('frmInsertarCartera.accion','asignaEjecutivo');
+        set('frmInsertarCartera.focoUltimo','true');
+        eval('frmInsertarCartera').oculto = 'N';
+        enviaSICC('frmInsertarCartera','','','N');
+  }
+
+  function fGuardar(){
+
+    if ( validarCamposInsercionLista()){
+        set('frmInsertarCartera.IDPrincipal', get('frmInsertarCartera.cbEjecutivoCuenta'));
+        set('frmInsertarCartera.oidJerarquia', get('frmInsertarCartera.cbJerarquia'));
+        set('frmInsertarCartera.accion','guardarEjecutivo');
+        
+        eval('frmInsertarCartera').oculto = 'S';
+        enviaSICC('frmInsertarCartera');
+    }
+  }
+
+  function guardoCorrectamente(){
+    eval('frmInsertarCartera').oculto = 'N';
+    if (get('frmInsertarCartera.casoDeUso') != 'modificarInsert')  {
+        focaliza('frmInsertarCartera.cbEjecutivoCuenta','');                
+        fLimpiar();
+    }
+    
+    
+  }
+
+  function noPudoGuardar(){
+    eval('frmInsertarCartera').oculto = 'N';
+    focaliza('frmInsertarCartera.cbEjecutivoCuenta','');
+  }
+
+  function fLimpiar(){    
+        if (get('frmInsertarCartera.casoDeUso') == 'consultarInsert' ||
+            get('frmInsertarCartera.casoDeUso') == 'eliminarInsert' ||
+            get('frmInsertarCartera.casoDeUso') == 'modificarInsert'){            
+
+            var iSeleccionado = new Array(); 
+            iSeleccionado[0] = get('frmInsertarCartera.IDPrincipal'); 
+            set('frmInsertarCartera.cbEjecutivoCuenta',iSeleccionado);
+            
+            var jSeleccionado = new Array();
+            jSeleccionado[0] = get('frmInsertarCartera.oidJerarquia'); 
+            set('frmInsertarCartera.cbJerarquia',jSeleccionado);
+        }
+        else{
+            if(get('frmInsertarCartera.casoDeUso') == 'insertar'){
+               set('frmInsertarCartera.cbEjecutivoCuenta','');
+               set('frmInsertarCartera.cbJerarquia','');
+               btnProxy(4, '0');
+            }
+        }
+
+        for(var i=0; i<5; i++) {
+          focaliza("frmInsertarCartera.cbEjecutivoCuenta");
+        }        
+  }
+
+  function fBorrar(){
+  }
+
+  function fVolver(){
+    this.close();
+  }
+
+  function validarCamposInsercionLista(){
+       if(!sicc_validaciones_generales()){
+          return false;
+       }else{
+          return true;
+       }
+  }
+
+  function onshtab_cbEjecutivoCuenta(){
+    focaliza('frmInsertarCartera.cbJerarquia','');
+  }
+
+  function ontab_cbJerarquia(){
+    if (get('frmInsertarCartera.casoDeUso') != 'modificarInsert')  {
+        focaliza('frmInsertarCartera.cbEjecutivoCuenta','');       
+    }
+  }
+
+  function voyUnidades() {
+    pestaniaUnidadesFoco();
+  }
+
+  function verificoComboUsuario() {    
+    if(document.getElementById('cbEjecutivoCuenta').disabled==true) {
+      pestaniaUnidadesFoco();
+    }
+    else {
+      focaliza('frmInsertarCartera.cbEjecutivoCuenta','');
+    }
+  }
+
+        function poneManito(nombre) {          
+          var nombre = document.getElementById(nombre);
+          nombre.style.cursor = "hand";
+         }
+  ]]> 
+</JAVASCRIPT> 
+
+<JS src="sicc_util.js" />
+<JS src="PaginacionSicc.js"/>
+<JS src="DruidaTransactionMare.js"/>    
+
+<FORMULARIO nombre="frmInsertarCartera">
+<VAR nombre="accion" valor=""/>
+<VAR nombre="casoDeUso" valor=""/>
+<VAR nombre="conectorAction" valor="LPEjecutivosCuenta"/>
+<VAR nombre="errCodigo" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="oidEjecutivo" valor="-1"/>
+<VAR nombre="oidJerarquia" valor=""/>
+<VAR nombre="IDPrincipal" valor=""/>
+<VAR nombre="hPais" valor=""/>
+<VAR nombre="hIdioma" valor=""/>
+<VAR nombre="asignaciones" valor=""/>
+<VAR nombre="focoUltimo" valor=""/>
+
+ <table width="100%" height="100%" border="0" align="center" cellpadding="0" cellspacing="0" class="menu4">
+  <tr> 
+    <td width="12" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="12" height="30"/></td>
+    <td nowrap="nowrap" class="menu5texto">&nbsp;</td>
+    <td width="10" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="92" nowrap="nowrap" class="menu5texto">
+      <table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A">
+        <tr align="left"> 
+          <td id="unidades" onmouseover= "poneManito('unidades');" nowrap="nowrap" onclick="pestaniaUnidades();"><LABELC nombre="lblUnidades" ancho="150" alto="13" filas="1" valor="" id="menu5textonegrita" cod="0043"/></td>
+        </tr>
+      </table>
+    </td>
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto">
+      <table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" bgcolor="#496A9A">
+        <tr align="left"> 
+          <td nowrap="nowrap"><LABELC nombre="lblEjecutivosCuenta" ancho="100" alto="13" filas="1" valor="" id="menu5textoblanca" cod="00403"/></td>
+        </tr>
+      </table>
+   </td>
+   
+    <td width="16" class="menu5texto"><IMG src="b.gif" width="12" height="8"/></td>
+  </tr>
+ </table>
+
+<CAPA nombre="capa">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+<!--**************************-->
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblUnidadesAdministrativas" alto="13" filas="1" cod="00212" id="legend" /></legend>
+          <!---primera fila-->
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblEjecutivoCuenta" alto="13" filas="1" valor="" id="datosTitle" cod="136"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbEjecutivoCuenta" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onshtab="voyUnidades();">
+                      <ROWSET>
+                      		
+                      </ROWSET>
+                    </COMBO> </td>
+                    <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+       <!---fin primera fila-->
+        <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+               
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                  <td><LABELC nombre="lblJerarquia" alto="13" filas="1" valor="" id="datosTitle" cod="1489"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                 <td nowrap="nowrap"><COMBO nombre="cbJerarquia" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" ontab="ontab_cbJerarquia();" onshtab="verificoComboUsuario();">
+                      <ROWSET>
+                      		
+                      </ROWSET>
+                    </COMBO>
+                 </td>
+		 <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+     
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+
+</CAPA> 
+ </FORMULARIO>
+</PAGINA> 

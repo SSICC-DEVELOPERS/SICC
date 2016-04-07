@@ -1,0 +1,696 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_operaciones_insertar.xml,v 1.1 2009/12/03 18:45:56 pecbazalar Exp $
+   EDU
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_operaciones_insertar" cod="" titulo="" estilos="estilosB3.css" colorf="#F0F0F0"
+         msgle="" onload="onLoad()" xml:lang="es">
+         
+<!--          cod="0487" titulo=""        -->
+         
+<!-- Caso de uso Modificar Operaciones: cod="0488" 
+     Caso de uso Eliminar Operaciones: cod="0490"
+     Caso de uso Consultar Operaciones: cod="0489" -->  
+     
+<VALIDACION>
+         <ELEMENTO name="txtCodigoOperacion" required="true" group="general" cod="299"/>
+         <ELEMENTO name="txtDescripcionCorta" required="true" group="general" cod="47"/>
+         <ELEMENTO name="txtDescripcionLarga" required="true" group="general" cod="48"/>
+         <ELEMENTO name="cbPrecios" required="true" group="general" cod="1610"/>
+                  <!-- por BELC300018986 este combo debe estar informado --> 
+         <!-- <ELEMENTO name="cbTipoSolicitudGenera" required="false" group="general" cod="1637"/> --> 
+
+                  <ELEMENTO name="cbTipoSolicitud1" required="true" group="cbTipoSolicitud1" cod="1633"/>
+                  <ELEMENTO name="cbTipoSolicitudGenera" required="true" group="cbTipoSolicitudGenera" cod="1637"/>
+
+                  <ELEMENTO name="cbAlmacen" required="true" group="cbAlmacen" cod="797"/>
+                  <ELEMENTO name="cbMovimientoAlmacen" required="true" group="cbMovimientoAlmacen" cod="1639"/>
+    
+    <ELEMENTO name="cbTipoSolicitudRecojoInicial" required="true" group="gRecojo" cod="3251"/>
+    <ELEMENTO name="cbTipoSolicitudPrimerRecojoNoExitoso" required="true" group="gPRecojoNE" cod="3252"/>
+    <ELEMENTO name="cbTipoSolicitudSegundoRecojoNoExitoso" required="true" group="gSRecojoNE" cod="3253"/>
+    <ELEMENTO name="cbAlmacenPostVenta" required="true" group="gRecojo" cod="3254"/>
+    <ELEMENTO name="cbMovimientoAlmacenRecojoInicial" required="true" group="gRecojo" cod="3255"/>
+    <ELEMENTO name="cbMovimientoAlmacenRecojoExitoso" required="true" group="gRecojo" cod="3256"/>
+    <ELEMENTO name="cbMovimientoAlmacenRecojoNoExitoso" required="true" group="gRecojo" cod="3257"/>
+
+</VALIDACION>
+      
+
+<JS src="PaginacionSicc.js"/>
+<JS src="DruidaTransactionMare.js"/>     
+<JS src="sicc_util.js"/>              
+<JS src="i18NJS.js"/>
+<JS src="contenido_operaciones_insertar.js"/>
+  
+<FORMULARIO nombre="frmFormulario"  oculto="S"> 
+
+<VAR nombre="errCodigo" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="errSeverity" valor=""/>
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="accion" valor=""/>
+<VAR nombre="idioma" valor=""/>
+<VAR nombre="pais" valor=""/>
+<VAR nombre="casoUso" valor=""/>
+
+<VAR nombre="oidOperacion" valor=""/>
+<VAR nombre="opcionMenu" valor=""/>
+<VAR nombre="listaTiposOperaciones" valor=""/>
+<VAR nombre="listaEliminados" valor=""/>
+<VAR nombre="listaTiposSinFormatear" valor=""/>  
+
+<VAR nombre="oidPrecios" valor=""/>
+<VAR nombre="oidTipoSolicitudPerdida" valor=""/>
+<VAR nombre="oidPrecioEnvia" valor=""/>
+<VAR nombre="oidBloqueoChequeo" valor=""/>
+<VAR nombre="oidTipoSolicitud1" valor=""/>
+<VAR nombre="oidTipoSolicitud2" valor=""/>
+<VAR nombre="oidCodigoMensajeGenerar" valor=""/>
+<VAR nombre="oidTipoSolicitudGenera" valor=""/>
+<VAR nombre="oidAlmacen" valor=""/>
+<VAR nombre="oidMovimientoAlmacen" valor=""/>
+
+<VAR nombre="hRecojo" valor=""/>
+<VAR nombre="hOidTipoSolicitudRecojoInicial" valor=""/>
+<VAR nombre="hOidTipoSolicitudPrimerRecojoNoExitoso" valor=""/>
+<VAR nombre="hOidTipoSolicitudSegundoRecojoNoExitoso" valor=""/>
+<VAR nombre="hOidAlmacenPostVenta" valor=""/>
+<VAR nombre="hOidMovimientoAlmacenRecojoInicial" valor=""/>
+<VAR nombre="hOidMovimientoAlmacenRecojoExitoso" valor=""/>
+<VAR nombre="hOidMovimientoAlmacenRecojoNoExitoso" valor=""/>
+
+<VAR nombre="anulacion" valor="N"/>
+<VAR nombre="perdida" valor="N"/>
+<VAR nombre="esperarMercanciaFisica" valor="N"/>
+<VAR nombre="devueltoFisicoFactura" valor="N"/>
+<VAR nombre="faltanteMercaderia" valor="N"/>
+<VAR nombre="ingresaEnvia" valor="N"/>
+<VAR nombre="ingresaDevuelve" valor="N"/>
+<VAR nombre="enviaGeneraDevuelve" valor="N"/>
+<VAR nombre="devuelveGeneraEnvia" valor="N"/>
+<VAR nombre="hcantRecojo" valor="N"/>
+
+
+<CAPA nombre="capa1">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+         <fieldset><legend class="legend"><LABELC nombre="lblAltaOperaciones" alto="13" filas="1" valor="" id="legend" cod="00281"/></legend>
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr> 
+                    <td colspan="9"><IMG src="b.gif" width="12" height="12"/></td>
+                </tr>
+                <tr>
+                    <td><IMG src="b.gif" width="12" height="12"/></td>
+                    <td colspan="7" width="100%">
+                      <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                         <tr>
+                            <td>
+                                <fieldset><legend class="legend"><LABELC nombre="lblDatosOperacion" alto="13" filas="1" valor="" id="legend" cod="00298"/></legend>
+                                  <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                             <tr> <td>
+                                <table width="653" border="0" align="left" cellspacing="0" cellpadding="0">
+                                     <tr> 
+                                         <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                                     </tr>
+                                     <tr>
+                                        <td><IMG src="b.gif" width="8" height="8"/></td>
+                                        <td><LABELC nombre="lblCodigoOperacion" alto="13" filas="1" valor="" id="datosTitle" cod="299"/></td>
+                                        <td><IMG src="b.gif" width="25" height="8"/></td>
+                                        <td colspan="3"><LABELC nombre="lblDescripcionCorta" alto="13" filas="1" valor="" id="datosTitle" cod="47"/></td>
+                                        <td><IMG src="b.gif" width="25" height="8"/></td>
+                                        <td><LABELC nombre="lblDescripcionLarga" alto="13" filas="1" valor="" id="datosTitle" cod="48"/></td>
+                                        <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                    </tr> 
+                                    <tr>
+                                        <td><IMG src="b.gif" width="8" height="8"/></td>
+                                        <td nowrap="nowrap"><CTEXTO nombre="txtCodigoOperacion" id="datosCampos" max="2" tipo="" onchange="" req="S" size="2" valor="" validacion="" onshtab="onshtabtxtCodigoOperacion();" onblur="aMayusculas('txtCodigoOperacion');"/></td>
+                                        <td><IMG src="b.gif" width="25" height="8"/></td>
+                                        <td nowrap="nowrap"><CTEXTO nombre="txtDescripcionCorta" id="datosCampos" max="20" tipo="" onchange="" req="S" size="20" valor="" validacion="" /></td>
+                                        <td><IMG src="b.gif" width="8" height="8"/></td>
+                                        <td><IMG src="iconmultidioma.gif" width="21" height="15" onclick="levantarI18N('frmFormulario', '1');" /></td>
+                                        <td><IMG src="b.gif" width="25" height="8"/></td>
+                                        <td nowrap="nowrap"><CTEXTO nombre="txtDescripcionLarga" id="datosCampos" max="50" tipo="" onchange="" req="S" size="50" valor="" validacion="" /></td>
+                                        <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                    </tr> 
+                                  </table>
+                                  </td>
+                                     </tr>
+                                     <tr> <td>
+                                <table width="653" border="0" align="left" cellspacing="0" cellpadding="0">
+                                     <tr> 
+                                         <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                                     </tr>
+                                     <tr>
+                                        <td><IMG src="b.gif" width="8" height="8"/></td>
+                                        <td><LABELC nombre="lblPrecios" alto="13" filas="1" valor="" id="datosTitle" cod="1610"/></td>
+                                        <td><IMG src="b.gif" width="25" height="8"/></td>
+                                        <td><LABELC nombre="lblAnulacion" alto="13" filas="1" valor="" id="datosTitle" cod="1609"/></td>
+                                        <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><IMG src="b.gif" width="8" height="8"/></td>
+                                        <td nowrap="nowrap">
+                                          <COMBO nombre="cbPrecios" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="">
+                                            <ROWSET>
+                                              
+                                            </ROWSET>
+                                          </COMBO>
+                                        </td>
+                                        <td><IMG src="b.gif" width="25" height="8"/></td>  
+                                        <td valign="bottom"><CHECKBOX nombre="Anulacion" id="datosCampos" onclick="onselectedAnulacion();" check="N"/></td>
+                                        <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                                    </tr>
+                                  </table>
+                                  </td>
+                                     </tr>
+                                     <tr> <td>
+                                <table width="653" border="0" align="left" cellspacing="0" cellpadding="0">
+                                     <tr> 
+                                         <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                                     </tr>
+                                     <tr>
+                                        <td><IMG src="b.gif" width="8" height="8"/></td>
+                                        <td><LABELC nombre="lblPerdida" alto="13" filas="1" valor="" id="datosTitle" cod="1615"/></td>
+                                        <td><IMG src="b.gif" width="25" height="8"/></td>
+                                        <td><LABELC nombre="lblTipoSolicitudPerdida" alto="13" filas="1" valor="" id="datosTitle" cod="1616"/></td>
+                                        <td><IMG src="b.gif" width="25" height="8"/></td>
+                                        <td><LABELC nombre="lblEsperarMercanciaFisica" alto="13" filas="1" valor="" id="datosTitle" cod="1617"/></td>
+                                        <td><IMG src="b.gif" width="25" height="8"/></td>
+                                        <td><LABELC nombre="lblDevueltoFisicoFactura" alto="13" filas="1" valor="" id="datosTitle" cod="1618"/></td>
+                                        <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><IMG src="b.gif" width="8" height="8"/></td>
+                                        <td valign="bottom"><CHECKBOX nombre="Perdida" id="datosCampos" onclick="perdidaOnClick();" check="N"/></td>
+                                        <td><IMG src="b.gif" width="25" height="8"/></td>
+                                        <td>
+                                          <COMBO nombre="cbTipoSolicitudPerdida" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                                            <ROWSET>
+                                            </ROWSET>
+                                          </COMBO>
+                                        </td>
+                                        <td><IMG src="b.gif" width="25" height="8"/></td>  
+                                        <td valign="bottom"><CHECKBOX nombre="EsperarMercanciaFisica" id="datosCampos" onclick="" check="N"/></td>
+                                        <td><IMG src="b.gif" width="25" height="8"/></td> 
+                                        <td valign="bottom"><CHECKBOX nombre="DevueltoFisicoFactura" id="datosCampos" onclick="" check="N" req="N"/></td> 
+                                        <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                                    </tr>
+                                  </table>
+                                  </td>
+                                     </tr>
+                                  <tr> <td>
+                                <table width="653" border="0" align="left" cellspacing="0" cellpadding="0">
+                                     <tr> 
+                                         <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                                     </tr>
+                                     <tr>
+                                        <td><IMG src="b.gif" width="8" height="8"/></td>
+                                        <td><LABELC nombre="lblNumeroCampanas" alto="13" filas="1" valor="" id="datosTitle" cod="1619"/></td>
+                                        <td><IMG src="b.gif" width="25" height="8"/></td>
+                                        <td><LABELC nombre="lblPrecioEnvia" alto="13" filas="1" valor="" id="datosTitle" cod="1620"/></td>
+                                        <td><IMG src="b.gif" width="25" height="8"/></td>
+                                        <td><LABELC nombre="lblBloqueoChequeo" alto="13" filas="1" valor="" id="datosTitle" cod="1621"/></td>
+                                        <td><IMG src="b.gif" width="25" height="8"/></td>
+                                        <td><LABELC nombre="lblFaltanteMercaderia" alto="13" filas="1" valor="" id="datosTitle" cod="2491"/></td>
+                                        <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><IMG src="b.gif" width="8" height="8"/></td>
+                                        <td><CTEXTO nombre="txtNumeroCampanas" id="datosCampos" max="3" tipo="" onchange="" req="N" size="3" valor="" validacion="" /></td>
+                                        <td><IMG src="b.gif" width="25" height="8"/></td>
+                                        <td>
+                                          <COMBO nombre="cbPrecioEnvia" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                                            <ROWSET>
+                                              
+                                            </ROWSET>
+                                          </COMBO>
+                                        </td>
+                                        <td><IMG src="b.gif" width="25" height="8"/></td>  
+                                        <td>
+                                          <COMBO nombre="cbBloqueoChequeo" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                                            <ROWSET>
+                                            </ROWSET>
+                                          </COMBO>
+                                        </td>
+                                        <td><IMG src="b.gif" width="25" height="8"/></td> 
+                                        <td valign="bottom"><CHECKBOX nombre="FaltanteMercaderia" id="datosCampos" onclick="" check="N" req="N"/></td> 
+                                        <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                                    </tr>
+                                     <tr> 
+                                         <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                                     </tr>
+                                  </table>
+                                  </td>
+                                     </tr>
+                                  </table>
+                                </fieldset>
+                            </td>
+                         </tr>
+                      </table>
+                    </td>
+                    <td><IMG src="b.gif" width="12" height="12"/></td>
+             </tr>
+             <tr>
+                <td><IMG src="b.gif" width="12" height="15"/></td>
+             </tr>
+             
+             <tr>
+                    <td><IMG src="b.gif" width="12" height="12"/></td>
+                    <td colspan="7" width="100%">
+                      <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                         <tr>
+                            <td>
+                                <fieldset><legend class="legend"><LABELC nombre="lblDatosEnvia" alto="13" filas="1" valor="" id="legend" cod="00326"/></legend>
+                                  <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                             <tr> <td>
+                                <table width="653" border="0" align="left" cellspacing="0" cellpadding="0">
+                                     <tr> 
+                                         <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                                     </tr>
+                                     <tr>
+                                        <td><IMG src="b.gif" width="8" height="8"/></td>
+                                        <td><LABELC nombre="lblIngresaEnvia" alto="13" filas="1" valor="" id="datosTitle" cod="1613"/></td>
+                                        <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                    </tr> 
+                                    <tr>
+                                        <td><IMG src="b.gif" width="8" height="8"/></td>
+                                        <td valign="bottom"><CHECKBOX nombre="IngresaEnvia" id="datosCampos" onclick="onSelectedIngresaEnvia()" check="N"/></td>
+                                        <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                    </tr> 
+                                  </table>
+                                  </td>
+                                     </tr>
+                             <tr> <td>
+                                <table width="653" border="0" align="left" cellspacing="0" cellpadding="0">
+                                     <tr> 
+                                         <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                                     </tr>
+                                     <tr>
+                                        <td><IMG src="b.gif" width="8" height="8"/></td>
+                                        <td><LABELC nombre="lblTipoSolicitud1" alto="13" filas="1" valor="" id="datosTitle" cod="1633"/></td>
+                                        <td><IMG src="b.gif" width="25" height="8"/></td>
+                                        <td><LABELC nombre="lblTipoSolicitud2" alto="13" filas="1" valor="" id="datosTitle" cod="1634"/></td>
+                                        <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                    </tr> 
+                                    <tr>
+                                        <td><IMG src="b.gif" width="8" height="8"/></td>
+                                        <td>
+                                          <COMBO nombre="cbTipoSolicitud1" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                                            <ROWSET>
+                                            </ROWSET>
+                                          </COMBO>
+                                        </td>
+                                        <td><IMG src="b.gif" width="25" height="8"/></td>
+                                        <td>
+                                          <COMBO nombre="cbTipoSolicitud2" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                                            <ROWSET>
+                                            </ROWSET>
+                                          </COMBO>
+                                        </td>
+                                        <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                    </tr> 
+                                  </table>
+                                  </td>
+                                     </tr>
+                                     <tr> <td>
+                                <table width="653" border="0" align="left" cellspacing="0" cellpadding="0">
+                                     <tr> 
+                                         <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                                     </tr>
+                                     <tr>
+                                        <td><IMG src="b.gif" width="8" height="8"/></td>
+                                        <td><LABELC nombre="lblCodigoMensajeGenerar" alto="13" filas="1" valor="" id="datosTitle" cod="1635"/></td>
+                                        <td><IMG src="b.gif" width="25" height="8"/></td>
+                                        <td><LABELC nombre="lblEnviaGeneraDevuelve" alto="13" filas="1" valor="" id="datosTitle" cod="1636"/></td>
+                                        <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                    </tr> 
+                                    <tr>
+                                        <td><IMG src="b.gif" width="8" height="8"/></td>
+                                        <td>
+                                          <COMBO nombre="cbCodigoMensajeGenerar" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                                            <ROWSET>
+
+                                            </ROWSET>
+                                          </COMBO>
+                                        </td>
+                                        <td><IMG src="b.gif" width="25" height="8"/></td>  
+                                        <td valign="bottom"><CHECKBOX nombre="EnviaGeneraDevuelve" id="datosCampos" onclick="generaDevuelve();" check="N"/></td>
+                                        <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                    </tr> 
+                                    <tr> 
+                                         <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                                     </tr>
+                                  </table>
+                                  </td>
+                                     </tr>
+                                  </table>
+                                </fieldset>
+                            </td>
+                         </tr>
+                      </table>
+                    </td>
+                    <td><IMG src="b.gif" width="12" height="12"/></td>
+             </tr>
+             
+             
+             
+             <tr>
+                <td><IMG src="b.gif" width="12" height="15"/></td>
+             </tr>
+             <tr>
+                    <td><IMG src="b.gif" width="12" height="12"/></td>
+                    <td colspan="7" width="100%">
+                      <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                         <tr>
+                            <td>
+                                <fieldset><legend class="legend"><LABELC nombre="lblDatosDevuelve" alto="13" filas="1" valor="" id="legend" cod="00327"/></legend>
+                                  <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                             <tr> <td>
+                                <table width="653" border="0" align="left" cellspacing="0" cellpadding="0">
+                                     <tr> 
+                                         <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                                     </tr>
+                                     <tr>
+                                        <td><IMG src="b.gif" width="8" height="8"/></td>
+                                        <td><LABELC nombre="lblIngresaDevuelve" alto="13" filas="1" valor="" id="datosTitle" cod="1614"/></td>
+                                        <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                    </tr> 
+                                    <tr>
+                                        <td><IMG src="b.gif" width="8" height="8"/></td>
+                                        <td valign="bottom"><CHECKBOX nombre="IngresaDevuelve" id="datosCampos" onclick="onSelectedIngresaDevuelve();" check="N" req="N"/></td> 
+                                        <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                    </tr> 
+                                  </table>
+                                  </td>
+                                     </tr>
+                             <tr> <td>
+                                <table width="653" border="0" align="left" cellspacing="0" cellpadding="0">
+                                     <tr> 
+                                         <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                                     </tr>
+                                     <tr>
+                                        <td><IMG src="b.gif" width="8" height="8"/></td>
+                                        <td><LABELC nombre="lblTipoSolicitudGenera" alto="13" filas="1" valor="" id="datosTitle" cod="1637"/></td>
+                                        <td><IMG src="b.gif" width="25" height="8"/></td>
+                                        <td><LABELC nombre="lblAlmacen" alto="13" filas="1" valor="" id="datosTitle" cod="797"/></td>
+                                        <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><IMG src="b.gif" width="8" height="8"/></td>
+                                        <td>
+                                          <COMBO nombre="cbTipoSolicitudGenera" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                                            <ROWSET>
+                                            </ROWSET>
+                                          </COMBO>
+                                        </td>
+                                        <td><IMG src="b.gif" width="25" height="8"/></td>  
+                                        <td>
+                                          <COMBO nombre="cbAlmacen" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                                            <ROWSET>
+                                            </ROWSET>
+                                          </COMBO>
+                                        </td>
+                                        <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                                    </tr>
+                                  </table>
+                                  </td>
+                                     </tr>
+                                     <tr> <td>
+                                <table width="653" border="0" align="left" cellspacing="0" cellpadding="0">
+                                     <tr> 
+                                         <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                                     </tr>
+                                     <tr>
+                                        <td><IMG src="b.gif" width="8" height="8"/></td>
+                                        <td><LABELC nombre="lblMovimientoAlmacen" alto="13" filas="1" valor="" id="datosTitle" cod="1639"/></td>
+                                        <td><IMG src="b.gif" width="25" height="8"/></td>
+                                        <td><LABELC nombre="lblDevuelveGeneraEnvia" alto="13" filas="1" valor="" id="datosTitle" cod="1640"/></td>
+                                        <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><IMG src="b.gif" width="8" height="8"/></td>
+                                        <td>
+                                          <COMBO nombre="cbMovimientoAlmacen" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                                            <ROWSET>
+                                            </ROWSET>
+                                          </COMBO>
+                                        </td>
+                                        <td><IMG src="b.gif" width="25" height="8"/></td>
+                                        <td valign="bottom"><CHECKBOX nombre="DevuelveGeneraEnvia" id="datosCampos" onclick="onSelectedGeneraEnvia();" check="N" req="N"/></td> 
+                                        <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                                    </tr>
+                                    <tr> 
+                                         <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                                     </tr>
+                                  </table>
+                                  </td>
+                                     </tr>
+                                  </table>
+                                </fieldset>
+                            </td>
+                         </tr>
+                      </table>
+                    </td>
+                    <td><IMG src="b.gif" width="12" height="12"/></td>
+             </tr>
+             <tr>
+                <td><IMG src="b.gif" width="12" height="12"/></td>
+             </tr>
+             
+<!-- Recojo inicio-->
+             <tr>
+                    <td><IMG src="b.gif" width="12" height="12"/></td>
+                    <td colspan="7" width="100%">
+                      <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                         <tr>
+                            <td>
+                                <fieldset><legend class="legend"><LABELC nombre="lblDatosRecojo" alto="13" filas="1" valor="" id="legend" cod="3249"/></legend>
+                                  <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                             <tr> <td>
+                                <table width="653" border="0" align="left" cellspacing="0" cellpadding="0">
+                                     <tr> 
+                                         <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                                     </tr>
+                                     <tr>
+                                        <td><IMG src="b.gif" width="8" height="8"/></td>
+                                        <td><LABELC nombre="lblRecojo" alto="13" filas="1" valor="" id="datosTitle" cod="3250"/></td>
+                                        <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                    </tr> 
+                                    <tr>
+                                        <td><IMG src="b.gif" width="8" height="8"/></td>
+                                        <td valign="bottom"><CHECKBOX nombre="recojo" id="datosCampos" onclick="onSelectedRecojo()" check="N"/></td>
+                                        <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                    </tr> 
+                                  </table>
+                                  </td>
+                                     </tr>
+                             <tr> <td>
+                                <table width="653" border="0" align="left" cellspacing="0" cellpadding="0">
+                                     <tr> 
+                                         <td colspan="7"><IMG src="b.gif" width="8" height="8"/></td>
+                                     </tr>
+                                     <tr>
+                                        <td><IMG src="b.gif" width="8" height="8"/></td>
+                                        <td><LABELC nombre="lblTipoSolicitudRecojIni" alto="13" filas="1" valor="" id="datosTitle" cod="3251"/></td>
+                                        <td><IMG src="b.gif" width="25" height="8"/></td>
+                                        <td><LABELC nombre="lblTipoSolicitudPriRecojNoExit" alto="13" filas="1" valor="" id="datosTitle" cod="3252"/></td>
+                          <td><IMG src="b.gif" width="25" height="8"/></td>
+                                        <td><LABELC nombre="lblTipoSolicitudSegRecojNoExit" alto="13" filas="1" valor="" id="datosTitle" cod="3253"/></td>
+                                        <td><IMG src="b.gif" width="8" height="8"/></td>
+                                    </tr> 
+                                    <tr>
+                                        <td><IMG src="b.gif" width="8" height="8"/></td>
+                                        <td>
+                                          <COMBO nombre="cbTipoSolicitudRecojoInicial" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                                            <ROWSET>
+                                            </ROWSET>
+                                          </COMBO>
+                                        </td>
+                                        <td><IMG src="b.gif" width="25" height="8"/></td>
+                                        <td>
+                                          <COMBO nombre="cbTipoSolicitudPrimerRecojoNoExitoso" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                                            <ROWSET>
+                                            </ROWSET>
+                                          </COMBO>
+                                        </td>
+             <td><IMG src="b.gif" width="25" height="8"/></td>
+                                        <td>
+                                          <COMBO nombre="cbTipoSolicitudSegundoRecojoNoExitoso" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                                            <ROWSET>
+                                            </ROWSET>
+                                          </COMBO>
+                                        </td>
+                                        <td><IMG src="b.gif" width="8" height="8"/></td>
+                                    </tr> 
+                                  </table>
+                                  </td>
+                                     </tr>
+                                     
+                                      <tr> <td>                                           
+                                      <table width="653" border="0" align="left" cellspacing="0" cellpadding="0">
+                                     <tr> 
+                                         <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                                     </tr>
+                                     <tr>
+                                        <td><IMG src="b.gif" width="8" height="8"/></td>
+                                        <td colspan="5"><LABELC nombre="lblAlmPosventa" alto="13" filas="1" valor="" id="datosTitle" cod="3254"/></td>		                    
+                                        <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                    </tr> 
+                                    <tr>
+                                        <td><IMG src="b.gif" width="8" height="8"/></td>
+                                        <td colspan="5">
+                                          <COMBO nombre="cbAlmacenPostVenta" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                                            <ROWSET>
+                                            </ROWSET>
+                                          </COMBO>
+                                        </td>				  
+                                        <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                    </tr> 
+                                  </table>
+                                        </td>
+                                     </tr>
+                                     
+                                     <tr> <td>                                          
+                                <table width="653" border="0" align="left" cellspacing="0" cellpadding="0">
+                                     <tr> 
+                                         <td colspan="7"><IMG src="b.gif" width="8" height="8"/></td>
+                                     </tr>
+                                     <tr>
+                                        <td><IMG src="b.gif" width="8" height="8"/></td>
+                                        <td><LABELC nombre="lblMovAlmRecojIni" alto="13" filas="1" valor="" id="datosTitle" cod="3255"/></td>
+                                        <td><IMG src="b.gif" width="25" height="8"/></td>
+                                        <td><LABELC nombre="lblMovAlmRecojExit" alto="13" filas="1" valor="" id="datosTitle" cod="3256"/></td>
+                          <td><IMG src="b.gif" width="25" height="8"/></td>
+                                        <td><LABELC nombre="lblMovAlmRecojNoExit" alto="13" filas="1" valor="" id="datosTitle" cod="3257"/></td>
+                                        <td><IMG src="b.gif" width="8" height="8"/></td>
+                                    </tr> 
+                                    <tr>
+                                        <td><IMG src="b.gif" width="8" height="8"/></td>
+                                        <td>
+                                          <COMBO nombre="cbMovimientoAlmacenRecojoInicial" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                                            <ROWSET>
+                                            </ROWSET>
+                                          </COMBO>
+                                        </td>
+                                        <td><IMG src="b.gif" width="25" height="8"/></td>
+                                        <td>
+                                          <COMBO nombre="cbMovimientoAlmacenRecojoExitoso" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                                            <ROWSET>
+                                            </ROWSET>
+                                          </COMBO>
+                                        </td>
+             <td><IMG src="b.gif" width="25" height="8"/></td>
+                                        <td>
+                                          <COMBO nombre="cbMovimientoAlmacenRecojoNoExitoso" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                                            <ROWSET>
+                                            </ROWSET>
+                                          </COMBO>
+                                        </td>
+                                        <td><IMG src="b.gif" width="8" height="8"/></td>
+                                    </tr> 
+                        <tr> 
+                           <td colspan="7"><IMG src="b.gif" width="8" height="8"/></td>
+                        </tr>
+                                  </table>
+                                  
+                                  </td>
+                                     </tr>
+                                  </table>
+                                </fieldset>
+                            </td>
+                         </tr>
+                      </table>
+                    </td>
+                    <td><IMG src="b.gif" width="12" height="12"/></td>
+             </tr>             
+              <tr> 
+                  <td><IMG src="b.gif" width="8" height="8"/></td>
+              </tr>
+<!-- Recojo fin-->           
+
+            </table>
+         </fieldset>
+      </td>
+      <tr> 
+      <td><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif" width="1" height="1"/></td>
+      <td><IMG src="b.gif" width="12" height="12"/></td>
+    </tr>
+    </tr> 
+  </table>
+</CAPA>
+
+<CAPA nombre="capa2" x="0" y="740" visibilidad="">
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr> 
+  <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+  <td>
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+     <tr> 
+      <td>
+         <fieldset>
+           <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+             <tr>
+                <td class="botonera">
+                  <BOTON nombre="btnAnadirTiposOperaciones" ID="botonContenido" tipo="html" accion="onClickAniadirTiposOperaciones()" estado="false" cod="1632"/>
+                </td>
+                <td class="botonera"><IMG src="b.gif" width="500" height="1"/></td>
+             </tr> 
+           </table>         
+         </fieldset>
+      </td>
+    </tr>          
+  </table>
+   </td>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+   </tr>     
+   <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+
+<CAPA nombre="capa3" x="0" y="740" visibilidad="">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+     <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+         <fieldset>
+           <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+             <tr>
+                <td class="botonera">
+                  <BOTON nombre="btnConsultarTiposOperaciones" ID="botonContenido" tipo="html" accion="onClickConsultarTiposOperaciones()" estado="false" cod="2784" ontab="ontabbtnConsultarTiposOperaciones();" />
+                </td>
+                <td class="botonera"><IMG src="b.gif" width="479" height="1"/></td>
+             </tr> 
+           </table>         
+         </fieldset>
+      </td>
+      <td><IMG src="b.gif" width="8" height="12"/></td>
+    </tr>  
+         <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750" ><IMG src="b.gif"/></td>
+      <td width="12" ><IMG src="b.gif" width="12" height="12"/></td>
+    </tr>   
+  </table>
+</CAPA>
+</FORMULARIO>
+</PAGINA> 

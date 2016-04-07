@@ -1,0 +1,563 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_informe_cheques_devueltos_generar.xml,v 1.1 2009/12/03 18:45:14 pecbazalar Exp $
+   contenido CCC
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_informe_cheques_devueltos_generar" cod="0849" titulo="Generar informe cheques devueltos" estilos="estilosB3.css" colorf="#F0F0F0" 
+	msgle="" onload="onLoad()" xml:lang="es">
+ <JS src="sicc_util.js"/>   
+ <JS src="PaginacionSicc.js"/>    
+ <JS src="DruidaTransactionMare.js"/>
+ 
+<JAVASCRIPT>
+  <![CDATA[ 
+ 
+   function onLoad(){
+      configurarMenuSecundario('Formulario');
+      fMostrarMensajeError();
+      set('Formulario.txtFechaValorDesde', '01/01/2000');
+      set('Formulario.txtFechaValorHasta', get('Formulario.fechaActual'));
+      focaliza('Formulario.cbTipoCargoAbono');
+                 
+   }
+//------------------------------------------------------------------------------   
+   function generar(formato){
+      if(sicc_validaciones_generales()){
+         if(validarFechasValor()){
+            
+          
+               var a = new Object();
+               a.accion = 'generar';
+               a.tipoCargo = get('Formulario.cbBanco');
+               a.fechaValorDesde = get('Formulario.txtFechaValorDesde');  
+               a.fechaValorHasta = get('Formulario.txtFechaValorHasta');
+              
+               a.reporte = armarIdReporte();
+    
+
+               a.marca = get('Formulario.cbMarca');
+               a.canal = get('Formulario.cbCanal');
+               a.sgv = get('Formulario.cbSubgerenciaVentas');
+               a.region = get('Formulario.cbRegion');
+               a.zona = get('Formulario.cbZona');
+               
+               
+               a.territorioDesde = get('Formulario.txtTerritorioDesde');
+               a.territorioHasta = get('Formulario.txtTerritorioHasta');
+               a.periodo = get('Formulario.cbPeriodo');
+               
+               a.orden = get('Formulario.cbCriterioOrdenamiento');
+               a.ordenDesc = get('Formulario.cbCriterioOrdenamiento','T');
+               
+               a.formatoSalida = formato;
+               mostrarModalSICC('CCCChequesDevueltos','generar', a);  
+            
+         }      
+      }
+   }
+
+
+//------------------------------------------------------------------------------   
+
+   function armarIdReporte(){
+   
+      quiebreZona = get('Formulario.cbQuiebreZona');
+      quiebrePeriodo = get('Formulario.cbQuiebrePeriodo');
+      quiebreFechaValor = get('Formulario.cbQuiebreFechaValor');
+      
+      var reporte;
+   
+      if(quiebreZona == '2' && quiebrePeriodo == '2' && quiebreFechaValor == '2'){
+         reporte = 'RD_REP-139';
+      }
+      
+      if(quiebreZona == '2' && quiebrePeriodo == '2' && quiebreFechaValor == '1'){
+         reporte = 'RD_REP-139_01';
+      }
+   
+      if(quiebreZona == '2' && quiebrePeriodo == '1' && quiebreFechaValor == '2'){
+         reporte = 'RD_REP-139_02';
+      }
+      
+      if(quiebreZona == '2' && quiebrePeriodo == '1' && quiebreFechaValor == '1'){
+         reporte = 'RD_REP-139_03';
+      }
+      
+      if(quiebreZona == '1' && quiebrePeriodo == '2' && quiebreFechaValor == '2'){
+         reporte = 'RD_REP-139_04';
+      }
+      
+      if(quiebreZona == '1' && quiebrePeriodo == '2' && quiebreFechaValor == '1'){
+         reporte = 'RD_REP-139_05';
+      }
+      
+      if(quiebreZona == '1' && quiebrePeriodo == '1' && quiebreFechaValor == '2'){
+         reporte = 'RD_REP-139_06';
+      }
+      
+      if(quiebreZona == '1' && quiebrePeriodo == '1' && quiebreFechaValor == '1'){
+         reporte = 'RD_REP-139_07';
+      }
+      
+      return reporte;
+   
+   
+   }
+   
+  
+
+//------------------------------------------------------------------------------   
+   function validarFechasValor(){
+      
+      var fechaDesde = get('Formulario.txtFechaValorDesde');
+      var fechaHasta = get('Formulario.txtFechaValorHasta');
+      var formatoFecha = get('Formulario.hFormatoFechaPais');
+            
+     
+      if (! EsFechaValida_SICC(fechaDesde, "Formulario")){
+          GestionarMensaje("1006", formatoFecha, null, null);
+          focaliza("Formulario.txtFechaValorDesde");
+          return false;
+      }
+     
+      if(! EsFechaValida_SICC(fechaHasta, "Formulario")){
+          GestionarMensaje("1006", formatoFecha, null, null);
+          focaliza("Formulario.txtFechaValorHasta");
+          return false;
+      }
+                 
+      var errorLevel = EsFechaValida( fechaDesde, fechaHasta, "Formulario", "S");
+      if ( errorLevel == 3){
+          GestionarMensaje("1191");
+          focaliza('Formulario.txtFechaValorDesde');
+          return false;
+      }
+     
+      return true;   
+   
+   }
+   
+//------------------------------------------------------------------------------   
+
+   function onchangeMarcaCanal(){
+        
+       marca  = get('Formulario.cbMarca');
+       canal  = get('Formulario.cbCanal');
+       pais   = get('Formulario.pais');
+       idioma = get('Formulario.idioma');
+      
+       if(marca != '' && canal != ''){
+          var arr = new Array();
+          var arr2 = new Array();
+                      
+          arr[arr.length] = ["oidIdioma", idioma]; 
+          arr[arr.length] = ["oidPais", pais]; 
+          arr[arr.length] = ["marca", marca];
+          arr[arr.length] = ["canal", canal];
+          
+          arr2[arr2.length] = ["oidPais", pais]; 
+          arr2[arr2.length] = ["oidMarca", marca];
+          arr2[arr2.length] = ["oidCanal", canal];
+                    
+          recargaCombo("Formulario.cbPeriodo","PRECargarPeriodos","es.indra.sicc.dtos.cra.DTOPeriodo",arr);
+          recargaCombo("Formulario.cbSubgerenciaVentas","ZONRecargaSubgerenciaVentas", "es.indra.sicc.dtos.zon.DTOUnidadAdministrativa",arr2); 
+            
+       }else{
+           var aCombo = new Array(new Array("",""));
+           set_combo('Formulario.cbSubgerenciaVentas', aCombo, []); 
+           set_combo('Formulario.cbRegion', aCombo, []); 
+           set_combo('Formulario.cbZona', aCombo, []); 
+           set_combo('Formulario.cbPeriodo', aCombo, []); 
+          
+       }
+    } 
+//------------------------------------------------------------------------------   
+
+ function cambioSubgerencia(){
+     opciones = new Array();
+     set_combo('Formulario.cbRegion',opciones);                      
+     set_combo('Formulario.cbZona',opciones);                      
+          
+     var subGerencia = get('Formulario.cbSubgerenciaVentas','V');
+     
+     combo_add('Formulario.cbRegion', '', '');
+     
+     for(var k=0;k<ListaRegiones.datos.longitud;k++) {
+       for(var y=0;y<subGerencia.length;y++){
+          if (ListaRegiones.datos.ij(k,0) == subGerencia[y]){ 			 
+               combo_add('Formulario.cbRegion',ListaRegiones.datos.ij(k,1),ListaRegiones.datos.ij(k,2));
+          }
+       }
+     }
+   }
+//------------------------------------------------------------------------------    
+function cambioRegion(){
+     opciones = new Array();
+     set_combo('Formulario.cbZona',opciones);                      
+     var region = get('Formulario.cbRegion','V');
+     combo_add('Formulario.cbZona', '', '');
+     
+     for(var k=0;k<ListaZonas.datos.longitud;k++) {
+       for(var y=0;y<region.length;y++){
+          if (ListaZonas.datos.ij(k,1) == region[y]){ 			 
+              combo_add('Formulario.cbZona',ListaZonas.datos.ij(k,0),ListaZonas.datos.ij(k,2));
+            
+          }
+       }
+     }
+   }
+
+//------------------------------------------------------------------------------   
+
+   function fLimpiar(){
+     var aCombo = new Array(new Array("",""));
+     
+     set_combo('Formulario.cbSubgerenciaVentas', aCombo, []); 
+     set_combo('Formulario.cbRegion', aCombo, []); 
+     set_combo('Formulario.cbZona', aCombo, []); 
+     set_combo('Formulario.cbPeriodo', aCombo, []); 
+     focaliza('Formulario.cbTipoCargoAbono');
+   }
+  
+  ]]> 
+  
+  <VALIDACION>
+    <ELEMENTO name="txtFechaValorDesde" required="true" cod="2667"/>
+    <ELEMENTO name="txtFechaValorHasta" required="true" cod="2678"/>
+    <ELEMENTO name="cbQuiebreFechaValor" required="true" cod="2679"/>
+    <ELEMENTO name="cbMarca" required="true" cod="6"/>
+    <ELEMENTO name="cbCanal" required="true" cod="7"/>
+    <ELEMENTO name="cbQuiebreZona" required="true" cod="2681"/>
+    <ELEMENTO name="cbQuiebrePeriodo" required="true" cod="2683"/>
+    <ELEMENTO name="cbCriterioOrdenamiento" required="true" cod="2659"/>
+   
+</VALIDACION>
+</JAVASCRIPT>
+
+
+<FORMULARIO nombre="Formulario">
+<VAR nombre="accion" valor="" />
+<VAR nombre="conectorAction" valor="" />
+<VAR nombre="casoDeUso" valor=""/>
+<VAR nombre="errCodigo" valor="" />
+<VAR nombre="errDescripcion" valor="" />
+
+
+<VAR nombre="pais" valor="" />
+
+<VAR nombre="banco" valor="" />
+<VAR nombre="tipoCargo" valor="" />
+<VAR nombre="fechaValorDesde" valor="" />
+<VAR nombre="fechaValorHasta" valor="" />
+<VAR nombre="quiebreFechaValor" valor="" />
+<VAR nombre="marca" valor="" />
+<VAR nombre="canal" valor="" />
+<VAR nombre="sgv" valor="" />
+<VAR nombre="region" valor="" />
+<VAR nombre="zona" valor="" />
+<VAR nombre="quiebreZona" valor="" />
+<VAR nombre="sgv" valor="" />
+<VAR nombre="territorioDesde" valor="" />
+<VAR nombre="territorioHasta" valor="" />
+<VAR nombre="quiebrePeriodo" valor="" />
+<VAR nombre="criterio" valor="" />
+<VAR nombre="fechaActual" valor="" />
+<VAR nombre="formato" valor="" />
+
+<CAPA nombre="capa1">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblCriteriosSeleccion"  alto="13" filas="1" valor="" id="legend" cod="00275"/></legend>
+          <!---primera fila-->
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+            
+            
+           <tr><td>
+
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblTipoCargoAbono"  alto="13" filas="1" id="datosTitle" cod="700" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblFechaValorDesde"  alto="13" filas="1" id="datosTitle" cod="2677" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblFechaValorHasta"  alto="13" filas="1" id="datosTitle" cod="2678"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblQuiebreFechaValor"  alto="13" filas="1" id="datosTitle" cod="2679" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbTipoCargoAbono" size="5" multiple="S" valorinicial="" textoinicial="" id="datosCampos" req="N" onshtab="focalizaBotonHTML('botonContenido','btnGenerarExcel');">                		
+                   <ROWSET>
+                  			
+			                
+			               		
+                  	 	</ROWSET>	
+	                </COMBO> 
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" valign="top"><CTEXTO nombre="txtFechaValorDesde" id="datosCampos" max="10" tipo="" onchange="" req="S" size="12" valor="" validacion=""/></td>                
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" valign="top"><CTEXTO nombre="txtFechaValorHasta" id="datosCampos" max="10" tipo="" onchange="" req="S" size="12" valor="" validacion=""/></td>                
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" valign="top"><COMBO nombre="cbQuiebreFechaValor" size="1" multiple="N" valorinicial="1" textoinicial="Sí" id="datosCampos" req="S">
+                		<ROWSET>
+                  			      	<ROW ID="1">
+                     				<CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="2"/>
+                     				<CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="No"/>
+                  			</ROW>
+			               		
+                  	 	</ROWSET>	
+	                </COMBO> 
+                   </td>
+	           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>
+            <tr><td>
+
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblMarca"  alto="13" filas="1" id="datosTitle" cod="6" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblCanal"  alto="13" filas="1" id="datosTitle" cod="7" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbMarca" size="1" multiple="N" valorinicial="" textoinicial="" id="datosCampos" req="S" onchange="onchangeMarcaCanal();">
+                		<ROWSET>
+                  			
+			               		
+                  	 	</ROWSET>	
+	                </COMBO> 
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbCanal" size="1" multiple="N" valorinicial="" textoinicial="" id="datosCampos" req="S" onchange="onchangeMarcaCanal();">
+                		<ROWSET>
+                  				
+                  	 	</ROWSET>	
+	                </COMBO> 
+	           </td>
+	           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>
+            <tr><td>
+
+              <table width="10%" border="0" align="left" cellspacing="0" cellpadding="0">
+                
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblSubgerencia"  alto="13" filas="1" id="datosTitle" cod="992" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblRegion"  alto="13" filas="1" id="datosTitle" cod="109" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap" valign="bottom"><COMBO nombre="cbSubgerenciaVentas" size="5" multiple="S" valorinicial="" textoinicial="" id="datosCampos" req="N" onchange="cambioSubgerencia();">
+                		<ROWSET>
+                  			
+			                  
+                  	 	</ROWSET>	
+	                </COMBO> 
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" ><COMBO nombre="cbRegion" size="5" multiple="S" valorinicial="" textoinicial="" id="datosCampos" req="N" onchange="cambioRegion();">
+                		<ROWSET>
+                  			     
+                  	 	</ROWSET>	
+	                </COMBO> 
+	           </td>
+	           <td><IMG src="b.gif" width="25" height="8"/></td>
+               
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>
+            <tr><td>
+
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblZona"  alto="13" filas="1" id="datosTitle" cod="143" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblQuiebreZona"  alto="13" filas="1" id="datosTitle" cod="2681" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap" valign="bottom"><COMBO nombre="cbZona" size="5" multiple="S" valorinicial="" textoinicial="" id="datosCampos" req="N">
+                		<ROWSET>
+                  			
+			                    
+                  	 	</ROWSET>	
+	                </COMBO> 
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" valign="top"><COMBO nombre="cbQuiebreZona" size="1" multiple="N" valorinicial="1" textoinicial="Sí" id="datosCampos" req="S">
+                		<ROWSET>
+                  			      	<ROW ID="1">
+                     				<CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="2"/>
+                     				<CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="No"/>
+                  			</ROW>
+			               		
+                  	 	</ROWSET>	
+	                </COMBO> 
+                   </td>
+	           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>
+            <tr><td>
+
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblTerritorioDesde"  alto="13" filas="1" id="datosTitle" cod="997" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblTerritorioHasta"  alto="13" filas="1" id="datosTitle" cod="998" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap" valign="bottom"><CTEXTO nombre="txtTerritorioDesde" id="datosCampos" max="6" tipo="" onchange="" req="N" size="12" valor="" validacion=""/>
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" valign="top"><CTEXTO nombre="txtTerritorioHasta" id="datosCampos" max="6" tipo="" onchange="" req="N" size="12" valor="" validacion=""/>
+                   </td>
+	           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>
+             <tr><td>
+
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblPeriodo"  alto="13" filas="1" id="datosTitle" cod="276"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblQuiebrePeriodo"  alto="13" filas="1" id="datosTitle" cod="2683" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblCriterioOrdenamiento"  alto="13" filas="1" id="datosTitle" cod="2659" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap" valign="bottom">
+                   <COMBO nombre="cbPeriodo" size="5" multiple="S" valorinicial="" textoinicial="" id="datosCampos" req="N">
+                		  <ROWSET>
+                  		</ROWSET>	
+                      </COMBO>
+                      </td>                
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" valign="top" ><COMBO nombre="cbQuiebrePeriodo" size="1" multiple="N" valorinicial="1" textoinicial="Sí" id="datosCampos" req="S">
+                		<ROWSET>
+                  			      	<ROW ID="1">
+                     				<CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="2"/>
+                     				<CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="No"/>
+                  			</ROW>
+			               		
+                  	 	</ROWSET>	
+	                </COMBO> 
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" valign="top"><COMBO nombre="cbCriterioOrdenamiento" size="1" multiple="N" valorinicial="1" textoinicial="Codigo" id="datosCampos" req="S">
+                		<ROWSET>
+                  			<ROW ID="1">
+                     				<CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="2"/>
+                     				<CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="Fecha"/>
+                  			</ROW>
+                  			
+                  	 	</ROWSET>	
+	                </COMBO> 
+                   </td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>
+            
+           </table>
+       <!---fin primera fila-->
+         
+        
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnGenerarInforme" ID="botonContenido" tipo="html" accion="generar('pdf');" estado="false" cod="2495"/>
+		  <BOTON nombre="btnGenerarExcel" ID="botonContenido" tipo="html" accion="generar('xls');" estado="false" cod="2526" ontab="focaliza('Formulario.cbTipoCargoAbono');"/>
+		  
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>       
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+ </CAPA>      
+ 
+</FORMULARIO>
+</PAGINA>  

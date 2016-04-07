@@ -1,0 +1,593 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_variables_calculo_ranking_mantener.xml,v 1.1 2009/12/03 18:44:25 pecbazalar Exp $
+   BEL
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_variables_calculo_ranking_mantener" cod="0702" titulo="" estilos="estilosB3.css" colorf="#F0F0F0"
+        msgle="" onload="onLoadPag();" xml:lang="es" >
+
+<JS src="pestanyas_concurso_ranking_inc.js"/> 
+<JS src="sicc_util.js" />
+<JS src="DruidaTransactionMare.js"/>
+<JAVASCRIPT>    
+  <![CDATA[
+   function onLoadPag(){
+   
+      configurarMenuSecundario('formulario');
+      DrdEnsanchaConMargenDcho('listado1',12); 
+      
+      document.all["Cplistado1"].style.visibility=''; 
+      document.all["CpLin1listado1"].style.visibility='';  
+      document.all["CpLin2listado1"].style.visibility=''; 
+      document.all["CpLin3listado1"].style.visibility='';
+      document.all["CpLin4listado1"].style.visibility=''; 
+
+      document.all["primera1Div"].style.visibility='hidden'; 
+      document.all["ret1Div"].style.visibility='hidden';
+      document.all["ava1Div"].style.visibility='hidden';  
+      document.all["separaDiv"].style.visibility='hidden'; 
+      document.all["btnEliminarDiv"].style.visibility=''; 
+      eval(ON_RSZ);
+      
+      setearHabilitacion();
+
+	  finCargaPagina=true;
+      
+      
+      if(get("formulario.opcionMenu") == "Consultar Concurso Ranking"){
+          accion('formulario.cbVariableVentas','.disabled=true');
+          accion('formulario.ckAplicable','.disabled=true');
+          accion('formulario.txtPeso','.disabled=true');
+          accion('formulario.txtDivisor','.disabled=true');
+          deshabilitarHabilitarBoton('botonContenido','btnAnadir','D');
+          deshabilitarHabilitarBoton('botonContenido','btnEliminar','D');
+      }
+      
+      focaliza('formulario.cbVariableVentas');
+    }
+    
+    function setearHabilitacion(){
+        if (get('formulario.habilitarcbVariableVentas')=='N') {
+          accion('formulario.cbVariableVentas','.disabled=true');
+        }
+        if (get('formulario.habilitarckAplicable')=='N') {
+          accion('formulario.ckAplicable','.disabled=true');
+        }
+        if (get('formulario.habilitartxtPeso')=='N') {
+          accion('formulario.txtPeso','.disabled=true');
+        }
+        if (get('formulario.habilitartxtDivisor')=='N') {
+          accion('formulario.txtDivisor','.disabled=true');
+        }
+        if (get('formulario.habilitartxtNumDiasCobro')=='N') {
+          accion('formulario.txtNumDiasCobro','.disabled=true');
+        }
+        if (get('formulario.habilitarbtnAnadir')=='N') {
+          document.all["btnAnadirDiv"].style.visibility='hidden'
+        }
+        if (get('formulario.habilitarbtnEliminar')=='N') {
+          document.all["btnEliminarDiv"].style.visibility='hidden';
+        }        
+    }
+    
+    function comprobarDatosObligatorios(){
+        //se comprueba que haya al menos uno en la lista
+        var cantElementos = listado1.codigos();
+        
+        var listadoSeleccionado = listado1string();
+        set('formulario.listado1STR', listadoSeleccionado);
+        
+        if(cantElementos!=0) {
+            return true;
+        } else{
+            return false;
+        }        
+		}
+    
+    function onChangeVariableVentas(){
+    
+        if (get('formulario.cbVariableVentas')==get('formulario.oidVarVtaRankPorcCobr')){
+            accion('formulario.txtNumDiasCobro','.disabled=false');
+        } else {
+            if (get('formulario.txtNumDiasCobro')!=''){
+                set('formulario.txtNumDiasCobro','');                
+            }
+            accion('formulario.txtNumDiasCobro','.disabled=true');
+        }
+    }
+
+    function guardarKO(){       
+        if(get('formulario.opcionMenu')=="Modificar Concurso Ranking"){  
+            btnProxy(1,1);
+            btnProxy(2,1);
+            btnProxy(3,0);
+            btnProxy(4,0);
+            btnProxy(5,1);
+            btnProxy(7,0);
+            btnProxy(8,0);
+            btnProxy(9,0);
+          
+            focaliza('formulario.cbVariableVentas');
+          
+        } else {
+                focaliza('formulario.cbVariableVentas');
+        }
+    }
+ 
+    
+    function botonAniadir(){
+          if(!sicc_validaciones_generales("gen,num")){
+            return false;
+          }
+          if (get('formulario.ckAplicable')=='S'){
+            if(!sicc_validaciones_generales("numobl")){
+              return false;
+            }          
+          }
+          var toAdd = "";
+          
+          //sacar datos de campos
+
+          
+          toAdd = get('formulario.cbVariableVentas','T');
+          if (get('formulario.ckAplicable')=='S'){
+              toAdd = toAdd + "|" + "SI";         
+              var peso = new Number(get('formulario.txtPeso'));
+              var divisor = new Number(get('formulario.txtDivisor'));
+              var pesoVariable = (peso/divisor);
+              toAdd = toAdd + "|" + peso;
+              toAdd = toAdd + "|" + divisor;
+              toAdd = toAdd + "|" + toFix(pesoVariable);
+          } else {
+              toAdd = toAdd + "|" + "NO";
+              if (get('formulario.txtPeso')!='') {
+                toAdd = toAdd + "|" + get('formulario.txtPeso');
+              } else {
+                toAdd = toAdd + "|" + get('formulario.valDefMantenim');
+              }
+              if (get('formulario.txtDivisor')!='') {
+                toAdd = toAdd + "|" + get('formulario.txtDivisor');
+              } else {
+                toAdd = toAdd + "|" + get('formulario.valDefMantenim');
+              }
+              toAdd = toAdd + "|" + get('formulario.valDefMantenim');
+          }          
+
+          if (get('formulario.cbVariableVentas','V')==get('formulario.oidVarVtaRankPorcCobr')){
+              toAdd = toAdd + "|" + get('formulario.txtNumDiasCobro');
+          } else {
+              toAdd = toAdd + "|" + " ";
+          }
+          toAdd = toAdd + "|" + " ";//oidVariableRankingConcurso (aun no tiene)
+          
+          pasaListaTemporal(get('formulario.cbVariableVentas','V'), toAdd);
+         
+          if(muestraMsg == true){
+              muestraMsg = false;
+              //GestionarMensaje("1344", null,null,null);//msg de que es repetido              
+          } else {
+              set('formulario.cbVariableVentas','');
+              set('formulario.ckAplicable','N');
+              set('formulario.txtPeso',get('formulario.valDefMantenim'));
+              set('formulario.txtDivisor',get('formulario.valDefMantenim'));
+              accion('formulario.txtPeso','.disabled=true');              
+              accion('formulario.txtDivisor','.disabled=true');
+              txt_to('lbldtPesoVariable',get('formulario.valDefMantenim'));              
+              set('formulario.txtNumDiasCobro','');              
+              accion('formulario.txtNumDiasCobro','.disabled=true');
+          }
+          focaliza('formulario.cbVariableVentas');
+      }
+      
+     var muestraMsg = false;
+     function pasaListaTemporal(codigo, datos){
+        var codigosTemporal = listado1.codigos();
+        var match = rowMatch(codigo, codigosTemporal);
+        if (match){
+             muestraMsg = true;//es repetido
+        }else{
+             datos = codigo + "|" + datos;  // Agrega el codigo al String de valores. 
+             var newRow = new Array();
+             newRow = datos.split("|");
+             listado1.insertar(newRow); //se agrega a la lista
+        }
+      }
+      
+      //Este metodo devuelve un espacio si el objeto recibido esta vacio
+      function dejaEsp(a){
+          if (a.length == 0){
+              return ' ';
+          }else{
+              return a;
+          }
+      }
+
+     //Este metodo controla si el elemento a insertar ya existe
+     function rowMatch(codigo, codigosTemporal){
+        var flag = false;
+        var i = 0;
+        while ( (i < codigosTemporal.length) && (flag == false) ){
+             if ( codigo == codigosTemporal[i] )
+                  flag = true;      
+             i++;
+        }
+        return flag;
+     }
+     
+     //Este metodo pasa los datos de la lista a un string para guardarlo en la LP
+     function listado1string(){
+        var codigo = listado1.codigos();
+        var toAdd = "";
+        var total = "";
+  
+        for(var a = 0; a < codigo.length ; a++){
+             toAdd = codigo[a];
+             toAdd = toAdd + "|" + listado1.extraeDato(codigo[a], 0);
+             toAdd = toAdd + "|" + dejaEsp(listado1.extraeDato(codigo[a], 1));
+             toAdd = toAdd + "|" + dejaEsp(listado1.extraeDato(codigo[a], 2));
+             toAdd = toAdd + "|" + dejaEsp(listado1.extraeDato(codigo[a], 3));
+             toAdd = toAdd + "|" + dejaEsp(listado1.extraeDato(codigo[a], 4));
+             toAdd = toAdd + "|" + dejaEsp(listado1.extraeDato(codigo[a], 5));
+             toAdd = toAdd + "|" + dejaEsp(listado1.extraeDato(codigo[a], 6));                        
+             total = total + "$" + toAdd;
+        }          
+        return total;
+    }
+    
+    //Este metodo elimina el elemento seleccionado de la lista
+    function botonEliminar() {
+          var cantElementos = listado1.codSeleccionados();
+          if ( cantElementos.length == 0 ){
+             GestionarMensaje("4", null, null, null);
+             //alert("Debe seleccionar un elemento para eliminar");
+          }else{
+               listado1.eliminarSelecc();
+          }
+    }
+    
+    function onChangeAplicable(){         
+        if (get('formulario.ckAplicable')=='S'){
+            accion('formulario.txtPeso','.disabled=false');
+            accion('formulario.txtDivisor','.disabled=false');
+        } else {            
+            set('formulario.txtPeso', get('formulario.valDefMantenim'));
+            accion('formulario.txtPeso','.disabled=true');
+            set('formulario.txtDivisor', get('formulario.valDefMantenim'));
+            accion('formulario.txtDivisor','.disabled=true');
+            txt_to('lbldtPesoVariable',get('formulario.valDefMantenim'));
+        }
+    }
+    
+    function onChangePeso(){
+        if(!sicc_validaciones_generales("num")){
+          return false;
+        }       
+        txt_to('lbldtPesoVariable','');
+        if (get('formulario.txtPeso')!=''){
+            if ((get('formulario.txtDivisor')!='')&&(get('formulario.txtDivisor')!='0')){
+                obtenerPesoVariable();
+            }
+        }
+    }
+
+    function onChangeDivisor(){
+        if(!sicc_validaciones_generales("num")){
+          return false;
+        }
+        txt_to('lbldtPesoVariable','');
+        if ((get('formulario.txtDivisor')!='')&&(get('formulario.txtDivisor')!='0')){
+            if(get('formulario.txtPeso')!=''){
+                obtenerPesoVariable();
+            }
+        }    
+    }
+    
+    function obtenerPesoVariable(){          
+          var peso = new Number(get('formulario.txtPeso'));
+          var divisor = new Number(get('formulario.txtDivisor'));          
+          var pesoVariable = (peso/divisor);          
+          txt_to('lbldtPesoVariable',toFix(pesoVariable));
+    }    
+
+    function fGuardar(){
+          var datosObligatorios = comprobarDatosObligatorios();
+          eval('formulario').oculto = 'S';
+          set('formulario.accion','guardar');
+          set('formulario.datosObligatorios',datosObligatorios);
+          enviaSICC('formulario','','','N');
+    }
+    
+    //ajusta a 2 decimales 
+    function toFix(num){
+      var str = num.toString();
+      var point = str.indexOf(".");
+      var new_str = '';
+      if (point!='-1'){
+         var new_str = str.substring(0,point+3);
+      } else {
+         var new_str = str;
+      }
+      return (parseFloat(new_str));
+    } 
+    
+	function fVolver(){
+		  window.close();
+	}
+
+
+    function fLimpiar(){
+        if(get('formulario.opcionMenu')!="Modificar Concurso Ranking"){  
+        
+            set('formulario.cbVariableVentas','');
+            set('formulario.ckAplicable','N');
+            set('formulario.txtPeso',get('formulario.valDefMantenim'));
+            set('formulario.txtDivisor',get('formulario.valDefMantenim'));
+            accion('formulario.txtPeso','.disabled=true');              
+            accion('formulario.txtDivisor','.disabled=true');
+            txt_to('lbldtPesoVariable',get('formulario.valDefMantenim'));              
+            set('formulario.txtNumDiasCobro','');
+            
+            focaliza('formulario.cbVariableVentas');    
+            
+        } else {
+            eval('formulario').oculto = 'N';
+            set('formulario.accion','');
+            enviaSICC('formulario','','','N');
+        }
+    }
+  ]]>   
+</JAVASCRIPT> 
+    <VALIDACION>
+      <ELEMENTO name="cbVariableVentas" required="true" cod="1021" group="gen"/>
+      <ELEMENTO name="txtPeso" required="false" cod="1115" format="e" min="0" max="999" group="num"/>
+      <ELEMENTO name="txtDivisor" required="false" cod="2453" format="e" min="1" max="99" group="num"/>        
+      <ELEMENTO name="txtNumDiasCobro" required="false" cod="2455" format="e" min="1" max="99" group="num"/>      
+      <ELEMENTO name="txtPeso" required="true" cod="1115" format="e" min="0" max="999" group="numobl"/>      
+      <ELEMENTO name="txtDivisor" required="true" cod="2453" format="e" min="1" max="99" group="numobl"/>      
+    </VALIDACION>
+<FORMULARIO nombre="formulario">
+  <VAR nombre="accion" valor="" />
+  <VAR nombre="conectorAction" valor="LPMantenerVariablesCalculoRanking" />
+  <VAR nombre="casoDeUso" valor=""/>
+  <VAR nombre="errCodigo" valor="" />
+  <VAR nombre="errDescripcion" valor="" />
+  <VAR nombre="opcionMenu" valor="" />  
+  <VAR nombre="idioma" valor="" />  
+  <VAR nombre="pais" valor=""/>
+  <VAR nombre="oidVarVtaRankPorcCobr" valor=""/><!--ConstantesINC.OID_VAR_VTA_RANKING_PORC_COBR-->
+  <VAR nombre="valDefMantenim" valor=""/><!--ConstantesINC.VALOR_DEFECTO_MANT-->
+  
+  <VAR nombre="idPestanyaDest" valor=""/>
+  <VAR nombre="datosObligatorios" valor=""/>  
+  <VAR nombre="listado1STR" valor=""/>
+
+  <!--// Hidden para habilitación de pestañas-->
+  <VAR nombre="hIndEstadoParametrosGerentes" valor=""/>
+  <VAR nombre="hIndEstadoParametrosConsultoras" valor=""/>
+  <VAR nombre="hIndEstadoVariablesVenta" valor=""/>
+  
+  <!--// Hidden para habilitación de campos-->   
+  <VAR nombre="habilitarcbVariableVentas" valor="S"/>
+  <VAR nombre="habilitarckAplicable" valor="S"/>
+  <VAR nombre="habilitartxtPeso" valor="S"/>
+  <VAR nombre="habilitartxtDivisor" valor="S"/>
+  <VAR nombre="habilitartxtNumDiasCobro" valor="S"/>
+  <VAR nombre="habilitarbtnAnadir" valor="S"/>
+  <VAR nombre="habilitarbtnEliminar" valor="S"/>
+
+<!--capa pestañas-->
+ <table width="100%" height="100%" border="0" align="center" cellpadding="0" cellspacing="0" class="menu4">
+  <tr> 
+    <td width="12" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="12" height="30"/></td>
+    <td nowrap="nowrap" class="menu5texto">&nbsp;</td>
+    <td width="10" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="92" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A"  onmouseover="activarPuntero('formulario', 1, 'lblDatosGenerales');" onclick="onClickPestanyaHabilitada(1, 'formulario', 'LPMantenerVariablesCalculoRanking');">
+        <tr align="center"> 
+          <td nowrap="nowrap" class="menu5textonegrita"><LABELC nombre="lblDatosGenerales" alto="13" filas="1" valor="" id="menu5textonegrita" cod="0011"/></td>
+        </tr>
+      </table>
+    </td>
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A"  onmouseover="activarPuntero('formulario', 2, 'lblAlcanceGeografico');" onclick="onClickPestanyaHabilitada(2, 'formulario', 'LPMantenerVariablesCalculoRanking');">
+        <tr align="center"> 
+          <td nowrap="nowrap" class="menu5textonegrita"><LABELC nombre="lblAlcanceGeografico" alto="13" filas="1" valor="" id="menu5textonegrita" cod="00368"/></td>
+        </tr>
+      </table>
+   </td>   
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A"  onmouseover="activarPuntero('formulario', 3, 'lblParametrosGerentes');" onclick="onClickPestanyaHabilitada(3, 'formulario', 'LPMantenerVariablesCalculoRanking');">
+        <tr align="center"> 
+          <td nowrap="nowrap" class="menu5textonegrita"><LABELC nombre="lblParametrosGerentes" alto="13" filas="1" valor="" id="menu5textonegrita" cod="00594"/></td>
+        </tr>                                                                                                                                                                      
+      </table>
+   </td>       
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A"  onmouseover="activarPuntero('formulario', 4, 'lblParametrosConsultoras');" onclick="onClickPestanyaHabilitada(4, 'formulario', 'LPMantenerVariablesCalculoRanking');">
+        <tr align="center"> 
+          <td nowrap="nowrap" class="menu5textonegrita"><LABELC nombre="lblParametrosConsultoras" alto="13" filas="1" valor="" id="menu5textonegrita" cod="00595"/></td>
+        </tr>                                                                                                                                                                      
+      </table>
+   </td>       
+    <td width="16" class="menu5texto"><IMG src="b.gif" width="12" height="8"/></td>
+  </tr>
+  </table>
+  <table width="100%" height="100%" border="0" align="center" cellpadding="0" cellspacing="0" class="menu4">
+  <tr> 
+    <td width="12" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="12" height="30"/></td>
+    <td nowrap="nowrap" class="menu5texto">&nbsp;</td>
+    <td width="10" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="activarPuntero('formulario', 5, 'lblProductos');" onclick="onClickPestanyaHabilitada(5, 'formulario', 'LPMantenerVariablesCalculoRanking');">
+        <tr align="center"> 
+          <td nowrap="nowrap" class="menu5textonegrita"><LABELC nombre="lblProductos" alto="13" filas="1" valor="" id="menu5textonegrita" cod="0094"/></td>
+        </tr>
+      </table>
+   </td>
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A"  onmouseover="activarPuntero('formulario', 6, 'lblPremios');" onclick="onClickPestanyaHabilitada(6, 'formulario', 'LPMantenerVariablesCalculoRanking');">
+        <tr align="center"> 
+          <td nowrap="nowrap" class="menu5textonegrita"><LABELC nombre="lblPremios" alto="13" filas="1" valor="" id="menu5textonegrita" cod="00394"/></td>
+        </tr>
+      </table>
+   </td> 
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A"  bgcolor="#496A9A"  onmouseover="activarPuntero('formulario', 7, 'lblVariablesVenta');" onclick="onClickPestanyaHabilitada(7, 'formulario', 'LPMantenerVariablesCalculoRanking');">
+        <tr align="center"> 
+          <td nowrap="nowrap" class="menu5textonegrita"><LABELC nombre="lblVariablesVenta" alto="13" filas="1" valor="" id="menu5textoblanca" cod="1951"/></td>
+        </tr>
+      </table>
+   </td> 
+    <td width="16" class="menu5texto"><IMG src="b.gif" width="12" height="8"/></td>
+  </tr>
+  </table>  
+<!--fin capa pestañas-->
+
+<!--capa contenido-->
+  <CAPA nombre="capa1">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+      <tr>
+        <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+        <td width="750"><IMG src="b.gif"/></td>
+        <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+      </tr>
+      <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <legend class="legend"><LABELC nombre="lblDatosVariablesCalculoRanking" alto="13" filas="1" valor="" id="legend" cod="00601"/></legend>
+            <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+              <tr><td> 
+              <table width="625" border="0" align="left" cellspacing="0" cellpadding="0">
+              <tr> 
+                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr>  
+              <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td><LABELC nombre="lblVariableVentas" alto="13" filas="1" valor="" id="datosTitle" cod="1021"/></td>
+                <td><IMG src="b.gif" width="25" height="8"/></td>
+                <td><LABELC nombre="lblAplicable" alto="13" filas="1" valor="" id="datosTitle" cod="2452"/></td>
+                <td><IMG src="b.gif" width="25" height="8"/></td>                                   
+                <td><LABELC nombre="lblPeso" alto="13" filas="1" valor="" id="datosTitle" cod="1115"/></td>                                   
+                <td><IMG src="b.gif" width="25" height="8"/></td>
+                <td><LABELC nombre="lblDivisor" alto="13" filas="1" valor="" id="datosTitle" cod="2453"/></td>                                   
+                <td><IMG src="b.gif" width="25" height="8"/></td>
+                <td><LABELC nombre="lblPesoVariable" alto="13" filas="1" valor="" id="datosTitle" cod="2454"/></td>                                   
+                <td><IMG src="b.gif" width="25" height="8"/></td>
+                <td><LABELC nombre="lblNumDiasCobro" alto="13" filas="1" valor="" id="datosTitle" cod="2455"/></td>                                   
+                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>     
+              </tr> 
+              <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td nowrap="nowrap">
+                  <COMBO nombre="cbVariableVentas" id="datosCampos" size="1" multiple="N" req="S" onchange="onChangeVariableVentas();"  onshtab="focalizaBotonHTML_XY('btnEliminar');" valorinicial="" textoinicial="">
+                    <ROWSET>   
+                    </ROWSET>
+                  </COMBO> 
+                </td>
+                <td><IMG src="b.gif" width="25" height="8"/></td>
+                <td nowrap="nowrap"><CHECKBOX id="datosCampos" nombre="ckAplicable" onclick="onChangeAplicable();" req="" texto="" validacion=""/></td> 
+                <td><IMG src="b.gif" width="25" height="8"/></td>		   
+                <td nowrap="nowrap"><CTEXTO nombre="txtPeso" id="datosCampos" max="3" tipo="" onblur="onChangePeso();" req="N" size="3" valor="" validacion=""/></td>
+                <td><IMG src="b.gif" width="25" height="8"/></td>	   
+                <td nowrap="nowrap"><CTEXTO nombre="txtDivisor" id="datosCampos" max="2" tipo="" onblur="onChangeDivisor();" req="N" size="2" valor="" validacion=""/></td>
+                <td><IMG src="b.gif" width="25" height="8"/></td>
+                <td><LABELC nombre="lbldtPesoVariable" alto="13" filas="1" valor="" id="datosCampos"/></td>     
+                <td><IMG src="b.gif" width="25" height="8"/></td>	   
+                <td nowrap="nowrap"><CTEXTO nombre="txtNumDiasCobro" id="datosCampos" max="3" tipo="" onchange="" req="N" size="3" valor="" validacion=""/></td>                              
+                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td> 
+              </tr> 
+              <tr> 
+                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr>      
+            </table>
+            </td>
+              </tr>       
+            </table>                                                
+          </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr> 
+      <tr> 
+        <td><IMG src="b.gif"/></td>
+      	  <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnAnadir" ID="botonContenido" tipo="html" accion="botonAniadir();" estado="false" cod="404" ontab="focalizaBotonHTML_XY('btnEliminar');"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>
+      <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750"><IMG src="b.gif"/></td>
+      	<td width="12"><IMG src="b.gif" width="12" height="12"/></td>
+      </tr>
+    </table> 
+  </CAPA>
+
+   <LISTAEDITABLE nombre="listado1" ancho="628" alto="309" x="12" y="176" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+        <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+        <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+        <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+      <LINEAS>
+        <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="1" horizTitulo="1" horizBase="1"/> 
+        <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+     <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00601" ID="datosTitle" />
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+        <COL ancho="190" minimizable="S" minimizada="N"/>
+        <COL ancho="50" minimizable="S" minimizada="N" /> 
+        <COL ancho="40" minimizable="S" minimizada="N" /> 
+        <COL ancho="40" minimizable="S" minimizada="N" />  
+        <COL ancho="70" minimizable="S" minimizada="N" /> 
+        <COL ancho="70" minimizable="S" minimizada="N" />
+          <COL ancho="0" minimizable="S" minimizada="S" oculta="S"/>       
+      </COLUMNAS>
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC" ajustarAMitadInf="S">
+		<COL colFondo="" ID="EstCab" cod="1021"/>    
+		<COL colFondo="" ID="EstCab" cod="2452"/>    
+		<COL colFondo="" ID="EstCab" cod="1115"/>
+		<COL colFondo="" ID="EstCab" cod="2453"/>
+		<COL colFondo="" ID="EstCab" cod="2454"/>
+		<COL colFondo="" ID="EstCab" cod="2455"/>
+      </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+             coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+             onLoad="" colorSelecc="#D0D9E8">
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat"/>  
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat"/>  
+       <COL tipo="texto" ID="EstDat2"/>
+            <COL tipo="texto" ID="EstDat"  />        
+      </DATOS>
+      <ROWSET>
+      </ROWSET>
+      <PAGINADO nombre="mipgndo" ancho="628" sep="$" x="12" class="botonera" y="402" control="|" conector="conector_prototipo_2" rowset="" cargainicial="N">
+        <BOTON nombre="ret1" x="37" y="406" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+        <BOTON nombre="ava1" x="52" y="406" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>
+                
+    </PAGINADO>
+  </LISTAEDITABLE>
+    <BOTON nombre="primera1" x="20" y="406" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();"/>  
+    <BOTON nombre="separa" x="59" y="402" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />      
+    <BOTON nombre="btnEliminar" x="13" y="463" ID="botonContenido" tipo="html" accion="botonEliminar();" estado="false" cod="1254" onshtab="focalizaBotonHTML('botonContenido','btnAnadir');" ontab="focaliza('formulario.cbVariableVentas');"/>  
+
+<CAPA nombre="capaEspacio" alto="12" ancho="50" x="0" y="425"/>
+<!--fin capa contenido-->
+</FORMULARIO>
+</PAGINA>

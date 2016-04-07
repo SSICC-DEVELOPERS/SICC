@@ -1,0 +1,526 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: prueba_perfil.xml,v 1.1 2009/12/03 18:46:33 pecbazalar Exp $
+   vvv
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="prueba_perfil" titulo="" estilos="estilosB3.css" colorf="#F0F0F0" msgle="" onload="onLoadPag();" xml:lang="es" cod="051">
+
+<!--Modificar perfiles  cod="052"
+    Consultar perfiles  cod="053"
+    Eliminar perfiles  cod="054"-->
+
+<JS src="sicc_util.js"/>
+<JS src="PaginacionSicc.js"/>
+<JS src="DruidaTransactionMare.js"/>
+
+ <JAVASCRIPT>
+ <![CDATA[ 
+
+  function onLoadPag()   {  
+    alert("Entre a prueba perfil");
+    DrdEnsanchaConMargenDcho('listado1',12);
+    document.all["Cplistado1"].style.visibility='';
+    document.all["CpLin1listado1"].style.visibility='';
+    document.all["CpLin2listado1"].style.visibility='';
+    document.all["CpLin3listado1"].style.visibility='';
+    document.all["CpLin4listado1"].style.visibility='';
+    document.all["prim1Div"].style.visibility='';
+    document.all["ret1Div"].style.visibility='';
+    document.all["ava1Div"].style.visibility='';
+    document.all["separa1Div"].style.visibility='';
+    eval (ON_RSZ);
+    init();
+   }
+
+   function init() {      
+      configurarMenuSecundario("frmContenido");
+      var casoUso = get("frmContenido.casoUso");
+      
+      if(casoUso=="insertar") {
+        var nom = get("frmContenido.varNombre");
+        set("frmContenido.txtPerfil", nom);
+        focaliza("frmContenido.txtPerfil");   
+        var exitoInserta = get("frmContenido.varExitoInserta"); //Si la variable varExito tiene el valor Exito
+        
+        if(exitoInserta == "Exito") {
+          fMostrarMensajeExito("insertar");       //muestra el mensaje de insercion exitosa
+          set("frmContenido.varExitoInserta", "");       //y despues deja varExitoInserta en vacio
+
+          var copia = get("frmContenido.varCopiar");
+          if(copia=="copiando") {
+            window.close();
+          }          
+        }  
+      }
+
+      if(casoUso=="consultar") {
+        //Si estoy en el caso de uso consultar, deshabilito la caja de texto del nombre
+        var nom = get("frmContenido.varNombre");
+        set("frmContenido.txtPerfil", nom);        
+        accion("frmContenido.txtPerfil", ".disabled=true");
+        document.all["capaPrincipal"].style.display='none';
+        document.all["miscroll"].style.display='none';
+      }
+  
+      if(casoUso=="modificar") {
+        //Si estoy en el caso de uso modificar, deshabilito la caja de texto del nombre
+        var nom = get("frmContenido.varNombre");
+        set("frmContenido.txtPerfil", nom);        
+        accion("frmContenido.txtPerfil", ".disabled=true");      
+
+        var exitoModifica = get("frmContenido.varExitoModifica");
+        //Si la modificacion tuvo exito
+        if(exitoModifica =="Exito") {
+          //muestra un mensaje de exito
+          fMostrarMensajeExito("modificar");
+          set("frmContenido.varExitoModifica", "");       //y despues deja varExitoModifica en vacio
+          //y cierra la ventana
+          window.close();
+        }     
+      }     
+      
+      var bErrores = hayErrores(); 
+      if (bErrores == true) {
+        return;
+    	}    
+    }
+
+    function hayErrores() {
+        var codigoError = get("frmContenido.errCodigo");
+        var descError = get("frmContenido.errDescripcion");
+
+        if (codigoError == "") {
+          return false;
+        }
+        //Si hay errores entra a la LP por accion vacio        
+        else {
+          var casoUso = get("frmContenido.casoUso");      
+          var copy = get("frmContenido.varCopiar");
+
+          if(casoUso=="insertar") {
+            fMostrarMensajeError(codigoError, descError);
+            window.close();
+            return;
+          }
+
+          if(casoUso=="consultar") {
+            fMostrarMensajeError(codigoError, descError);
+            window.close();
+            return;
+          }
+
+          if(casoUso=="modificar") {
+            fMostrarMensajeError(codigoError, descError);
+            window.close();
+            return;
+          }
+
+          if(copy=="copiando") {
+            fMostrarMensajeError(codigoError, descError);
+            window.close();
+            return;
+          }         
+        
+          fMostrarMensajeError(codigoError, descError);    
+          set("frmContenido.conectorAction", "LPPerfiles");          
+          set("frmContenido.accion", "");      
+          enviaSICC("frmContenido");    
+          return true;
+        }
+    }
+
+   function validaNombrePerfil(valor) {
+      var permitidos = "0123456789ABCDEFGHIJKLMNÑOPQRSTUVWXYZabcdefghijklmnñopqrstuvwxyz";
+      var c;
+      for(var i=0; i<valor.length; i++) {
+          c = valor.charAt(i);
+          if (permitidos.indexOf(c) == -1 )	return false;
+      }
+      return true;
+   }
+
+   function accionGuardar() {
+      alert("Entre a accionGuardar");
+      //Ponemos el variable oculta "inicio" el oid (la columna 0)
+      //de la fila que tiene el check inicio marcado. 
+      //Si hay más de uno marcado es un error del sistema
+      //y damos un mensaje de depuración. 
+      //(Sólo puede haber uno marcado porque el evento "inicioOnChange" desmarca los demás.)
+      //Enviamos el formulario de forma oculta con la accion "guardar"
+
+      var casoUso = get("frmContenido.casoUso");
+      alert("casoUso: " + casoUso);
+      if(casoUso=="insertar") {      
+        //Si esta en el caso de uso insertar
+        //Verifica que se haya ingresado un nombre de perfil
+        //Si no se ingreso un nombre de perfil se muestra un mensaje de error
+        var nomb = get("frmContenido.txtPerfil");
+        if(nomb=="") {
+          GestionarMensaje("1065", null, null, null);
+          focaliza("frmContenido.txtPerfil","");
+          return false;
+        }      
+
+        //Si se ingreso un nombre de perfil, luego valida que sea un
+        //nombre valido, comprobando que no haya caracteres extraños.
+        var nombre = get("frmContenido.txtPerfil");
+        var valnom = validaNombrePerfil(nombre);
+        if (valnom != true) {
+          GestionarMensaje("1086", null, null, null);
+          focaliza("frmContenido.txtPerfil","");
+          return false;
+        }
+      }     
+
+      var listadoDatos = listado1.datos;
+			var cantCodigos = listado1.codigos().length;
+            
+      //Se obtiene el oid de la fila que tiene marcado el checkbox
+			for ( var i = 0; i < cantCodigos; i++) {
+					if (listadoDatos[i][2] == "S") {
+            var codigo = listadoDatos[i][0];
+          }          
+      }
+
+      alert("codigo: " + codigo);
+
+      //Se obtienen todos los oid de la lista separados por coma
+      arrayFunc = listado1.codigos();
+
+      alert("arrayFunc " + arrayFunc);
+      if(codigo==undefined) {       
+        alert("Codigo es undefined");
+        set("frmContenido.inicio","null");  
+      }
+      else {
+        alert("Codigo no es undefined");
+        set("frmContenido.inicio",codigo);
+      }
+
+      var nombrePerfil;
+
+      if(casoUso=="insertar") {
+        alert("Entre por caso de uso insertar");
+        nombrePerfil = get("frmContenido.txtPerfil");  
+        alert("nombrePerfil " + nombrePerfil);
+      }     
+      if(casoUso=="modificar") {
+        alert("Entre por caso de uso modificar");
+        nombrePerfil = get("frmContenido.varNombre");
+        alert("nombrePerfil " + nombrePerfil);
+      }         
+    
+      alert("Variable inicio ");
+      
+      var valorCopia = get("frmContenido.varCopiar");      
+      set("frmContenido.conectorAction", "LPPerfiles");
+      set("frmContenido.funciones",arrayFunc);      
+      set("frmContenido.accion","guardar");
+      set("frmContenido.varNombre",nombrePerfil);
+      set("frmContenido.varCopiar",valorCopia);
+      alert("Antes de enviar el formulario");
+      enviaSICC("frmContenido");
+   }
+   
+   function seleccionarFuncion(oid, nombre) {
+      //Este evento se asocia a las hojas que son funciones finales
+      //(ver en la LP como se carga el árbol). 
+      //Llamamos a agregarFuncion pasandole la hoja sobre la que se ha
+      //producido la pulsación (será distinta en cada evento).      
+
+      var arrayVerificRepe = new Array();
+      arrayVerificRepe = listado1.codigos();
+
+      //impide repeticiones
+      for(var i=0; i<arrayVerificRepe.length; i++) {
+        if (arrayVerificRepe[i] == oid) {
+          return false;
+        }
+      }
+      var ruta = obtengoRuta(oid);
+      agregarFuncion(oid, ruta);
+   }
+
+   function obtengoRuta(nId) {  
+      var cRuta;
+      var cOrig;
+      var arrayRutaOrig = new Array();
+      cRuta = "Menu/";
+
+      for(var i=0; i<name1.entradas.length; i++) {
+        //pregunto por el Oid que me interesa
+        if (name1.entradas[i][2] == nId) {
+          cOrig = name1.entradas[i][0];
+          arrayRutaOrig = cOrig.split(".name");
+          //voy canjeando x elemento de menu, legible
+          for(var j=0; j<arrayRutaOrig.length; j++) {
+            for(var h=0; h<name1.entradas.length; h++) {
+              if (arrayRutaOrig[j] == name1.entradas[h][2]) {
+                //me quedo con la 3 pos, q' es donde esta el menu traducido 
+                cRuta = cRuta + name1.entradas[h][3] + '/';
+                break;
+              } 
+            }
+          } 
+        }
+      }
+      cRuta = cRuta.substr(0, (cRuta.length-1));
+      return cRuta;
+    }
+
+   function agregarFuncion(oid, ruta) {      
+      //Con el parametro hoja(nos indica la funcion sobre la que se ha hecho click)
+      //recibido obtenemos el código y la ruta completa del elemento. 
+      //Para ello construimos una cadena en la que ponemos la ruta
+      //completa desde la raiz al elemento elegido por el usuario,
+      //separados por el caracter "/" 
+      //Con estos dos elementos añadimos una fila nueva en la lista favoritos. 
+      //Este evento sólo se asociará a aquellos elementos que
+      //tengan funcion asociada (ver la construccion del arbol en la LP).     
+      agregarFila(oid,ruta);
+   }
+
+   function agregarFila(oid,ruta) {
+      var nuevaFila = new Array();
+      
+      nuevaFila[0] = oid;			
+			nuevaFila[1] = ruta;			
+			nuevaFila[2] = "N";
+      
+			listado1.insertar(nuevaFila);
+    }
+
+   function fGuardar() {
+      accionGuardar();      
+   }
+
+   function inicioOnChange(filaCambiada) {
+      alert("Entre a inicioOnChange");      
+      var caso = get("frmContenido.casoUso");
+      alert("caso: " + caso);
+      if(caso=="consultar") {
+        alert("Entre al if por consultar");
+        listado1.repintaDat();
+        return;
+      }
+   
+      //Este evento se dispara cuando cambia uno de los
+      //check de la columna "Inicio" de la tabla.
+      //Si el check pasa a estar marcado, desmarcamos todos los demás.
+   
+      //Primero deselecciono todos los check
+			listado1.actualizaDat();
+			var listadoDatos = listado1.datos;
+			var cantCodigos = listado1.codigos().length;
+			
+			listado1.actualizaDat();
+
+			for ( var i = 0; i < cantCodigos; i++) {
+					if ( i != filaCambiada)
+            listadoDatos[i][2] = "N";
+      }			
+			listado1.setDatos(listadoDatos); 			
+    }
+
+    function focalizaNombre() {
+      focaliza("frmContenido.txtPerfil");
+    }
+
+    function fBorrar() {
+      //Primero verifico que haya eligido una o mas filas de la lista
+      if (listado1.numSelecc()== 0) {
+        GestionarMensaje('1021',null,null,null);
+        return false;
+      }    
+      listado1.eliminarSelecc();         
+    }
+  ]]>  
+</JAVASCRIPT>	
+  
+<FORMULARIO nombre="frmContenido">
+<VAR nombre="nombreArbol" valor=""/>
+<VAR nombre="casoUso" valor=""/>
+<VAR nombre="inicio" valor=""/>
+<VAR nombre="accion" valor=""/>
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="errCodigo" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="nombre" valor=""/>
+<VAR nombre="funciones" valor=""/>
+<VAR nombre="varExitoInserta" valor=""/>
+<VAR nombre="varExitoModifica" valor=""/>
+<VAR nombre="varNombre" valor=""/>
+<VAR nombre="varCopiar" valor=""/>
+<VAR nombre="varUnaVariable" valor=""/>
+
+<CAPA nombre="capaContenido" colorf="#F0F0F0"  borde="0" visibilidad="" x="0" y="0">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+     <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+	<fieldset><legend class="legend"><LABELC nombre="lblCriteriosBusqueda" alto="13" filas="1" valor="" id="legend" cod="0075"/></legend> 
+          <!---primera fila-->
+	<table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+	<tr><td>
+              <table width="721" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td><LABELC nombre="lblPerfil" alto="13" filas="1" valor="" id="datosTitle" cod="146"/></td>                   
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td  nowrap="nowrap">
+                    <CTEXTO nombre="txtPerfil" id="datosCampos" max="25" tipo="" onchange="" req="S" size="35" valor="" validacion="" ontab="focalizaNombre();" onshtab="focalizaNombre();" />
+                   </td>  
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+       <!---fin primera fila-->
+          </td></tr></table>
+        </fieldset>        
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr>   
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+
+<CAPA nombre="capaPrincipal" x="0" y="81">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primero formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblListaFunciones" alto="13" filas="1" valor="" id="legend" cod="00505"/></legend>
+          <!---primera fila-->
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr>
+                <td><IMG src="b.gif" width="8" height="230"/></td>
+                <td width="100%"><IMG src="b.gif" width="713" height="8"/></td> 
+              </tr>
+              </table>
+       <!---fin primera fila-->
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr>  
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+
+<SCROLL nombre="miscroll" x="22" y="70" ancho="700" alto="250" colorf="" visibilidad="visible" incx="10" incy="10"	colores="">
+  <REJILLA nombre="RArbol"/>		
+</SCROLL> 
+  
+  <!--<ARBOL x="22" y="118" nombre="miarbol" ancho="350" alto="188" oncolor="#D0D9E8" overcolor="#D0D9E8"
+         id="datosCampos" multisel="S" visibilidad="" incx="5" incy="5">
+    <ICONOS>
+      <ICONO src="b.gif"/>
+      <ICONO src="flechaMenuVert.gif"/>
+      <ICONO src="flechaMenuHorz.gif"/>
+    </ICONOS>
+    <RAMA nombre="N1root" icono="0" codigo="" texto="/" onclick="">
+      <RAMA nombre="N1" icono="1" codigo="" texto="Agrupación lógica 1" onclick="">
+        <RAMA nombre="N11" icono="1" codigo="" texto="Agrupación lógica 1.1" onclick=""> 
+          <HOJA nombre="E11" icono="2" codigo="" texto="Función 1" onclick=""/>	
+          <HOJA nombre="E12" icono="2" codigo="" texto="Función 2" onclick=""/>					
+        </RAMA>	
+        <RAMA nombre="N12" icono="1" codigo="" texto="Agrupación lógica 1.2" onclick=""> 
+          <HOJA nombre="E112" icono="2" codigo="" texto="Función 1" onclick=""/>	
+          <HOJA nombre="E122" icono="2" codigo="" texto="Función 2" onclick=""/>					
+        </RAMA>		
+      </RAMA>	
+      <RAMA nombre="N2" icono="1" codigo="" texto="Agrupación lógica 2" onclick="">
+        <RAMA nombre="N113" icono="1" codigo="" texto="Agrupación lógica 2.1" onclick=""> 
+          <HOJA nombre="E113" icono="2" codigo="" texto="Función 1" onclick=""/>	
+          <HOJA nombre="E123" icono="2" codigo="" texto="Función 2" onclick=""/>					
+        </RAMA>	
+        <RAMA nombre="N123" icono="1" codigo="" texto="Agrupación lógica 2.2" onclick=""> 
+          <HOJA nombre="E1123" icono="2" codigo="" texto="Función 1" onclick=""/>	
+          <HOJA nombre="E1223" icono="2" codigo="" texto="Función 2" onclick=""/>					
+        </RAMA>		
+      </RAMA>		
+    </RAMA>
+  </ARBOL>
+-->
+
+<LISTAEDITABLE nombre="listado1" ancho="724" alto="299" x="12" y="362" colorFondo="#CECFCE" msgDebugJS="S">
+
+<IMGBOTONES precarga="S" conROver="S">
+  <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+  <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+  <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>
+</IMGBOTONES> 
+
+<LINEAS>
+  <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="1" horizTitulo="1" horizBase="1"/> 
+  <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+</LINEAS>
+
+<TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00521" ID="datosTitle"/>
+<BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+
+<COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+  <COL ancho="330" minimizable="S" minimizada="N"/>
+  <COL ancho="55" minimizable="S" minimizada="N"/> 
+</COLUMNAS>
+
+<CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+  <COL colFondo="" ID="EstCab" cod="2243"></COL> 
+	<COL colFondo="" ID="EstCab" cod="149"></COL> 
+</CABECERA>
+
+<DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" onLoad="" colorSelecc="#D0D9E8">
+  <COL tipo="texto" ID="EstDat"/> 
+  <COL tipo="checkbox" onchange="inicioOnChange(FILAEVENTO);" nombre="chkInicio" ID="EstDat2" />
+</DATOS>
+
+<ROWSET>  
+</ROWSET>
+
+<PAGINADO nombre="mipgndo" ancho="724" sep="$" x="12" class="botonera" y="638" control="|" conector="conector_prototipo_2" rowset="" cargainicial="N">        
+  <BOTON nombre="ret1" x="37" y="642" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+  <BOTON nombre="ava1" x="52" y="642" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();" />  
+</PAGINADO>
+</LISTAEDITABLE>
+  
+<BOTON nombre="prim1" x="20" y="642" ID="botonContenido" img="primera_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();" /> 
+<BOTON nombre="separa1" x="59" y="638" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />      
+    	
+<CAPA nombre="capaEspacio" colorf=""  borde="0" visibilidad="" x="0" y="661" ancho="50" alto="12"/>
+    	
+</FORMULARIO>
+</PAGINA>

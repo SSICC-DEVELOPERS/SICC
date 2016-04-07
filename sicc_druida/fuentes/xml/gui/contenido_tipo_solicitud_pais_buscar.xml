@@ -1,0 +1,811 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_tipo_solicitud_pais_buscar.xml,v 1.1 2009/12/03 18:46:03 pecbazalar Exp $
+   prueba arbol 
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+
+
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+<PAGINA nombre="contenido_tipo_solicitud_pais_buscar" cod="0609" titulo="Modificar tipo de solicitud por país" estilos="estilosB3.css" colorf="#F0F0F0" 
+	msgle="Modificar tipo de solicitud por país" onload="onLoadPag();" xml:lang="es">
+
+
+<!-- 
+0610 Consultar tipos de solicitud por país
+0611 Eliminar tipos de solicitud por país 
+-->
+<JS src="sicc_util.js"/>
+<JS src="PaginacionSicc.js"/>
+<JS src="DruidaTransactionMare.js"/>
+
+
+
+	
+<JAVASCRIPT>
+ <![CDATA[    
+
+	var form = 'frmModificar.';
+	var elementos = new Array('cbTipoSolicitud', 'txtNumSolicitudesLote', 'txtAlarmaNumUnidades', 'cbSujetoFlete',
+								'cbPermiteUnionSolicitudes', 'cbTipoConsolidado', 'cbTipoDocumentoLegal', 'cbPermitirReversion',
+								'cbPedidoPrueba', 'cbComisionable', 'cbPedGtZona', 'cbCambioVentaBelcenter', 'cbVentaInterfazSAB14',
+								'cbSociedad', 'cbFormaPago', 'cbAlmacen', 'cbTipoMovimientoAsignacionStock', 'cbReservaStock',
+								'cbTipoMovimientoReservaStock', 'cbTipoMovimientoFacturacion', 'cbCodActividadCronograma',
+								'cbMoneda', 'btnBuscar', 'Modificar', 'Detalle');
+      
+	function onLoadPag(){
+		ocultarLista();
+		configurarMenuSecundario('frmModificar');
+		cargaCombosIndicadores();
+		fMostrarMensajeError();	    
+		focaliza(form + elementos[0]);
+		if( get(form + 'accion') == 'muestraBorrado' )
+			mipgndo.lista.maxSel = -1;
+		else
+			mipgndo.lista.maxSel = 1;
+
+		
+		
+	}
+
+	function mostrarLista(){
+		DrdEnsanchaConMargenDcho('listado1',12);
+	    document.all["Cplistado1"].style.visibility='visible';
+	    document.all["CpLin1listado1"].style.visibility='visible';
+	    document.all["CpLin2listado1"].style.visibility='visible';
+	    document.all["CpLin3listado1"].style.visibility='visible';
+	    document.all["CpLin4listado1"].style.visibility='visible';
+	    document.all["primera1Div"].style.visibility='visible';
+	    document.all["ret1Div"].style.visibility='visible';
+	    document.all["ava1Div"].style.visibility='visible';
+	    document.all["separaDiv"].style.visibility='visible';
+		document.all["ModificarDiv"].style.visibility='hidden';
+	    document.all["DetalleDiv"].style.visibility='hidden';
+		if( get(form + 'accion') == 'muestraModificacion'){
+			document.all["ModificarDiv"].style.visibility='visible';	
+		}else{
+			document.all["DetalleDiv"].style.visibility='visible';
+		}
+	    eval (ON_RSZ);  
+	}
+
+	function ocultarLista(){
+	    document.all["Cplistado1"].style.visibility='hidden';
+	    document.all["CpLin1listado1"].style.visibility='hidden';
+	    document.all["CpLin2listado1"].style.visibility='hidden';
+	    document.all["CpLin3listado1"].style.visibility='hidden';
+	    document.all["CpLin4listado1"].style.visibility='hidden';
+	    document.all["primera1Div"].style.visibility='hidden';
+	    document.all["ret1Div"].style.visibility='hidden';
+	    document.all["ava1Div"].style.visibility='hidden';
+	    document.all["separaDiv"].style.visibility='hidden';
+	    document.all["ModificarDiv"].style.visibility='hidden';
+	    document.all["DetalleDiv"].style.visibility='hidden';
+	}
+
+	function muestraLista(ultima, rowset){
+		var tamano = rowset.length;
+		if (tamano > 0) {
+			mostrarLista();
+			if(get(form + 'accion') == 'muestraBorrado'){
+				btnProxy(4, 1);
+			}else{
+				btnProxy(4, 0);
+			}
+			return true;
+		} else {
+			ocultarLista();
+			btnProxy(4, 0);
+			focaliza(form + elementos[0]);
+			return false;
+		}
+	}
+
+	function tab(elemento){
+		try{
+			for(i=0; i < elementos.length; i++){
+				if( elementos[i] == elemento ){
+					if( i == elementos.length - 1 ) i = 0;
+					else i++;
+					document.selection.empty();
+					switch(elementos[i]){
+						case 'btnBuscar':
+						case 'Modificar':
+						case 'Detalle': 
+							focalizaBotonHTML('botonContenido', elementos[i]);
+							break;
+						default: 
+							focaliza(form + elementos[i]);
+							break;
+					}
+					return;
+				}
+			}
+		}catch(e){
+			tab(elementos[i]);
+		}
+	}
+
+	function shtab(elemento){
+		try{
+			for(i=elementos.length - 1; i >= 0 ; i--){
+				if( elementos[i] == elemento ){
+					if( i == 0 ) i = elementos.length - 1;
+					else i--;
+					document.selection.empty();
+					switch(elementos[i]){
+						case 'btnBuscar':
+						case 'Modificar':
+						case 'Detalle': 
+							focalizaBotonHTML('botonContenido', elementos[i]);
+							break;
+						default:
+							focaliza(form + elementos[i]);
+							break;
+					}
+					return;
+				}
+			}
+		}catch(e){
+			shtab(elementos[i]);
+		}
+	}
+
+	function cargaCombosIndicadores(){
+		var si = GestionarMensaje('84', null, null, null);
+		var no = GestionarMensaje('86', null, null, null);
+		var carga = new Array(3);
+		carga[0] = ['', ''];
+		carga[1] = ['01', no];
+		carga[2] = ['00', si];
+		set_combo(form + 'cbSujetoFlete', carga);
+		set_combo(form + 'cbPermiteUnionSolicitudes', carga);
+		set_combo(form + 'cbPermitirReversion', carga);
+		set_combo(form + 'cbPedidoPrueba', carga);
+		set_combo(form + 'cbComisionable', carga);
+		set_combo(form + 'cbPedGtZona', carga);
+		set_combo(form + 'cbCambioVentaBelcenter', carga);
+		set_combo(form + 'cbVentaInterfazSAB14', carga);
+		set_combo(form + 'cbReservaStock', carga);		
+	}
+	
+	 function accionBuscar(){
+		ocultarLista();
+        if (sicc_validaciones_generales()){
+		  configurarPaginado(mipgndo, "PEDconsultaTiposSolicitudPais", "ConectorBuscarTiposSolicitudPais", "es.indra.sicc.dtos.ped.DTOTipoSolicitudPais", armarArray() );
+		  focaliza(form + elementos[0]);
+       }
+	}
+
+	function armarArray(){
+		var hh = new Array();
+		var i=0;
+ 
+		hh[i] = new Array('oidIdioma', get(form + 'idioma'));
+		i++;
+		hh[i] = new Array('oidPais', get(form + 'pais'));
+		i++;
+
+		if( get(form + 'txtNumSolicitudesLote') != '' ){
+			hh[i] = new Array('numPorLote', get(form + 'txtNumSolicitudesLote'));
+			i++
+		}
+		if( get(form + 'txtAlarmaNumUnidades') != '' ){
+			dato = numeroDeFormatoSICC( get(form + 'txtAlarmaNumUnidades'), get(form + 'formato') );
+			
+			hh[i] = new Array('alarmaNumUnidades', dato);
+			i++
+		}
+		if( get(form + 'cbSujetoFlete') != '' ){
+			hh[i] = new Array('sujetoFlete', formateaBoolean(get(form + 'cbSujetoFlete')));
+			i++
+		}
+		if( get(form + 'cbPermiteUnionSolicitudes') != '' ){
+			hh[i] = new Array('permiteUnionSolicitudes', formateaBoolean(get(form + 'cbPermiteUnionSolicitudes')));
+			i++
+		}
+		if( get(form + 'cbReservaStock') != '' ){
+			hh[i] = new Array('reservaStock', formateaBoolean(get(form + 'cbReservaStock')));
+			i++
+		}
+		if( get(form + 'cbPermitirReversion') != '' ){
+			hh[i] = new Array('permiteReversion', formateaBoolean(get(form + 'cbPermitirReversion')));
+			i++
+		}
+		if( get(form + 'cbPedidoPrueba') != '' ){
+			hh[i] = new Array('indPedidoPrueba', formateaBoolean(get(form + 'cbPedidoPrueba')));
+			i++
+		}
+		if( get(form + 'cbComisionable') != '' ){
+			hh[i] = new Array('indComisionable', formateaBoolean(get(form + 'cbComisionable')));
+			i++
+		}
+		if( get(form + 'cbPedGtZona') != '' ){
+			hh[i] = new Array('indPedGtZona', formateaBoolean(get(form + 'cbPedGtZona')));
+			i++
+		}
+		if( get(form + 'cbCambioVentaBelcenter') != '' ){
+			hh[i] = new Array('indCambioVentaBEL', formateaBoolean(get(form + 'cbCambioVentaBelcenter')));
+			i++
+		}
+		if( get(form + 'cbVentaInterfazSAB14') != '' ){
+			hh[i] = new Array('indVentaSAB14', formateaBoolean(get(form + 'cbVentaInterfazSAB14')));
+			i++
+		}
+		if( get(form + 'cbSociedad') != '' ){
+			hh[i] = new Array('sociedad', get(form + 'cbSociedad'));
+			i++
+		}
+		if( get(form + 'cbFormaPago') != '' ){
+			hh[i] = new Array('formaPago', get(form + 'cbFormaPago'));
+			i++
+		}
+		if( get(form + 'cbTipoDocumentoLegal') != '' ){
+			hh[i] = new Array('tipoDocumentoLegal', get(form + 'cbTipoDocumentoLegal'));
+			i++
+		}
+		if( get(form + 'cbMoneda') != '' ){
+			hh[i] = new Array('moneda', get(form + 'cbMoneda'));
+			i++
+		}
+		if( get(form + 'cbCodActividadCronograma') != '' ){
+			hh[i] = new Array('actividad', get(form + 'cbCodActividadCronograma'));
+			i++
+		}
+		if( get(form + 'cbTipoMovimientoReservaStock') != '' ){
+			hh[i] = new Array('tipoMovReserva', get(form + 'cbTipoMovimientoReservaStock'));
+			i++
+		}
+		if( get(form + 'cbTipoMovimientoAsignacionStock') != '' ){
+			hh[i] = new Array('tipoMovAsigna', get(form + 'cbTipoMovimientoAsignacionStock'));
+			i++
+		}
+		if( get(form + 'cbTipoMovimientoFacturacion') != '' ){
+			hh[i] = new Array('tipoMovFacturacion', get(form + 'cbTipoMovimientoFacturacion'));
+			i++
+		}
+		if( get(form + 'cbTipoSolicitud') != '' ){
+			hh[i] = new Array('tipoSolicitud', get(form + 'cbTipoSolicitud'));
+			i++
+		}
+		if( get(form + 'cbTipoConsolidado') != '' ){
+			hh[i] = new Array('tipoConsolidado', get(form + 'cbTipoConsolidado'));
+			i++
+		}
+		if( get(form + 'cbAlmacen') != '' ){
+			hh[i] = new Array('almacen', get(form + 'cbAlmacen'));
+		}
+
+		return hh;
+	}
+
+	function formateaBoolean(valor){
+		if( valor == '00' )
+			return 'true';
+		else 
+			return 'false';
+	}
+
+	function accionDetalle(){
+		var valorSeteado = mipgndo.lista.codSeleccionados();
+
+		if( valorSeteado != '' ){
+			if( valorSeteado.length == 1 ){
+				var obj = new Object();
+				obj.seleccion = valorSeteado[0];
+				obj.accion = 'muestraDetalle';
+				var winModal = mostrarModalSICC('LPMantieneTiposSolicitudPais', 'muestraDetalle', obj, null, null);
+			} else {
+				GestionarMensaje('8',null,null,null);
+			}
+		}else{
+			GestionarMensaje('4', null, null, null);
+		}		
+		focaliza(form + elementos[0]);
+	}
+
+	function accionModificar(){
+		var valorSeteado = mipgndo.lista.codSeleccionados();
+
+		if( valorSeteado != '' ){
+			var obj = new Object();
+			obj.seleccion = valorSeteado;
+			obj.accion = 'modificar';
+			var retorno = mostrarModalSICC('LPMantieneTiposSolicitudPais', 'modificar', obj, null, null);
+			if( retorno == true ){
+				accionBuscar();
+			}
+		}else{
+			GestionarMensaje('4', null, null, null);
+			focaliza(form + elementos[0]);
+		}
+	}
+
+	function fLimpiar(){
+		focaliza(form + elementos[0]);
+	}
+
+	function fBorrar(){
+		var seleccion = mipgndo.lista.codSeleccionados();
+		if( seleccion != '' ){
+			eliminarFilas(seleccion, 'PEDeliminaTiposSolicitudPais', mipgndo);
+		}else{
+			GestionarMensaje('4', null, null, null);
+		}
+		focaliza(form + elementos[0]);
+	}
+  
+//-- Incidencia 10913 - INICIO ----------------------------------------------------------------------------   
+    function onchange_TipoSolicitud(){
+         limpiarActividades();
+         if(get(form + 'cbTipoSolicitud') != ''){
+              recargaCombo(form + 'cbCodActividadCronograma', 'CRAObtieneActividadesPorTipoSolicitud', 'es.indra.sicc.util.DTOOID', armarArrayActividades());
+         }
+    }
+    function armarArrayActividades(){
+      var arr = new Array();
+      var oid = get(form + 'cbTipoSolicitud');
+      arr[arr.length] = new Array("oid", oid);
+      var pais = get(form + 'pais');
+      arr[arr.length] = new Array("oidPais", pais);
+      var idioma = get(form + 'idioma');
+      arr[arr.length] = new Array("oidIdioma", idioma);
+      return arr;
+    }
+   function limpiarActividades(){
+			set(form + 'cbCodActividadCronograma', ['']);
+   }
+   
+//-- Incidencia 10913 - FIN ----------------------------------------------------------------------------   
+  
+
+  ]]>
+  <VALIDACION>    
+	<ELEMENTO name="txtNumSolicitudesLote" required="false" cod="1386" format="e" min="0" max ="999"/>
+	<ELEMENTO name="txtAlarmaNumUnidades" required="false" cod="2146" format="e" min="0" max ="99999"/>
+</VALIDACION>
+
+  </JAVASCRIPT>
+
+
+<FORMULARIO nombre="frmModificar">
+<VAR nombre="conectorAction" valor="LPMantieneTiposSolicitudPais"/>
+<VAR nombre="accion" valor=""/>
+<VAR nombre="casoDeUso" valor=""/>
+<VAR nombre="errCodigo" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>
+
+<VAR nombre="idioma" valor=""/>
+<VAR nombre="pais" valor=""/>
+<VAR nombre="formato" valor=""/>
+
+
+<CAPA nombre="capa">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr>
+      <td><IMG src="b.gif"/></td>
+      <td>
+	<fieldset><legend class="legend"><LABELC nombre="lblCriteriosBusqueda"  alto="13" filas="1" cod="0075" id="legend" /></legend>
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr><td>
+                <table width="722" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+		   <td><LABELC nombre="lblTipoSolicitud" alto="13" filas="1" valor="" id="datosTitle" cod="415"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td><LABELC nombre="lblNumSolicitudesLote" alto="13" filas="1" valor="" id="datosTitle" cod="1386"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td><LABELC nombre="lblAlarmaNumUnidades"  alto="13" filas="1" valor="" id="datosTitle" cod="2146"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td><LABELC nombre="lblSujetoFlete" alto="13" filas="1" valor="" id="datosTitle" cod="2147"/></td>
+		   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                    <td><IMG src="b.gif" width="8" height="8"/></td>
+			<td nowrap="nowrap">
+			  <COMBO nombre="cbTipoSolicitud" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" onchange="onchange_TipoSolicitud();" ontab="tab('cbTipoSolicitud')" onshtab="shtab('cbTipoSolicitud')">
+			    <ROWSET>
+			    </ROWSET>
+			  </COMBO> 
+			</td>   
+			<td><IMG src="b.gif" width="25" height="8"/></td>
+			<td nowrap="nowrap"><CTEXTO nombre="txtNumSolicitudesLote" id="datosCampos" max="3" tipo="" onchange="" req="N" size="3" valor="" validacion="" ontab="tab('txtNumSolicitudesLote')" onshtab="shtab('txtNumSolicitudesLote')"/></td>
+			<td><IMG src="b.gif" width="25" height="8"/></td>
+			<td><CTEXTO nombre="txtAlarmaNumUnidades" id="datosCampos" max="6" tipo="" onchange="" req="N" size="7" valor="" validacion="" ontab="tab('txtAlarmaNumUnidades')" onshtab="shtab('txtAlarmaNumUnidades')"/></td> 
+                    <td><IMG src="b.gif" width="25" height="8"/></td>
+		    <td>
+		      <COMBO nombre="cbSujetoFlete" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" ontab="tab('cbSujetoFlete')" onshtab="shtab('cbSujetoFlete')">
+	                  <ROWSET>
+		          </ROWSET>
+                     </COMBO>
+                   </td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+	        <tr>
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+              </table>
+              </td>
+                </tr>
+              <tr><td>
+                <table width="722" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+		   <td><LABELC nombre="lblPermiteUnionSolicitudes" alto="13" filas="1" valor="" id="datosTitle" cod="2372"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td><LABELC nombre="lblTipoConsolidado" alto="13" filas="1" valor="" id="datosTitle" cod="1470"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td><LABELC nombre="lblTipoDocumentoLegal" alto="13" filas="1" valor="" id="datosTitle" cod="2373"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                        <td><LABELC nombre="lblPermitir" alto="13" filas="1" valor="" id="datosTitle" cod="2155"/></td>
+			<td><IMG src="b.gif" width="25" height="8"/></td>
+			<td><LABELC nombre="lblPedidoPrueba" alto="13" filas="1" valor="" id="datosTitle" cod="2156"/></td>
+			<td><IMG src="b.gif" width="25" height="8"/></td>
+			<td><LABELC nombre="lblComisionable" alto="13" filas="1" valor="" id="datosTitle" cod="466"/></td>
+			<td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                    <td><IMG src="b.gif" width="8" height="8"/></td>
+			<td>
+			      <COMBO nombre="cbPermiteUnionSolicitudes" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" ontab="tab('cbPermiteUnionSolicitudes')" onshtab="shtab('cbPermiteUnionSolicitudes')">
+		                  <ROWSET>
+
+			          </ROWSET>
+	                     </COMBO>
+	                   </td>
+			<td><IMG src="b.gif" width="25" height="8"/></td>
+			<td nowrap="nowrap">
+			  <COMBO nombre="cbTipoConsolidado" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" ontab="tab('cbTipoConsolidado')" onshtab="shtab('cbTipoConsolidado')">
+			    <ROWSET>
+			    </ROWSET>
+			  </COMBO> 
+			</td>   
+			<td><IMG src="b.gif" width="25" height="8"/></td>
+			<td nowrap="nowrap">
+			  <COMBO nombre="cbTipoDocumentoLegal" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" ontab="tab('cbTipoDocumentoLegal')" onshtab="shtab('cbTipoDocumentoLegal')">
+			    <ROWSET>
+			    </ROWSET>
+			  </COMBO> 
+			</td> 
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                    <td>
+			      <COMBO nombre="cbPermitirReversion" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" ontab="tab('cbPermitirReversion')" onshtab="shtab('cbPermitirReversion')">
+		                  <ROWSET>
+
+			          </ROWSET>
+	                     </COMBO>
+	                   </td>
+			<td><IMG src="b.gif" width="25" height="8"/></td>
+			<td>
+			      <COMBO nombre="cbPedidoPrueba" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" ontab="tab('cbPedidoPrueba')" onshtab="shtab('cbPedidoPrueba')">
+		                  <ROWSET>
+			          </ROWSET>
+	                     </COMBO>
+	                   </td>
+			<td><IMG src="b.gif" width="25" height="8"/></td>
+			<td>
+			      <COMBO nombre="cbComisionable" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" ontab="tab('cbComisionable')" onshtab="shtab('cbComisionable')">
+		                  <ROWSET>
+			          </ROWSET>
+	                     </COMBO>
+	                   </td>
+			<td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+	        <tr>
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+              </table>
+              </td>
+                </tr>
+              <tr><td>
+                <table width="722" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+			<td><LABELC nombre="lblPedGtZona" alto="13" filas="1" valor="" id="datosTitle" cod="2375"/></td>
+			<td><IMG src="b.gif" width="25" height="8"/></td>
+			<td><LABELC nombre="lblCambioVentaBelcenter" alto="13" filas="1" valor="" id="datosTitle" cod="2376"/></td>
+			<td><IMG src="b.gif" width="25" height="8"/></td>
+			<td><LABELC nombre="lblVentaInterfazSAB14" alto="13" filas="1" valor="" id="datosTitle" cod="2377"/></td>
+			<td><IMG src="b.gif" width="25" height="8"/></td>
+			<td><LABELC nombre="lblSociedad" alto="13" filas="1" valor="" id="datosTitle" cod="120"/></td>
+			<td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                    <td><IMG src="b.gif" width="8" height="8"/></td>
+			<td>
+			      <COMBO nombre="cbPedGtZona" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" ontab="tab('cbPedGtZona')" onshtab="shtab('cbPedGtZona')">
+		                  <ROWSET>
+			          </ROWSET>
+	                     </COMBO>
+	                   </td>
+			<td><IMG src="b.gif" width="25" height="8"/></td>
+			<td>
+			      <COMBO nombre="cbCambioVentaBelcenter" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" ontab="tab('cbCambioVentaBelcenter')" onshtab="shtab('cbCambioVentaBelcenter')">
+		                  <ROWSET>
+			          </ROWSET>
+	                     </COMBO>
+	                   </td>
+			<td><IMG src="b.gif" width="25" height="8"/></td>
+			<td>
+			      <COMBO nombre="cbVentaInterfazSAB14" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" ontab="tab('cbVentaInterfazSAB14')" onshtab="shtab('cbVentaInterfazSAB14')">
+		                  <ROWSET>
+			          </ROWSET>
+	                     </COMBO>
+	                   </td>
+			<td><IMG src="b.gif" width="25" height="8"/></td>
+			<td nowrap="nowrap">
+			  <COMBO nombre="cbSociedad" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" ontab="tab('cbSociedad')" onshtab="shtab('cbSociedad')">
+			    <ROWSET>
+			    </ROWSET>
+			  </COMBO> 
+			</td>          
+			<td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+	        <tr>
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+              </table>
+              </td>
+                </tr>
+              <tr><td>
+                <table width="722" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+		   <td><LABELC nombre="lblFormaPago"  alto="13" filas="1" valor="" id="datosTitle" cod="541"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td><LABELC nombre="lblAlmacen"  alto="13" filas="1" valor="" id="datosTitle" cod="797"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                    <td><IMG src="b.gif" width="8" height="8"/></td>
+		    <td nowrap="nowrap">
+			  <COMBO nombre="cbFormaPago" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" ontab="tab('cbFormaPago')" onshtab="shtab('cbFormaPago')">
+			    <ROWSET>
+			    </ROWSET>
+			  </COMBO> 
+		    </td>          
+                    <td><IMG src="b.gif" width="25" height="8"/></td>
+		    <td nowrap="nowrap">
+			  <COMBO nombre="cbAlmacen" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" ontab="tab('cbAlmacen')" onshtab="shtab('cbAlmacen')">
+			    <ROWSET>
+			    </ROWSET>
+			  </COMBO> 
+			</td>          
+                    <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+	        <tr>
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+              </table>
+              </td>
+                </tr>
+              <tr><td>
+                <table width="722" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr>
+                        <td><IMG src="b.gif" width="8" height="8"/></td>
+			<td><LABELC nombre="lblTipoMovimientoAsignacionStock" alto="13" filas="1" valor="" id="datosTitle" cod="2378"/></td>
+			<td><IMG src="b.gif" width="25" height="8"/></td>
+                        <td><LABELC nombre="lblReservaStock"  alto="13" filas="1" valor="" id="datosTitle" cod="2374"/></td>
+			<td><IMG src="b.gif" width="25" height="8"/></td>
+			<td><LABELC nombre="lblTipoMovimientoReservaStock" alto="13" filas="1" valor="" id="datosTitle" cod="2379"/></td>
+			<td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                    <td><IMG src="b.gif" width="8" height="8"/></td>
+			<td nowrap="nowrap">
+			  <COMBO nombre="cbTipoMovimientoAsignacionStock" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" ontab="tab('cbTipoMovimientoAsignacionStock')" onshtab="shtab('cbTipoMovimientoAsignacionStock')">
+			    <ROWSET>
+			    </ROWSET>
+			  </COMBO> 
+			</td>
+			<td><IMG src="b.gif" width="25" height="8"/></td>
+                        <td>
+			      <COMBO nombre="cbReservaStock" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" ontab="tab('cbReservaStock')" onshtab="shtab('cbReservaStock')">
+		                  <ROWSET>
+			          </ROWSET>
+	                     </COMBO>
+	                   </td>
+			<td><IMG src="b.gif" width="25" height="8"/></td>
+			<td nowrap="nowrap">
+			  <COMBO nombre="cbTipoMovimientoReservaStock" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" ontab="tab('cbTipoMovimientoReservaStock')" onshtab="shtab('cbTipoMovimientoReservaStock')">
+			    <ROWSET>
+			    </ROWSET>
+			  </COMBO> 
+			</td>       
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+	        <tr>
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+              </table>
+              </td>
+                </tr>
+              <tr><td>
+                <table width="722" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+		   <td><LABELC nombre="lblTipoMovimientoFacturacion"  alto="13" filas="1" valor="" id="datosTitle" cod="2381"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+			<td><LABELC nombre="lblCodActividadCronograma" alto="13" filas="1" valor="" id="datosTitle" cod="151"/></td>
+			<td><IMG src="b.gif" width="25" height="8"/></td>
+			<td><LABELC nombre="lblMoneda"  alto="13" filas="1" valor="" id="datosTitle" cod="1216"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                    <td><IMG src="b.gif" width="8" height="8"/></td>
+		    <td nowrap="nowrap">
+			  <COMBO nombre="cbTipoMovimientoFacturacion" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" ontab="tab('cbTipoMovimientoFacturacion')" onshtab="shtab('cbTipoMovimientoFacturacion')">
+			    <ROWSET>
+			    </ROWSET>
+			  </COMBO> 
+		   </td>          
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+			<td nowrap="nowrap">
+			  <COMBO nombre="cbCodActividadCronograma" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" ontab="tab('cbCodActividadCronograma')" onshtab="shtab('cbCodActividadCronograma')">
+			    <ROWSET>
+			    </ROWSET>
+			  </COMBO> 
+			</td>  
+			<td><IMG src="b.gif" width="25" height="8"/></td>
+			<td nowrap="nowrap">
+			  <COMBO nombre="cbMoneda" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" ontab="tab('cbMoneda')" onshtab="shtab('cbMoneda')">
+			    <ROWSET>
+			    </ROWSET>
+			  </COMBO> 
+			</td>          
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+	        <tr>
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+              </table>  
+              </td>
+                </tr>
+              </table>                                          
+        </fieldset>
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr>
+        <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnBuscar" ID="botonContenido" tipo="html" accion="accionBuscar()" estado="false" cod="1" ontab="tab('btnBuscar')" onshtab="shtab('btnBuscar')"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>  
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+
+  <LISTAEDITABLE nombre="listado1" ancho="725" alto="317" x="12" y="322" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+	<BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+	<BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+	<BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+      <LINEAS>
+	<GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="1" horizTitulo="1" horizBase="1"/> 
+	<COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00135" ID="datosTitle" />
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+        <COL ancho="100" minimizable="S" minimizada="N"/>
+        <COL ancho="150" minimizable="S" minimizada="N"/> 
+        <COL ancho="130" minimizable="S" minimizada="N"/>
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="150" minimizable="S" minimizada="N"/>
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="150" minimizable="S" minimizada="N"/>
+        <COL ancho="130" minimizable="S" minimizada="N"/>         
+        <COL ancho="100" minimizable="S" minimizada="N"/>
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="150" minimizable="S" minimizada="N"/>
+        <COL ancho="150" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/>
+        <COL ancho="100" minimizable="S" minimizada="N"/>
+        <COL ancho="200" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/>
+        <COL ancho="180" minimizable="S" minimizada="N"/> 
+        <COL ancho="180" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/>  
+        <COL ancho="100" minimizable="S" minimizada="N"/>          
+      </COLUMNAS>
+      <COL ancho="100" minimizable="S" minimizada="N"/>  
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+	<COL colFondo="" ID="EstCab" cod="415"/> 
+	<COL colFondo="" ID="EstCab" cod="1386"/> 
+	<COL colFondo="" ID="EstCab" cod="2146"/> 
+	<COL colFondo="" ID="EstCab" cod="2147"/> 
+	<COL colFondo="" ID="EstCab" cod="2372"/> 
+	<COL colFondo="" ID="EstCab" cod="1470"/> 
+	<COL colFondo="" ID="EstCab" cod="2373"/> 
+	<COL colFondo="" ID="EstCab" cod="2155"/> 
+	<COL colFondo="" ID="EstCab" cod="2156"/> 
+	<COL colFondo="" ID="EstCab" cod="466"/> 
+	<COL colFondo="" ID="EstCab" cod="2375"/> 
+	<COL colFondo="" ID="EstCab" cod="2376"/> 
+	<COL colFondo="" ID="EstCab" cod="2377"/> 
+	<COL colFondo="" ID="EstCab" cod="541"/> 
+	<COL colFondo="" ID="EstCab" cod="797"/> 
+	<COL colFondo="" ID="EstCab" cod="2378"/>
+	<COL colFondo="" ID="EstCab" cod="2374"/>  
+	<COL colFondo="" ID="EstCab" cod="2379"/> 
+	<COL colFondo="" ID="EstCab" cod="2381"/> 
+	<COL colFondo="" ID="EstCab" cod="151"/> 
+	<COL colFondo="" ID="EstCab" cod="120"/>
+	<COL colFondo="" ID="EstCab" cod="1216"/> 
+      </CABECERA>
+      <COL colFondo="" ID="EstCab" cod="2374"/> 
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+             coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+             onLoad="" colorSelecc="#D0D9E8">
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/>  
+       <COL tipo="texto" ID="EstDat2"/> 
+      </DATOS>
+      <ROWSET>
+	<ROW>
+	</ROW>
+      </ROWSET>
+      <PAGINADO nombre="mipgndo" ancho="725" sep="$" x="12" class="botonera" y="616" control="|" conector="conector_prototipo_2" rowset="" cargainicial="N" onload="procesarPaginado(mipgndo, msgError, ultima, rowset, 'muestraLista(ultima, rowset)')">
+    	<BOTON nombre="ret1" x="37" y="620" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+    	<BOTON nombre="ava1" x="52" y="620" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>        
+      </PAGINADO>
+   </LISTAEDITABLE>
+
+    <BOTON nombre="primera1" x="20" y="620" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();"/>  
+    <BOTON nombre="separa" x="59" y="616" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />       
+    <BOTON nombre="Modificar" x="80" y="617" ID="botonContenido" tipo="html" estado="false" cod="2" ontab="tab('Modificar')" onshtab="shtab('Modificar')" accion="accionModificar()"/>   
+    <BOTON nombre="Detalle" x="80" y="617" ID="botonContenido" tipo="html" estado="false" cod="3" ontab="tab('Detalle')" onshtab="shtab('Detalle')" accion="accionDetalle()"/>      
+
+ <CAPA nombre="capaEspacio" alto="12" ancho="50" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="639" zindex=""/>
+  
+ </FORMULARIO>
+</PAGINA>

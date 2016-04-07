@@ -1,0 +1,1390 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+/**
+ * Copyright 2003 © por Indra Sistemas,S.A.. Todos los derechos reservados.
+ * Avda. de Bruselas, 35
+ * Parque Empresarial Arroyo de la Vega
+ * 28108 Alcobendas, Madrid
+ * España
+ *
+ * Privado y Confidencial.
+ * La información contenida en este documento es propiedad de Indra sistemas.
+ * Para uso exclusivo de empleados autorizados no permitiéndose
+ * la distribución de este código sin permiso expreso.
+ */
+ 
+ Autor: Viviana Bongiovanni
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_nivel_ranking_mantener" cod="0530" titulo="Mantener nivel" estilos="estilosB3.css" colorf="#F0F0F0" 
+         msgle="" onload="onLoadPag();" xml:lang="es">
+
+<JS src="sicc_util.js" />
+<JS src="PaginacionSicc.js"/>
+<JS src="DruidaTransactionMare.js"/>    
+<JS src="contenido_nivel_ranking_mantener.js"/>    
+<JAVASCRIPT>
+         <VALIDACION>	
+           <!-- Puntos -->
+                  <ELEMENTO name="cbConcursoDestino" required="true" group="gPuntos" cod="1835"/>
+                  <ELEMENTO name="cbTipoPremioPuntos1" required="true"  group="gPuntos" cod="1836"/>
+                  <ELEMENTO name="txtCantidad1" required="false" min="0" max="999999" format="e" group="gPuntos" cod="1172"/>
+                  <ELEMENTO name="txtPorcentaje1" required="false" min="0" max="999.999" format="n" group="gPuntos" cod="790"/>	
+    
+    <ELEMENTO name="txtCantidad1" required="true" min="0" max="999999" format="e" group="gPuntosCantidad" cod="1172"/>
+                  <ELEMENTO name="txtPorcentaje1" required="true" min="0" max="999.999" format="n" group="gPuntosPorcentaje" cod="790"/>	
+            <!-- Descuento -->
+                  <ELEMENTO name="cbTipoPremioDescuento5" required="true" group="gDescuento" cod="1855"/>
+                  <ELEMENTO name="cbPeriodoAplicacionDesde" required="true"  group="gDescuento" cod="1899"/>
+                  <ELEMENTO name="txtCantidadDescuento" required="false" min="0" max="9999.99" format="m" group="gDescuento" cod="1856"/>
+                  <ELEMENTO name="txtPorcentaje5" required="false" min="0" max="999.99" format="n" group="gDescuento" cod="790"/>	
+    
+    <ELEMENTO name="txtCantidadDescuento" required="true" min="0" max="9999.99" format="m" group="gDescuentoCantidad" cod="1856"/>
+                  <ELEMENTO name="txtPorcentaje5" required="true" min="0" max="999.99" format="n" group="gDescuentoPorcentaje" cod="790"/>	
+           <!-- Descuento Producto -->
+                  <ELEMENTO name="cbMarca" required="true" group="gDescuentoProducto" cod="6"/>  
+           <!-- Monetario -->
+                  <ELEMENTO name="cbTipoPremioMonetario2" required="true" group="gMonetario" cod="1837"/>
+                  <ELEMENTO name="cbMoneda" required="true"  group="gMonetario" cod="1216"/>
+           <ELEMENTO name="cbFormaPago" required="true"  group="gMonetario" cod="541"/>
+                  <ELEMENTO name="txtCantidad2" required="false" min="0" max="999999" format="e" group="gMonetario" cod="1172"/>
+                  <ELEMENTO name="txtPorcentaje2" required="false" min="0" max="999.99" format="n" group="gMonetario" cod="790"/>	
+    
+    <ELEMENTO name="txtCantidad2" required="true" min="0" max="999999" format="e" group="gMonetarioCantidad" cod="1172"/>
+                  <ELEMENTO name="txtPorcentaje2" required="true" min="0" max="999.99" format="n" group="gMonetarioPorcentaje" cod="790"/>
+           <!-- Monetario - Pago -->
+           <ELEMENTO name="cbCumplimiento" required="true"  group="gMonetarioCumplimiento" cod="1839"/>  
+           <ELEMENTO name="txtPremio" required="true" min="0" max="999.99" format="m" group="gMonetarioPago" cod="1380"/>
+           <ELEMENTO name="cbPeriodoControl" required="true"  group="gMonetarioPago" cod="1842"/>  
+           <!-- Articulo Producto -->
+           <ELEMENTO name="txtCodProducto" required="true"  group="gArticuloProducto" cod="337"/>  
+           <ELEMENTO name="txtNumUnidades4" required="true" min="0" max="9999" format="e" group="gArticuloProducto" cod="495"/>
+           <ELEMENTO name="txtPrecioPublico4" required="true"  min="0" max="9999999.99" format="m" group="gArticuloProducto" cod="1854"/>  
+    
+    <ELEMENTO name="cbCenServGar" required="true"  group="gCenServGar" cod="3185"/>  
+    <ELEMENTO name="txtNumMeses" required="false"  min="0" max="9999" format="e" group="gCenServGar" cod="3186"/>  
+    <ELEMENTO name="cbCenServEntrega" required="true"  group="gCenServEntrega" cod="3188"/>   
+    
+           <!-- Articulo -->
+           <ELEMENTO name="txtDescripcionLote4" required="true"  group="gArticulo" cod="844"/>  
+          
+         </VALIDACION>
+
+</JAVASCRIPT>
+
+<FORMULARIO nombre="formulario">
+<VAR nombre="accion" valor=""/>
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="errCodigo" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>    
+
+<VAR nombre="opcionMenu" valor=""/> 
+<VAR nombre="hPais" valor=""/> 
+<VAR nombre="hIdioma" valor=""/> 
+
+<VAR nombre="hOidMarca" valor=""/> 
+
+<!-- Hiddden para datos de niveles -->
+<VAR nombre="datosNiveles" valor=""/> 
+<VAR nombre="listaDatosNiveles" valor=""/> 
+
+<!-- Hidddens numero premio -->
+<VAR nombre="numeroPremio" valor=""/> 
+<VAR nombre="numeroPremioPuntos" valor=""/> 
+<VAR nombre="numeroPremioMonetarios" valor=""/> 
+<VAR nombre="numeroPremioArticulos" valor=""/> 
+<VAR nombre="numeroPremioDescuento" valor=""/> 
+
+<!-- Hidddens nivel a ingresar -->
+<VAR nombre="nivelAIngresar" valor=""/> 
+<VAR nombre="numeroNiveles" valor=""/>
+
+<!-- Hidddens para manejo de habilitaciones -->
+<VAR nombre="IND_INACTIVO" valor=""/>
+<VAR nombre="IND_ACTIVO" valor=""/>
+<VAR nombre="OID_TIPO_PREMIO_PUNTOS" valor=""/>
+<VAR nombre="OID_TIPO_PREMIO_MONETARIO" valor=""/>
+<VAR nombre="OID_TIPO_PREMIO_ARTICULO" valor=""/>
+<VAR nombre="OID_TIPO_PREMIO_DESCUENTO" valor=""/>
+          <!-- Puntos -->
+<VAR nombre="OID_TIPO_PREM_PTOS_CANT_FIJA" valor=""/>
+<VAR nombre="OID_TIPO_PREM_PTOS_PORC_PUNTAJE_OBT" valor=""/>
+<VAR nombre="OID_TIPO_PREM_PTOS_PUNTAJE_OBT" valor=""/>
+          <!-- Monetario -->
+<VAR nombre="OID_TIPO_PREM_MONET_CANT_FIJA" valor=""/>
+<VAR nombre="OID_TIPO_PREM_MONET_PORC_PUNTAJE_OBT" valor=""/>
+<VAR nombre="OID_TIPO_PREM_MONET_PUNTAJE_OBT" valor=""/>
+<VAR nombre="OID_TIPO_DET_METAS_BONO_ANUAL" valor=""/>
+<VAR nombre="OID_TIPO_CUMPLIMIENTO_TOTAL" valor=""/>
+<!-- Agregado por INC 21869 - dmorello, 14/12/2005 -->
+<VAR nombre="oidMonedaDefault" valor=""/>
+<!-- Fin agregado INC 21869 -->
+
+<VAR nombre="hOidTipoDeterminacionMetas" valor=""/>
+         <!-- Descuento -->
+<VAR nombre="OID_TIPO_DESCUENTO_IMPORTE" valor=""/>
+<VAR nombre="OID_TIPO_DESCUENTO_PORCENTAJE" valor=""/>
+         <!-- Articulos -->
+<VAR nombre="hIndPremiosElectivosPremios" valor=""/>
+
+<!-- Hidddens oids premios -->
+<VAR nombre="oidPremioPuntos" valor=""/>
+<VAR nombre="oidPremioMonetario" valor=""/>
+<VAR nombre="oidPremioArticulo" valor=""/>
+<VAR nombre="oidPremioDescuento" valor=""/>
+
+<!-- Monetario -->
+<VAR nombre="numeroPago" valor=""/>
+
+<!-- Articulo -->
+<VAR nombre="codLotelista" valor=""/>
+<VAR nombre="cantidadPremiosArticulos" valor=""/>
+
+
+<!-- Hidddens oids Productos -->
+<VAR nombre="oidProdDescuentos" valor=""/>
+<VAR nombre="oidProdArticulos" valor=""/>
+
+<VAR nombre="txtNumUnidadesPremiosArticulo" valor=""/>
+
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="100%" ><IMG src="b.gif" width="752" height="8"/></td>
+    
+    </tr>
+ </table>
+ 
+ <LISTAEDITABLE nombre="listado" ancho="732" alto="317" x="12" y="12" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+         <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+         <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+         <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+      <LINEAS>
+         <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="0" horizTitulo="1" horizBase="1"/> 
+         <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00346" ID="datosTitle" />
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+         <COL ancho="80" minimizable="S" minimizada="N"/>
+         <COL ancho="100" minimizable="S" minimizada="N"/>
+         <COL ancho="100" minimizable="S" minimizada="N"/>
+         <COL ancho="100" minimizable="S" minimizada="N"/>
+         
+         <COL ancho="140" minimizable="S" minimizada="N"/>
+         <COL ancho="120" minimizable="S" minimizada="N"/>
+         <COL ancho="120" minimizable="S" minimizada="N"/>
+         <COL ancho="180" minimizable="S" minimizada="N"/>
+         <COL ancho="100" minimizable="S" minimizada="N"/>
+         <COL ancho="100" minimizable="S" minimizada="N" oculta="S"/> 
+      </COLUMNAS>
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+         <COL colFondo="" ID="EstCab" cod="1664"></COL> 
+         <COL colFondo="" ID="EstCab" cod="1833"></COL> 
+         <COL colFondo="" ID="EstCab" cod="1696"></COL> 
+         <COL colFondo="" ID="EstCab" cod="1819"></COL> 
+         
+         <COL colFondo="" ID="EstCab" cod="2431"></COL> 
+         <COL colFondo="" ID="EstCab" cod="1831"></COL> 
+         <COL colFondo="" ID="EstCab" cod="1832"></COL> 
+         <COL colFondo="" ID="EstCab" cod="1834"></COL>  
+         <COL colFondo="" ID="EstCab" cod="2447"></COL> 
+  <COL colFondo="" ID="EstCab">oid</COL> 
+         
+      </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="1" msgErrMaxSel="" 
+              coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+              onLoad="" colorSelecc="#D0D9E8">
+        <COL tipo="texto" ID="EstDat"/> 
+        <COL tipo="cajatexto" nombre="txtPuntajeServicio" size="9" max="8" IDOBJ="EstCajaDatForm" ID="EstDat2"/>  
+        <COL tipo="combo" nombre="cbTipoPremio" ID="EstDat" IDOBJ="EstDatForm"> 
+                  <ROWSET>
+                  </ROWSET>
+        </COL>
+        <COL tipo="checkbox" nombre="ckNivelElegible"  ID="EstDat2" ></COL>
+        
+        <COL tipo="cajatexto" nombre="txtCantidadFijoPuntos" size="4" max="5" IDOBJ="EstCajaDatForm" ID="EstDa2"/>  
+        <COL tipo="cajatexto" nombre="txtCantidadDesde" size="4" max="5" IDOBJ="EstCajaDatForm" ID="EstDat2"/>  
+        <COL tipo="cajatexto" nombre="txtCantidadHasta" size="4" max="5" IDOBJ="EstCajaDatForm" ID="EstDat"/>  
+        <COL tipo="cajatexto" nombre="txtPuntosProductosExigidos" size="5" max="4" IDOBJ="EstCajaDatForm" ID="EstDat2"/>  
+        <COL tipo="cajatexto" nombre="txtNumAspirantes" size="3" max="3" IDOBJ="EstCajaDatForm" ID="EstDat"/>  
+         <COL tipo="texto" ID="EstDat"/> 
+      </DATOS>
+      <ROWSET>
+      </ROWSET>
+      <PAGINADO nombre="mipgndo" ancho="703" sep="$" x="26" class="botonera" y="306" control="|" conector="conectorSandra" rowset="" cargainicial="N">
+         
+         <BOTON nombre="ret" x="51" y="310" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+         <BOTON nombre="ava" x="66" y="310" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>
+         
+    </PAGINADO>
+  </LISTAEDITABLE>
+  <BOTON nombre="primera" x="34" y="310" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();" />      
+  <BOTON nombre="separa" x="73" y="306" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />      
+  <BOTON nombre="btnDefinirPremio" x="13" y="307" ID="botonContenido" accion="accionDefinirPremio()" tipo="html" estado="false" cod="2855" /> 
+  <BOTON nombre="btnAceptar" x="112" y="307" ID="botonContenido" accion="accionAceptarNiveles()" tipo="html" estado="false" cod="12" /> 
+
+<!-- *********************************************************************************-->
+<!-- ****************************PREMIOS PUNTO****************************************-->
+<!-- *********************************************************************************-->
+   <CAPA nombre="capa1" alto="180" ancho="100%" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="hidden" contravsb="" x="0" y="341" zindex="">
+     <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+         <fieldset><legend class="legend"><LABELC nombre="lblDatosPremiosPunto" alto="13" filas="1" valor="" id="legend" cod="00347"/></legend>
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+           <tr><td>
+           <!---primera fila-->
+              <table width="728" border="0" align="left" cellspacing="0" cellpadding="0">
+                             <tr> 
+                                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                             </tr>
+                             <tr>
+                                <td><IMG src="b.gif" width="8" height="8"/></td>
+                                <td><LABELC nombre="lblNumPremio1" alto="13" filas="1" valor="" id="datosTitle" cod="1691"/></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td><LABELC nombre="lblConcursoDestino" alto="13" filas="1" valor="" id="datosTitle" cod="1835"/></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td><LABELC nombre="lblTipoPremiosPunto1"  alto="13" filas="1" valor="" id="datosTitle" cod="1836"/></td>
+                                 <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td><LABELC nombre="lblCantidad2"  alto="13" filas="1" valor="" id="datosTitle" cod="1172"/></td>
+                                 <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td><LABELC nombre="lblPorcentaje2"  alto="13" filas="1" valor="" id="datosTitle" cod="790"/></td>
+                                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                             </tr>
+                             <tr>
+                                <td><IMG src="b.gif" width="8" height="8"/></td>
+                                <td valign="bottom"><LABELC nombre="lbNumPremio1"  alto="13" filas="1" valor="" id="datosCampos" /></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                 <td  nowrap="nowrap"><COMBO nombre="cbConcursoDestino" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="">
+                                            <ROWSET>		
+                                            </ROWSET>
+                                     </COMBO> 
+                                 </td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                 <td  nowrap="nowrap"><COMBO nombre="cbTipoPremioPuntos1" id="datosCampos" size="1" onchange="onChangeTipoPremiosPuntos();" multiple="N" req="S" valorinicial="" textoinicial="">
+                                            <ROWSET>
+                                            </ROWSET>
+                                     </COMBO> 
+                                 </td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td valign="bottom"><CTEXTO nombre="txtCantidad1" id="datosCampos" max="7" tipo="" onchange="" req="N" size="8" valor="" validacion="" /></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td valign="bottom"><CTEXTO nombre="txtPorcentaje1" id="datosCampos" max="7" tipo="" onchange="" req="N" size="8" valor="" validacion="" /></td>
+                                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                             </tr>
+                             <tr> 
+                                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                             </tr>
+                      </table>
+        <!---fin primera fila-->
+                 </td></tr>
+            </table> 
+         </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+     <tr> 
+         <td><IMG src="b.gif"/></td>
+         <td>
+                  <fieldset>
+                           <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">         
+                            <tr>
+                             <td class="botonera">
+                                  <BOTON nombre="btnAceptar1" ID="botonContenido" tipo="html" accion="accionAceptar(get('formulario.OID_TIPO_PREMIO_PUNTOS'));" estado="false" cod="12"/>
+                             </td>
+                            </tr>    
+                           </table>         
+                  </fieldset>
+         </td>
+         <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>     
+    <tr>
+         <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+         <td width="756" ><IMG src="b.gif"/></td>
+         <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>   
+ </CAPA>    
+<!-- *********************************************************************************-->
+<!-- ***************************PREMIOS MONETARIOS************************************-->
+<!-- *********************************************************************************-->   
+ <CAPA nombre="capa2" alto="180" ancho="100%" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="hidden" contravsb="" x="0" y="341" zindex="">
+     <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+         <fieldset><legend class="legend"><LABELC nombre="lblDatosPremiosMonetario"  alto="13" filas="1" valor="" id="legend" cod="00348"/></legend>
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+           <tr><td>
+           <!---primera fila-->
+              <table width="728" border="0" align="left" cellspacing="0" cellpadding="0">
+                             <tr> 
+                                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                             </tr>
+                             <tr>
+                                <td><IMG src="b.gif" width="8" height="8"/></td>
+                                <td><LABELC nombre="lblNumPremio2"  alto="13" filas="1" valor="" id="datosTitle" cod="1691"/></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td><LABELC nombre="lblTipoPremiosMonetario2"  alto="13" filas="1" valor="" id="datosTitle" cod="1837"/></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td><LABELC nombre="lblCantidad2"  alto="13" filas="1" valor="" id="datosTitle" cod="1172"/></td>
+                                 <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td><LABELC nombre="lblPorcentaje2"  alto="13" filas="1" valor="" id="datosTitle" cod="790"/></td>
+                                 <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td><LABELC nombre="lblMoneda"  alto="13" filas="1" valor="" id="datosTitle" cod="1216"/></td>
+                                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                             </tr>
+                             <tr>
+                                <td><IMG src="b.gif" width="8" height="8"/></td>
+                                <td valign="bottom"><LABELC nombre="lbNumPremio2"  alto="13" filas="1" valor="" id="datosCampos" /></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td  nowrap="nowrap"><COMBO nombre="cbTipoPremioMonetario2" id="datosCampos" size="1" onchange="onChangeTipoPremiosMonetarios();" multiple="N" req="S" valorinicial="" textoinicial="">
+                                            <ROWSET>
+                                            </ROWSET>
+                                     </COMBO> 
+                                 </td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td valign="bottom"><CTEXTO nombre="txtCantidad2" id="datosCampos" max="6" tipo="" onchange="" req="N" size="7" valor="" validacion="" /></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td valign="bottom"><CTEXTO nombre="txtPorcentaje2" id="datosCampos" max="6" tipo="" onchange="" req="N" size="6" valor="" validacion="" /></td>
+                                 <td><IMG src="b.gif" width="25" height="8"/></td>
+                                 <td  nowrap="nowrap"><COMBO nombre="cbMoneda" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="">
+                                            <ROWSET>			                          		
+                                            </ROWSET>
+                                     </COMBO> 
+                                 </td>
+                                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                             </tr>
+                             <tr> 
+                                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                             </tr>
+                      </table>
+                </td></tr>
+            <tr><td>
+                      <table width="728" border="0" align="left" cellspacing="0" cellpadding="0">
+                             
+                             <tr>
+                                <td><IMG src="b.gif" width="8" height="8"/></td>
+                                <td><LABELC nombre="lblFormaPago"  alto="13" filas="1" valor="" id="datosTitle" cod="541"/></td>
+                                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                             </tr>
+                             <tr>
+                                <td><IMG src="b.gif" width="8" height="8"/></td>
+                                <td  nowrap="nowrap"><COMBO nombre="cbFormaPago" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="">
+                                            <ROWSET>
+                                            </ROWSET>
+                                     </COMBO> 
+                                 </td>
+                                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                             </tr>
+                             <tr> 
+                                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                             </tr>
+                      </table>
+        <!---fin primera fila-->
+                </td></tr>
+            </table>  
+         </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+        
+    <tr>
+         <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+         <td width="756" ><IMG src="b.gif"/></td>
+         <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>   
+ </CAPA>   
+ <CAPA nombre="capaBoton" x="0" y="447" visibilidad="hidden">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr>
+      <td><IMG src="b.gif"/></td>
+      <td>
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+           <tr> 
+             <td>
+                <table width="732" border="0" align="left" cellspacing="0" cellpadding="0">
+                  <tr>
+                    <td><IMG src="b.gif"/></td>
+                  </tr>
+                </table>
+             </td>
+           </tr>
+         </table>
+      </td> 
+      <td><IMG src="b.gif"/></td>
+    </tr>
+    <tr> 
+         <td><IMG src="b.gif"/></td>
+         <td>
+            <fieldset>
+                  <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">         
+                   <tr>
+                    <td class="botonera">
+                      <BOTON nombre="btnAceptar5" ID="botonContenido" tipo="html" accion="accionAceptar(get('formulario.OID_TIPO_PREMIO_MONETARIO'));" estado="false" cod="12"/>
+                    </td>
+          	 </tr>    
+                  </table>         
+            </fieldset>
+         </td>
+         <td><IMG src="b.gif" width="8" height="12"/></td>
+    </tr>      
+    <tr>
+         <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+         <td width="756" ><IMG src="b.gif"/></td>
+         <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+  <CAPA nombre="capa3" alto="540" ancho="100%" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="hidden" contravsb="" x="0" y="463" zindex="">
+     <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+         <fieldset><legend class="legend"><LABELC nombre="lblOtrosDatosPremiosMonetario"  alto="13" filas="1" valor="" id="legend" cod="00349"/></legend>
+          <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+           <tr><td>
+           <!---primera fila-->
+              <table width="728" border="0" align="left" cellspacing="0" cellpadding="0">
+                             <tr> 
+                                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                             </tr>
+                             <tr>
+                                <td><IMG src="b.gif" width="8" height="8"/></td>
+                                <td><LABELC nombre="lblPagoPartes"  alto="13" filas="1" valor="" id="datosTitle" cod="1838"/></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td><LABELC nombre="lblCumplimiento"  alto="13" filas="1" valor="" id="datosTitle" cod="1839"/></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td><LABELC nombre="lblDescontarPago"  alto="13" filas="1" valor="" id="datosTitle" cod="1840"/></td>
+                                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                             </tr>
+                             <tr>
+                                <td><IMG src="b.gif" width="8" height="8"/></td>
+                                <td><CHECKBOX nombre="ckPagoPartes" id="datosCampos" onclick="" check="S"/></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td  nowrap="nowrap"><COMBO nombre="cbCumplimiento" id="datosCampos" size="1" onchange="onChangeCumplimiento();" multiple="N" req="S" valorinicial="" textoinicial="">
+                                            <ROWSET>
+                                            </ROWSET>
+                                     </COMBO> 
+                                 </td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td><CHECKBOX nombre="ckDescontarPago" id="datosCampos" onclick="" check="N"/></td>
+                                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                             </tr>
+                             <tr> 
+                                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                             </tr>
+                      </table>
+        <!---fin primera fila-->
+         </td></tr>
+            <tr><td>
+                        <table width="100%" align="left" border="0" cellspacing="0" cellpadding="0">
+                              
+                                <tr> 
+                                  <td><IMG src="b.gif"/></td>
+                                  <td>
+                           <!--primer formulario-->
+                                    <fieldset><legend class="legend"><LABELC nombre="lblDatosPago"  alto="13" filas="1" valor="" id="legend" cod="00224"/></legend>
+                                     <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                                         <tr><td>
+                                      <!---primera fila-->
+                                          <table width="699" border="0" align="left" cellspacing="0" cellpadding="0">
+                                                         <tr> 
+                                                           <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                                                         </tr>
+                                                         <tr>
+                                                           <td><IMG src="b.gif" width="8" height="8"/></td>
+                                                           <td><LABELC nombre="lblNumPago"  alto="13" filas="1" valor="" id="datosTitle" cod="1841"/></td>
+                                                           <td><IMG src="b.gif" width="25" height="8"/></td>
+                                                           <td colspan="4"><LABELC nombre="lblPremio" alto="13" filas="1" valor="" id="datosTitle" cod="1784"/></td>
+                                                           <td><IMG src="b.gif" width="25" height="8"/></td>
+                                                           <td><LABELC nombre="lblPeriodoControl" alto="13" filas="1" valor="" id="datosTitle" cod="1842"/></td>
+                                                           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                                         </tr>
+                                                         <tr>
+                                                           <td><IMG src="b.gif" width="8" height="8"/></td>
+                                                           <td valign="bottom"><LABELC nombre="lbNPago"  alto="13" filas="1" valor="" id="datosCampos" /></td>
+                                                           <td><IMG src="b.gif" width="25" height="8"/></td>
+                                                           <td valign="bottom" nowrap="nowrap"><CTEXTO nombre="txtPremio" id="datosCampos" max="6" tipo="" onchange="" req="N" size="6" valor="" validacion="" /></td>
+                                                           <td valign="bottom"><LABELC nombre="lbPremio"  alto="13" filas="1" valor="" id="datosCampos" cod="1380"/>
+                                                           </td>
+                                                           <td><IMG src="b.gif" width="4" height="8" /></td>
+                                                           <td><IMG src="iconorequerido.gif" /></td>
+                                                           <td><IMG src="b.gif" width="25" height="8"/></td>
+                                                            <td  nowrap="nowrap" ><COMBO nombre="cbPeriodoControl" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="">
+                                                                        <ROWSET>						                          		
+                                                                        </ROWSET>
+                                                                 </COMBO> 
+                                                            </td>
+                                                           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                                         </tr>
+                                                         <tr> 
+                                                           <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                                                         </tr>
+                                                  </table>
+                                   <!---fin primera fila-->
+                                             </td></tr>
+                                          </table>
+                                    </fieldset>
+                           <!--fin primer formulario-->
+                                  </td>
+                                  <td><IMG src="b.gif" /></td>
+                                </tr> 
+                                  <tr> 
+                                             <td><IMG src="b.gif"/></td>
+                                             <td>
+                                                <fieldset>
+                                                  <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">         
+                                                    <tr>
+                                                      <td class="botonera">
+                                                         <BOTON nombre="btnAnadir" ID="botonContenido" tipo="html" accion="accionAniadirPagoMonetario();" estado="false" cod="404"/>
+                                                      </td>
+                                                    </tr>    
+                                                  </table>         
+                                                </fieldset>
+                                             </td>
+                                             <td><IMG src="b.gif" width="8" height="12"/></td>
+                                           </tr>    
+                                <tr>
+                                   	<td width="12" align="center"><IMG src="b.gif" width="12" height="342"/></td>
+                                 	<td width="756" ><IMG src="b.gif"/></td>
+                                  	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+                                </tr>
+                             </table>  
+                  </td></tr>
+                </table>    
+                             
+         </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+         <td><IMG src="b.gif"/></td>
+         <td>
+                  <fieldset>
+                           <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">         
+                            <tr>
+                             <td class="botonera">
+                                  <BOTON nombre="btnAceptar2" ID="botonContenido" tipo="html" accion="accionAceptar(get('formulario.OID_TIPO_PREMIO_MONETARIO'));" estado="false" cod="12"/>
+                             </td>
+                            </tr>    
+                           </table>         
+                  </fieldset>
+         </td>
+         <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>      
+    <tr>
+         <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+         <td width="756" ><IMG src="b.gif"/></td>
+         <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>   
+ </CAPA>  
+ <!-- *********************************************************************************-->
+<!-- *****************************PREMIOS ARTICULO************************************-->
+<!-- *********************************************************************************-->
+   <CAPA nombre="capa4" alto="1020" ancho="100%" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="hidden" contravsb="" x="0" y="341" zindex="">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+         <fieldset><legend class="legend"><LABELC nombre="lblDatosPremiosArticulos4"  alto="13" filas="1" valor="" id="legend" cod="00352"/></legend>
+          <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+            <tr>
+                <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+                <td width="750"><IMG src="b.gif"/></td>
+                <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+             </tr>
+             <tr>
+             	<td colspan="3">
+                     <table width="728" border="0" align="left" cellspacing="0" cellpadding="0">		
+                           <tr> 
+                             <td colspan="4"><IMG src="b.gif" width="8" height="309"/></td>
+                           </tr>
+                    </table>
+                  </td>
+             </tr>
+             <tr> 
+                <td><IMG src="b.gif"/></td>
+                <td>
+         <!--primer formulario-->
+                  <fieldset><legend class="legend"><LABELC nombre="lblDatosLote"  alto="13" filas="1" valor="Datos del lote" id="legend" cod="00593" /></legend>
+                        <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                        
+                           <tr><td>
+                                 <table width="100%" align="left" border="0" cellspacing="0" cellpadding="0">
+                                          <tr> 
+                                         <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                                      </tr>
+                                         <tr> 
+                                           <td><IMG src="b.gif"/></td>
+                                           <td>
+                                    <!--primer formulario-->
+                                             <fieldset><legend class="legend"><LABELC nombre="lblDatosProductosLote"  alto="13" filas="1" valor="" id="legend" cod="00354"/></legend>
+                                              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                                              <tr><td>
+                                                <!---primera fila-->
+                                                   <table width="673" border="0" align="left" cellspacing="0" cellpadding="0">
+                                                                  <tr> 
+                                                                    <td colspan="11"><IMG src="b.gif" width="8" height="8"/></td>
+                                                                  </tr>
+                         
+                                                                  <tr>
+                                                                    <td><IMG src="b.gif" width="8" height="8"/></td>
+                                                                    <td><LABELC nombre="lblCodProducto4"  alto="13" filas="1" valor="" id="datosTitle" cod="337"/></td>
+                                                                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                  <td><IMG src="b.gif" width="8" height="8"/></td>
+                                  <td><LABELC nombre="lblIndCenServGar" alto="25"  ancho="105" filas="1" valor="" id="datosTitle" cod="3184"/></td>
+                                  <td><IMG src="b.gif" width="25" height="8"/></td>
+                                  <td><LABELC nombre="lblCenServGar" alto="25"  ancho="100" filas="1" valor="" id="datosTitle" cod="3185"/></td>
+                                  <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                                  <td><LABELC nombre="lblNumMeses" alto="25"  ancho="80" filas="1" valor="" id="datosTitle" cod="3186"/></td>
+                                  <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                                  <td><LABELC nombre="lblObservaciones" alto="13" filas="1" valor="" id="datosTitle" cod="169"/></td>
+                                                                  </tr>
+                                                                  <tr>
+                                                                    <td><IMG src="b.gif" width="8" height="8"/></td>
+                                                                      <td nowrap="nowrap"><CTEXTO nombre="txtCodProducto" id="datosCampos" max="20" tipo="" onchange="" req="S" size="26" valor="" validacion="" /></td>
+                                    <td><BOTON nombre="btnBuscar" ID="botonContenido" tipo="html" accion="accionBuscarProducto();" estado="false" cod="1"/></td>
+                                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                    <td nowrap="nowrap" align="center">
+                                          <CHECKBOX nombre="ChkIndCenServGar" id="datosCampos" onclick="onclickIndCenServGar();" onshtab = "focalizaShTab(2);" check="N" />
+                                    </td>
+                                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                                    <td nowrap="nowrap" >
+                                          <COMBO nombre="cbCenServGar" id="datosCampos" size="1" multiple="N" req="N" onchange=""  valorinicial="" textoinicial=""><ROWSET></ROWSET></COMBO>
+                                    </td>
+                                    <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                                    <td nowrap="nowrap" >
+                                         <CTEXTO nombre="txtNumMeses" id="datosCampos" max="4" tipo="" onblur="" onchange="" req="N" size="6" valor="" validacion="" />
+                                    </td>
+                                    <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                                    <td nowrap="nowrap" >
+                                         <AREATEXTO cols="20" id="datosCampos" msjreq="" nombre="areaObservaciones" readonly="N"
+                                                             req="N" rows="3" tabindex="2" valor="" max="80"  />
+                                    </td>
+                                                                  </tr>
+                                                                  <tr> 
+                                                                    <td colspan="11"><IMG src="b.gif" width="8" height="8"/></td>
+                                                                  </tr>
+                                                           </table>
+                                            <!---fin primera fila-->
+                                                        </td></tr>
+                   			    <tr><td>
+                                                <!---primera fila-->
+                                                   <table width="673" border="0" align="left" cellspacing="0" cellpadding="0">
+                                                                 
+                                                                  <tr>
+                                                                    <td><IMG src="b.gif" width="8" height="8"/></td>
+                                                                    <td><LABELC nombre="lblNumUnidades4"  alto="13" filas="1" valor="" id="datosTitle" cod="495"/></td>
+                                                                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                                                                    <td><LABELC nombre="lblPrecioPublico4"  alto="13" filas="1" valor="" id="datosTitle" cod="1854"/></td>
+                                                                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                                                                    <td><LABELC nombre="lblDespachaArticulo4"  alto="13" filas="1" valor="" id="datosTitle" cod="1851"/></td>
+                                                                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                  <td><LABELC nombre="lblTipoEntrega" alto="13" filas="1" valor="" id="datosTitle" cod="3187"/></td>
+                                  <td><IMG src="b.gif" width="25" height="8"/></td>
+                                  <td><LABELC nombre="lblCenServEntrega" alto="13" filas="1" valor="" id="datosTitle" cod="3188"/></td>
+                                  <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                                                                  </tr>
+                                                                  <tr>
+                                                                    <td><IMG src="b.gif" width="8" height="8"/></td>
+                                                                    <td nowrap="nowrap"><CTEXTO nombre="txtNumUnidades4" id="datosCampos" max="5" tipo="" onchange="" req="S" size="4" valor="" validacion="" /></td>
+                                                                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                                                                    <td nowrap="nowrap"><CTEXTO nombre="txtPrecioPublico4" id="datosCampos" max="11" tipo="" onchange="" req="S" size="12" valor="" validacion="" /></td>
+                                                                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                                                                    <td valing="bottom"><CHECKBOX nombre="ckArticuloDespacha4" id="datosCampos" onclick="" check="S"/></td>
+                                                                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                  <td nowrap="nowrap" >
+                                      <RADIOB nombre="rdTipoEntrega"  onclick="onclickRdTipoEntrega();" tipo="V" req="N">
+                                           <RBINPUT id="datosTitle" valor="C" cod= "3190" ></RBINPUT>
+                                           <RBINPUT id="datosTitle" valor="B" cod= "3189" check="S"></RBINPUT>
+                                      </RADIOB>
+                                  </td>
+                                  <td><IMG src="b.gif" width="25" height="8"/></td>
+                                  <td nowrap="nowrap" >
+                                      <COMBO nombre="cbCenServEntrega" id="datosCampos" size="1" multiple="N" req="N" onchange=""  valorinicial="" textoinicial=""><ROWSET></ROWSET></COMBO>
+                                  </td>
+                                  <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                                                                  </tr>
+                                                                  <tr> 
+                                                                    <td colspan="11"><IMG src="b.gif" width="8" height="8"/></td>
+                                                                  </tr>
+                                                           </table>
+                                            <!---fin primera fila-->
+                                                        </td></tr>
+                                                        
+                    		                </table>
+                                             </fieldset>
+                                    <!--fin primer formulario-->
+                                           </td>
+                                           <td><IMG src="b.gif" /></td>
+                                         </tr> 
+                                           <tr> 
+                                                      <td><IMG src="b.gif"/></td>
+                                                      <td>
+                                                         <fieldset>
+                                                           <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">         
+                                                             <tr>
+                                                                <td class="botonera">
+                                                                  <BOTON nombre="btnAnadirProductos" ID="botonContenido" tipo="html" accion="accionAniadirProductoLote();" estado="false" cod="404"/>
+                                                                </td>
+                                                             </tr>    
+                                                           </table>         
+                                                         </fieldset>
+                                                      </td>
+                                                      <td><IMG src="b.gif" width="8" height="12"/></td>
+                                                    </tr>    
+                                         <tr>
+                                            	<td width="12" align="center"><IMG src="b.gif" width="12" height="318"/></td>
+                                          	<td width="756" ><IMG src="b.gif"/></td>
+                                           	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+                                         </tr>
+                                      </table>   
+                           </td></tr>
+                          <tr><td>
+                                      <table width="100%" align="left" border="0" cellspacing="0" cellpadding="0">
+                                         <tr> 
+                                         <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                                      </tr>
+                                         <tr> 
+                                           <td><IMG src="b.gif"/></td>
+                                           <td>
+                                    <!--primer formulario-->
+                                             <fieldset><legend class="legend"><LABELC nombre="lblOtrosDatos4"  alto="13" filas="1" valor="" id="legend" cod="00167"/></legend>
+                                             <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                    		           <tr><td>
+                                                <!---primera fila-->
+                                                   <table width="673" border="0" align="left" cellspacing="0" cellpadding="0">
+                                                                  <tr> 
+                                                                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                                                                  </tr>
+                                                                  <tr>
+                                                                    <td><IMG src="b.gif" width="8" height="8"/></td>
+                                                                    <td><LABELC nombre="lblNumPremio4"  alto="13" filas="1" valor="" id="datosTitle" cod="1691"/></td>
+                                                                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                                                                    <td><LABELC nombre="lblDescripcionLote4"  alto="13" filas="1" valor="" id="datosTitle" cod="844"/></td>
+                                                                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                                                  </tr>
+                                                                  <tr>
+                                                                    <td><IMG src="b.gif" width="8" height="8"/></td>
+                                                                    <td><LABELC nombre="lbNumPremio4"  alto="13" filas="1"  id="datosCampos" valor=""/></td>
+                                                                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                                                                    <td nowrap="nowrap"><CTEXTO nombre="txtDescripcionLote4" id="datosCampos" max="50" tipo="" onchange="" req="N" size="50" valor="" validacion="" /></td>
+                                                                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                                                  </tr>
+                                                                  <tr> 
+                                                                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                                                                  </tr>
+                                                           </table>
+                                                      </td></tr>
+                     			      
+                    			     </table> 
+                                             </fieldset>
+                                    <!--fin primer formulario-->
+                                           </td>
+                                           <td><IMG src="b.gif" /></td>
+                                         </tr> 
+                                         
+                                         <tr>
+                                            	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+                                          	<td width="756" ><IMG src="b.gif"/></td>
+                                           	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+                                         </tr>
+                                      </table>
+                            </td></tr>
+                     </table>	
+                  </fieldset>
+         <!--fin primer formulario-->
+                </td>
+                <td><IMG src="b.gif" /></td>
+             </tr> 
+             <tr> 
+                  <td><IMG src="b.gif"/></td>
+                  <td>
+                    <fieldset>
+                                <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">         
+                                           <tr>
+                                             <td class="botonera">
+                                                <BOTON nombre="btnAnadirLotes" ID="botonContenido" tipo="html" accion="accionAniadirLotePremio();" estado="false" cod="404"/>
+                                             </td>
+                                           </tr>    
+                                </table>         
+                    </fieldset>
+                  </td>
+                  <td><IMG src="b.gif" width="8" height="12"/></td>
+             </tr>     
+             <tr>
+                <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+                <td width="750"><IMG src="b.gif"/></td>
+                <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+             </tr>
+   
+           </table>      
+         </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+         <td><IMG src="b.gif"/></td>
+         <td>
+           <fieldset>
+             <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">         
+                <tr>
+                  <td class="botonera">
+                             <BOTON nombre="btnEliminarProductos" ID="botonContenido" tipo="html" accion="accionEliminarProductos();" estado="false" cod="2459"/>
+                              <BOTON nombre="btnEliminarLotes" ID="botonContenido" tipo="html" accion="accionEliminarLotes();" estado="false" cod="2458"/>
+                                <BOTON nombre="btnAceptar3" ID="botonContenido" tipo="html" accion="accionAceptar(get('formulario.OID_TIPO_PREMIO_ARTICULO'));" estado="false" cod="12"/>
+                  </td>
+                </tr>    
+             </table>         
+           </fieldset>
+         </td>
+         <td><IMG src="b.gif" width="8" height="12"/></td>
+    </tr>          
+    <tr>
+         <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+         <td width="756" ><IMG src="b.gif"/></td>
+         <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+</table>          
+ </CAPA>  
+ 
+ <!-- *********************************************************************************-->
+<!-- ***********************************PREMIOS DESCUENTO*****************************-->
+<!-- *********************************************************************************-->
+   <CAPA nombre="capa5" alto="670" ancho="100%" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="hidden" contravsb="" x="0" y="341" zindex="">
+     <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+         <fieldset><legend class="legend"><LABELC nombre="lblDatosPremiosDescuento"  alto="13" filas="1" valor="" id="legend" cod="00355"/></legend>
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+           <tr><td>
+           <!---primera fila-->
+              <table width="728" border="0" align="left" cellspacing="0" cellpadding="0">
+                             <tr> 
+                                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                             </tr>
+                             <tr>
+                                <td><IMG src="b.gif" width="8" height="8"/></td>
+                                <td><LABELC nombre="lblNumPremio5" alto="13" filas="1" valor="" id="datosTitle" cod="1691"/></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td><LABELC nombre="lblTipoPremioDescuento5"  alto="13" filas="1" valor="" id="datosTitle" cod="1855"/></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td><LABELC nombre="lblCantidadDescuento"  alto="13" filas="1" valor="" id="datosTitle" cod="1856"/></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td><LABELC nombre="lblPorcentaje5"  alto="13" filas="1" valor="" id="datosTitle" cod="790"/></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td><LABELC nombre="lblPeriodoAplicacionDesde"  alto="13" filas="1" valor="" id="datosTitle" cod="1899"/></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td><LABELC nombre="lblPeriodoAplicacionHasta"  alto="13" filas="1" valor="" id="datosTitle" cod="1900"/></td>
+                                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                             </tr>
+                             <tr>
+                                <td><IMG src="b.gif" width="8" height="8"/></td>
+                                <td><LABELC nombre="lbNumPremio5"  alto="13" filas="1" valor="" id="datosCampos" /></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td  nowrap="nowrap"><COMBO nombre="cbTipoPremioDescuento5" id="datosCampos" size="1" onchange="onChangeTipoPremioDescuento();" multiple="N" req="S" valorinicial="" textoinicial="">
+                                            <ROWSET>
+                                            </ROWSET>
+                                     </COMBO> 
+                                 </td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td nowrap="nowrap" valing="bottom"><CTEXTO nombre="txtCantidadDescuento" id="datosCampos" max="8" tipo="" onchange="" req="N" size="6" valor="" validacion="" /></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td nowrap="nowrap" valing="bottom"><CTEXTO nombre="txtPorcentaje5" id="datosCampos" max="6" tipo="" onchange="" req="N" size="6" valor="" validacion="" /></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                 <td  nowrap="nowrap"><COMBO nombre="cbPeriodoAplicacionDesde" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="">
+                                            <ROWSET>
+                                            </ROWSET>
+                                     </COMBO> 
+                                 </td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td  nowrap="nowrap"><COMBO nombre="cbPeriodoAplicacionHasta" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                                            <ROWSET>
+                                            </ROWSET>
+                                     </COMBO> 
+                                 </td>
+                                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                             </tr>
+                             <tr> 
+                                <td colspan="4"><IMG src="b.gif" width="8" height="12"/></td>
+                             </tr>
+                      </table>
+                  </td></tr>
+           
+            <tr><td>
+                        <table width="100%"  align="left" border="0" cellspacing="0" cellpadding="0">
+                              
+                                <tr> 
+                                  <td><IMG src="b.gif"/></td>
+                                  <td>
+                           <!--primer formulario-->
+                                    <fieldset><legend class="legend"><LABELC nombre="lblDatosArticulo5"  alto="13" filas="1" valor="" id="legend" cod="00356"/></legend>
+                                    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                                        <tr><td>
+                                      <!---primera fila-->
+                                          <table width="699" border="0" align="left" cellspacing="0" cellpadding="0">
+                                                         <tr> 
+                                                           <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                                                         </tr>
+                                                         <tr>
+                                                           <td><IMG src="b.gif" width="8" height="8"/></td>
+                                                           <td><LABELC nombre="lblMarca"  alto="13" filas="1" valor="" id="datosTitle" cod="6"/></td>
+                                                           <td><IMG src="b.gif" width="25" height="8"/></td>
+                                                           <td><LABELC nombre="lblUnidadNegocio"  alto="13" filas="1" valor="" id="datosTitle" cod="1338"/></td>
+                                                           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                                         </tr>
+                                                         <tr>
+                                                           <td><IMG src="b.gif" width="8" height="8"/></td>
+                                                          <td  nowrap="nowrap"><COMBO nombre="cbMarca" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="">
+                                                                        <ROWSET>		
+                                                                        </ROWSET>
+                                                                 </COMBO> 
+                                                            </td>
+                                                            <td><IMG src="b.gif" width="25" height="8"/></td>
+                                                             <td  nowrap="nowrap" valign="bottom"><COMBO nombre="cbUnidadNegocio" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                                                                        <ROWSET>
+                                                                        </ROWSET>
+                                                                 </COMBO> 
+                                                            </td> 
+                                                           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                                         </tr>
+                                                         <tr> 
+                                                           <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                                                         </tr>
+                                                  </table>
+                                            </td></tr>
+                                            <tr><td>
+                                                   <table width="699" border="0" align="left" cellspacing="0" cellpadding="0">
+                                                         
+                                                         <tr>
+                                                           <td><IMG src="b.gif" width="8" height="8"/></td>
+                                                           <td><LABELC nombre="lblNegocio" alto="13" filas="1" valor="" id="datosTitle" cod="588"/></td>
+                           			    <td><IMG src="b.gif" width="25" height="8"/></td>
+                                			    <td><LABELC nombre="lblSupergenerico"  alto="13" filas="1" valor="" id="datosTitle" cod="590"/></td>
+                                                           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                                         </tr>
+                                                         <tr>
+                                                           <td><IMG src="b.gif" width="8" height="8"/></td>
+                                                           <td  nowrap="nowrap"><COMBO nombre="cbNegocio" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                                                                        <ROWSET>
+                                                                            
+                                                                        </ROWSET>
+                                                                 </COMBO> 
+                                                            </td>
+                                                           <td><IMG src="b.gif" width="25" height="8"/></td>
+                                                           <td  nowrap="nowrap"><COMBO nombre="cbSupergenerico" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                                                                        <ROWSET>
+                                                                        </ROWSET>
+                                                                 </COMBO> 
+                                                            </td>
+                                                            <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                                         </tr>
+                                                         <tr> 
+                                                           <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                                                         </tr>
+                                                  </table>
+                                             </td></tr>
+                                            <tr><td>
+                                                   <table width="699" border="0" align="left" cellspacing="0" cellpadding="0">
+                                                         
+                                                         <tr>
+                                                           <td><IMG src="b.gif" width="8" height="8"/></td>
+                                                           <td><LABELC nombre="lblGenerico"  alto="13" filas="1" valor="" id="datosTitle" cod="589"/></td>
+                                                           <td><IMG src="b.gif" width="25" height="8"/></td>
+                                                           <td colspan="3"><LABELC nombre="lblCodProducto5"  alto="13" filas="1" valor="" id="datosTitle" cod="337"/></td>
+                                                           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                                         </tr>
+                                                         <tr>
+                                                           <td><IMG src="b.gif" width="8" height="8"/></td>
+                                                           <td  nowrap="nowrap"><COMBO nombre="cbGenerico" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                                                                        <ROWSET>
+                                                                            
+                                                                        </ROWSET>
+                                                                 </COMBO> 
+                                                            </td>
+                                                            <td><IMG src="b.gif" width="25" height="8"/></td>
+                                                           <td nowrap="nowrap"><CTEXTO nombre="txtCodProducto5" id="datosCampos" max="20" tipo="" onchange="" req="N" size="26" valor="" validacion="" /></td>
+                                                           <td><IMG src="b.gif" width="8" height="8"/></td>
+                                                           <td><BOTON nombre="btnBuscar5" ID="botonContenido" tipo="html" accion="accionBuscarProductoDescuento();" estado="false" cod="1"/></td>
+                                                           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                                         </tr>
+                                                         <tr> 
+                                                           <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                                                         </tr>
+                                                  </table>
+                                   <!---fin primera fila-->
+                                           </td></tr>
+                                         </table>  
+                                    </fieldset>
+                           <!--fin primer formulario-->
+                                  </td>
+                                  <td><IMG src="b.gif" /></td>
+                                </tr> 
+                                  <tr> 
+                                             <td><IMG src="b.gif"/></td>
+                                             <td>
+                                                <fieldset>
+                                                  <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">         
+                                                    <tr>
+                                                      <td class="botonera">
+                                                         <BOTON nombre="btnAnadir5" ID="botonContenido" tipo="html" accion="accionAniadirProducto();" estado="false" cod="404"/>
+                                                      </td>
+                                                    </tr>    
+                                                  </table>         
+                                                </fieldset>
+                                             </td>
+                                             <td><IMG src="b.gif" width="8" height="12"/></td>
+                                           </tr>    
+                                <tr>
+                                   	<td width="12" align="center"><IMG src="b.gif" width="12" height="354"/></td>
+                                 	<td width="756" ><IMG src="b.gif"/></td>
+                                  	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+                                </tr>
+                             </table>   
+                 </td></tr>
+            </table>
+         </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+     <tr> 
+         <td><IMG src="b.gif"/></td>
+         <td>
+                  <fieldset>
+                           <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">         
+                            <tr>
+                             <td class="botonera">
+                                  <BOTON nombre="btnAceptar4" ID="botonContenido" tipo="html" accion="accionAceptar(get('formulario.OID_TIPO_PREMIO_DESCUENTO'));" estado="false" cod="12"/>
+                             </td>
+                            </tr>    
+                           </table>         
+                  </fieldset>
+         </td>
+         <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>     
+    <tr>
+         <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+         <td width="756" ><IMG src="b.gif"/></td>
+         <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>   
+ </CAPA>                        
+  <!--*******************LISTA**-PREMIOS MONETARIOS**********************************-->
+   <LISTAEDITABLE nombre="listado1" ancho="703" alto="300" x="26" y="652" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+         <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+         <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+         <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+      <LINEAS>
+         <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="0" horizTitulo="1" horizBase="1"/> 
+         <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="0031" ID="datosTitle" />
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+
+
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+         <COL ancho="26" minimizable="S" minimizada="N"/>
+         <COL ancho="26" minimizable="S" minimizada="N"/>
+         <COL ancho="26" minimizable="S" minimizada="N"/>
+         <COL ancho="26" minimizable="S" minimizada="N" oculta="S"/> 
+         <COL ancho="26" minimizable="S" minimizada="N" oculta="S"/>
+         
+      </COLUMNAS>
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+         <COL colFondo="" ID="EstCab" cod="1841">Nº pago</COL> 
+         <COL colFondo="" ID="EstCab" cod="1784">% Premio</COL> 
+         <COL colFondo="" ID="EstCab" cod="1842">Período control</COL> 
+  <COL colFondo="" ID="EstCab">oidPeriodoControl</COL> 
+  <COL colFondo="" ID="EstCab">oidPago</COL> 
+         
+      </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+              coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+              onLoad="" colorSelecc="#D0D9E8">
+        <COL tipo="texto" ID="EstDat"/> 
+        <COL tipo="texto" ID="EstDat2"/> 
+        <COL tipo="texto" ID="EstDat"/> 
+        <COL tipo="texto" ID="EstDat"/> 
+        <COL tipo="texto" ID="EstDat"/> 
+      </DATOS>
+      <ROWSET>
+      </ROWSET>
+      <PAGINADO nombre="mipgndo1" ancho="703" sep="$" x="26" class="botonera" y="929" control="|" conector="conectorSandra" rowset="" cargainicial="N">
+         
+         <BOTON nombre="ret1" x="51" y="933" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo1.retroceder();" /> 
+         <BOTON nombre="ava1" x="66" y="933" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo1.avanzar();"/>
+         
+    </PAGINADO>
+  </LISTAEDITABLE>
+  <BOTON nombre="primera1" x="34" y="933" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo1.retrocederPrimeraPagina();" />      
+  <BOTON nombre="separa1" x="73" y="929" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />      
+  <BOTON nombre="btnEliminar2" x="27" y="930" ID="botonContenido" accion="accionEliminarPago()" tipo="html" estado="false" cod="1254" /> 
+
+ <!--************************LISTA****PREMIOS ARTICULOS****************************************-->     
+
+  <LISTAEDITABLE nombre="listado2" ancho="676" alto="278" x="40" y="910" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+         <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+         <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+         <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+      <LINEAS>
+         <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="0" horizTitulo="1" horizBase="1"/> 
+         <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00353" ID="datosTitle" />
+      
+
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+         <COL ancho="80" minimizable="S" minimizada="N"/>
+         <COL ancho="80" minimizable="S" minimizada="N"/>
+         <COL ancho="80" minimizable="S" minimizada="N"/>
+         <COL ancho="80" minimizable="S" minimizada="N"/>
+         <COL ancho="80" minimizable="S" minimizada="N"/>
+         <COL ancho="80" minimizable="S" minimizada="N"/>
+         <COL ancho="110" minimizable="S" minimizada="N"/>
+         <COL ancho="100" minimizable="S" minimizada="N"/>
+         <COL ancho="80" minimizable="S" minimizada="N"/>
+         <COL ancho="80" minimizable="S" minimizada="N"/>
+         <COL ancho="100" minimizable="S" minimizada="N"/>
+         <COL ancho="80" minimizable="S" minimizada="N" oculta="S"/> 
+         <COL ancho="80" minimizable="S" minimizada="N" oculta="S"/> 
+         <COL ancho="80" minimizable="S" minimizada="N" oculta="S"/> 
+         <COL ancho="80" minimizable="S" minimizada="N" oculta="S"/> 
+         
+      </COLUMNAS>
+      <CABECERA alto="50" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+         <COL colFondo="" ID="EstCab" cod="337">Cód. producto</COL> 
+         <COL colFondo="" ID="EstCab" cod="495">Nº unidades</COL> 
+         <COL colFondo="" ID="EstCab" cod="1854">Precio público</COL> 
+         <COL colFondo="" ID="EstCab" cod="1851">Despacha articulo</COL> 
+         <COL colFondo="" ID="EstCab" cod="1853">Cód. venta ficticio</COL> 
+  <COL colFondo="" ID="EstCab" cod="3184">Ind Centro Servicio Garantia</COL> 
+  <COL colFondo="" ID="EstCab" cod="3185">Centro Servicio Garantia</COL> 
+  <COL colFondo="" ID="EstCab" cod="3186">Num de meses</COL> 
+  <COL colFondo="" ID="EstCab" cod="169">Observaciones</COL> 
+  <COL colFondo="" ID="EstCab" cod="3187">Tipo de entrega</COL> 
+  <COL colFondo="" ID="EstCab" cod="3188">Centro Servicio Entrega</COL> 
+  <COL colFondo="" ID="EstCab">oidCentSerGar</COL> 
+  <COL colFondo="" ID="EstCab">oidCentSerEntrega</COL> 
+  <COL colFondo="" ID="EstCab">oidProdArticulo</COL> 
+  <COL colFondo="" ID="EstCab">oidProductoLote</COL> 
+         
+      </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+              coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+              onLoad="" colorSelecc="#D0D9E8">
+        <COL tipo="texto" ID="EstDat"/> 
+        <COL tipo="texto" ID="EstDat2"/> 
+        <COL tipo="texto" ID="EstDat"/> 
+        <COL tipo="texto" ID="EstDat2"/> 
+        <COL tipo="texto" ID="EstDat"/> 
+        <COL tipo="texto" ID="EstDat2"/> 
+        <COL tipo="texto" ID="EstDat"/> 
+        <COL tipo="texto" ID="EstDat2"/> 
+        <COL tipo="texto" ID="EstDat"/> 
+        <COL tipo="texto" ID="EstDat2"/> 
+        <COL tipo="texto" ID="EstDat"/> 
+        <COL tipo="texto" ID="EstDat"/> 
+        <COL tipo="texto" ID="EstDat"/> 
+        <COL tipo="texto" ID="EstDat"/> 
+        <COL tipo="texto" ID="EstDat"/> 
+      </DATOS>
+      <ROWSET>
+      </ROWSET>
+      <PAGINADO nombre="mipgndo2" ancho="676" sep="$" x="40" class="botonera" y="1177" control="|" conector="conectorSandra" rowset="" cargainicial="N">
+         
+         <BOTON nombre="ret2" x="63" y="1181" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo2.retroceder();" /> 
+         <BOTON nombre="ava2" x="78" y="1181" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo2.avanzar();"/>
+         
+    </PAGINADO>
+  </LISTAEDITABLE>
+  <BOTON nombre="primera2" x="56" y="1181" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo2.retrocederPrimeraPagina();" />      
+  <BOTON nombre="separa2" x="85" y="1177" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />      
+
+
+
+<LISTAEDITABLE nombre="listado4" ancho="703" alto="278" x="26" y="400" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+         <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+         <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+         <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+      <LINEAS>
+         <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="0" horizTitulo="1" horizBase="1"/> 
+         <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00592" ID="datosTitle" />
+      
+
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+         <COL ancho="26" minimizable="S" minimizada="N"/>
+         <COL ancho="26" minimizable="S" minimizada="N"/>
+         <COL ancho="26" minimizable="S" minimizada="N" oculta="S"/> 
+         <COL ancho="26" minimizable="S" minimizada="N" oculta="S"/> 
+        
+      </COLUMNAS>
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+         <COL colFondo="" ID="EstCab" cod="1691">Nº premio</COL> 
+         <COL colFondo="" ID="EstCab" cod="844">Descripción lote</COL> 
+  <COL colFondo="" ID="EstCab">oidLote</COL> 
+  <COL colFondo="" ID="EstCab">listProdLote</COL> 
+         
+         
+      </CABECERA>
+      <DATOS alto="22" accion="onSelectLotesPremio(FILAEVENTO);" tipoEnvio="edicion" formaEnvio="xml" maxSel="1" msgErrMaxSel="" 
+              coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+              onLoad="" colorSelecc="#D0D9E8">
+        <COL tipo="texto" ID="EstDat"/> 
+        <COL tipo="texto" ID="EstDat2"/> 
+        <COL tipo="texto" ID="EstDat2"/> 
+        <COL tipo="texto" ID="EstDat2"/> 
+        
+      </DATOS>
+      <ROWSET>
+      </ROWSET>
+      <PAGINADO nombre="mipgndo4" ancho="703" sep="$" x="26" class="botonera" y="677" control="|" conector="conectorSandra1" rowset="" cargainicial="N">
+         
+         <BOTON nombre="ret4" x="51" y="681" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo4.retroceder();" /> 
+         <BOTON nombre="ava4" x="66" y="681" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo4.avanzar();"/>
+         
+    </PAGINADO>
+  </LISTAEDITABLE>
+  <BOTON nombre="primera4" x="34" y="681" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo4.retrocederPrimeraPagina();" />      
+  <BOTON nombre="separa4" x="73" y="677" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />          
+  <!--********************LISTA******PREMIOS DESCUENTOS*******************************************-->
+
+  <LISTAEDITABLE nombre="listado3" ancho="703" alto="317" x="26" y="614" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+         <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+         <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+         <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+      <LINEAS>
+         <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="0" horizTitulo="1" horizBase="1"/> 
+         <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00357" ID="datosTitle" />
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+
+
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+         <COL ancho="80" minimizable="S" minimizada="N"/>
+          <COL ancho="80" minimizable="S" minimizada="N"/>
+         <COL ancho="80" minimizable="S" minimizada="N"/>
+         <COL ancho="80" minimizable="S" minimizada="N"/>
+          <COL ancho="80" minimizable="S" minimizada="N"/>
+         <COL ancho="80" minimizable="S" minimizada="N"/>
+         <COL ancho="80" minimizable="S" minimizada="N" oculta="S"/> 
+         <COL ancho="80" minimizable="S" minimizada="N" oculta="S"/> 
+         <COL ancho="80" minimizable="S" minimizada="N" oculta="S"/> 
+         <COL ancho="80" minimizable="S" minimizada="N" oculta="S"/> 
+         <COL ancho="80" minimizable="S" minimizada="N" oculta="S"/> 
+         <COL ancho="80" minimizable="S" minimizada="N" oculta="S"/> 
+         <COL ancho="80" minimizable="S" minimizada="N" oculta="S"/> 
+      </COLUMNAS>
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+         <COL colFondo="" ID="EstCab" cod="6">Marca</COL> 
+         <COL colFondo="" ID="EstCab" cod="1338">Unidad negocio</COL> 
+         <COL colFondo="" ID="EstCab" cod="588">Negocio</COL> 
+         <COL colFondo="" ID="EstCab" cod="590">Supergenérico</COL> 
+         <COL colFondo="" ID="EstCab" cod="589">Genérico</COL> 
+         <COL colFondo="" ID="EstCab" cod="337">Cód. producto</COL> 
+  <COL colFondo="" ID="EstCab">oidMarca</COL> 
+  <COL colFondo="" ID="EstCab">oidUnidadNeg</COL> 
+  <COL colFondo="" ID="EstCab">oidNegocio</COL> 
+  <COL colFondo="" ID="EstCab">oidSupergenerico</COL> 
+  <COL colFondo="" ID="EstCab">oidGenerico</COL> 
+  <COL colFondo="" ID="EstCab">oidProd</COL> 
+  <COL colFondo="" ID="EstCab">oidArticulo</COL> 
+         
+      </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+              coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+              onLoad="" colorSelecc="#D0D9E8">
+        <COL tipo="texto" ID="EstDat"/> 
+        <COL tipo="texto" ID="EstDat2"/> 
+        <COL tipo="texto" ID="EstDat"/> 
+         <COL tipo="texto" ID="EstDat2"/> 
+        <COL tipo="texto" ID="EstDat"/> 
+        <COL tipo="texto" ID="EstDat2"/> 
+        <COL tipo="texto" ID="EstDat2"/> 
+        <COL tipo="texto" ID="EstDat2"/> 
+        <COL tipo="texto" ID="EstDat2"/> 
+        <COL tipo="texto" ID="EstDat2"/> 
+        <COL tipo="texto" ID="EstDat2"/> 
+        <COL tipo="texto" ID="EstDat2"/> 
+        <COL tipo="texto" ID="EstDat2"/> 
+      
+      </DATOS>
+      <ROWSET>
+      </ROWSET>
+      <PAGINADO nombre="mipgndo3" ancho="703" sep="$" x="26" class="botonera" y="908" control="|" conector="conectorSandra" rowset="" cargainicial="N">
+         
+         <BOTON nombre="ret3" x="51" y="912" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo3.retroceder();" /> 
+         <BOTON nombre="ava3" x="66" y="912" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo3.avanzar();"/>
+         
+    </PAGINADO>
+  </LISTAEDITABLE>
+  <BOTON nombre="primera3" x="34" y="912" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo3.retrocederPrimeraPagina();" />      
+  <BOTON nombre="separa3" x="73" y="908" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />
+  <BOTON nombre="btnEliminar" x="27" y="909" ID="botonContenido" accion="accionEliminarArticulo()" tipo="html" estado="false" cod="1254" /> 
+</FORMULARIO>
+</PAGINA> 

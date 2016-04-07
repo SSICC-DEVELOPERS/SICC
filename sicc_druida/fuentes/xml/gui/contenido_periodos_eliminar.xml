@@ -1,0 +1,704 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_periodos_eliminar.xml,v 1.1 2009/12/03 18:45:01 pecbazalar Exp $
+   contenido CRA
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_periodos_eliminar" estilos="estilosB3.css" colorf="#F0F0F0" msgle="Eliminar Períodos" onload="onLoadPag(); inicializacion();" xml:lang="es" cod="097">
+
+				
+<JS src="sicc_util.js"/>   
+ <JS src="PaginacionSicc.js"/>   
+ <JS src="DruidaTransactionMare.js"/>   
+                                                                            
+  <JAVASCRIPT>   
+  <![CDATA[    
+    
+          function onLoadPag()   {           
+                   DrdEnsanchaConMargenDcho('listado1',12);                    
+                   if (get('frmEliminarPeriodos.hListadoDisponible') == "SI") {   
+                            mostrarListaEditable();   
+                   } else {    
+                            ocultarListaEditable();   
+                   }   
+                   eval (ON_RSZ);                      
+          }           
+    
+    
+          // Inicializacion de los parametros de la pantalla    
+          function inicializacion() {   
+                   txt_to('lblValorPais', get('frmEliminarPeriodos.hPaisDescripcion'));    
+                   configurarMenuSecundario("frmEliminarPeriodos");   
+    
+                   posicionarCombo();   
+                   set('frmEliminarPeriodos.Anio', get('frmEliminarPeriodos.hAnio'));   
+    
+                   //Validaciones si hay mensaje de error y si no lo hay.   
+                   if (get('frmEliminarPeriodos.errDescripcion')!='') {   
+                            var wnd = fMostrarMensajeError(get('frmEliminarPeriodos.errCodigo'), get('frmEliminarPeriodos.errDescripcion'));   
+                   } else {   
+                            if ((get('frmEliminarPeriodos.accion')) == 'guardar') {   
+                                     set('frmEliminarPeriodos.accion', '');   
+                            }   
+                   }      
+    
+                   focaliza('frmEliminarPeriodos.comboMarca');   
+    
+                   //actualizo el listado de periodos.   
+                   listado1.save();   
+                   listado1.repintaDat();   
+    
+                   //transforma datos de periodos antes de ser mostrado   
+                   listado1.datos = adecuarListaVisible(listado1.datos);   
+    
+                   //se verifican cruces, es necesario si se recalculo   
+                   compruebaCruces();   
+    
+                   //actualizo el listado de periodos.   
+                   listado1.save();   
+                   listado1.repintaDat();   
+    
+                   set('frmEliminarPeriodos.hListaPeriodos', listado1.datos);    
+          }    
+    
+    
+     // Se pulso el boton buscar                            
+	function fBuscar() {   
+		if(!sicc_validaciones_generales()){   
+			return false;   
+		}   
+		obtenerPaisMarcaCanalAnio();   
+					
+		// set('frmEliminarPeriodos.accion', 'buscar'); //Sin Paginado   
+		// enviaSICC('frmEliminarPeriodos'); //Sin Paginado   
+
+		mostrarListaEditable();   
+
+		configurarPaginado(mipgndo, 'CRAConsultarPeriodos', 'ConectorObtenerTodosPeriodosConsulta',   
+													  'es.indra.sicc.dtos.cra.DTOCriteriosPeriodo', armarArrayParametrosDTO()); 
+
+		//habilita el boton de eliminar en menu secundario   
+		btnProxy(4, '1');   
+     }   
+    
+    
+          // Levanta los valores seleccionados para pais marca y canal    
+          function obtenerPaisMarcaCanalAnio(){    
+                   set('frmEliminarPeriodos.hCanal', get('frmEliminarPeriodos.comboCanal'));    
+                   set('frmEliminarPeriodos.hMarca', get('frmEliminarPeriodos.comboMarca'));    
+                   set('frmEliminarPeriodos.hAnio', get('frmEliminarPeriodos.Anio'));  
+				   set('frmEliminarPeriodos.hAcceso', get('frmEliminarPeriodos.comboAcceso'));  
+          }    
+     
+    
+          function posicionarCombo() {    
+                   var iSeleccionadoM = new Array();    
+                   iSeleccionadoM[0] = get('frmEliminarPeriodos.hMarca');    
+                   set('frmEliminarPeriodos.comboMarca',iSeleccionadoM);    
+    
+                   var iSeleccionado = new Array();    
+                   iSeleccionado[0] = get('frmEliminarPeriodos.hCanal');    
+                   set('frmEliminarPeriodos.comboCanal',iSeleccionado);    
+          }    
+              
+    
+          // Vacia todos los campos de la pantalla    
+          function fLimpiar() {    
+                   set('frmEliminarPeriodos.comboCanal', '');    
+                   set('frmEliminarPeriodos.comboMarca', '');   
+                   set('frmEliminarPeriodos.comboAcceso', '');
+                   set('frmEliminarPeriodos.Anio', '');    
+                   set('frmEliminarPeriodos.hListadoDisponible', '');    
+                   focaliza('frmEliminarPeriodos.comboMarca','');   
+          }    
+     
+    
+          function fBorrar() {   
+                   //alert("Codigos Seleccionados: " + listado1.codSeleccionados() );   
+                   if (listado1.codSeleccionados()!= '') {   
+                            //seteamos la lista de periodos   
+                            set('frmEliminarPeriodos.hListaPeriodos', listado1.datos);    
+    
+                            //seteamos las oidPeriodos seleccionados   
+                            set('frmEliminarPeriodos.hPeriodosSeleccionados', listado1.codSeleccionados());   
+    
+                            //verificamos si va a eliminar todos los periodos   
+                            if ( estaPorEliminarTodos() ) {   
+                                     //elimino los periodos seleccionados (sin opcion de recalculo)   
+                                     eliminarFilas(listado1.codSeleccionados(), 'CRAEliminaVariosPeriodos', mipgndo, 'resultadoOperacionVacio(datos)');   
+                            } else {   
+                                     //elimino los periodos seleccionados (con opcion de recalculo)   
+                                     eliminarFilas(listado1.codSeleccionados(), 'CRAEliminaVariosPeriodos', mipgndo, 'resultadoOperacionPropio(datos)');    
+                            }   
+                   } else {   
+                            GestionarMensaje('416');   
+                   }   
+          }   
+    
+    
+          //funcion ejecutada por callback en eliminar filas   
+          function resultadoOperacionPropio(datos) {   
+                   // Seteo en true para que muestre el mensaje de exito   
+                   boolResultadoEliminacionSICC = true;   
+    
+                   //Si hemos recibido un mensaje como resultado de la operación lo mostramos   
+                   var mensajeError = "";   
+                   if(datos != null && (typeof(datos)).toUpperCase() == "OBJECT"){   
+                            mensajeError  = datos[0];   
+                   }else if(datos != null && (typeof(datos)).toUpperCase() == "STRING"){   
+                            mensajeError = datos;   
+                   }   
+                   if(mensajeError==""){   
+                            if(boolResultadoEliminacionSICC){   
+                                     cdos_mostrarConfirm(GestionarMensaje("989"));   
+                            }   
+                   }else{   
+                            mostrarErrorSubsistema(mensajeError );   
+                            return false;   
+                   }   
+             
+                   //tomos los periodos orgininales antes de que se refresquen   
+                   var arrPeriodos = listado1.datos;   
+                      
+                   //Actualizamos los resultados de la búsqueda   
+                   if (objetoPaginado != null) {   
+                            listado1.save();   
+                            listado1.repintaDat();   
+                            objetoPaginado.recargar();    
+                   }   
+                   // necesito tiempo de recarga de paginado   
+                   setTimeout("fantasma()",100);   
+    
+                   // si se elimino correctamente, recalculo periodos   
+                   recalcularPeriodos(arrPeriodos);   
+    
+                   return true;   
+          }   
+    
+    
+          //funcion ejecutada por callback en eliminar filas   
+          function resultadoOperacionVacio(datos) {   
+                   // Seteo en true para que muestre el mensaje de exito   
+                   boolResultadoEliminacionSICC = true;   
+                      
+                   //Si hemos recibido un mensaje como resultado de la operación lo mostramos   
+                   var mensajeError = "";   
+                   if(datos != null && (typeof(datos)).toUpperCase() == "OBJECT"){   
+                            mensajeError  = datos[0];   
+                   }else if(datos != null && (typeof(datos)).toUpperCase() == "STRING"){   
+                            mensajeError = datos;   
+                   }   
+                   if(mensajeError==""){   
+                            if(boolResultadoEliminacionSICC){   
+                                     cdos_mostrarConfirm(GestionarMensaje("989"));   
+                            }   
+                   }else{   
+                            mostrarErrorSubsistema(mensajeError );   
+                            return false;   
+                   }   
+    
+                   //Actualizamos en vacio el resultado de la búsqueda   
+                   ocultarListaEditable();   
+                   focaliza("frmEliminarPeriodos.comboMarca");    
+                   return false;    
+          }   
+    
+    
+     //Recalculo de Periodos   
+     function recalcularPeriodos(arrPeriodos) {   
+                   //mensaje de opcion de recalculo   
+                   if (GestionarMensaje('724')) {   
+                            //transforma datos sobre hListaPeriodos antes de ser enviados   
+                            var periodosAdecuados = adecuarListaOcultaRec(arrPeriodos);   
+                            //setamos la lista oculta actualizada   
+                            set('frmEliminarPeriodos.hListaPeriodos', periodosAdecuados);    
+                               
+                            set('frmEliminarPeriodos.accion', 'recalcularPeriodos');   
+                            enviaSICC('frmEliminarPeriodos');   
+                   }   
+     }   
+    
+    
+          function estaPorEliminarTodos() {   
+                   var codigos = new String(listado1.codigos());   
+                   var arrayCodigos = codigos.split(',');   
+                   var seleccionados = new String(listado1.codSeleccionados());   
+                   var arraySeleccionados = seleccionados.split(',');   
+                   //alert( 'arrayCodigos length ' + arrayCodigos.length);   
+                   //alert( 'arraySeleccionados length ' + arraySeleccionados.length);   
+                   if (arrayCodigos.length == arraySeleccionados.length) {   
+                            return true;   
+                   }else{   
+                            return false;   
+                   }   
+          }   
+    
+    
+          //muestra la liata aculta luego de procesar paginado   
+          function muestraLista(ultima, rowset){   
+                   var i;   
+                   var indexCorto = 8;   
+                   var indexCruce = 9;   
+                   var si = GestionarMensaje(84);   
+                   var no = GestionarMensaje(86);   
+                   var tamano = rowset.length;   
+                   //vemos    
+                   if (tamano != 0) {   
+                      mostrarListaEditable();   
+                      eval (ON_RSZ);   
+                   } else {   
+                            ocultarListaEditable();   
+                            focaliza("frmEliminarPeriodos.comboMarca");    
+                            return false;   
+                   }   
+                   for( i = 0; i < rowset.length; i++ ){   
+                            //reemplazar los valores en indicador periodo corto (checkbox)   
+                            if( rowset[i][indexCorto] == 'false')   
+                                     rowset[i][indexCorto] = 'N';   
+                            else   
+                                     rowset[i][indexCorto] = 'S';   
+                            //reemplazar los valores en indicador periodo cruce (i18n)   
+                            if( rowset[i][indexCruce] == 'false')   
+                                     rowset[i][indexCruce] = no;   
+                            else   
+                                     rowset[i][indexCruce] = si;   
+                   }   
+                   focaliza("frmEliminarPeriodos.comboMarca");   
+                   return true;   
+          }   
+    
+    
+          // transforma el indicador de cruce (para mnstrar)   
+          // el indicador de periodo corto se debe transformar en la LP   
+          function adecuarListaVisible(rowset) {   
+                   var i;   
+                   var indexCorto = 8;   
+                   var indexCruce = 9;   
+                   var si = GestionarMensaje(84);   
+                   var no = GestionarMensaje(86);   
+                   for( i = 0; i < rowset.length; i++ ){   
+                            //reemplazar los valores en indicador periodo cruce (i18n)   
+                            if( rowset[i][indexCruce] == 'false')   
+                                     rowset[i][indexCruce] = no;   
+                            else   
+                                     rowset[i][indexCruce] = si;   
+                   }   
+                   return rowset;   
+          }   
+    
+    
+          // transforma el indicador de periodo corto y el indicador de cruce (para enviar)   
+          function adecuarListaOcultaRec(arrPeriodos) {   
+                   var i;   
+                   var indexCorto = 8;   
+                   var indexCruce = 9;   
+                   var si = GestionarMensaje(84);   
+                   var no = GestionarMensaje(86);   
+                   //tomamos la lista anterior a la eliminacion   
+                   var listaPeriodos = arrPeriodos;    
+                   //realizamos la tranformaion   
+                   for( i = 0; i < listaPeriodos.length; i++ ){   
+                            //reemplazar los valores en indicador periodo corto (checkbox)   
+                            if( listaPeriodos[i][indexCorto] == 'N')   
+                                     listaPeriodos[i][indexCorto] = 'false';   
+                            else   
+                                     listaPeriodos[i][indexCorto] = 'true';   
+                            //reemplazar los valores en indicador periodo cruce (i18n)   
+                            if( listaPeriodos[i][indexCruce] == no)   
+                                     listaPeriodos[i][indexCruce] = 'false';   
+                            else   
+                                     listaPeriodos[i][indexCruce] = 'true';   
+                   }   
+                   return listaPeriodos;   
+          }   
+    
+    
+          //Comprueba los cruces en los periodos, actualizando el listado   
+          function compruebaCruces() {   
+                   var periodos = listado1.datos;   
+                   var indexFechaFin = 6;   
+                   var indexFechaInicio = 5;   
+                   var indexPeriodoCruce = 9;   
+                   var fechaFinActual;   
+                   var fechaInicioSiguiente;   
+                   var fechaFinActualMilis;   
+                   var fechaInicioSiguienteMilis;   
+                   var si = GestionarMensaje(84);   
+                   var no = GestionarMensaje(86);   
+    
+                   //chequeo desde el primero con el segundo hasta el anteultimo con el ultimo   
+                   for (var i=0; i < (periodos.length - 1); i++) {   
+                            fechaFinActual = periodos[i][indexFechaFin];   
+                            fechaInicioSiguiente = periodos[i+1][indexFechaInicio];   
+                            fechaFinActualMilis = dameMilis(fechaFinActual);   
+                            fechaInicioSiguienteMilis = dameMilis(fechaInicioSiguiente);   
+                            //alert("fechaFinActualMilis " + fechaFinActualMilis);   
+                            //alert("fechaInicioSiguienteMilis " + fechaInicioSiguienteMilis);   
+    
+                            if (fechaFinActualMilis >= fechaInicioSiguienteMilis) {   
+                                     //periodo con cruce    
+                                     periodos[i][indexPeriodoCruce] = si;   
+                            } else {   
+                                     //periodo sin cruce   
+                                     periodos[i][indexPeriodoCruce] = no;   
+                            }   
+                   }   
+                   //ademas el ultimo es periodo sin cruce   
+                   if (periodos.length != 0) {   
+                            periodos[periodos.length-1][indexPeriodoCruce] = no;   
+                   }   
+    
+                   //setamos la lista actualizada   
+                   listado1.datos = periodos;   
+    
+                   //actualizo el listado de periodos.   
+                   listado1.save();   
+                   listado1.repintaDat();   
+          }   
+    
+    
+          //Dada una fecha retorna los milisegundos   
+          function dameMilis( valorFecha ) {   
+                   // pasamos valorFechaInicio al formato dd/mm/aaaaa   
+                   // alert('hFormatoFechaPais   ' + get('frmEliminarPeriodos.hFormatoFechaPais'));   
+                   var fecha1 = obtenerFormatoFecha(valorFecha);   
+                   var d1,d2;   
+                   var dias = 0;   
+                   var arrFecha = fecha1.split("/");   
+                   d1 = new Date(arrFecha[2],arrFecha[1]-1,arrFecha[0]);   
+                   d2 = d1.getTime(); // milisegundos    
+                   return d2;   
+          }   
+    
+    
+          function fantasma() {   
+                   return true;   
+          }   
+    
+          function ocultarListaEditable() {   
+                   document.all["Cplistado1"].style.visibility='hidden';   
+                   document.all["CpLin1listado1"].style.visibility='hidden';   
+                   document.all["CpLin2listado1"].style.visibility='hidden';   
+                   document.all["CpLin3listado1"].style.visibility='hidden';   
+                   document.all["CpLin4listado1"].style.visibility='hidden';   
+                   document.all["prim1Div"].style.visibility='hidden';   
+                   document.all["ret1Div"].style.visibility='hidden';   
+                   document.all["ava1Div"].style.visibility='hidden';   
+                   document.all["separaDiv"].style.visibility='hidden';   
+                   //document.all["RecalcularDiv"].style.visibility='hidden';   
+          }   
+    
+    
+          function mostrarListaEditable() {   
+                   document.all["Cplistado1"].style.visibility='visible';   
+                   document.all["CpLin1listado1"].style.visibility='visible';   
+                   document.all["CpLin2listado1"].style.visibility='visible';   
+                   document.all["CpLin3listado1"].style.visibility='visible';   
+                   document.all["CpLin4listado1"].style.visibility='visible';   
+                   document.all["prim1Div"].style.visibility='visible';   
+                   document.all["ret1Div"].style.visibility='visible';   
+                   document.all["ava1Div"].style.visibility='visible';   
+                   document.all["separaDiv"].style.visibility='visible';   
+                   //document.all["RecalcularDiv"].style.visibility='visible';   
+          }   
+    
+    
+          function armarArrayParametrosDTO()  {   
+                   var array = new Array();   
+                   var i = 0;   
+                   array[i] = new Array('oidIdioma',get('frmEliminarPeriodos.hIdioma'));   
+    
+                   if (get('frmEliminarPeriodos.hPais') != '')  {   
+                            i++;   
+                            array[i] = new Array('pais',get('frmEliminarPeriodos.hPais'));   
+                   }   
+                   if (get('frmEliminarPeriodos.comboMarca') != '')  {   
+                            i++;   
+                            array[i] = new Array('marca',get('frmEliminarPeriodos.comboMarca'));   
+                   }   
+                   if (get('frmEliminarPeriodos.comboCanal') != '')  {   
+                            i++;   
+                            array[i] = new Array('canal',get('frmEliminarPeriodos.comboCanal'));   
+                   }   
+				   if (get('frmEliminarPeriodos.comboAcceso') != '')  {   
+                            i++;   
+                            array[i] = new Array('acceso',get('frmEliminarPeriodos.comboAcceso'));   
+                   }   
+                   if (get('frmEliminarPeriodos.Anio') != '')  {   
+                            i++;   
+                            array[i] = new Array('anio',get('frmEliminarPeriodos.Anio'));   
+                   }   
+    
+                   //alert(array);   
+                   return array;   
+          } 
+		  
+		   function onChangeCanal() {
+						  var oidCanal = get('frmEliminarPeriodos.comboCanal', 'V');
+						  set('frmEliminarPeriodos.hCanal', oidCanal); 
+						  if (oidCanal != '') {
+							  set('frmEliminarPeriodos.hIdioma', 1);
+									var array = new Array();
+									array[0] = new Array('oid',oidCanal);
+									array[1] = new Array('oidIdioma',get('frmEliminarPeriodos.hIdioma'));
+												  
+									set_combo('frmEliminarPeriodos.comboAcceso', arrayVacio());
+									recargaCombo('frmEliminarPeriodos.comboAcceso',
+																   'SEGObtieneAccesosPorCanal',
+																   'es.indra.sicc.util.DTOOID',
+																   array,
+																   'setearcbAcceso(datos)');                   
+													  
+
+						  } else {
+									set_combo('frmEliminarPeriodos.comboAcceso', arrayVacio());
+													  
+						  }
+			}
+			function arrayVacio(){  
+				var array = new Array();              
+					 array[0] = new Array('','');
+			  
+				return array;
+			}
+			function setearcbAcceso(datos) {
+					  var arrayNuevo = new Array();
+					  arrayNuevo[0] = new Array('','');
+					  arrayNuevo = arrayNuevo.concat(datos);
+					  set_combo('frmEliminarPeriodos.comboAcceso',arrayNuevo);
+			}
+    
+    
+   ]]>  
+   </JAVASCRIPT>  
+
+
+  <VALIDACION>
+      <ELEMENTO name="comboMarca" required="true" cod="6" />
+      <ELEMENTO name="comboCanal" required="true" cod="7" />
+      <ELEMENTO name="Anio" required="true" cod="171" format="t" chars="0-9" />
+	</VALIDACION> 
+
+<FORMULARIO nombre="frmEliminarPeriodos">
+	<VAR nombre="accion" valor=""/>
+	<VAR nombre="hCasoDeUso" valor=""/>
+	<VAR nombre="conectorAction" valor="LPEliminarPeriodos"/>
+	<VAR nombre="errCodigo" valor=""/>
+	<VAR nombre="errDescripcion" valor=""/>
+	<VAR nombre="hFormatoFechaPais" valor=""/>
+	<VAR nombre="hIdioma" valor=""/>
+	<VAR nombre="hPais" valor=""/>
+	<VAR nombre="hPaisDescripcion" valor=""/> 
+	<VAR nombre="hMarca" valor=""/>
+	<VAR nombre="hCanal" valor=""/>
+	<VAR nombre="hAnio" valor=""/> 
+	<VAR nombre="hTipoPeriodo" valor=""/>
+	<VAR nombre="hNombrePeriodo" valor=""/>
+	<VAR nombre="hDuracionPeriodo" valor=""/>
+	<VAR nombre="hfInicio" valor=""/>
+	<VAR nombre="hfFin" valor=""/>
+	<VAR nombre="msgValidaDatos" valor=""/>
+	<VAR nombre="errorValidaDatos" valor=""/>
+	<VAR nombre="hPeriodoSeleccionado" valor=""/> 
+	<VAR nombre="hListadoDisponible" valor=""/>
+	<VAR nombre="hEnableSave" valor=""/>		
+	<VAR nombre="hListaPeriodos" valor=""/>		
+	<VAR nombre="hPeriodoModificado" valor=""/> 
+	<VAR nombre="hPeriodosSeleccionados" valor=""/>
+	<VAR nombre="hAcceso" valor=""/>
+		
+
+<CAPA nombre="capaBuscar">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    
+    
+     <tr> 
+      <td><IMG src="b.gif"/></td>
+      
+      <td>
+	<fieldset><legend class="legend"><LABELC nombre="lblCriterios" alto="13" filas="1" valor="Datos Búsqueda" id="legend" cod="0075"/></legend> 
+          <!---primera fila-->
+          <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+              <table width="718" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td><LABELC nombre="lblPais" alto="13" filas="1" valor="" id="datosTitle" cod="5"/></td>                   
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lblMarca" alto="13" filas="1" valor="" id="datosTitle" cod="6"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lblCanal" alto="13" filas="1" valor="" id="datosTitle" cod="7"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lblAcceso" alto="13" filas="1" valor="" id="datosTitle" cod="10"/></td>
+				   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lblAnio" alto="13" filas="1" valor="" id="datosTitle" cod="171"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+
+				   <td  nowrap="nowrap">
+                    <LABELC nombre="lblValorPais" alto="13" filas="1" valor="" id="datosCampos" codi="5"/>  
+                   </td>  
+				   <td><IMG src="b.gif" width="25" height="8"/></td>  
+
+				   <td  nowrap="nowrap">
+					<COMBO nombre="comboMarca" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onshtab="focaliza('frmEliminarPeriodos.Anio');">
+                      	<ROWSET>
+                      	</ROWSET>
+                    </COMBO>
+                   </td> 
+				
+					
+                   <td><IMG src="b.gif" width="25" height="8"/></td>  
+
+				   <td  nowrap="nowrap">
+					<COMBO nombre="comboCanal" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial=""
+							onchange="onChangeCanal();">
+                      	<ROWSET>
+                      	</ROWSET>
+                    </COMBO> 
+                   </td>
+				   
+				   <td><IMG src="b.gif" width="25" height="8"/></td>  
+
+				   <td  nowrap="nowrap">
+					<COMBO nombre="comboAcceso" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" >
+                      	<ROWSET>
+                      	</ROWSET>
+                    </COMBO>
+                   </td>
+
+                   <td><IMG src="b.gif" width="25" height="8"/></td>  
+
+				   <td  nowrap="nowrap">
+                    <CTEXTO nombre="Anio" id="datosCampos" max="4" tipo="" onchange="" req="S" size="4" valor="" ontab="focaliza('frmEliminarPeriodos.comboMarca');" validacion="fValidarNumero(valor,4,0,9999);"/>
+                   </td>                      
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+
+				</tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+       <!---fin primera fila-->
+	   </td></tr></table>
+
+        </fieldset>        
+      </td>
+      
+      <td><IMG src="b.gif" /></td>
+      
+    </tr>     
+
+
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnCrear" ID="botonContenido" tipo="html" accion="fBuscar();" estado="false" cod="1"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+    </tr>  
+    
+    
+    
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+ </CAPA> 
+  
+    <LISTAEDITABLE nombre="listado1" ancho="721" alto="317" x="12" y="124" colorFondo="#CECFCE" msgDebugJS="S">
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00135" ID="datosTitle"/>
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+      <IMGBOTONES precarga="S" conROver="S">
+        <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+        <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+        <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>
+      </IMGBOTONES>
+      <LINEAS>
+	<GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="1" horizTitulo="1" horizBase="1"/> 
+	<COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+        <COL ancho="60" minimizable="S" minimizada="N"/>
+        <COL ancho="70" minimizable="S" minimizada="N" orden="alfanumerico"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N" orden="numerico"/>
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N" oculta="S"/>        
+		<COL ancho="100" minimizable="S" minimizada="N"/>    
+        <COL ancho="100" minimizable="S" minimizada="N"/>
+	  </COLUMNAS>
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+		<COL colFondo="" ID="EstCab" align="center" cod="132">Identificador</COL> 
+		<COL colFondo="" ID="EstCab" cod="30">Nombre 1</COL> 
+		<COL colFondo="" ID="EstCab" cod="247">Apellido 1</COL> 
+		<COL colFondo="" ID="EstCab" cod="248">Tipo usuario</COL> 
+        <COL colFondo="" ID="EstCab" cod="274">Perfil</COL> 
+        <COL colFondo="" ID="EstCab" cod="251">Tipo usuario</COL> 
+		<COL colFondo="" ID="EstCab">oidTipoPeriodo</COL>
+		<COL colFondo="" ID="EstCab" cod="2280"></COL> 
+        <COL colFondo="" ID="EstCab" cod="2281"></COL> 
+	  </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+             coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+             onLoad="" colorSelecc="#D0D9E8">
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="cajatexto" nombre="txtNombrePeriodo" size="26" max="20" ID="EstDat" IDOBJ="EstCajaDatForm" validacion="" req="S" onchange="cambioNombrePeriodo();"  deshabilitado="S"/>
+       <COL tipo="cajatexto" nombre="txtDuracionPeriodo" size="4" max="4" ID="EstDat2" IDOBJ="EstCajaDatForm" req="S" onchange="cambioDuracion();" deshabilitado="S"/> 
+       <COL tipo="cajatexto" nombre="txtFinicio" size="12" max="10" ID="EstDat" IDOBJ="EstCajaDatForm" validacion="" req="S" onchange="cambioFechaInicio();"  deshabilitado="S"/>
+       <COL tipo="cajatexto" nombre="txtFfin" size="12" max="10" ID="EstDat2" IDOBJ="EstCajaDatForm" validacion="" req="S" onchange="cambioFechaFin();"  deshabilitado="S"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+	   <COL tipo="checkbox" nombre="ck1" ID="EstDat" deshabilitado="S"/>
+       <COL tipo="texto" ID="EstDat2"/>  
+	  </DATOS>
+      <ROWSET>
+      </ROWSET>
+      <PAGINADO nombre="mipgndo" ancho="680" sep="$" x="12" class="botonera" y="418" control="|" conector="conector_prototipo_2" rowset="" cargainicial="N" 
+      onload="procesarPaginado(mipgndo,msgError, ultima, rowset, 'muestraLista(ultima, rowset);')">        
+        <BOTON nombre="ret1" x="37" y="422" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+        <BOTON nombre="ava1" x="52" y="422" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();" /> 
+        
+    </PAGINADO>
+    	 
+    
+    </LISTAEDITABLE>
+		<!--
+		<BOTON nombre="Recalcular" x="13" y="419" ID="botonContenido" tipo="html" estado="false" cod="249" accion="recalcularPeriodosPosteriores();" />
+		-->
+		<BOTON nombre="prim1" x="20" y="422" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();" /> 
+		<BOTON nombre="separa" x="59" y="418" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" /> 
+		
+
+<CAPA nombre="capaEspacio" alto="12" ancho="50" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="441" zindex=""/>
+
+ </FORMULARIO>
+</PAGINA>       
+

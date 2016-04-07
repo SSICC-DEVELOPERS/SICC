@@ -1,0 +1,425 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_tipo_solicitud_proceso_insertar.xml,v 1.1 2009/12/03 18:44:33 pecbazalar Exp $
+   prueba arbol 
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+<PAGINA nombre="contenido_tipo_solicitud_proceso_insertar" cod="723" titulo="" estilos="estilosB3.css" colorf="#F0F0F0" 
+	msgle="" onload="onLoadPag();" xml:lang="es">
+
+<!-- 0623 Modificar tipo de solicitud por proceso
+     0624 Consultar tipo de solicitud por proceso
+     0724 Eliminar tipo de solicitud por proceso -->
+
+ <JS src="sicc_util.js"/>
+ <JS src="DruidaTransactionMare.js"/>
+ <JS src="i18NJS.js"/>
+ <JS src="ConstantesJS.js"/>
+ <JAVASCRIPT>
+        <![CDATA[ 
+//var varNoLimpiarSICC = true;
+
+// -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------                                
+	  function onLoadPag()
+	  {
+	 
+			fMostrarMensajeError();
+			configurarMenuSecundario('frmModificarI');
+			accion("frmModificarI.txtCodProducto",".disabled=true");
+			seteaSelecciones();
+	 	   if( get('frmModificarI.accion') == 'modificar' )
+			{
+				 set('frmModificarI.casoDeUso', 'modificar')
+				 //seteaSelecciones();
+				 accion('frmModificarI.cbCodOperacion','.disabled=true');
+				 accion('frmModificarI.cbTipoSolicitud','.disabled=true');			
+				 if(get('frmModificarI.cbSubtipoPosicion')!='')
+					  accion('frmModificarI.cbSubtipoPosicion','.disabled=false');			
+				 else
+					  accion('frmModificarI.cbSubtipoPosicion','.disabled=true');			
+
+	 			 focaliza('frmModificarI.txtDescripcion');
+   		}
+
+		   if( get('frmModificarI.accion') == 'muestraDetalle' )
+			{
+					//seteaSelecciones();
+					deshabilitarTodo();
+			}
+
+			if( get('frmModificarI.accion') == 'muestraConsulta' )
+			{
+					//seteaSelecciones();
+					deshabilitarTodo();
+			}
+
+			if( get('frmModificarI.accion') == 'muestraInsercion' )
+				focaliza('frmModificarI.cbCodOperacion');
+	 
+	}
+                
+              
+// -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------                
+	function fGuardar()
+	{
+	  set('frmModificarI.accion', 'guardar');
+	  if(!sicc_validaciones_generales("cabecera"))
+		 return false;
+
+		// Ahora valida Producto solo si el checkbox esta activado.
+		var producto = get("frmModificarI.CkProducto");
+
+		if ( producto == "S") 
+		{
+			if ( !sicc_validaciones_generales("codProducto") )			
+				return false;
+		}
+
+
+	  set('frmModificarI.conectorAction', 'LPMantieneTiposSolicitudProceso');
+	  enviaSICC('frmModificarI');
+	  focaliza('frmModificarI.cbCodOperacion');				     
+	}
+
+// -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------                
+function cbTipoPosicionOnChange()
+{
+		 if(get('frmModificarI.cbTipoPosicion')!='')
+		 {
+				 accion('frmModificarI.cbSubtipoPosicion','.disabled=false');
+				 recargaCombo('frmModificarI.cbSubtipoPosicion', 'PEDconsultaSubtiposTipo', 'es.indra.sicc.util.DTOOID', makeParameter('oid',get('frmModificarI.cbTipoPosicion')));
+		 }else
+		 {
+				 set_combo('frmModificarI.cbSubtipoPosicion', ['','']);
+				 accion('frmModificarI.cbSubtipoPosicion','.disabled=true');
+		 } 
+}
+
+// -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------                                
+function makeParameter(nombre, oid)
+{
+				var array = new Array();
+				var i=0;
+				array[i] = new Array('oidPais','1');
+				i++;
+				array[i] = new Array('oidIdioma','1');
+				i++;
+				array[i] = new Array(nombre,oid);
+				return array;
+}
+
+// -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------                                
+                  function fLimpiar(){
+                   if( get('frmModificarI.accion') == 'modificar' ){
+                    
+                     seteaSelecciones();
+					 focaliza('frmModificarI.txtDescripcion');
+                    }
+
+					else{
+					//alert("1");
+                     set('frmModificarI.txtDescripcion','');  
+                     set('frmModificarI.cbTipoSolicitud',new Array(''));
+                     set('frmModificarI.cbTipoPosicion',new Array(''));
+                     set_combo('frmModificarI.cbSubtipoPosicion', ['','']);
+                     accion('frmModificarI.cbSubtipoPosicion','.disabled=true');			
+                     set('frmModificarI.txtCodProducto','');
+                     set('frmModificarI.CkProducto','N');
+				     limpiaI18N('frmModificarI','1');
+					 set('frmModificarI.cbCodOperacion',new Array());
+					 focaliza('frmModificarI.cbCodOperacion' );
+					}
+				  }
+        
+// -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------                                        
+               function deshabilitarTodo(){	
+                 accion('frmModificarI.cbCodOperacion', '.disabled=true');
+        
+                 accion('frmModificarI.txtDescripcion', '.disabled=true');
+        
+                 accion('frmModificarI.cbTipoSolicitud', '.disabled=true');
+        
+                 accion('frmModificarI.cbTipoPosicion', '.disabled=true');
+                 
+        		 accion('frmModificarI.cbSubtipoPosicion', '.disabled=true');
+                 
+                 accion('frmModificarI.txtCodProducto', '.disabled=true');
+                 
+                 accion('frmModificarI.CkProducto', '.disabled=true');
+        		 
+               }
+                	
+               function seteaSelecciones(){
+                    set('frmModificarI.esCargaInicial', 'SI');
+                	set('frmModificarI.cbCodOperacion', [get('frmModificarI.hidCodOperacion')]);
+                	set('frmModificarI.txtDescripcion', [get('frmModificarI.hidTxtDescripcion')]);
+                    set('frmModificarI.cbTipoSolicitud', [get('frmModificarI.hidTipoSolicitud')]); 
+                    set('frmModificarI.cbTipoPosicion', [get('frmModificarI.hidTipoPosicion')]); 
+                    
+                    set('frmModificarI.txtCodProducto', [get('frmModificarI.hidTxtProducto')]); 
+        
+                	if( get('frmModificarI.hidChkProducto') == 'true' ){
+                		set('frmModificarI.CkProducto', 'S');
+                	}else{
+                		set('frmModificarI.CkProducto', 'N');
+                    }
+					if (get('frmModificarI.cbTipoPosicion')!=''){
+//                          alert("1");
+						  recargaCombo('frmModificarI.cbSubtipoPosicion', 'PEDconsultaSubtiposTipo', 'es.indra.sicc.util.DTOOID', makeParameter('oid',get('frmModificarI.cbTipoPosicion')),'setearSubtipo(datos);');
+						  
+					} else{
+//                         alert("2");
+					  set_combo('frmModificarI.cbSubtipoPosicion', ['','']);	 
+					  accion('frmModificarI.cbSubtipoPosicion', '.disabled=true');
+					  
+					}
+
+                    
+                  }
+				  
+                function cerrarVentana(){
+                   window.returnValue = true;
+                   
+                 }
+
+                function cerrarVentanaDos(){
+                   window.returnValue = true;
+                   window.close();
+                 }
+
+
+                function setearSubtipo(datos){
+                	  set_combo('frmModificarI.cbSubtipoPosicion',datos, []);				   
+        		      set('frmModificarI.cbSubtipoPosicion', [get('frmModificarI.hidTipoSubposicion')]); 
+        		      accion('frmModificarI.cbSubtipoPosicion', '.disabled=false');
+				}
+                  
+                function onshtab(){
+					if(get('frmModificarI.CkProducto') == 'N'){						
+   	                    focaliza('frmModificarI.CkProducto');						
+					}
+					else{
+						focaliza('frmModificarI.txtCodProducto');											
+					}
+				}	
+
+				function ontab(){
+                    if( get('frmModificarI.accion') == 'modificar' )
+				      focaliza('frmModificarI.txtDescripcion');
+                    else
+					  focaliza('frmModificarI.cbCodOperacion');
+
+				}	
+
+                function desonshtab (){
+                  if( get('frmModificarI.accion') == 'modificar' ) {
+				    if(get('frmModificarI.CkProducto') == 'N') {
+						focaliza('frmModificarI.CkProducto');
+					}
+					else {
+						focaliza('frmModificarI.txtCodProducto');
+					}                    
+				  }
+                  else {
+					focaliza('frmModificarI.cbCodOperacion');
+				  }
+				}
+
+				function onTabchk(){					
+					if(get('frmModificarI.CkProducto') == 'N'){		
+						if( get('frmModificarI.accion') == 'modificar' ) {
+							focaliza('frmModificarI.txtDescripcion');
+						}
+						else {
+							focaliza('frmModificarI.cbCodOperacion');
+						}   	                    						
+					}
+					else{
+						focaliza('frmModificarI.txtCodProducto');											
+					}
+				}
+
+				function onshTabchk(){
+                   try{
+   				     focaliza('frmModificarI.cbSubtipoPosicion');				     
+				   }
+				   catch (e) {
+				      focaliza('frmModificarI.cbTipoPosicion'); 
+				   
+				   }
+				  
+				  
+
+				}
+
+                function fVolver(){
+   				   if( get('frmModificarI.accion') != ''  )
+                     cerrarVentanaDos();
+                  
+				} 
+
+
+				 function fErrorAlGuardar(){
+				   
+                   if(get('frmModificarI.errCodigo')=='220018'){
+                       focaliza('frmModificarI.txtCodProducto');
+				   }
+				   else{
+                      focaliza('frmModificarI.cbCodOperacion');
+				   }
+				 }
+
+				 function habilitoCampoProducto() {
+				 	if(get('frmModificarI.CkProducto') == 'N'){						
+						set("frmModificarI.txtCodProducto", "");
+						accion("frmModificarI.txtCodProducto",".disabled=true");
+					}
+					else{
+						accion("frmModificarI.txtCodProducto",".disabled=false");
+					}
+				 }
+  
+                  ]]>
+				  
+    </JAVASCRIPT>
+    <VALIDACION>
+        <ELEMENTO name="cbCodOperacion" group="cabecera" required="true" cod="2171"/>
+        <ELEMENTO name="txtDescripcion" group="cabecera" required="true" cod="9"/>
+        <ELEMENTO name="cbTipoSolicitud" group="cabecera" required="true" cod="415"/>
+        <ELEMENTO name="cbTipoPosicion" required="false" cod="1426"/>
+        <ELEMENTO name="cbSubtipoPosicion" required="false" cod="2175"/>
+        <ELEMENTO name="txtCodProducto" group="codProducto" required="true" cod="337"/>
+    </VALIDACION>
+
+    <JS src="sicc_util.js"/>
+    <JS src="PaginacionSicc.js"/>
+    <JS src="DruidaTransactionMare.js"/>
+    <FORMULARIO nombre="frmModificarI" oculto="S">
+        <VAR nombre="conectorAction" valor=""/>
+        <VAR nombre="accion" valor=""/>
+        <VAR nombre="casoDeUso" valor=""/>
+        <VAR nombre="hidSeleccionado" valor=""/>
+        <VAR nombre="esCargaInicial" valor=""/>
+        <VAR nombre="hidCodOperacion" valor=""/>
+        <VAR nombre="hidTipoSubposicion" valor=""/>
+        <VAR nombre="hidTipoPosicion" valor=""/>
+        <VAR nombre="hidTxtProducto" valor=""/>
+        <VAR nombre="hidTipoSolicitud" valor=""/>
+        <VAR nombre="hidChkProducto" valor=""/>
+        <VAR nombre="hidVarOid" valor=""/>
+        <VAR nombre="hidTxtDescripcion" valor=""/>
+        <VAR nombre="errCodigo" valor=""/>
+        <VAR nombre="errDescripcion" valor=""/>
+<CAPA nombre="capa">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr>
+      <td><IMG src="b.gif"/></td>
+      <td>
+	<fieldset><legend class="legend"><LABELC nombre="lblDatosPrincipales" alto="13" filas="1" cod="00174" id="legend" /></legend>
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+			<td><LABELC nombre="lblCodOperacion" alto="13" filas="1" valor="" id="datosTitle" cod="2171"/></td>
+			<td><IMG src="b.gif" width="25" height="8"/></td>
+			<td colspan="2"><LABELC nombre="lblDescripcion" alto="13" filas="1" valor="" id="datosTitle" cod="9"/></td>
+			<td><IMG src="b.gif" width="25" height="8"/></td>
+                        <td><LABELC nombre="lblTipoSolicitud" alto="13" filas="1" valor="" id="datosTitle" cod="415"/></td>
+			<td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                    <td><IMG src="b.gif" width="8" height="8"/></td>
+			<td nowrap="nowrap">
+	        	      <COMBO nombre="cbCodOperacion" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onshtab="onshtab()">
+				    <ROWSET>
+				    </ROWSET>
+			      </COMBO>
+			</td>
+			<td><IMG src="b.gif" width="25" height="8"/></td>		
+			<td nowrap="nowrap"><CTEXTO nombre="txtDescripcion" id="datosCampos" max="40" tipo="" onchange="" req="S" size="40" valor="" validacion="" onshtab ="desonshtab();"/></td>			
+			<td><IMG src="iconmultidioma.gif" onclick="levantarI18N('frmModificarI','1');"/></td>
+			<td><IMG src="b.gif" width="25" height="8"/></td>
+			<td nowrap="nowrap">
+	        	      <COMBO nombre="cbTipoSolicitud" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="">
+				    <ROWSET>
+				    </ROWSET>
+			      </COMBO>
+			</td>
+			<td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+	        <tr>
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+              </table>
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblTipoPosicion" alto="13" filas="1" valor="" id="datosTitle" cod="1426"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblSubtipoPosicion" alto="13" filas="1" valor="" id="datosTitle" cod="2175"/></td>
+	           <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                    <td><IMG src="b.gif" width="8" height="8"/></td>
+			<td nowrap="nowrap">
+	        	      <COMBO nombre="cbTipoPosicion" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" onchange="cbTipoPosicionOnChange();">
+				    <ROWSET>
+				    </ROWSET>
+			      </COMBO>
+			</td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                    <td nowrap="nowrap">
+	        	      <COMBO nombre="cbSubtipoPosicion" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+				    <ROWSET>
+				    </ROWSET>
+			      </COMBO>
+			</td>
+			<td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+	        <tr>
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+              </table>
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblProducto" alto="13" filas="1" valor="" id="datosTitle" cod="574"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td><LABELC nombre="lblCodProducto" alto="13" filas="1" valor="" id="datosTitle" cod="337"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                    <td><IMG src="b.gif" width="8" height="8"/></td>
+                    <td><CHECKBOX check="" id="" msjreq="" nombre="CkProducto" onclick="habilitoCampoProducto();" onfocus="" ontab="onTabchk();" onshtab="onshTabchk();" readonly="" req="" tabindex="1" texto="" validacion="" /></td> 						
+		    <td><IMG src="b.gif" width="25" height="8"/></td>			
+		    <td nowrap="nowrap"><CTEXTO nombre="txtCodProducto" id="datosCampos" max="20" tipo="" onchange="" req="N" size="20" valor="" validacion="" ontab= "ontab();"/></td>			
+		    <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+	        <tr>
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+              </table>
+        </fieldset>
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr>  
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+ </FORMULARIO>
+</PAGINA>

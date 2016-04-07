@@ -1,0 +1,969 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_comisiones_clientes_insertar2.xml,v 1.1 2009/12/03 18:44:38 pecbazalar Exp $
+   prueba arbol 
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+<PAGINA nombre="contenido_comisiones_clientes_insertar2" cod="0515" titulo="" estilos="estilosB3.css" colorf="#F0F0F0" msgle="" onload="onLoadPag();" xml:lang="es">
+
+<JS src="sicc_util.js"></JS> 
+<JS src="PaginacionSicc.js"></JS>
+<JS src="DruidaTransactionMare.js"></JS>
+<JS src="i18NJS.js"/>
+
+<!-- Barra Modificar comisiones cod="0520"
+     Barra Consultar comisiones cod="0510"
+     Barra Eliminar comisiones cod="0558"-->
+
+<JAVASCRIPT>
+<![CDATA[ 
+
+function mostrarLista() {
+    document.all["Cplistado1"].style.visibility='';
+    document.all["CpLin1listado1"].style.visibility='';
+    document.all["CpLin2listado1"].style.visibility='';
+    document.all["CpLin3listado1"].style.visibility='';
+    document.all["CpLin4listado1"].style.visibility='';
+}
+
+function onLoadPag()   {  
+	configurarMenuSecundario("formulario");        
+    DrdEnsanchaConMargenDcho('listado1',24);
+	mostrarLista();
+    eval (ON_RSZ); 
+
+	var accion = get("formulario.accionModificar");
+
+	if(accion=="modificar") {
+		reasignarDatosPantalla();
+	}
+
+	var valor = get("formulario.deshabilitoCombosZonificacion");
+	if(valor=="false") {
+		document.getElementById("txtFechaAntiguedadDesde").disabled = true;
+		document.getElementById("txtFechaAntiguedadHasta").disabled = true;
+		document.getElementById("cbSubgerenciaVentas").disabled = true;
+		document.getElementById("cbRegion").disabled = true;
+		document.getElementById("cbZona").disabled = true;
+		document.getElementById("cbSeccion").disabled = true;
+		document.getElementById("cbTerritorio").disabled = true;
+		document.getElementById("btnAnadir").disabled = true;
+		document.getElementById("btnEliminar").disabled = true;
+	}
+
+	var valor2 = get("formulario.deshabilitoTodoMenosTopes");
+	if(valor2=="true") {
+		document.getElementById("cbTipoClientes").disabled = true;
+		document.getElementById("txtFechaAntiguedadDesde").disabled = true;
+		document.getElementById("txtFechaAntiguedadHasta").disabled = true;
+		document.getElementById("cbSubgerenciaVentas").disabled = true;
+		document.getElementById("cbRegion").disabled = true;
+		document.getElementById("cbZona").disabled = true;
+		document.getElementById("cbSeccion").disabled = true;
+		document.getElementById("cbTerritorio").disabled = true;
+		document.getElementById("btnAnadir").disabled = true;
+		document.getElementById("btnEliminar").disabled = true;
+	}
+
+	focoComboTipoCliente();
+
+	var opcionMenu = get("formulario.opcionMenu");
+	if(opcionMenu=="consultar") {
+		document.getElementById("cbTipoClientes").disabled = true;
+		document.getElementById("txtTopeMax").disabled = true;
+		document.getElementById("txtTopeMin").disabled = true;
+		document.getElementById("txtFechaAntiguedadDesde").disabled = true;
+		document.getElementById("txtFechaAntiguedadHasta").disabled = true;
+		document.getElementById("cbSubgerenciaVentas").disabled = true;
+		document.getElementById("cbRegion").disabled = true;
+		document.getElementById("cbZona").disabled = true;
+		document.getElementById("cbSeccion").disabled = true;
+		document.getElementById("cbTerritorio").disabled = true;
+		document.getElementById("btnAnadir").disabled = true;
+		document.getElementById("btnEliminar").disabled = true;
+		document.getElementById("btnAceptar").disabled = true;
+		btnProxy(5, '0');
+	}
+}
+
+function reasignarDatosPantalla() {
+	var topeMaximo = get("formulario.topeMaximo");
+	var topeMinimo = get("formulario.topeMinimo");
+	var fechaDesde = get("formulario.fechaDesde");
+	var fechaHasta = get("formulario.fechaHasta");	
+
+	set("formulario.txtTopeMax", topeMaximo);
+	set("formulario.txtTopeMin", topeMinimo);
+	set("formulario.txtFechaAntiguedadDesde", fechaDesde);
+	set("formulario.txtFechaAntiguedadHasta", fechaHasta);
+
+	seleccionarComboTipoCliente();		
+	seleccionarComboSubgerencia();
+}
+
+function seleccionarComboTipoCliente() {
+	var oidTipoCliente = get("formulario.oidTipoCliente");
+	var tipoClienteSeleccionado = new Array();
+	tipoClienteSeleccionado = oidTipoCliente.split(",");	  
+	set("formulario.cbTipoClientes", tipoClienteSeleccionado);
+}
+
+function seleccionarComboSubgerencia() {
+	var oidSubgerencia = get("formulario.oidSubgerencia");
+	var subgerenciaSeleccionada = new Array();
+	subgerenciaSeleccionada = oidSubgerencia.split(",");	  
+	set("formulario.cbSubgerenciaVentas", subgerenciaSeleccionada);
+
+	recargaComboRegion();
+}
+
+function recargaComboRegion() {
+	var vSGV = get("formulario.cbSubgerenciaVentas");
+
+    if( vSGV != '' && vSGV != null ){
+		var arr = new Array();   
+        arr[arr.length] = new Array("oidSGV", vSGV);
+        recargaCombo("formulario.cbRegion","ZONRecargaRegiones",
+		"es.indra.sicc.dtos.zon.DTOUnidadAdministrativa", arr,"marcaComboRegion(datos);");
+	}
+}
+
+function marcaComboRegion(datos) {
+	// Setea espacio en blanco.
+	var datosNuevo = new Array();
+	datosNuevo[0] = ["",""];
+
+	for (var i = 0; i < datos.length; i++ )
+		datosNuevo[i+1]  = datos[i];
+
+	set_combo("formulario.cbRegion", datosNuevo);
+
+	var oidRegion = get("formulario.oidRegion");
+	var regionSeleccionada = new Array();
+	regionSeleccionada = oidRegion.split(",");	  
+	set("formulario.cbRegion", regionSeleccionada);
+
+	recargaComboZona();
+}
+
+function recargaComboZona() {
+	var vRegion = get("formulario.cbRegion");
+
+    if( vRegion != '' && vRegion != null ) { 
+	    var arr = new Array();   
+        arr[arr.length] = new Array("oidRegion", vRegion);
+        recargaCombo("formulario.cbZona","ZONRecargaZonas",
+		"es.indra.sicc.dtos.zon.DTOUnidadAdministrativa", arr,"marcaComboZona(datos);"); 
+	}
+}
+
+function marcaComboZona(datos) {
+	// Setea espacio en blanco.
+	var datosNuevo = new Array();
+	datosNuevo[0] = ["",""];
+
+	for (var i = 0; i < datos.length; i++ )
+		datosNuevo[i+1]  = datos[i];
+
+	set_combo("formulario.cbZona", datosNuevo);
+
+	var oidZona = get("formulario.oidZona");
+	var zonaSeleccionada = new Array();
+	zonaSeleccionada = oidZona.split(",");	  
+	set("formulario.cbZona", zonaSeleccionada);
+
+	recargaComboSeccion();
+}
+
+function recargaComboSeccion() {
+	var vZona = get("formulario.cbZona");
+    
+	if( vZona != '' && vZona != null ) {
+	    var arr = new Array();   
+        arr[arr.length] = new Array("oidZona", vZona);
+        recargaCombo("formulario.cbSeccion","ZONRecargaSecciones",
+        "es.indra.sicc.dtos.zon.DTOUnidadAdministrativa", arr,"marcaComboSeccion(datos);");
+	}
+}
+
+function marcaComboSeccion(datos) {
+	// Setea espacio en blanco.
+	var datosNuevo = new Array();
+	datosNuevo[0] = ["",""];
+
+	for (var i = 0; i < datos.length; i++ )
+		datosNuevo[i+1]  = datos[i];
+
+	set_combo("formulario.cbSeccion", datosNuevo);
+
+	var oidSeccion = get("formulario.oidSeccion");
+	var seccionSeleccionada = new Array();
+	seccionSeleccionada = oidSeccion.split(",");	  
+	set("formulario.cbSeccion", seccionSeleccionada);
+
+	recargaComboTerritorio();
+}
+
+function recargaComboTerritorio() {
+	var vSeccion = get("formulario.cbSeccion");
+
+    if( vSeccion != '' && vSeccion != null ) {
+	    var arr = new Array();   
+        arr[arr.length] = new Array("oidSeccion", vSeccion);
+        recargaCombo("formulario.cbTerritorio","ZONRecargaTerritorios",
+        "es.indra.sicc.dtos.zon.DTOUnidadAdministrativa", arr,"marcaComboTerritorio(datos);");
+    }
+}
+
+function marcaComboTerritorio(datos) {
+	// Setea espacio en blanco.
+	var datosNuevo = new Array();
+	datosNuevo[0] = ["",""];
+
+	for (var i = 0; i < datos.length; i++ )
+		datosNuevo[i+1]  = datos[i];
+
+	set_combo("formulario.cbTerritorio", datosNuevo);
+
+	var oidTerritorio = get("formulario.oidTerritorio");
+	var territorioSeleccionado = new Array();
+	territorioSeleccionado = oidTerritorio.split(",");	  
+	set("formulario.cbTerritorio", territorioSeleccionado);
+}
+
+function subgerenciaOnChange()  {
+	var vSGV = get("formulario.cbSubgerenciaVentas");
+
+    if( vSGV != '' && vSGV != null ){
+	    var arr = new Array();   
+        arr[arr.length] = new Array("oidSGV", vSGV);
+        recargaCombo("formulario.cbRegion","ZONRecargaRegiones",
+        "es.indra.sicc.dtos.zon.DTOUnidadAdministrativa", arr,""); 
+
+		//1°Vacia combo zona
+		var datosNuevo2 = new Array();
+        datosNuevo2[0] = ["",""];    
+        set_combo("formulario.cbZona", datosNuevo2);            
+
+		//2°Vacia combo seccion
+		var datosNuevo3 = new Array();
+        datosNuevo3[0] = ["",""];    
+        set_combo("formulario.cbSeccion", datosNuevo3);            
+
+		//3°Vacia combo territorio
+		var datosNuevo4 = new Array();
+        datosNuevo4[0] = ["",""];    
+        set_combo("formulario.cbTerritorio", datosNuevo4);            
+    }
+    else {
+	    //1°Vacia combo region
+		var datosNuevo = new Array();
+        datosNuevo[0] = ["",""];    
+        set_combo("formulario.cbRegion", datosNuevo);            
+
+		//2°Vacia combo zona
+		var datosNuevo2 = new Array();
+        datosNuevo2[0] = ["",""];    
+        set_combo("formulario.cbZona", datosNuevo2);            
+
+		//3°Vacia combo seccion
+		var datosNuevo3 = new Array();
+        datosNuevo3[0] = ["",""];    
+        set_combo("formulario.cbSeccion", datosNuevo3);            
+
+		//4°Vacia combo territorio
+		var datosNuevo4 = new Array();
+        datosNuevo4[0] = ["",""];    
+        set_combo("formulario.cbTerritorio", datosNuevo4);            
+    }
+}
+
+function regionOnChange()  {       
+	var vRegion = get("formulario.cbRegion");
+
+    if( vRegion != '' && vRegion != null ) { 
+	    var arr = new Array();   
+        arr[arr.length] = new Array("oidRegion", vRegion);
+        recargaCombo("formulario.cbZona","ZONRecargaZonas",
+		"es.indra.sicc.dtos.zon.DTOUnidadAdministrativa", arr,""); 
+
+		//1°Vacia combo seccion
+		var datosNuevo3 = new Array();
+        datosNuevo3[0] = ["",""];    
+        set_combo("formulario.cbSeccion", datosNuevo3);            
+
+		//2°Vacia combo territorio
+		var datosNuevo4 = new Array();
+        datosNuevo4[0] = ["",""];    
+        set_combo("formulario.cbTerritorio", datosNuevo4);            
+    }
+    else {
+		//1° Vacia combo zona
+	    var datosNuevo = new Array();
+        datosNuevo[0] = ["",""];    
+        set_combo("formulario.cbZona", datosNuevo);     
+		
+		//2°Vacia combo seccion
+		var datosNuevo3 = new Array();
+        datosNuevo3[0] = ["",""];    
+        set_combo("formulario.cbSeccion", datosNuevo3);            
+
+		//3°Vacia combo territorio
+		var datosNuevo4 = new Array();
+        datosNuevo4[0] = ["",""];    
+        set_combo("formulario.cbTerritorio", datosNuevo4);            
+    }
+}
+
+function zonaOnChange()  {
+	var vZona = get("formulario.cbZona");
+    
+	if( vZona != '' && vZona != null ) {
+	    var arr = new Array();   
+        arr[arr.length] = new Array("oidZona", vZona);
+        recargaCombo("formulario.cbSeccion","ZONRecargaSecciones",
+        "es.indra.sicc.dtos.zon.DTOUnidadAdministrativa", arr,"");
+
+		//1°Vacia combo territorio
+		var datosNuevo4 = new Array();
+        datosNuevo4[0] = ["",""];    
+        set_combo("formulario.cbTerritorio", datosNuevo4);            
+    }
+    else {
+		//1°Vacia combo seccion
+		var datosNuevo = new Array();
+        datosNuevo[0] = ["",""];    
+        set_combo("formulario.cbSeccion", datosNuevo);         
+		
+		//2°Vacia combo territorio
+		var datosNuevo4 = new Array();
+        datosNuevo4[0] = ["",""];    
+        set_combo("formulario.cbTerritorio", datosNuevo4);            
+    }
+}
+
+function seccionOnChange() {        
+	var vSeccion = get("formulario.cbSeccion");
+
+    if( vSeccion != '' && vSeccion != null ) {
+	    var arr = new Array();   
+        arr[arr.length] = new Array("oidSeccion", vSeccion);
+        recargaCombo("formulario.cbTerritorio","ZONRecargaTerritorios",
+        "es.indra.sicc.dtos.zon.DTOUnidadAdministrativa", arr,"");
+    }
+    else {
+		//1°Vacia combo territorio
+	    var datosNuevo = new Array();
+        datosNuevo[0] = ["",""];    
+        set_combo("formulario.cbTerritorio", datosNuevo);            
+    }
+}
+
+function focalizaTopeMaximo() {
+	focaliza("formulario.txtTopeMax");
+}
+
+function focalizaFechaDesde() {
+	focaliza("formulario.txtFechaAntiguedadDesde");
+}
+
+function anadirOnClick() {
+	var subgerencia = get("formulario.cbSubgerenciaVentas");
+
+	if(subgerencia=="") {
+		cdos_mostrarAlert(GestionarMensaje('268',null,null,null));
+		focaliza("formulario.cbSubgerenciaVentas");
+		return false;
+	}
+	else {
+		var oidSubgerencia = get("formulario.cbSubgerenciaVentas");
+		var oidRegion = get("formulario.cbRegion");
+		var oidZona = get("formulario.cbZona");
+		var oidSeccion = get("formulario.cbSeccion");
+		var oidTerritorio = get("formulario.cbTerritorio");
+
+		var desubgerencia = get("formulario.cbSubgerenciaVentas", "T");
+		var desRegion = get("formulario.cbRegion", "T");
+		var desZona = get("formulario.cbZona", "T");
+		var desSeccion = get("formulario.cbSeccion", "T");
+		var desTerritorio = get("formulario.cbTerritorio", "T");
+
+		var array = new Array();
+		array[0] = new String(oidSubgerencia);
+		array[1] = new String(desubgerencia);
+		array[2] = new String(desRegion);
+		array[3] = new String(desZona);
+		array[4] = new String(desSeccion);
+		array[5] = new String(desTerritorio);
+		array[6] = new String(oidRegion);
+		array[7] = new String(oidZona);
+		array[8] = new String(oidSeccion);
+		array[9] = new String(oidTerritorio);
+
+		listado1.actualizaDat();
+		var datos = listado1.datos;
+		datos[datos.length] = array; 
+		listado1.setDatos(datos);
+		listado1.repintaDat();
+	}
+}
+
+function eliminarOnClick() {
+	if (listado1.numSelecc()== 0) {
+		GestionarMensaje('1021',null,null,null);
+		return false;
+    }
+
+	listado1.eliminarSelecc();
+	focoBotonEliminar();
+}
+
+function aceptarOnClick() {
+	if(!sicc_validaciones_generales()){
+		return false;
+	}
+
+	var topeMax = get("formulario.txtTopeMax");
+	var topeMin = get("formulario.txtTopeMin");
+
+	if((topeMax!="") && (topeMin!="")) {
+		if(parseFloat(topeMin)>parseFloat(topeMax)) {
+			GestionarMensaje('1493',null,null,null)
+			focalizaTopeMaximo();
+			return false;
+		}
+	}
+
+	var fechaD = get("formulario.txtFechaAntiguedadDesde");
+	var fechaH = get("formulario.txtFechaAntiguedadHasta");
+
+	if((fechaD!="") && (fechaH!="")) {
+		var valorDevuelto = EsFechaValida(fechaD, fechaH, "formulario") 
+
+		if(valorDevuelto==3) {
+			GestionarMensaje('1494',null,null,null)
+			focalizaFechaDesde();
+			return false;
+		}
+	}	
+
+	var arrayDatosAlcance = listado1.datos;
+
+	var oidTipoCliente = " ";
+	var desTipoCliente = " ";
+	var topeMaximo = " ";
+	var topeMinimo = " ";
+	var fechaDesde = " ";
+	var fechaHasta = " ";
+
+	if(get("formulario.cbTipoClientes")!="") oidTipoCliente = get("formulario.cbTipoClientes");
+	if(get("formulario.cbTipoClientes", "T")!="") desTipoCliente = get("formulario.cbTipoClientes", "T");
+	if(get("formulario.txtTopeMax")!="") topeMaximo = get("formulario.txtTopeMax");
+	if(get("formulario.txtTopeMin")!="") topeMinimo = get("formulario.txtTopeMin");
+	if(get("formulario.txtFechaAntiguedadDesde")!="") fechaDesde = get("formulario.txtFechaAntiguedadDesde");
+	if(get("formulario.txtFechaAntiguedadHasta")!="") fechaHasta = get("formulario.txtFechaAntiguedadHasta");
+
+	var arrayCompleto = new Array();
+
+	if(arrayDatosAlcance!="") {
+		for(var i=0; i<arrayDatosAlcance.length; i++) {
+			oidSubgerencia = arrayDatosAlcance[i][0].toString();
+			oidRegion = arrayDatosAlcance[i][6].toString();
+			oidZona = arrayDatosAlcance[i][7].toString();
+			oidSeccion = arrayDatosAlcance[i][8].toString();
+			oidTerritorio = arrayDatosAlcance[i][9].toString();
+			desubgerencia = arrayDatosAlcance[i][1].toString();
+			desRegion = arrayDatosAlcance[i][2].toString();
+			desZona = arrayDatosAlcance[i][3].toString();
+			desSeccion = arrayDatosAlcance[i][4].toString();
+			desTerritorio = arrayDatosAlcance[i][5].toString();
+
+			var arrayTemp = new Array();
+			arrayTemp[0] = new String(oidSubgerencia);
+			arrayTemp[1] = new String(desubgerencia);
+			arrayTemp[2] = new String(desRegion);
+			arrayTemp[3] = new String(desZona);
+			arrayTemp[4] = new String(desSeccion);
+			arrayTemp[5] = new String(desTerritorio);
+			arrayTemp[6] = new String(oidRegion);
+			arrayTemp[7] = new String(oidZona);
+			arrayTemp[8] = new String(oidSeccion);
+			arrayTemp[9] = new String(oidTerritorio);
+			arrayTemp[10] = new String(oidTipoCliente);
+			arrayTemp[11] = new String(desTipoCliente);
+			arrayTemp[12] = new String(topeMaximo);
+			arrayTemp[13] = new String(topeMinimo);
+			arrayTemp[14] = new String(fechaDesde);
+			arrayTemp[15] = new String(fechaHasta);
+
+			arrayCompleto[i] = arrayTemp;
+		}	
+	}
+	else{
+		var arrayTemp = new Array();
+		var aux = " ";
+		arrayTemp[0] = new String(aux);
+		arrayTemp[1] = new String(aux);
+		arrayTemp[2] = new String(aux);
+		arrayTemp[3] = new String(aux);
+		arrayTemp[4] = new String(aux);
+		arrayTemp[5] = new String(aux);
+		arrayTemp[6] = new String(aux);
+		arrayTemp[7] = new String(aux);
+		arrayTemp[8] = new String(aux);
+		arrayTemp[9] = new String(aux);
+		arrayTemp[10] = new String(oidTipoCliente);
+		arrayTemp[11] = new String(desTipoCliente);
+		arrayTemp[12] = new String(topeMaximo);
+		arrayTemp[13] = new String(topeMinimo);
+		arrayTemp[14] = new String(fechaDesde);
+		arrayTemp[15] = new String(fechaHasta);
+
+		var datos;
+		for(var i=0; i<arrayTemp.length; i++) {
+			if(i==0) {
+				datos = arrayTemp[i];
+			}
+			else {
+				datos = datos + "," + arrayTemp[i];
+			}
+			
+		}
+
+		var arTemp = datos.split(",");
+		arrayCompleto[0] = arTemp;
+	}
+
+	returnValue = arrayCompleto;
+	window.close();
+}
+
+function fVolver() {
+	window.close();
+}
+
+function fLimpiar() {
+	var accion = get("formulario.accionModificar");
+
+	if(accion=="modificar") {
+		reasignarDatosPantalla();
+	}
+	else {
+	    //1°Vacia combo region
+		var datosNuevo = new Array();
+        datosNuevo[0] = ["",""];    
+        set_combo("formulario.cbRegion", datosNuevo);            
+
+		//2°Vacia combo zona
+		var datosNuevo2 = new Array();
+        datosNuevo2[0] = ["",""];    
+        set_combo("formulario.cbZona", datosNuevo2);            
+
+		//3°Vacia combo seccion
+		var datosNuevo3 = new Array();
+        datosNuevo3[0] = ["",""];    
+        set_combo("formulario.cbSeccion", datosNuevo3);            
+
+		//4°Vacia combo territorio
+		var datosNuevo4 = new Array();
+        datosNuevo4[0] = ["",""];    
+        set_combo("formulario.cbTerritorio", datosNuevo4);            
+	}
+
+	var arrayVacio = new Array();
+	listado1.setDatos(arrayVacio);
+
+	focoComboTipoCliente();
+}
+
+function focoBotonEliminar() {
+	focalizaBotonHTML('botonContenido','btnEliminar');	
+}
+
+function focoBotonAnadir() {
+	focalizaBotonHTML('botonContenido','btnAnadir');	
+}
+
+function focoComboTipoCliente() {
+	if(document.getElementById("cbTipoClientes").disabled != true) {
+		focaliza("formulario.cbTipoClientes");
+	}
+	else {
+		focaliza("formulario.txtTopeMax");
+	}
+	
+}
+
+function onShTabTopeMaximo() {
+	if(document.getElementById("cbTipoClientes").disabled != true) {
+		focaliza("formulario.cbTipoClientes");
+	}
+	else {
+		focoBotonAceptar();
+	}
+}
+
+function onShTabBotonAceptar() {
+	if(document.getElementById("btnEliminar").disabled != true) {
+		focoBotonEliminar();
+	}
+	else {
+		focaliza("formulario.txtTopeMin");
+	}
+}
+
+function focoBotonAceptar() {
+	focalizaBotonHTML('botonContenido','btnAceptar');
+}
+
+   
+]]> 
+</JAVASCRIPT>
+
+<VALIDACION>
+    <ELEMENTO name="cbTipoClientes" required="true" cod="393"/>
+	<ELEMENTO name="txtTopeMax" required="false" cod="1724" format="n" min="0" max="9999999999.99"/>
+	<ELEMENTO name="txtTopeMin" required="false" cod="1725" format="n" min="0" max="9999999999.99"/>
+	<ELEMENTO name="txtFechaAntiguedadDesde" required="false" cod="1726" format="F" />     
+	<ELEMENTO name="txtFechaAntiguedadHasta" required="false" cod="1727" format="F" />     
+</VALIDACION>
+
+<FORMULARIO nombre="formulario">
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="accion" valor=""/>
+<VAR nombre="errCodigo" valor=""/> 
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="varPais" valor=""/> 
+<VAR nombre="varIdioma" valor=""/>
+
+<VAR nombre="oidTipoCliente" valor=""/> 
+<VAR nombre="topeMaximo" valor=""/> 
+<VAR nombre="topeMinimo" valor=""/>
+<VAR nombre="fechaDesde" valor=""/> 
+<VAR nombre="fechaHasta" valor=""/>
+
+<VAR nombre="oidSubgerencia" valor=""/> 
+<VAR nombre="oidRegion" valor=""/>
+<VAR nombre="oidZona" valor=""/> 
+<VAR nombre="oidSeccion" valor=""/>
+<VAR nombre="oidTerritorio" valor=""/>
+
+<VAR nombre="accionModificar" valor=""/>
+<VAR nombre="deshabilitoCombosZonificacion" valor=""/>
+<VAR nombre="deshabilitoTodoMenosTopes" valor=""/>
+<VAR nombre="opcionMenu" valor=""/>
+
+<CAPA nombre="capa1" >
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr> 
+      <td><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif" width="1" height="1"/></td>
+      <td><IMG src="b.gif" width="12" height="12"/></td>
+    </tr>
+    <tr> 
+      <td width="12"><IMG src="b.gif" width="12" height="12"/></td>
+      <td>
+        <fieldset><legend class="legend"><LABELC nombre="lblDatosClientes" alto="13" filas="1" valor="" id="legend" cod="00138"/></legend>
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+        
+              <table width="587" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td><LABELC nombre="lblTipoClientes"  alto="13" filas="1" valor="" id="datosTitle" cod="393"/></td>                   
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblTopeMax"  alto="13" filas="1" valor="" id="datosTitle" cod="1724"/></td>
+	           <td><IMG src="b.gif" width="25" height="8"/></td>
+	           <td><LABELC nombre="lblTopeMin" alto="13" filas="1" valor="" id="datosTitle" cod="1725"/></td>
+	           <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td  nowrap="nowrap">
+                    <COMBO nombre="cbTipoClientes" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onshtab="focoBotonAceptar();">
+                      	<ROWSET>
+                      	</ROWSET>
+                    </COMBO>
+                   </td>  
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" >
+	               	<CTEXTO nombre="txtTopeMax" id="datosCampos" max="13" tipo="" onchange="" req="N" size="15" valor="" validacion="" onshtab="onShTabTopeMaximo();"/>
+	           </td>
+	           <td><IMG src="b.gif" width="25" height="8"/></td>
+	           <td nowrap="nowrap" >
+	               	<CTEXTO nombre="txtTopeMin" id="datosCampos" max="13" tipo="" onchange="" req="N" size="15" valor="" validacion="" />
+	           </td>
+	           <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+           </td></tr>
+           <tr><td>
+        
+              <table width="587" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td><LABELC nombre="lblFechaAntiguedadDesde"  alto="13" filas="1" valor="" id="datosTitle" cod="1726"/></td>
+	           <td><IMG src="b.gif" width="25" height="8"/></td>
+	           <td><LABELC nombre="lblFechaAntiguedadHasta" alto="13" filas="1" valor="" id="datosTitle" cod="1727"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td nowrap="nowrap">
+	               	<CTEXTO nombre="txtFechaAntiguedadDesde" id="datosCampos" max="10" tipo="" onchange="" req="N" size="12" valor="" validacion="" />
+	           </td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+	           <td nowrap="nowrap">
+	               	<CTEXTO nombre="txtFechaAntiguedadHasta" id="datosCampos" max="10" tipo="" onchange="" req="N" size="12" valor="" validacion="" />
+	           </td>	                     
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+           </td></tr>
+           <tr><td>   
+       	       <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                
+                   <td width="100%">			
+	                <table width="100%" border="0" cellspacing="0" cellpadding="0">
+	                  <tr>
+	                    <td>
+		              <fieldset><legend class="legend"><LABELC nombre="lblAlcanceGeografico"  alto="13" filas="1" valor="" id="legend" cod="00368"/></legend> 
+		                <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          			<tr><td>
+			                <table width="575" border="0" align="left" cellspacing="0" cellpadding="0">
+			                  <tr> 
+			                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+			                  </tr>
+				          <tr>
+			                    <td><IMG src="b.gif" width="8" height="8"/></td>
+			                    <td><LABELC nombre="lblPais" alto="13" filas="1" valor="" id="datosTitle" cod="5"/></td>
+			                    <td><IMG src="b.gif" width="25" height="8"/></td>
+			                    <td><LABELC nombre="lblSubgerenciaVentas"  alto="13" filas="1" valor="" id="datosTitle" cod="124"/></td>
+			                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+			                  </tr>
+			                  <tr>
+			                    <td><IMG src="b.gif" width="8" height="8"/></td>
+			                    <td nowrap="nowrap"><LABELC nombre="lbldtPais" alto="13" filas="1" valor="" id="datosCampos" /></td>
+			                    <td><IMG src="b.gif" width="25" height="8"/></td>
+			                    <td nowrap="nowrap">
+		                     		 <COMBO nombre="cbSubgerenciaVentas" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" onchange="subgerenciaOnChange();">
+		                      			<ROWSET>
+		                      			</ROWSET>
+		                     		 </COMBO>
+			                    </td>
+			                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+			                  </tr>
+			                  <tr> 
+			                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+			                  </tr>
+			                </table>
+			             </td></tr>
+           			     <tr><td>   
+			                
+			                <table width="575" border="0" align="left" cellspacing="0" cellpadding="0">
+				          <tr>
+			                    <td><IMG src="b.gif" width="8" height="8"/></td>
+			                    <td><LABELC nombre="lblRegion" alto="13" filas="1" valor="" id="datosTitle" cod="109"/></td>
+			                    <td><IMG src="b.gif" width="25" height="8"/></td>
+			                    <td><LABELC nombre="lblZona" alto="13" filas="1" valor="" id="datosTitle" cod="143"/></td>
+			                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+			                  </tr>
+			                  <tr>
+			                    <td><IMG src="b.gif" width="8" height="8"/></td>
+			                    <td nowrap="nowrap">
+		                     		 <COMBO nombre="cbRegion" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" onchange="regionOnChange();">
+		                      			<ROWSET>
+		                      			</ROWSET>
+		                     		 </COMBO>
+			                    </td>
+			                    <td><IMG src="b.gif" width="25" height="8"/></td>
+			                    <td nowrap="nowrap">
+		                     		 <COMBO nombre="cbZona" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" onchange="zonaOnChange();">
+		                      			<ROWSET>
+		                      			</ROWSET>
+		                     		 </COMBO>
+			                    </td>
+			                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+			                  </tr>
+			                  <tr> 
+			                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+			                  </tr>
+			                </table>	                	                
+			             </td></tr>
+           			     <tr><td>    
+			                
+			                <table width="575" border="0" align="left" cellspacing="0" cellpadding="0">
+				          <tr>
+			                    <td><IMG src="b.gif" width="8" height="8"/></td>
+			                    <td><LABELC nombre="lblSeccion"  alto="13" filas="1" valor="" id="datosTitle" cod="112"/></td>
+			                    <td><IMG src="b.gif" width="25" height="8"/></td>
+			                    <td><LABELC nombre="lblTerritorio" alto="13" filas="1" valor="" id="datosTitle" cod="126"/></td>
+			                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+			                  </tr>
+			                  <tr>
+			                    <td><IMG src="b.gif" width="8" height="8"/></td>
+			                    <td nowrap="nowrap">
+		                     		 <COMBO nombre="cbSeccion" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" onchange="seccionOnChange();">
+		                      			<ROWSET>
+		                      			</ROWSET>
+		                     		 </COMBO>
+			                    </td>
+			                    <td><IMG src="b.gif" width="25" height="8"/></td>
+			                    <td nowrap="nowrap">
+		                     		 <COMBO nombre="cbTerritorio" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+		                      			<ROWSET>
+		                      			</ROWSET>
+		                     		 </COMBO>
+			                    </td>
+					    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+			                  </tr>
+			                  <tr> 
+			                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+			                  </tr>
+			                </table>	
+		                    </td></tr>
+          			 </table>
+		              </fieldset>
+		            </td>
+	                  </tr>  
+	                </table>                    
+                   </td>			
+                   <td><IMG src="b.gif" width="8" height="8"/></td>		
+                </tr>
+                <tr> 
+		      <td><IMG src="b.gif"/></td>
+		      <td>
+		        <fieldset>
+			  <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+			    <tr>
+			      <td class="botonera" width="100%">
+				<BOTON nombre="btnAnadir" ID="botonContenido" tipo="html" accion="anadirOnClick();" estado="false" cod="404" ontab="focoBotonEliminar();"/>
+			      </td>
+			    </tr>    
+			  </table>        
+			</fieldset>
+		      </td>
+		      <td><IMG src="b.gif" width="12" height="12"/></td>
+		      
+	    	</tr> 
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="356"/></td>
+                </tr>                                                
+              </table>  
+            </td></tr>
+           </table>
+        </fieldset>
+      </td>
+      
+      <td><IMG src="b.gif" width="12" height="12"/></td>
+    </tr>
+   
+    <tr> 
+	      <td><IMG src="b.gif"/></td>
+	      <td>
+	        <fieldset>
+		  <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+		    <tr>
+		      <td class="botonera" width="100%">
+			<BOTON nombre="btnAceptar" ID="botonContenido" tipo="html" accion="aceptarOnClick();" estado="false" cod="12" ontab="focoComboTipoCliente();" onshtab="onShTabBotonAceptar();"/>
+		      </td>
+		    </tr>    
+		  </table>        
+		</fieldset>
+	      </td>
+	      <td><IMG src="b.gif" width="12" height="12"/></td>
+	      
+    </tr>  
+	         
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750" ><IMG src="b.gif"/></td>
+      <td width="12" ><IMG src="b.gif" width="12" height="12"/></td>
+    </tr>
+  </table>
+</CAPA>  
+
+  <LISTAEDITABLE nombre="listado1" ancho="576" alto="317" x="24" y="304" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+        <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+        <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+        <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+      <LINEAS>
+        <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="0" horizTitulo="1" horizBase="1"/> 
+        <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00368" ID="datosTitle" />
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+        <COL ancho="95" minimizable="S" minimizada="N"/>
+        <COL ancho="50" minimizable="S" minimizada="N"/> 
+        <COL ancho="70" minimizable="S" minimizada="N"/>
+        <COL ancho="50" minimizable="S" minimizada="N"/> 
+        <COL ancho="60" minimizable="S" minimizada="N"/>
+
+        <COL ancho="50" minimizable="S" minimizada="N" oculta="S"/> 
+        <COL ancho="70" minimizable="S" minimizada="N" oculta="S"/>
+        <COL ancho="50" minimizable="S" minimizada="N" oculta="S"/> 
+        <COL ancho="60" minimizable="S" minimizada="N" oculta="S"/>
+      </COLUMNAS>
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+	<COL colFondo="" ID="EstCab" cod="124"></COL> 
+	<COL colFondo="" ID="EstCab" cod="109"></COL> 
+	<COL colFondo="" ID="EstCab" cod="143"></COL> 
+	<COL colFondo="" ID="EstCab" cod="112"></COL> 
+	<COL colFondo="" ID="EstCab" cod="126"></COL> 
+
+	<COL colFondo="" ID="EstCab" cod="109"></COL> 
+	<COL colFondo="" ID="EstCab" cod="143"></COL> 
+	<COL colFondo="" ID="EstCab" cod="112"></COL> 
+	<COL colFondo="" ID="EstCab" cod="126"></COL> 
+      </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+             coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+             onLoad="" colorSelecc="#D0D9E8">
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat"/> 
+
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+      </DATOS>
+      <ROWSET> 
+      </ROWSET>
+      <PAGINADO nombre="mipgndo" ancho="576" sep="$" x="12" class="botonera" y="598" control="|" conector="" rowset="" cargainicial="N">
+        <!--
+        <BOTON nombre="ret1" x="37" y="602" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+        <BOTON nombre="ava1" x="52" y="602" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>
+        -->
+    </PAGINADO>
+  </LISTAEDITABLE>
+  <!--
+  <BOTON nombre="primera1" x="20" y="602" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();" />      
+  <BOTON nombre="separa" x="59" y="598" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />      
+-->
+<BOTON nombre="btnEliminar" x="30" y="599" ID="botonContenido" tipo="html" estado="false" cod="1254" accion="eliminarOnClick();" ontab="focoBotonAceptar();" onshtab="focoBotonAnadir();"/> 
+ <CAPA nombre="capaEspacio" alto="12" ancho="100%" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="621" zindex="">
+  </CAPA>                                                                                                                    
+</FORMULARIO>
+</PAGINA>         

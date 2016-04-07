@@ -1,0 +1,962 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_metas_ventas_proyectadas_mantener.xml,v 1.1 2009/12/03 18:45:19 pecbazalar Exp $
+   EDU
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_metas_venta_proyectada_mantener" cod="0549" titulo="Mantener Metas Venta Proyectada" estilos="estilosB3.css" colorf="#F0F0F0" msgle="" onload="onLoadPag();" xml:lang="es">
+
+<JS src="sicc_util.js"></JS> 
+
+<JAVASCRIPT>
+<![CDATA[ 
+
+function configurarIconos() {
+	var opcionMenu = get('formulario.opcionMenu');      
+
+    if(opcionMenu == "Consultar Concurso") {
+		btnProxy(1, 0);
+        btnProxy(2, 1);
+        btnProxy(3, 0);
+        btnProxy(4, 0);
+        btnProxy(5, 0);
+        btnProxy(6, 1);
+        btnProxy(7, 0);
+        btnProxy(8, 0);
+        btnProxy(9, 0);
+        btnProxy(10, 1);
+    }
+    else if(opcionMenu == "Modificar Concurso") {
+		btnProxy(1, 0);
+		btnProxy(2, 1);
+	    btnProxy(3, 0);
+        btnProxy(4, 0);
+        btnProxy(5, 1);
+        btnProxy(6, 1);
+        btnProxy(7, 0);
+        btnProxy(8, 0);
+        btnProxy(9, 0);
+        btnProxy(10, 1);
+    }
+}
+
+function onLoadPag(){
+	configurarMenuSecundario("formulario");           
+	DrdEnsanchaConMargenDcho('listado1',12);
+	ocultarLista();
+	eval (ON_RSZ);  
+	gestionarBotonModificar();
+	configurarIconos();
+   
+    if (get('formulario.errDescripcion')!='') {
+		var wnd = fMostrarMensajeError(get('formulario.errCodigo'), get('formulario.errDescripcion'));
+        ocultarLista();
+        window.close();
+    }
+
+    var opcionMenu = get('formulario.opcionMenu');      
+	if(opcionMenu != "Consultar Concurso") {
+		focaliza('formulario.cbUnidadAdmin');
+    }
+}
+
+function fLimpiar() {
+           onLoadPag();
+}
+
+//Cleal 22113
+function onChangeCbUA(){
+          // Se invoca a la LP LPMantenerParametrosCalificacion con accion = "recargarCombosMetasVentaProyectada"
+          set("formulario.hCbUniAdmin",get("formulario.cbUnidadAdmin"));
+          var arrVacio = new Array();
+          arrVacio[0] = ["",""];
+          set_combo("formulario.cbPeriodo", arrVacio);
+          set_combo("formulario.cbCliente", arrVacio);
+          ocultarLista();
+          eval('formulario').oculto="S"; 
+          set('formulario.conectorAction','LPMantenerParametrosCalificacion');
+          set('formulario.accion', 'recargarCombosMetasVentaProyectada');
+          enviaSICC('formulario');
+}
+
+//Cleal 22113
+function vuelvoDeRecargaDeCombos(sPeriodos, sClientes, listaMtas){
+		  configurarIconos();
+	      set("formulario.hListaMetasProyectada",listaMtas);		  
+	      set_combo("formulario.cbPeriodo", parseaCombo(sPeriodos));
+          set_combo("formulario.cbCliente", parseaCombo(sClientes));
+
+          var arrVacio = new Array();
+          arrVacio[0] = ["",""];
+          var opcionMenu = get('formulario.opcionMenu');
+
+          if(listaMtas==""){
+                    //22399
+                    if(opcionMenu != "Consultar Concurso") {
+
+                              if(get('formulario.cbUnidadAdmin')==get('formulario.hconst_oid_reg')){
+
+                                         GestionarMensaje('INC-0038');//Reg
+                              } else if(get('formulario.cbUnidadAdmin')==get('formulario.hconst_oid_sub')){
+
+                                         GestionarMensaje('INC-0039');//Subg
+                              } else{
+
+                                         GestionarMensaje('INC-0040');//Zon
+                              }
+                    } else {
+                                         if(get('formulario.cbUnidadAdmin')==get('formulario.hconst_oid_reg')){
+
+                                                   GestionarMensaje('INC-0041');//Reg
+                                         } else if(get('formulario.cbUnidadAdmin')==get('formulario.hconst_oid_sub')){
+
+                                                   GestionarMensaje('INC-0042');//Subg
+                                         } else{
+                                                   GestionarMensaje('INC-0043');//Zon
+                                         }
+                    }
+                    //
+                    set_combo("formulario.cbPeriodo", arrVacio);
+                    set_combo("formulario.cbCliente", arrVacio);
+                    ocultarLista();
+          }
+}
+
+function parseaCombo(str){	
+	var arr = new Array();	
+	var arrVacio = new Array();
+	arrVacio[0] = "";
+	arrVacio[1] = "";
+	arr[0] = arrVacio;
+
+    var filas = str.split('|');
+
+	for(var i=0; i<filas.length; i++) {
+		var campos = filas[i];
+		var campo = campos.split(",");
+		arrIn = new Array();
+        arrIn[0] = campo[0];
+        arrIn[1] = campo[1];                        
+        arr[i+1] = arrIn;      		
+	}
+
+    return arr;
+}  
+  
+function gestionarBotonModificar(){
+    if(get('formulario.hMostrarBtnModificar')!='S'){
+           deshabilitarHabilitarBoton('botonContenido', 'btnModificar', 'D');
+           }
+}
+  
+function ocultarLista(){  
+    document.all["Cplistado1"].style.visibility='hidden';
+    document.all["CpLin1listado1"].style.visibility='hidden';
+    document.all["CpLin2listado1"].style.visibility='hidden';
+    document.all["CpLin3listado1"].style.visibility='hidden';
+    document.all["CpLin4listado1"].style.visibility='hidden';
+    document.all["separaDiv"].style.visibility='hidden';
+    document.all["primera1Div"].style.visibility='hidden';
+    document.all["ret1Div"].style.visibility='hidden';
+    document.all["ava1Div"].style.visibility='hidden';
+    document.all["btnAceptarDiv"].style.visibility='hidden';
+ 
+    document.all["btnModificarDiv"].style.visibility='hidden';
+}
+
+function mostrarLista(){  
+    document.all["Cplistado1"].style.visibility='';
+    document.all["CpLin1listado1"].style.visibility='';
+    document.all["CpLin2listado1"].style.visibility='';
+    document.all["CpLin3listado1"].style.visibility='';
+    document.all["CpLin4listado1"].style.visibility='';
+    document.all["separaDiv"].style.visibility='';
+    document.all["primera1Div"].style.visibility='';
+    document.all["ret1Div"].style.visibility='';
+    document.all["ava1Div"].style.visibility='';
+    document.all["btnAceptarDiv"].style.visibility='';
+
+    document.all["btnModificarDiv"].style.visibility='';
+}
+
+function onChangeCliente(){
+  set('formulario.cbPeriodo','');
+}
+
+function onChangePeriodo(){
+  set('formulario.cbCliente','');
+}
+
+function accionBuscar(){
+    var listaMetasProyectada = get("formulario.hListaMetasProyectada");
+    //limpio la lista.....
+    var aux = new Array();
+    listado1.setDatos(aux);
+
+    if (listaMetasProyectada != ""){
+           var oidCliente = get("formulario.cbCliente");
+           var oidPeriodo = get("formulario.cbPeriodo");
+      
+           //Lista formato xx,xx,xx,xx|xx,xx,xx,xx|..    
+           var datos = listaMetasProyectada.split('|');
+    
+           for (var i = 0; i < datos.length; i++){
+                var sLine = datos[i];
+                var aLine = sLine.split(',');                
+                var aListado = new Array();
+           
+                aListado[0] = aLine[18];  // oid
+                aListado[1] = aLine[19];  // oid cliente
+                aListado[2] = aLine[2];   // codigo cliente                                
+
+				aListado[3] = aLine[9];   // periodo
+
+                aListado[4] = aLine[11];  // activas iniciales
+                aListado[5] = aLine[5];   // ingresos
+                aListado[6] = aLine[6];   // reingresos
+                aListado[7] = aLine[4];   // egresos
+                aListado[8] = aLine[13];  // entregadas
+                aListado[9] = aLine[16];  // recibidas
+                aListado[10] = aLine[1];   // capitalizacion
+                aListado[11] = aLine[10]; // activas finales
+                aListado[12] = aLine[0];  // actividad
+                aListado[13] = aLine[15]; // num pedidos
+                aListado[14] = aLine[22]; // precio promedio un.
+                aListado[15] = aLine[25]; // promedio venta ped.
+                aListado[16] = aLine[24]; // promedio un. ped.
+                aListado[17] = aLine[23]; // promedio orden. ped.
+                aListado[18] = aLine[7];  // retencion
+                aListado[19] = aLine[8];  // ventas estad.
+                aListado[20] = aLine[20]; // oidPeriodo
+				aListado[21] = aLine[3];  // impCapitalizacion
+				aListado[22] = aLine[12]; // num clientes
+				aListado[23] = aLine[14]; // num ordenes
+				aListado[24] = aLine[17]; // num unidades vendidas
+				aListado[25] = aLine[21]; // oid ua
+				aListado[26] = aLine[26]; // retencion
+                
+                if (oidCliente != '' && oidCliente == aListado[1]){
+                    listado1.insertar(aListado);
+                }
+                
+                if (oidPeriodo != '' && oidPeriodo == aListado[20]){
+                    listado1.insertar(aListado);
+                }
+                
+                if (oidCliente == '' && oidPeriodo == ''){
+                    listado1.insertar(aListado);
+                }                
+           }           
+		   mostrarLista(); 
+		   configurarVisibilidadColumnas();
+		   configurarVisibilidadClientePeriodo();
+    }
+}
+
+function configurarVisibilidadClientePeriodo() {
+	if(get("formulario.cbCliente")!='' && get("formulario.cbPeriodo")=='') {
+		//oculta columna cliente
+		listado1.alternaVerColumna(1,false);
+		//hace visible columna periodo
+		listado1.alternaVerColumna(2,true);
+	}
+
+	if(get("formulario.cbCliente")=='' && get("formulario.cbPeriodo")!='') {
+		//hace visible columna cliente
+		listado1.alternaVerColumna(1,true);
+		//oculta columna periodo
+		listado1.alternaVerColumna(2,false);
+	}		
+
+	if(get("formulario.cbCliente")=='' && get("formulario.cbPeriodo")=='') {
+		//hace visible columna cliente
+		listado1.alternaVerColumna(1,true);
+		//hace visible columna periodo
+		listado1.alternaVerColumna(2,true);
+	}
+} 
+
+function configurarVisibilidadColumnas() {			
+	if(get('formulario.hEstadoActivas')=="false") 
+		listado1.alternaVerColumna(3,false);
+
+	if(get('formulario.hEstadoIngreso')=="false") 
+		listado1.alternaVerColumna(4,false);
+
+	if(get('formulario.hEstadoReingreso')=="false") 
+		listado1.alternaVerColumna(5,false);
+
+	if(get('formulario.hEstadoEgresos')=="false") 
+		listado1.alternaVerColumna(6,false);
+
+	if(get('formulario.hEstadoEntregadas')=="false") 
+		listado1.alternaVerColumna(7,false);
+
+	if(get('formulario.hEstadoRecibidas')=="false") 
+		listado1.alternaVerColumna(8,false);
+	
+	if(get('formulario.hEstadoCapitalizacion')=="false") 
+		listado1.alternaVerColumna(9,false);
+
+	if(get('formulario.hEstadoActivasFinales')=="false") 
+		listado1.alternaVerColumna(10,false);
+
+	if(get('formulario.hEstadoActividad')=="false") 
+		listado1.alternaVerColumna(11,false);
+
+	if(get('formulario.hEstadoNumeroPedidos')=="false") 
+		listado1.alternaVerColumna(12,false);
+
+	if(get('formulario.hEstadoPrecioPromedioUnitario')=="false") 
+		listado1.alternaVerColumna(13,false);
+
+	if(get('formulario.hEstadoPromedioVentaPedido')=="false") 
+		listado1.alternaVerColumna(14,false);
+
+	if(get('formulario.hEstadoPromedioUnidadesPedido')=="false") 
+		listado1.alternaVerColumna(15,false);
+
+	if(get('formulario.hEstadoPromedioOrdenesPedido')=="false") 
+		listado1.alternaVerColumna(16,false);
+
+	if(get('formulario.hEstadoRetencion')=="false") 
+		listado1.alternaVerColumna(17,false);
+
+	if(get('formulario.hEstadoVentaEstadisticable')=="false") 	
+		listado1.alternaVerColumna(18,false);
+}
+
+function accionAceptar(){
+	//Esta funcion simplemente cierra la ventana modal
+	//Los cambios hechos sobre los registros de la lista
+	//se guardan en la funcion accionModificar usando
+	//el enviaOculto 
+    window.close(); 
+}
+
+//Autor: Marcelo J. Maidana
+//Fecha: 07/06/2005
+//Devuelve un String con formato xx,xx,xx|xx,xx,xx|...
+//de los registros de la lista oculta no existentes en la lista editable.
+function obtenerRegistrosListaOcultaNoSeleccionados(){
+    var arLista = obtenerListaMetasVentaProyectadaOculta();
+    var sReturn = '';
+    var sRegistro = '';
+    var sOid = '';
+    
+    for (var a = 0; a < arLista.length; a++){
+           sRegistro = arLista[a];
+           sOid = sRegistro.substring(0, sRegistro.indexOf(','));
+
+           if (!existeOidEnLista(sOid)){
+                if (sReturn == ''){
+                      sReturn += sRegistro;
+                } else {
+                      sReturn += '|' + sRegistro;
+                }
+           }
+    }
+
+    return sReturn;
+}
+
+//Autor: Marcelo J. Maidana
+//Fecha: 07/06/2005
+//Busca un codigo en la lista editable de la pagina, y devuelve true si lo
+//encuentra. Caso contrario, devuelve false.
+function existeOidEnLista(oid){
+    var codigosLista = listado1.codigos();
+    
+    for (var a = 0; a < codigosLista.length; a++){
+           if (codigosLista[a] == oid){
+                return true;
+           }
+    }
+
+    return false;
+}
+
+//Autor: Marcelo J. Maidana
+//Fecha: 07/06/2005
+//Devuelve un array donde cada posicion es un String con los campos de la lista
+//oculta separados por coma.
+function obtenerListaMetasVentaProyectadaOculta(){
+    var listaMetasProyectada = get("formulario.hListaMetasProyectada");
+
+    //Lista formato xx,xx,xx,xx|xx,xx,xx,xx|..    
+    var datos = listaMetasProyectada.split('|');
+    
+    return datos;
+}
+
+function accionModificar(){ 
+		   var codigos = listado1.codSeleccionados();
+           var valorSeteado = mipgndo.lista.codSeleccionados();
+
+           if (listado1.numSelecc()!= 1) {
+                      GestionarMensaje('1022',null,null,null);
+                      return false;
+           }
+
+           if (valorSeteado != ''){
+                      var obj = new Object();
+                      obj.seleccion = valorSeteado[0];
+                      var sel = valorSeteado;                    
+					  var oid = listado1.extraeDato(codigos,0);                      
+                      var cliente = listado1.extraeDato(codigos,1);           
+                      var activas = listado1.extraeDato(codigos,3);           
+                      var ingresos = listado1.extraeDato(codigos,4);                    
+                      var reingresos = listado1.extraeDato(codigos,5);      
+                      var egresos = listado1.extraeDato(codigos,6);           
+                      var entregadas = listado1.extraeDato(codigos,7);      
+                      var recibidas = listado1.extraeDato(codigos,8);                   
+                      var capitalizacion = listado1.extraeDato(codigos,9);
+                      var actFinales = listado1.extraeDato(codigos,10);      
+					  var actividad = listado1.extraeDato(codigos, 11);          
+                      var pedidos = listado1.extraeDato(codigos,12);                    
+                      var precioPromUnitario = listado1.extraeDato(codigos,13);     
+                      var promedioVtaPedido = listado1.extraeDato(codigos,14);      
+                      var promUnidadesPedido = listado1.extraeDato(codigos,15);     
+                      var promOrdenesPedido = listado1.extraeDato(codigos,16);
+                      var retencion = listado1.extraeDato(codigos,17);                      
+                      var ventasEstadisticab = listado1.extraeDato(codigos,18);
+
+                      obj.accion = 'cargar modificar metas venta proyectada';
+                      obj.opcionMenu = get('formulario.opcionMenu');
+
+                      obj.oid = oid;
+                      obj.cliente = cliente;
+                      obj.activas = activas;
+                      obj.ingresos = ingresos;
+                      obj.reingresos = reingresos;
+                      obj.egresos = egresos;           
+                      obj.entregadas = entregadas;
+                      obj.recibidas = recibidas;
+                      obj.capitalizacion = capitalizacion;            
+                      obj.actFinales = actFinales;
+                      obj.actividad = actividad;
+                      obj.pedidos = pedidos;
+                      obj.precioPromUnitario = precioPromUnitario;
+                      obj.promedioVtaPedido = promedioVtaPedido; 
+                      obj.promUnidadesPedido = promUnidadesPedido;
+                      obj.promOrdenesPedido = promOrdenesPedido;
+                      obj.retencion = retencion;
+                      obj.ventasEstadisticab = ventasEstadisticab;       
+					  
+                      var obj = mostrarModalSICC('LPMantenerParametrosCalificacion', 'cargar modificar metas venta proyectada', obj, 600, 300);
+
+           if (obj != null){
+                var cod = listado1.codSeleccionados();
+
+                listado1.insertaDato(cod, 3, obj.activas);
+                listado1.insertaDato(cod, 4, obj.ingresos);
+                listado1.insertaDato(cod, 5, obj.reingresos);
+                listado1.insertaDato(cod, 6, obj.egresos);
+                listado1.insertaDato(cod, 7, obj.entregadas);
+                listado1.insertaDato(cod, 8, obj.recibidas);
+                listado1.insertaDato(cod, 9, obj.capitalizacion);
+                listado1.insertaDato(cod, 10, obj.actFinales);
+                listado1.insertaDato(cod, 11, obj.actividad);
+                listado1.insertaDato(cod, 12, obj.pedidos);
+                listado1.insertaDato(cod, 13, obj.precioPromUnitario);
+                listado1.insertaDato(cod, 14, obj.promedioVtaPedido);
+                listado1.insertaDato(cod, 15, obj.promUnidadesPedido);
+                listado1.insertaDato(cod, 16, obj.promOrdenesPedido);
+                listado1.insertaDato(cod, 17, obj.retencion);
+                listado1.insertaDato(cod, 18, obj.ventasEstadisticab); 
+
+				//AGREGADO POR CRISTIAN VALENZUELA
+				//INCIDENCIA 22393
+				var datos = listado1.datos; 
+				var datoTemp;
+				var sDatoTemp = '';
+
+				var datosCompletos = "";
+				var oidFilaModificada = "";
+
+				//Se envia el registro de la lista
+				//que fue modificado a la LP
+				//para que se guarde el cambio
+				//en el DTO de sesion que corresponda
+
+				var filaMarcada = listado1.filaSelecc;				
+			    var fila = new Array();
+
+				var temp0 = datos[filaMarcada][0];
+				oidFilaModificada = datos[filaMarcada][0];
+				if(temp0=="") temp0 = " ";
+				fila[0] = temp0;
+
+				var temp1 = datos[filaMarcada][1];
+				if(temp1=="") temp1 = " ";
+				fila[1] = temp1;
+
+				var temp2 = datos[filaMarcada][2];
+				if(temp2=="") temp2 = " ";
+				fila[2] = temp2;
+
+				var temp3 = datos[filaMarcada][3];
+				if(temp3=="") temp3 = " ";
+				fila[3] = temp3;
+
+				var temp4 = datos[filaMarcada][4];
+				if(temp4=="") temp4 = " ";
+				fila[4] = temp4;
+
+				var temp5 = datos[filaMarcada][5];
+				if(temp5=="") temp5 = " ";
+				fila[5] = temp5;
+
+				var temp6 = datos[filaMarcada][6];
+				if(temp6=="") temp6 = " ";
+				fila[6] = temp6;
+
+				var temp7 = datos[filaMarcada][7];
+				if(temp7=="") temp7 = " ";
+				fila[7] = temp7;
+
+				var temp8 = datos[filaMarcada][8];
+				if(temp8=="") temp8 = " ";
+				fila[8] = temp8;
+
+				var temp9 = datos[filaMarcada][9];
+				if(temp9=="") temp9 = " ";
+				fila[9] = temp9;
+
+				var temp10 = datos[filaMarcada][10];
+				if(temp10=="") temp10 = " ";
+				fila[10] = temp10;
+
+				var temp11 = datos[filaMarcada][11];
+				if(temp11=="") temp11 = " ";
+				fila[11] = temp11
+
+				var temp12 = datos[filaMarcada][12];
+				if(temp12=="") temp12 = " ";
+				fila[12] = temp12;
+
+				var temp13 = datos[filaMarcada][13];
+				if(temp13=="") temp13 = " ";
+				fila[13] = temp13;
+
+			    var temp14 = datos[filaMarcada][14];
+				if(temp14=="") temp14 = " ";
+				fila[14] = temp14;
+
+				var temp15 = datos[filaMarcada][15];
+				if(temp15=="") temp15 = " ";
+				fila[15] = temp15;
+
+				var temp16 = datos[filaMarcada][16];
+				if(temp16=="") temp16 = " ";
+				fila[16] = temp16;
+
+				var temp17 = datos[filaMarcada][17];
+				if(temp17=="") temp17 = " ";
+				fila[17] = temp17;
+
+				var temp18 = datos[filaMarcada][18];
+				if(temp18=="") temp18 = " ";
+				fila[18] = temp18;
+
+				var temp19 = datos[filaMarcada][19];
+				if(temp19=="") temp19 = " ";
+				fila[19] = temp19;
+
+				//agregar las que faltan
+				var temp20 = datos[filaMarcada][20];
+				if(temp20=="") temp20 = " ";
+				fila[20] = temp20;
+
+				var temp21 = datos[filaMarcada][21];
+				if(temp21=="") temp21 = " ";
+				fila[21] = temp21;
+
+				var temp22 = datos[filaMarcada][22];
+				if(temp22=="") temp22 = " ";
+				fila[22] = temp22;
+
+				var temp23 = datos[filaMarcada][23];
+				if(temp23=="") temp23 = " ";
+				fila[23] = temp23;
+ 
+			    var temp24 = datos[filaMarcada][24];
+				if(temp24=="") temp24 = " ";
+				fila[24] = temp24;
+
+				var temp25 = datos[filaMarcada][25];
+				if(temp25=="") temp25 = " ";
+				fila[25] = temp25;
+
+				var temp26 = datos[filaMarcada][26];
+				if(temp26=="") temp26 = " ";
+				fila[26] = temp26;
+				//FIN - agregar las que faltan
+
+				datosCompletos = datosCompletos + fila;		  
+
+				eval('formulario').oculto="S"; 
+				set('formulario.conectorAction','LPMantenerParametrosCalificacion');
+				set('formulario.accion', 'actualizarSesionDtos');
+				set('formulario.oidFilaModificada', oidFilaModificada);				
+				set('formulario.valorActualizar', datosCompletos);
+				set("formulario.hCbUniAdmin",get("formulario.cbUnidadAdmin"));
+				enviaSICC('formulario');
+				//FIN - AGREGADO POR CRISTIAN VALENZUELA
+                }
+           } else {
+           GestionarMensaje('4', null, null, null);
+      }
+}
+
+function despuesActualizarSesionDtos() {
+	configurarIconos();
+	eval('formulario').oculto="N"; 
+}
+ 
+function muestraLista( ultima, rowset){
+    var tamano = rowset.length;
+    
+    if (tamano > 0) {
+           mostrarLista();
+           return true;
+    } else {
+           ocultarLista();
+           btnProxy(4,0);                      
+           return false;
+    }
+    focaliza("formulario.cbCliente");   
+}
+
+function focalizaTab(){
+    focaliza("formulario.cbCliente");
+}
+
+function tabBtn(){
+    focalizaBotonHTML('botonContenido','btnBuscar');    
+}
+
+
+function setTabFocus(campo){
+           if (campo == 'cbCliente'){
+                      focaliza('formulario.cbPeriodo')
+           }
+		   else if (campo == 'cbPeriodo'){
+                      focalizaBotonHTML('botonContenido', 'btnBuscar2');
+           }
+		   else if (campo == 'btnBuscar2'){
+                      if (document.all["btnAceptarDiv"].style.visibility == ''){
+                                  focalizaBotonHTML('botonContenido', 'btnAceptar');
+                      } else {
+                                  focaliza('formulario.cbUnidadAdmin');
+                      }
+           }
+		   else if (campo == 'btnAceptar'){
+                      if (document.all["btnModificarDiv"].style.visibility == ''){
+                                  focalizaBotonHTML('botonContenido', 'btnModificar');
+                      } else {
+                                  focaliza('formulario.cbCliente');
+                      }
+           }
+		   else if (campo == 'btnModificar'){
+                      focaliza('formulario.cbUnidadAdmin');
+           }
+}
+
+function setSHTabFocus(campo){
+           if (campo == 'btnModificar'){
+                      focalizaBotonHTML('botonContenido', 'btnAceptar');
+           }
+		   else if (campo == 'btnAceptar'){
+                      focalizaBotonHTML('botonContenido', 'btnBuscar2');
+           }
+		   else if (campo == 'btnBuscar2'){
+                      focaliza('formulario.cbPeriodo')
+           }
+		   else if (campo == 'cbPeriodo'){
+                      focaliza('formulario.cbCliente');
+           }
+		   else if (campo == 'cbCliente'){
+                      focaliza('formulario.cbUnidadAdmin');
+           }
+}
+
+function fVolver(){
+	window.close();
+}
+
+function OnTabComboUnidad(){
+	focaliza("formulario.cbCliente");
+}
+
+function OnShtabComboUnidad() {
+	if (document.all["btnModificarDiv"].style.visibility == ''){
+		focalizaBotonHTML('botonContenido', 'btnModificar');
+	}
+	else {
+		focalizaBotonHTML('botonContenido', 'btnBuscar2');
+	}	
+}
+
+  ]]> 
+</JAVASCRIPT>
+
+<FORMULARIO nombre="formulario">
+
+<VAR nombre="accion" valor=""/>
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="errCodigo" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="hCasoDeUso" valor=""/>
+<VAR nombre="opcionMenu" valor=""/>
+
+<!--Estado de campos en lista editable * S=Habilitado, N=Deshabilitado-->
+<VAR nombre="hEstadoActivas" valor="N"/>
+<VAR nombre="hEstadoIngreso" valor="N"/>
+<VAR nombre="hEstadoReingreso" valor="N"/>
+<VAR nombre="hEstadoEgresos" valor="N"/>
+<VAR nombre="hEstadoEntregadas" valor="N"/>
+<VAR nombre="hEstadoRecibidas" valor="N"/>
+<VAR nombre="hEstadoCapitalizacion" valor="N"/>
+<VAR nombre="hEstadoActivasFinales" valor="N"/>
+<VAR nombre="hEstadoActividad" valor="N"/>
+<VAR nombre="hEstadoNumeroPedidos" valor="N"/>
+<VAR nombre="hEstadoPrecioPromedioUnitario" valor="N"/>
+<VAR nombre="hEstadoPromedioVentaPedido" valor="N"/>
+<VAR nombre="hEstadoPromedioUnidadesPedido" valor="N"/>
+<VAR nombre="hEstadoPromedioOrdenesPedido" valor="N"/>
+<VAR nombre="hEstadoRetencion" valor="N"/>
+<VAR nombre="hEstadoVentaEstadisticable" valor="N"/>
+<VAR nombre="hCbUniAdmin" valor=""/>
+<VAR nombre="hconst_oid_reg" valor=""/>
+<VAR nombre="hconst_oid_sub" valor=""/>
+<VAR nombre="hconst_oid_zon" valor=""/>
+
+
+<!--VARs gestion estado componentes-->
+<VAR nombre="hMostrarBtnModificar" valor="S"/>
+
+<!--Listas-->
+<!--Lista de DTOMetasVentaProyectada formato xx,xx,xx,xx|xx,xx,xx,xx|...-->
+<VAR nombre="hListaMetasProyectada" valor=""/>
+<VAR nombre="hlistaVarVta" valor=""/>
+
+<VAR nombre="valorActualizar" valor=""/>
+<VAR nombre="oidFilaModificada" valor=""/>
+
+<CAPA nombre="capaEspacio1" x="0" y="0">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+           <fieldset><legend class="legend"><LABELC nombre="lblCriteriosBusqueda"  alto="13" filas="1" valor="" id="legend" cod="0075"/></legend>
+           <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+             <tr><td>
+             <!---primera fila-->
+                    <table width="400" border="0" align="left" cellspacing="0" cellpadding="0">
+                      <tr> 
+                         <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                      </tr>
+                      <tr>
+                           <td><IMG src="b.gif" width="8" height="8"/></td>
+                                                    <td><LABELC nombre="lblUnidadAdmin" alto="13" filas="1" valor="" id="datosTitle" cod="1194"/></td>
+                                                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                           <td><LABELC nombre="lblCliente"  alto="13" filas="1" valor="" id="datosTitle" cod="1471"/></td>
+                           <td><IMG src="b.gif" width="25" height="8"/></td>
+                           <td><LABELC nombre="lblPeriodo" alto="13" filas="1" valor="" id="datosTitle" cod="276"/></td>
+                           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                      </tr> 
+                      <tr>
+                           <td><IMG src="b.gif" width="8" height="8"/></td>
+                                                      
+                           <td nowrap="nowrap"> 
+                            <COMBO nombre="cbUnidadAdmin" id="datosCampos" size="1" req="S" multiple="N" valorinicial="" textoinicial="" ontab="OnTabComboUnidad();" onshtab="OnShtabComboUnidad();" onchange ="onChangeCbUA()">
+                                 <ROWSET>
+                                 </ROWSET>
+                              </COMBO>      
+                           </td> 
+                                                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                           <td nowrap="nowrap"> 
+                            <COMBO nombre="cbCliente" id="datosCampos" size="1" req="N" multiple="N" valorinicial="" textoinicial="" ontab="setTabFocus('cbCliente')" onshtab="setSHTabFocus('cbCliente')" onchange="onChangeCliente()">
+                                 <ROWSET>
+                                 </ROWSET>
+                              </COMBO>      
+                           </td>  
+                           <td><IMG src="b.gif" width="25" height="8"/></td>
+                           <td nowrap="nowrap"> 
+                            <COMBO nombre="cbPeriodo" id="datosCampos" size="1" req="N" multiple="N" valorinicial="" textoinicial="" ontab="setTabFocus('cbPeriodo')" onshtab="setSHTabFocus('cbPeriodo')" onchange="onChangePeriodo()">
+                                 <ROWSET>
+                                 </ROWSET>
+                              </COMBO>      
+                           </td>                                                           
+                           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                      </tr> 
+                      <tr>
+                           <td colspan="3"><IMG src="b.gif" width="8" height="7"/></td>
+                      </tr>
+                    </table>
+          <!---fin primera fila-->
+                    </td></tr>
+              </table>
+           </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+   <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+           <fieldset>
+             <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr>
+                    <td align="left" class="botonera" width="100%">
+                      <BOTON nombre="btnBuscar2" ID="botonContenido" tipo="html" accion="accionBuscar();" estado="false" cod="1" ontab="setTabFocus('btnBuscar2')" onshtab="setSHTabFocus('btnBuscar2')"/>
+                        
+                    </td>
+                </tr>  
+             </table>
+           </fieldset>
+      </td>
+      <td><IMG src="b.gif" width="12" height="12"/></td>
+    </tr>   
+    <tr>
+           <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+           <td width="756" ><IMG src="b.gif"/></td>
+           <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+  
+<LISTAEDITABLE nombre="listado1" ancho="404" alto="317" x="12" y="122" colorFondo="#CECFCE" msgDebugJS="S">
+<IMGBOTONES precarga="S" conROver="S">
+	<BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+	<BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+	<BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+</IMGBOTONES>
+<LINEAS>
+	<GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="0" horizTitulo="1" horizBase="1"/> 
+    <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+</LINEAS>
+<TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00135" ID="datosTitle" />
+<BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+<COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+           <COL ancho="60" minimizable="S" minimizada="N" oculta="S"/>
+           <COL ancho="80" minimizable="S" minimizada="N"/>
+		   <COL ancho="150" minimizable="S" minimizada="N"/>
+
+           <COL ancho="150" minimizable="S" minimizada="N"/>
+           <COL ancho="150" minimizable="S" minimizada="N"/>
+           <COL ancho="150" minimizable="S" minimizada="N"/>
+           <COL ancho="150" minimizable="S" minimizada="N"/>
+           <COL ancho="150" minimizable="S" minimizada="N"/>
+           <COL ancho="150" minimizable="S" minimizada="N"/>
+           <COL ancho="150" minimizable="S" minimizada="N"/>
+           <COL ancho="150" minimizable="S" minimizada="N"/>
+           <COL ancho="150" minimizable="S" minimizada="N"/>
+           <COL ancho="150" minimizable="S" minimizada="N"/>
+           <COL ancho="150" minimizable="S" minimizada="N"/>
+           <COL ancho="150" minimizable="S" minimizada="N"/>
+           <COL ancho="150" minimizable="S" minimizada="N"/>
+           <COL ancho="150" minimizable="S" minimizada="N"/>
+           <COL ancho="150" minimizable="S" minimizada="N"/>
+           <COL ancho="150" minimizable="S" minimizada="N"/>
+           <COL ancho="60" minimizable="S" minimizada="N" oculta="S"/>
+
+		   <COL ancho="60" minimizable="S" minimizada="N" oculta="S"/>
+		   <COL ancho="60" minimizable="S" minimizada="N" oculta="S"/>
+		   <COL ancho="60" minimizable="S" minimizada="N" oculta="S"/>
+		   <COL ancho="60" minimizable="S" minimizada="N" oculta="S"/>
+		   <COL ancho="60" minimizable="S" minimizada="N" oculta="S"/>
+		   <COL ancho="60" minimizable="S" minimizada="N" oculta="S"/>
+</COLUMNAS>
+<CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+           <COL colFondo="" ID="EstCab" cod="1471">oidCliente</COL> 
+           <COL colFondo="" ID="EstCab" cod="1471">Cliente</COL> 
+		   <COL colFondo="" ID="EstCab" cod="276">Periodo</COL> 
+
+           <COL colFondo="" ID="EstCab" cod="1706">Activas</COL> 
+           <COL colFondo="" ID="EstCab" cod="1707">Ingresos</COL> 
+           <COL colFondo="" ID="EstCab" cod="1708">Reingresos</COL> 
+           <COL colFondo="" ID="EstCab" cod="1753">Egresos</COL> 
+           <COL colFondo="" ID="EstCab" cod="1754">Entregadas</COL> 
+           <COL colFondo="" ID="EstCab" cod="1755">Recibidas</COL> 
+           <COL colFondo="" ID="EstCab" cod="1756">Capitalización</COL> 
+           <COL colFondo="" ID="EstCab" cod="1757">Activas finales</COL> 
+           <COL colFondo="" ID="EstCab" cod="173">Actividad</COL> 
+           <COL colFondo="" ID="EstCab" cod="210">Nº pedidos</COL> 
+           <COL colFondo="" ID="EstCab" cod="1758">Precio promedio unitario</COL> 
+           <COL colFondo="" ID="EstCab" cod="1759">Promedio venta pedido</COL> 
+           <COL colFondo="" ID="EstCab" cod="1760">Promedio unidades pedido</COL> 
+           <COL colFondo="" ID="EstCab" cod="1761">Promedio ordenes pedido</COL> 
+           <COL colFondo="" ID="EstCab" cod="1762">Retención</COL> 
+           <COL colFondo="" ID="EstCab" cod="1763">Ventas estadisticables</COL> 
+           <COL colFondo="" ID="EstCab" cod="1471">oidPeriodo</COL> 
+
+           <COL colFondo="" ID="EstCab" cod="">impCapitalizacion</COL> 
+           <COL colFondo="" ID="EstCab" cod="">numClientes</COL> 
+           <COL colFondo="" ID="EstCab" cod="">numOrdenes</COL> 
+           <COL colFondo="" ID="EstCab" cod="">numUnidadesVendidas</COL> 
+           <COL colFondo="" ID="EstCab" cod="">oidUA</COL> 
+           <COL colFondo="" ID="EstCab" cod="">retencion</COL> 
+</CABECERA>
+<DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+onLoad="" colorSelecc="#D0D9E8">
+          <COL tipo="texto" ID="EstDat"/> 
+          <COL tipo="texto" ID="EstDat"/> 
+          <COL tipo="texto" ID="EstDat2"/> 
+          
+		  <COL tipo="texto" ID="EstDat"/> 
+          <COL tipo="texto" ID="EstDat2"/> 
+          <COL tipo="texto" ID="EstDat"/> 
+          <COL tipo="texto" ID="EstDat2"/> 
+          <COL tipo="texto" ID="EstDat"/> 
+          <COL tipo="texto" ID="EstDat2"/> 
+          <COL tipo="texto" ID="EstDat"/> 
+          <COL tipo="texto" ID="EstDat2"/> 
+          <COL tipo="texto" ID="EstDat"/> 
+          <COL tipo="texto" ID="EstDat2"/> 
+          <COL tipo="texto" ID="EstDat"/> 
+          <COL tipo="texto" ID="EstDat2"/> 
+          <COL tipo="texto" ID="EstDat"/> 
+          <COL tipo="texto" ID="EstDat2"/> 
+          <COL tipo="texto" ID="EstDat"/> 
+          <COL tipo="texto" ID="EstDat2"/> 
+          <COL tipo="texto" ID="EstDat"/> 
+
+          <COL tipo="texto" ID="EstDat"/> 
+          <COL tipo="texto" ID="EstDat"/> 
+          <COL tipo="texto" ID="EstDat"/> 
+          <COL tipo="texto" ID="EstDat"/> 
+          <COL tipo="texto" ID="EstDat"/> 
+          <COL tipo="texto" ID="EstDat"/> 
+      </DATOS>
+<ROWSET>
+</ROWSET>
+<PAGINADO nombre="mipgndo" ancho="404" sep="$" x="12" class="botonera" y="416" control="|" conector="conectorSandra" rowset="" cargainicial="N" onload="procesarPaginado(mipgndo,msgError, ultima, rowset, 'muestraLista(ultima, rowset)')">
+	<BOTON nombre="ret1" x="37" y="420" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+    <BOTON nombre="ava1" x="52" y="420" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>
+</PAGINADO>
+</LISTAEDITABLE>
+  <BOTON nombre="primera1" x="20" y="420" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();" />      
+  <BOTON nombre="separa" x="59" y="416" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />      
+  <BOTON nombre="btnAceptar" x="13" y="417" ID="botonContenido" tipo="html" estado="false" cod="12" accion="accionAceptar();" ontab="setTabFocus('btnAceptar')" onshtab="setSHTabFocus('btnAceptar')"/> 
+  <BOTON nombre="btnModificar" x="71" y="417" ID="botonContenido" tipo="html" estado="false" cod="2"  accion="accionModificar();" ontab="setTabFocus('btnModificar')" onshtab="setSHTabFocus('btnModificar')"/> 
+
+<CAPA nombre="capaEspacio" alto="12" ancho="100%" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="439" zindex="">
+</CAPA>     
+
+</FORMULARIO>
+</PAGINA>   

@@ -1,0 +1,1065 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+
+<!--
+$Id: contenido_actividades_insertar.xml,v 1.1 2009/12/03 18:45:57 pecbazalar Exp $
+
+ * Copyright 2003 © por Indra Sistemas,S.A.. Todos los derechos reservados.
+ * Avda. de Bruselas, 35
+ * Parque Empresarial Arroyo de la Vega
+ * 28108 Alcobendas, Madrid
+ * España
+ *
+ * Privado y Confidencial.
+ * La información contenida en este documento es propiedad de Indra sistemas.
+ * Para uso exclusivo de empleados autorizados no permitiéndose
+ * la disTRibución de este código sin permiso expreso.
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+<PAGINA nombre="contenido_actividades_insertar" titulo="Insertar Actividades" 
+        cod="050" estilos="estilosB3.css" colorf="#F0F0F0" msgle="" 
+        onload="LoadBar();" 
+        xml:lang="es">
+
+<!--Modificar actividades    cod="091"-->
+<!--Eliminar actividades   cod="093"-->
+<!--Consultar actividades   cod="092"-->
+
+ <!--Eliminar actividades   cod="093"-->  
+ <!--Consultar actividades   cod="092"-->  
+    
+ <JS src="sicc_util.js"/>   
+ <JS src="i18NJS.js"/>   
+ <JS src="DruidaTransactionMare.js"/>   
+      
+ <JAVASCRIPT>  
+
+  <![CDATA[    
+    
+    
+ var str =''; 
+ var procesosAsignado='';
+ var procesosDisponible='';
+    
+ function LoadBar(){     
+            
+      configurarMenuSecundario("frmInsertarActividades");
+            
+      accion('frmInsertarActividades.txtCampDesp', '.disabled=true');
+      porDefecto();   
+      modifico();   
+      mostrarCodigoError();   
+      ocultarCampos();   
+      procesos();
+ }
+//----------------------------------------------------------------------------------//    
+ function porDefecto() { 
+ 
+    if (get('frmInsertarActividades.hCasoDeUso') == ''){
+    
+       iSeleccionado = new Array();    
+       iSeleccionado[0] = get('frmInsertarActividades.valueMarca')==""?"0":get('frmInsertarActividades.valueMarca');   
+       set('frmInsertarActividades.cboMarcas',iSeleccionado);   
+    
+       iSeleccionado = new Array();    
+       iSeleccionado[0] = get('frmInsertarActividades.valueCanal')==""?"0":get('frmInsertarActividades.valueCanal');   
+       set('frmInsertarActividades.cboCanales',iSeleccionado);   
+    
+       iSeleccionado = new Array();    
+       iSeleccionado[0] = '6';   
+       var le = combo_get ('frmInsertarActividades.cboClaseAct','L');   
+               
+       for (var i=0;i<le;i++){   
+          if (combo_get('frmInsertarActividades.cboClaseAct','V',i)== 6){   
+             set('frmInsertarActividades.cboClaseAct',iSeleccionado);   
+          }   
+       }   
+    }
+ }
+//---------------------------------------------------------------------------------//
+
+  function limpiarProcesos(){
+      var aPonerCombo = new Array();
+      var arr = new Array();
+      arr = procesosDisponible.split('%');
+      for (i=0;i<arr.length;i++){
+          var arr2 = arr[i].split('|');
+          if (arr2[0]!='' && arr2[1]!=''){
+              aPonerCombo[i] = new Array(arr2[0],arr2[1]);
+          }
+      }
+      set_combo('frmInsertarActividades.cbProcDisp',aPonerCombo); 
+      aPonerCombo = new Array();
+      arr = new Array();
+      arr = procesosAsignado.split('%');
+      for (i=0;i<arr.length;i++){
+          var arr2 = arr[i].split('|');
+          if (arr2[0]!='' && arr2[1]!=''){
+              aPonerCombo[i] = new Array(arr2[0],arr2[1]);
+          }
+      }
+      set_combo('frmInsertarActividades.cbProcAsig',aPonerCombo);
+  }
+   
+ function procesos(){   
+    
+   var lon = combo_get ('frmInsertarActividades.cbProcDisp','L');   
+
+   var oids = new Array();      
+   var des = new Array();   
+      
+   for(var i=0; i < lon; i++){    
+      des[i] = (combo_get ('frmInsertarActividades.cbProcDisp','T',i));   
+      oids[i] = (combo_get ('frmInsertarActividades.cbProcDisp','V',i));   
+   }
+      
+   for(var i=0; i < oids.length; i++){
+      str +=  oids[i] + '|';     
+      str +=  des[i]  + '%';        
+   }
+   procesosDisponible = str;
+   lon = combo_get ('frmInsertarActividades.cbProcAsig','L');   
+
+   oids = new Array();      
+   des = new Array();
+
+   str='';
+      
+   for(var i=0; i < lon; i++){    
+      des[i] = (combo_get ('frmInsertarActividades.cbProcAsig','T',i));   
+      oids[i] = (combo_get ('frmInsertarActividades.cbProcAsig','V',i));   
+   }   
+      
+   for(var i=0; i < oids.length; i++){   
+      str +=  oids[i] + '|';     
+      str +=  des[i]  + '%';        
+   }
+    procesosAsignado = str;
+ }  
+//----------------------------------------------------------------------------------//
+
+ function deFLimpiar(str) {   
+    
+    val = procesosAsignado + procesosDisponible;
+    
+    arr = procesosDisponible.split('%');
+    for (i=0;i<arr.length;i++){
+        var arr2 = arr[i].split('|');
+        if (arr2[0]!='' && arr2[1]!=''){
+            aPonerCombo[i] = new Array(arr2[0],arr2[1]);
+        }
+    }
+    set_combo('frmInsertarActividades.cbProcDisp',aPonerCombo);  
+ } 
+//----------------------------------------------------------------------------------//
+    
+ function fVolver(){   
+    window.close();   
+ } 
+//----------------------------------------------------------------------------------//
+ function modifico(){   
+    if (get('frmInsertarActividades.ok') == 'si'){   
+       window.close();   
+    }   
+ }
+ //----------------------------------------------------------------------------------//
+ function habilitadomarca(){   
+    
+    var objArr = document.all['cboMarcas'];   
+    for(var i=0; i < objArr.length; i++){   
+       if(objArr[i].tagName && objArr[i].tagName.toUpperCase()=="SELECT"){   
+          if (objArr[i].disabled) {   
+             return false;   
+          }   
+       }   
+     }   
+         
+     return true;   
+ }
+//----------------------------------------------------------------------------------//    
+ function vaAlPrimeroMarcas(){   
+    focaliza('frmInsertarActividades.cbProcDisp');   
+ }
+//----------------------------------------------------------------------------------//
+ function vaAlPrimero(){   
+
+    if (habilitadomarca()){    
+       focaliza('frmInsertarActividades.cboCanales');
+    }else{   
+       focaliza('frmInsertarActividades.cbProcDisp');   
+    }   
+ }
+//----------------------------------------------------------------------------------//
+
+ function vuelveAlPrimero(){   
+    
+    if (habilitadomarca()) {   
+      focaliza('frmInsertarActividades.cboMarcas');   
+    }else{    
+      focaliza('frmInsertarActividades.cboClaseAct');   
+    }   
+ }
+//----------------------------------------------------------------------------------// 
+
+ function limpiaInsertar(){ 
+	
+			
+    limpiaI18N('frmInsertarActividades', '1');   
+     // set('frmInsertarActividades.cboCanales','') ;   
+    // set('frmInsertarActividades.cboMarcas','') ;   
+    
+     iSeleccionado = new Array();    
+     iSeleccionado[0] = get('frmInsertarActividades.valueMarca')==""?"0":get('frmInsertarActividades.valueMarca');   
+	 	
+	 set('frmInsertarActividades.cboMarcas',iSeleccionado);   
+    
+     iSeleccionado = new Array();    
+     iSeleccionado[0] = get('frmInsertarActividades.valueCanal')==""?"0":get('frmInsertarActividades.valueCanal');   
+     set('frmInsertarActividades.cboCanales',iSeleccionado);   
+    
+     iSeleccionado = new Array();    
+     iSeleccionado[0] = '6';   
+     var le = combo_get ('frmInsertarActividades.cboClaseAct','L');   
+      
+     for (var i=0;i<le;i++){   
+          if (combo_get('frmInsertarActividades.cboClaseAct','V',i)== 6){   
+             set('frmInsertarActividades.cboClaseAct',iSeleccionado);   
+          }   
+     }   
+        
+    set('frmInsertarActividades.txtcdActividad','');   
+    set('frmInsertarActividades.txtdesActividad','');   
+    set('frmInsertarActividades.cboTpAct','');   
+    set('frmInsertarActividades.cbactividadRef','');   
+    set('frmInsertarActividades.txtDias','');   
+    set('frmInsertarActividades.txtCampDesp','');  
+    set('frmInsertarActividades.cboAreaResp','');   
+    set('frmInsertarActividades.RebelNoticias','N');   
+    set('frmInsertarActividades.txtCampaAntela','');   
+    set('frmInsertarActividades.cbTipoDirec','');   
+    set('frmInsertarActividades.cboTipoDias','');   
+    //set_combo ('frmInsertarActividades.cbProcAsig', new Array());   
+    //set_combo ('frmInsertarActividades.cbProcDisp', new Array());     
+    //deFLimpiar(str);  
+    limpiarProcesos();
+    cmbCanal_onChange();
+	
+	var arr = new Array(); //Agregado CRA-02
+
+	focaliza('frmInsertarActividades.cboMarcas',arr[0]);   
+	
+	
+ }
+//----------------------------------------------------------------------------------//
+
+ function limpia(){   
+    var arr = new Array();      
+    
+     
+    if(get('frmInsertarActividades.accion')=='muestraInsercion'){       
+       limpiaInsertar();   
+    }else if(get('frmInsertarActividades.accion')=='modificar'){   
+       limpiarProcesos();
+       limpiaI18N('frmInsertarActividades', '1');   
+       arr[0] =  get('frmInsertarActividades.valueCanal')      
+       set('frmInsertarActividades.cboCanales',arr);   
+       
+       arr[0] = get('frmInsertarActividades.valueMarca')   
+       set('frmInsertarActividades.cboMarcas',arr);   
+    
+       set('frmInsertarActividades.txtdesActividad',get('frmInsertarActividades.nombreActividad'));   
+       set('frmInsertarActividades.txtDias',get('frmInsertarActividades.diasDesplazamiento'));   
+       set('frmInsertarActividades.txtCampDesp',get('frmInsertarActividades.hCampDespl'));   
+
+       arr[0] = get('frmInsertarActividades.areaResponsable')   
+       set('frmInsertarActividades.cboAreaResp',arr);  
+
+       arr[0] = get('frmInsertarActividades.oidActRef');
+       set('frmInsertarActividades.cbactividadRef',arr); 
+    
+       set('frmInsertarActividades.RebelNoticias',get('frmInsertarActividades.ebelNoticia'));   
+
+       arr[0] = get('frmInsertarActividades.tipoDireccionOid')   
+       set('frmInsertarActividades.cbTipoDirec',arr);   
+       
+       arr[0] = get('frmInsertarActividades.diaLaborable')   
+       set('frmInsertarActividades.cboTipoDias',arr);   
+    
+       //set_combo ('frmInsertarActividades.cbProcAsig', new Array());   
+       //set_combo ('frmInsertarActividades.cbProcDisp', new Array());    
+                      
+       get('frmInsertarActividades.ebelNoticia')=="1"?set('frmInsertarActividades.RebelNoticias','S'):set('frmInsertarActividades.RebelNoticias','N');   
+    
+       arr[0] = get('frmInsertarActividades.codigoTipoActividad')   
+       set('frmInsertarActividades.cboTpAct',arr);   
+    
+       arr[0] = get('frmInsertarActividades.ClaseActividad');   
+       set('frmInsertarActividades.cboClaseAct',arr);
+
+       ocultarCampos();
+    
+       deFLimpiar(str);   
+    
+       focaliza('frmInsertarActividades.cboClaseAct');   
+                      
+    }           
+ }
+//----------------------------------------------------------------------------------//
+ function fLimpiar(){   
+   limpia();   
+ }
+//----------------------------------------------------------------------------------//
+   
+ function ocultarCampos(){   
+    var arr = new Array();   
+    
+   if ((get('frmInsertarActividades.hCasoDeUso')) == ''){   
+          focaliza('frmInsertarActividades.cboMarcas',arr[0]);   
+          accion('frmInsertarActividades.cbactividadRef', '.disabled=true');   
+          set('frmInsertarActividades.RebelNoticias','N');   
+          accion('frmInsertarActividades.cbProcAsig', '.disabled=true');   
+          habilitarOrigen();   
+          deshabilitarTipoDireccion();   
+             
+                     
+     } else if ((get('frmInsertarActividades.hCasoDeUso')) == 'consultar'){   
+    
+               cargarCombosModificar();   
+               accion('frmInsertarActividades.cboMarcas', '.disabled=true');   
+               accion('frmInsertarActividades.cboCanales', '.disabled=true');   
+               accion('frmInsertarActividades.cboClaseAct', '.disabled=true');   
+               accion('frmInsertarActividades.txtcdActividad', '.disabled=true');   
+               accion('frmInsertarActividades.txtdesActividad', '.disabled=true');   
+               accion('frmInsertarActividades.cboTpAct', '.disabled=true');   
+               //accion('frmInsertarActividades.txtActRef', '.disabled=true');
+               iSeleccionado = new Array(); 
+               iSeleccionado[0] = get('frmInsertarActividades.oidActRef');
+               set('frmInsertarActividades.cbactividadRef',iSeleccionado);            
+               accion('frmInsertarActividades.cbactividadRef', '.disabled=true');
+               
+               accion('frmInsertarActividades.txtDias', '.disabled=true');   
+               accion('frmInsertarActividades.txtCampDesp', '.disabled=true');   
+               accion('frmInsertarActividades.cboAreaResp', '.disabled=true');   
+               document.all.RebelNoticias[0].disabled=true;   
+               document.all.RebelNoticias[1].disabled=true;   
+                  
+               accion('frmInsertarActividades.txtCampaAntela', '.disabled=true');   
+               accion('frmInsertarActividades.cbTipoDirec', '.disabled=true');   
+               accion('frmInsertarActividades.cboTipoDias', '.disabled=true');   
+               accion('frmInsertarActividades.cbProcAsig', '.disabled=true');   
+               accion('frmInsertarActividades.cbProcDisp', '.disabled=true');   
+                  
+     } else  if ((get('frmInsertarActividades.hCasoDeUso')) == 'modificar'){   
+                                   focaliza('frmInsertarActividades.cboClaseAct',arr[0]);   
+                                   cargarCombosModificar();
+                                   iSeleccionado = new Array(); 
+                                   iSeleccionado[0] = get('frmInsertarActividades.oidActRef');
+                                   set('frmInsertarActividades.cbactividadRef',iSeleccionado);       
+                                   habilitarOrigen();   
+                                   deshabilitarTipoDireccion();   
+                                   accion('frmInsertarActividades.cboMarcas', '.disabled=true');   
+                                   accion('frmInsertarActividades.cboCanales', '.disabled=true');   
+                                   accion('frmInsertarActividades.txtcdActividad', '.disabled=true'); 
+                                   
+                                  // accion('frmInsertarActividades.cbactividadRef', '.disabled=true');   
+                                 
+            }   
+ }  
+//----------------------------------------------------------------------------------//
+    
+    
+ function cargarCombosModificar(){   
+    
+            iSeleccionado = new Array();    
+            
+            iSeleccionado[0] = get('frmInsertarActividades.valueMarca')==""?"0":get('frmInsertarActividades.valueMarca');   
+            set('frmInsertarActividades.cboMarcas',iSeleccionado);   
+    
+            iSeleccionado = new Array();   
+            
+            iSeleccionado[0] = get('frmInsertarActividades.valueCanal')==""?"0":get('frmInsertarActividades.valueCanal');   
+            set('frmInsertarActividades.cboCanales',iSeleccionado);   
+    
+            iSeleccionado = new Array();    
+            iSeleccionado[0] = get('frmInsertarActividades.diaLaborable')==""?"0":get('frmInsertarActividades.diaLaborable');   
+            set('frmInsertarActividades.cboTipoDias',iSeleccionado);   
+    
+            iSeleccionado = new Array();    
+            iSeleccionado[0] = get('frmInsertarActividades.areaResponsable')==""?"0":get('frmInsertarActividades.areaResponsable');   
+     
+            set('frmInsertarActividades.cboAreaResp',iSeleccionado);   
+    
+            iSeleccionado = new Array();    
+            iSeleccionado[0] = get('frmInsertarActividades.ClaseActividad')==""?"0":get('frmInsertarActividades.ClaseActividad');   
+            set('frmInsertarActividades.cboClaseAct',iSeleccionado);   
+    
+               
+            iSeleccionado = new Array();    
+            iSeleccionado[0] = get('frmInsertarActividades.codigoTipoActividad')==""?"0":get('frmInsertarActividades.codigoTipoActividad');   
+            set('frmInsertarActividades.cboTpAct',iSeleccionado);   
+    
+            get('frmInsertarActividades.ebelNoticia')=="1"?set('frmInsertarActividades.RebelNoticias','S'):set('frmInsertarActividades.RebelNoticias','N');   
+    
+               
+            iSeleccionado = new Array();    
+            iSeleccionado[0] = get('frmInsertarActividades.tipoDireccionOid')==""?"0":get('frmInsertarActividades.tipoDireccionOid');   
+            set('frmInsertarActividades.cbTipoDirec',iSeleccionado);   
+               
+ }
+//----------------------------------------------------------------------------------//
+ function habilitarOrigen(){   
+    if (get('frmInsertarActividades.cboTpAct','T') == 'Actividad origen') {   
+       accion('frmInsertarActividades.cbactividadRef', '.disabled=false');
+       accion('frmInsertarActividades.txtCampDesp', '.disabled=true'); 
+    } else if (get('frmInsertarActividades.cboTpAct','T') == 'Referencia Otra Campaña') {
+       accion('frmInsertarActividades.cbactividadRef', '.disabled=false');   
+       accion('frmInsertarActividades.txtCampDesp', '.disabled=false');   
+    } else {   
+       accion('frmInsertarActividades.cbactividadRef', '.disabled=true');
+       accion('frmInsertarActividades.txtCampDesp', '.disabled=true');
+       set ('frmInsertarActividades.cbactividadRef',' ');   
+    }
+
+    
+    
+ }   
+//----------------------------------------------------------------------------------//    
+    
+ function deshabilitarTipoDireccion(){   
+    if (get('frmInsertarActividades.RebelNoticias') == 'N'){   
+       accion('frmInsertarActividades.cbTipoDirec','.disabled=true');   
+       set ('frmInsertarActividades.cbTipoDirec',' ');    
+    }else{   
+       accion('frmInsertarActividades.cbTipoDirec','.disabled=false');
+    }
+ }
+
+//----------------------------------------------------------------------------------//
+    
+ function mostrarCodigoError(){   
+    
+   var vErrCodigo = get('frmInsertarActividades.errCodigo');   
+   var vErrDescrip = get('frmInsertarActividades.errDescripcion');   
+               
+   if (get('frmInsertarActividades.errDescripcion')!=''){   
+       var wnd = fMostrarMensajeError( vErrCodigo,vErrDescrip);   
+   }   
+ }  
+//----------------------------------------------------------------------------------//
+  
+ function traspasar(listaOrigen,listaDestino){   
+        
+    var vectorValue = new Array();   
+    var vectorDesc = new Array();   
+    
+    vectorValue = get(listaOrigen,'V');   
+    vectorDesc = get(listaOrigen,'T');   
+                 
+    for (var i=0;i <= vectorValue.length - 1;i++){   
+       if ((vectorValue[i] != null) && (vectorValue[i] != '')){   
+          del_combo(listaOrigen,'V', vectorValue[i]);   
+          combo_add(listaDestino,vectorValue[i],vectorDesc[i]);   
+       }   
+    }   
+  }   
+//----------------------------------------------------------------------------------//  
+  
+ function dehabilitarCombo() {   
+   if (get('frmInsertarActividades.cbProcAsig','T') == ''){   
+      accion('frmInsertarActividades.cbProcAsig', '.disabled=true');   
+              
+   }   
+ }
+//----------------------------------------------------------------------------------// 
+    
+ function habilitarcombo() {   
+    accion('frmInsertarActividades.cbProcAsig', '.disabled=false');   
+ }
+
+//----------------------------------------------------------------------------------//
+   
+ function validarAlfanumericoConEspeciales(valor){   
+    
+    var permitidos = "0123456789";   
+    var c;   
+                                  
+    for(var i=0; i<valor.length; i++){   
+       c = valor.charAt(i);   
+       if (permitidos.indexOf(c) == -1 )
+		return false;   
+    }   
+    return true;   
+ }   
+
+ function validarNumeroConNegativo(valor){   
+    
+    var permitidos = "0123456789";   
+    var c;   
+                                  
+    for(var i=0; i<valor.length; i++){   
+       c = valor.charAt(i);   
+       if (permitidos.indexOf(c) == -1 ) {
+			if (i == 0 && c != '-')
+				return false;   
+		 }
+    }   
+    return true;   
+ }   
+
+//----------------------------------------------------------------------------------//    
+   
+   function fGuardar(){   
+    
+    var dias = get ('frmInsertarActividades.txtDias');   
+    var campana = get ('frmInsertarActividades.txtCampaAntela');   
+    var campadespl = get ('frmInsertarActividades.txtCampDesp');   
+    
+    // 19212 - dmorello, 15/06/2006: Si Tipo actividad es Actividad origen o Referencia a otra campaña, el combo Actividad origen es obligatorio; si no se completa, aparece un cartel.
+	if (( (get('frmInsertarActividades.cboTpAct','V')  == '1') && (get('frmInsertarActividades.cbactividadRef') == '') )||
+		( (get('frmInsertarActividades.cboTpAct','V')  == '2') && (get('frmInsertarActividades.cbactividadRef') == '') )) {
+		GestionarMensaje('UIFAC0013',null,null,null);
+		return;
+	}
+
+	if(validarAlfanumericoConEspeciales(campadespl)){
+		if ((get('frmInsertarActividades.cboTpAct','T') == 'Referencia otra Campaña')){    
+          for(var i=0; i <objValidacionSICC.length; i++){   
+			 if(objValidacionSICC[i].nombre == "txtCampDesp"){   
+                 objValidacionSICC[i].requerido = true;   
+                 break;   
+             }   
+		  }   
+        }else{   
+          for(var i=0; i <objValidacionSICC.length; i++){   
+            if(objValidacionSICC[i].nombre == "txtCampDesp"){   
+              objValidacionSICC[i].requerido = false;   
+              break;   
+            }   
+          } 
+	    }
+	}
+    
+    if (validarNumeroConNegativo(dias) && validarAlfanumericoConEspeciales(campana)) {   
+       if ((get('frmInsertarActividades.cboTpAct','T') == 'Actividad origen')||(get('frmInsertarActividades.cboTpAct','T') == 'Referencia otra Campaña')){    
+          for(var i=0; i <objValidacionSICC.length; i++){   
+             if(objValidacionSICC[i].nombre == "cbactividadRef"){   
+                 objValidacionSICC[i].requerido = true;   
+                 break;   
+             }   
+          }   
+       }else{   
+          for(var i=0; i <objValidacionSICC.length; i++){   
+            if(objValidacionSICC[i].nombre == "cbactividadRef"){   
+              objValidacionSICC[i].requerido = false;   
+              break;   
+            }   
+          }   
+       }   
+    
+       if(!sicc_validaciones_generales()){   
+         return false;   
+       }   
+               
+       set('frmInsertarActividades.valueMarca',get('frmInsertarActividades.cboMarcas','V'));   
+       set('frmInsertarActividades.valueCanal',get('frmInsertarActividades.cboCanales','V'));   
+       set('frmInsertarActividades.ClaseActividad',get('frmInsertarActividades.cboClaseAct','V'));   
+       set('frmInsertarActividades.codigoActividad', get('frmInsertarActividades.txtcdActividad'));   
+       set('frmInsertarActividades.nombreActividad',(get('frmInsertarActividades.txtdesActividad')));   
+       set('frmInsertarActividades.codigoTipoActividad',(get('frmInsertarActividades.cboTpAct','V')));   
+       set('frmInsertarActividades.actividadOrigen',(get('frmInsertarActividades.cbactividadRef')));   
+       set('frmInsertarActividades.diasDesplazamiento',get('frmInsertarActividades.txtDias'));   
+   	   set('frmInsertarActividades.hCampDespl',get('frmInsertarActividades.txtCampDesp'));   
+       set('frmInsertarActividades.areaResponsable', get('frmInsertarActividades.cboAreaResp','V'));   
+       set('frmInsertarActividades.ebelNoticia',get('frmInsertarActividades.RebelNoticias'));   
+       set('frmInsertarActividades.campanasAntelacion',get('frmInsertarActividades.txtCampaAntela'));   
+       set('frmInsertarActividades.tipoDireccion',get('frmInsertarActividades.cbTipoDirec','V'));   
+       set('frmInsertarActividades.indFestivo',get('frmInsertarActividades.cboTipoDias','V'));   
+
+       var sProcesosAsignados = '';   
+       var longitud = combo_get('frmInsertarActividades.cbProcAsig','L');   
+
+       if (longitud > 0) {   
+          sProcesosAsignados = combo_get('frmInsertarActividades.cbProcAsig','V',0);   
+       }   
+    
+       for(var i = 1;i < longitud;i++){   
+          sProcesosAsignados += '|' + combo_get('frmInsertarActividades.cbProcAsig','V',i);   
+       }   
+    
+       set('frmInsertarActividades.procesosAsignado',sProcesosAsignados);   
+    
+       if (get('frmInsertarActividades.hCasoDeUso') == 'modificar')   
+          set('frmInsertarActividades.accion','guardar_mod')   
+       else    
+          set('frmInsertarActividades.accion','guardar');   
+    
+    
+       // 19212 - dmorello, 15/06/2006: Se mostrará un cartel de confirmación antes de enviar...
+	   var continuar = GestionarMensaje('938');
+	   if (continuar) {
+		   enviaSICC('frmInsertarActividades');   
+	   }
+    
+    }else{        
+                          
+        if (validarNumeroConNegativo(dias)) {   
+                                    
+           var camp = '';   
+    
+           for(var i=0; i <objValidacionSICC.length; i++){   
+              if(objValidacionSICC[i].nombre == "txtCampaAntela"){   
+                 camp = objValidacionSICC[i].mostrar;   
+              }   
+           }   
+
+           GestionarMensaje("1224", camp, null, null);   
+           focaliza('frmInsertarActividades.txtCampaAntela');   
+                                
+        }else{   
+                                                
+           var dia = '';   
+           for(var i=0; i <objValidacionSICC.length; i++){   
+              if(objValidacionSICC[i].nombre == "txtDias"){   
+                 dia = objValidacionSICC[i].mostrar;   
+              }   
+           }   
+                                                  
+           GestionarMensaje("1224", dia, null, null);   
+           focaliza('frmInsertarActividades.txtDias');   
+                                            
+        }   
+    }   
+    
+ }  
+//--------------------------------------------------------------------------------//
+ function cmbMarca_onChange(){
+
+    var marca = document.getElementById("cboMarcas");
+    var canal = document.getElementById("cboCanales");
+    var oidMarca = marca.value;
+    var oidCanal = canal.value;
+
+    if((oidMarca != '') && (oidCanal != '')){
+       var arr = new Array();
+
+       arr[arr.length]= new Array("oidPais", get('frmInsertarActividades.varPais'));   
+       arr[arr.length]= new Array("oidMarca", oidMarca);   
+       arr[arr.length]= new Array("oidCanal", oidCanal);
+       arr[arr.length]= new Array("oidIdioma", get('frmInsertarActividades.hIdioma'));
+       
+       
+       recargaCombo('frmInsertarActividades.cbactividadRef', 'CRAObtieneActividad', 'es.indra.sicc.dtos.cra.DTOActividad', arr);
+    }
+ }
+ //-----------------------------------------------------------------------------------------------//
+
+ function cmbCanal_onChange(){
+
+    var marca = document.getElementById("cboMarcas");
+    var canal = document.getElementById("cboCanales");
+    var oidMarca = marca.value;
+    var oidCanal = canal.value;
+
+    if((marca != '') && (canal != '')){
+       var arr = new Array();
+
+       arr[arr.length]= new Array("oidPais", get('frmInsertarActividades.varPais'));   
+       arr[arr.length]= new Array("oidMarca", oidMarca);   
+       arr[arr.length]= new Array("oidCanal", oidCanal);
+       arr[arr.length]= new Array("oidIdioma", get('frmInsertarActividades.hIdioma'));
+       
+       
+       recargaCombo('frmInsertarActividades.cbactividadRef', 'CRAObtieneActividad', 'es.indra.sicc.dtos.cra.DTOActividad', arr);
+    }
+ }
+    
+
+ //-----------------------------------------------------------------------------------------------//
+
+function deshabilitarCampanasAntelacion() {
+    if (get('frmInsertarActividades.RebelNoticias') == 'N'){   
+       accion('frmInsertarActividades.txtCampaAntela','.disabled=true');   
+       set ('frmInsertarActividades.txtCampaAntela','');    
+    }else{   
+       accion('frmInsertarActividades.txtCampaAntela','.disabled=false');
+    }
+}
+
+ //-----------------------------------------------------------------------------------------------//
+
+function RebelNoticias_onClick() {
+
+	deshabilitarTipoDireccion();
+	deshabilitarCampanasAntelacion();
+}
+
+    
+ ]]>  
+        
+   </JAVASCRIPT>   
+  <VALIDACION>
+      <ELEMENTO name="cboMarcas" required="true" cod="6" />
+      <ELEMENTO name="cboCanales" required="true" cod="7" />
+      <ELEMENTO name="cboClaseAct" required="true" cod="2191" />
+      <ELEMENTO name="txtcdActividad" required="true" cod="151" />
+      <ELEMENTO name="txtdesActividad" required="true" cod="174" />
+      <ELEMENTO name="cboTpAct" required="true" cod="152" />
+      <!--ELEMENTO name="cbactividadRef" required="false" cod="155" /-->
+      <ELEMENTO name="cboAreaResp" required="true" cod="156" />
+      <ELEMENTO name="cboTipoDias" required="true" cod="2268" />
+      <ELEMENTO name="txtCampaAntela" required="false" cod="158" />
+      <ELEMENTO name="txtDias" required="false" cod="250" />
+      <ELEMENTO name="txtCampDesp" required="false" cod="3206" format="t" chars="1-9\\-" min="0" max="3"/>  
+      <ELEMENTO name="txtDias" required="false" cod="250" format="t" chars="0-9\\-" min="0" max="10"/>      
+  </VALIDACION>   
+
+  
+<FORMULARIO nombre="frmInsertarActividades" oculto="S">
+<VAR nombre="conectorAction" valor="LPMantieneActividades"/>
+<VAR nombre="hCasoDeUso" valor=""/>
+<VAR nombre="accion" valor=""/>
+<VAR nombre="errCodigo" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="exito" valor=""/>
+<VAR nombre="ok" valor=""/>
+<VAR nombre="hIdioma" valor=""/>
+<VAR nombre="oid" valor=""/>
+<VAR nombre="marca" valor=""/>
+<VAR nombre="canal" valor=""/>
+<VAR nombre="valueMarca" valor=""/>
+<VAR nombre="valueCanal" valor=""/>
+<VAR nombre="strMarca" valor=""/>
+<VAR nombre="strCanal" valor=""/>
+<VAR nombre="oidClaseActividad" valor=""/>
+<VAR nombre="codigoTipoActividad" valor=""/>
+<VAR nombre="areaResponsable" valor=""/>
+<VAR nombre="tipoDireccionOid" valor=""/>
+<VAR nombre="diaLaborable" valor=""/>
+<VAR nombre="codigoActividad" valor=""/>
+<VAR nombre="codigoActividadOrigen" valor=""/>
+<VAR nombre="ClaseActividad" valor=""/>
+<VAR nombre="nombreActividad" valor=""/>
+<VAR nombre="tipoActividad" valor=""/>
+<VAR nombre="actividadOrigen" valor=""/>
+<VAR nombre="ebelNoticia" valor=""/>
+<VAR nombre="tipoDireccion" valor=""/>
+<VAR nombre="campanasAntelacion" valor=""/>
+<VAR nombre="oidActRef" valor=""/>
+
+<VAR nombre="procesosAsignado" valor=""/>
+<VAR nombre="procesosDisponible" valor=""/>
+
+
+<VAR nombre="diasDesplazamiento" valor=""/>
+<VAR nombre="accesoOid" valor=""/>
+<VAR nombre="indEbel" valor=""/>
+<VAR nombre="indFestivo" valor=""/>
+<VAR nombre="actividadOrigenDescripcion" valor=""/>
+<VAR nombre="descripcionLarga" valor=""/>
+<VAR nombre="hPais" valor=""/>
+<VAR nombre="varPais" valor=""/>
+<VAR nombre="hPrograma" valor=""/>
+<VAR nombre="hIPCliente" valor=""/>
+<VAR nombre="hCampDespl" valor=""/>
+
+
+
+
+
+
+
+<CAPA nombre="capaContenido" colorf="#F0F0F0"  borde="0" imagenf="" repeat="" padding="" visibilidad="" contravsb="" x="0" y="0" zindex="">
+
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+
+
+
+     <tr> 
+      <td><IMG src="b.gif"/></td>
+      
+      <td>
+	<fieldset><legend class="legend"><LABELC nombre="lblDatosAct" alto="13" filas="1" valor="Datos de actividad" id="legend" cod="00493"/></legend> 
+          <!---primera fila-->
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td><LABELC nombre="lblPais" alto="13" filas="1" valor="" id="datosTitle" cod="5"/></td>                   
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lbl_marca" alto="13" filas="1" valor="" id="datosTitle" cod="6"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lbl_canal" alto="13" filas="1" valor="" id="datosTitle" cod="7"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td  nowrap="nowrap">
+                    <LABELC nombre="lblPaisActual" alto="13" filas="1" valor="" id="datosCampos" codi="5"/>  
+                   </td>  
+                   <td><IMG src="b.gif" width="25" height="8"/></td>  
+                   <td  nowrap="nowrap">
+                    <COMBO nombre="cboMarcas" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onshtab="vaAlPrimeroMarcas();" onchange="cmbMarca_onChange();">
+                      	<ROWSET>
+                      	</ROWSET>
+                    </COMBO>
+                   </td> 
+                   <td><IMG src="b.gif" width="25" height="8"/></td>  
+                   <td  nowrap="nowrap">
+                    <COMBO nombre="cboCanales" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onchange="cmbCanal_onChange();">
+                      	<ROWSET>
+                      	</ROWSET>
+                    </COMBO>
+                   </td>                
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+       <!---fin primera fila-->
+               <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblClaseAct" alto="13" filas="1" valor="Clase actividad" id="datosTitle" cod="2191"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>                    
+                   <td><LABELC nombre="lbl_cdActividad" alto="13" filas="1" valor="" id="datosTitle" cod="151"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td colspan="3"><LABELC nombre="lbl_desActividad" alto="13" filas="1" valor="" id="datosTitle" cod="174"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lbl_tipoActividad" alto="13" filas="1" valor="" id="datosTitle" cod="152"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td  nowrap="nowrap">
+                      <COMBO nombre="cboClaseAct" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onshtab="vaAlPrimero();">
+                      	<ROWSET>
+
+                      	</ROWSET>
+                      </COMBO>
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>                   
+                   <td  nowrap="nowrap">
+                      <CTEXTO nombre="txtcdActividad" id="datosCampos" max="2" tipo="" onchange="" req="S" size="2" valor="" validacion="" />
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td  nowrap="nowrap">
+                      <CTEXTO nombre="txtdesActividad" id="datosCampos" max="40" tipo="" onchange="" req="S" size="53" valor="" validacion="" />
+                   </td>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><IMG src="iconmultidioma.gif" onclick= "levantarI18N('frmInsertarActividades','1');" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td  nowrap="nowrap">
+                      <COMBO nombre="cboTpAct" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onchange="habilitarOrigen();">
+                      	<ROWSET>
+                        <ROW ID="2">
+                              <CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="2"/>
+                              <CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="Referencia Otra Campaña"/>
+                        </ROW>
+                        <ROW ID="1">
+                              <CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="1"/>
+                              <CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="Actividad origen"/>
+                        </ROW>                        
+                      	<ROW ID="0">
+                              <CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="0"/>
+                              <CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="Fija"/>
+                        </ROW>
+                      	</ROWSET>
+                      </COMBO>
+                   </td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+       
+       
+       	       <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td><LABELC nombre="lbl_actividadRef" alto="13" filas="1" valor="" id="datosTitle" cod="155"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lbl_dias" alto="13" filas="1" valor="" id="datosTitle" cod="250"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lbl_campDesp" alto="13" filas="1" valor="" id="datosTitle" cod="3206"/></td>
+				   <td><IMG src="b.gif" width="25" height="8"/></td> 
+				   <td><LABELC nombre="lbl_areaResp" alto="13" filas="1" valor="" id="datosTitle" cod="156"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td  nowrap="nowrap">
+                    <COMBO nombre="cbactividadRef" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                      	<ROWSET>
+                      	</ROWSET>
+                    </COMBO>
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td  nowrap="nowrap">
+                      <CTEXTO nombre="txtDias" id="datosCampos" max="5" tipo="" onchange="" req="N" size="6" valor="" validacion="" />
+                   </td>
+				   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td  nowrap="nowrap">
+                      <CTEXTO nombre="txtCampDesp" id="datosCampos" max="2" tipo="" onchange="" req="N" size="2" valor="" validacion="" />
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td  nowrap="nowrap">
+                    <COMBO nombre="cboAreaResp" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="">
+                      	<ROWSET>
+                      	</ROWSET>
+                    </COMBO>
+                   </td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+              
+
+       	       <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td> 
+                   <td><LABELC nombre="lbl_ebelNoticias" alto="13" filas="1" valor="" id="datosTitle" cod="157"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lbl_campaAntela" alto="13" filas="1" valor="" id="datosTitle" cod="158"/></td>                  
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lbl_TipoDirec" alto="13" filas="1" valor="" id="datosTitle" cod="159"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lbl_tipo_dias" alto="13" filas="1" valor="" id="datosTitle" cod="2268"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>   
+                   <td  nowrap="nowrap">
+                         <table width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td class="datosCampos" nowrap="nowrap">
+        		  <RADIOB nombre="RebelNoticias" tipo="H" id="datosCampos" onclick="deshabilitarTipoDireccion();" req="N">
+				<RBINPUT valor="S" check="N" onfocus="" id="datosCampos" cod="117">xxx</RBINPUT>
+				<RBINPUT valor="N" check="N" onfocus="" id="datosCampos" cod="87">ccc</RBINPUT>
+			  </RADIOB>
+		         </td></tr></table>
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td  nowrap="nowrap">
+                      <CTEXTO nombre="txtCampaAntela" id="datosCampos" max="2" tipo="" onchange="" req="N" size="2" valor="" validacion="" />
+                   </td> 
+                   <td><IMG src="b.gif" width="25" height="8"/></td>               
+                   <td  nowrap="nowrap">
+                    <COMBO nombre="cbTipoDirec" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                      	<ROWSET>
+                      	</ROWSET>
+                    </COMBO>
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td  nowrap="nowrap">
+                    <COMBO nombre="cboTipoDias" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="">
+                      	<ROWSET>
+
+                      	 <ROW ID="1">
+                      <CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="1"/>
+                      <CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="Continuos"/>
+                       </ROW>
+
+                                      <ROW ID="0">
+                      <CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="0"/>
+                      <CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="Laborables"/>
+                       </ROW>
+
+                      	</ROWSET>
+                    </COMBO>
+                   </td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+
+
+       	       <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td><LABELC nombre="lbl_procesosAsig" alto="13" filas="1" valor="" id="datosTitle" cod="164"/></td>
+                   <td colspan="3"><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lbl_procesosDisp" alto="13" filas="1" valor="" id="datosTitle" cod="165"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td  nowrap="nowrap">
+                    <COMBO nombre="cbProcAsig" id="datosCampos" size="5" multiple="S" req="N" onchange="dehabilitarCombo();">
+                      	<ROWSET>
+                      	</ROWSET>
+                    </COMBO>
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td  nowrap="nowrap">
+			<table width="100%">
+				<tr>
+					<td class="botonera">
+					<BOTON nombre="btnDer" ID="botonContenido" tipo="html" accion="traspasar('frmInsertarActividades.cbProcAsig','frmInsertarActividades.cbProcDisp');" estado="false" cod="2194" alt="&lt;"/>
+					</td>			
+				</tr>
+				<tr>
+					<td class="botonera">
+					<BOTON nombre="btnIzq" ID="botonContenido" tipo="html" accion="traspasar('frmInsertarActividades.cbProcDisp','frmInsertarActividades.cbProcAsig');" estado="false" cod="2193" alt="&gt;"/>
+					</td>			
+				</tr>
+				
+			</table>
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td  nowrap="nowrap">
+                    <COMBO nombre="cbProcDisp" id="datosCampos" size="5" multiple="S" req="N" ontab="vuelveAlPrimero();" onchange="habilitarcombo();">
+                      	<ROWSET>
+                      	</ROWSET>
+                    </COMBO>
+                   </td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+
+
+
+       
+
+        </fieldset>        
+      </td>
+      
+      <td><IMG src="b.gif" /></td>
+      
+    </tr> 
+
+
+
+    
+    
+    
+    
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+  
+  
+  
+ </CAPA>
+ </FORMULARIO>
+</PAGINA>       

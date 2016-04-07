@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_msg_simulacion.xml,v 1.1 2009/12/03 18:45:12 pecbazalar Exp $
+   contenido MSG
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_msg_simulacion" cod="" titulo="Simulación de mensajes"  estilos="estilosB3.css" colorf="#F0F0F0" 
+	msgle="Simulación de mensajes" onload="onLoadPag();" xml:lang="es">
+
+
+<JS src="sicc_util.js"/>
+<JS src="PaginacionSicc.js"/>
+<JS src="DruidaTransactionMare.js"/>
+<JS src="ConstantesJS.js"/>
+
+
+<JAVASCRIPT>
+<![CDATA[ 
+
+function onLoadPag(){
+		configurarMenuSecundario("frmMsgImprimir");
+		focaliza("frmMsgImprimir.comboPatron");
+		accion("frmMsgImprimir.comboPeriodo",".disabled=true");
+		if (window.dialogArguments) { // Si es modal (se abrió mediante showModalDialog) DBLG500000915
+            btnProxy(2,1);  // boton 'volver', habilitado
+            btnProxy(3,0);  // boton 'Ir a pantalla de inicio', deshabilitado
+     }
+   	if (get('frmMsgImprimir.errDescripcion')!='') {
+		     var wnd = fMostrarMensajeError(get('frmMsgImprimir.errCodigo'), get('frmMsgImprimir.errDescripcion'));
+	    }
+    var acc = get("frmMsgImprimir.accion");  
+    
+      
+}
+
+
+function errorAlGuardar(){
+		if (get("frmMsgImprimir.errCodigo") == "60019")
+				focaliza("frmMsgImprimir.comboPatron");					
+}
+
+
+function fLimpiar(){
+	focaliza("frmMsgImprimir.comboPatron");
+}
+
+function tipoPeriodoOnChange(){
+
+	var pais = get("frmMsgImprimir.hPais");
+	var idioma = get("frmMsgImprimir.hIdioma");
+
+	var arr = new Array();
+	accion("frmMsgImprimir.comboPeriodo",".disabled=false");
+	arr[arr.length] = new Array("oidPais", pais );
+	arr[arr.length] = new Array("oidIdioma", idioma );
+	arr[arr.length] = new Array("oidTipoPeriodo", get("frmMsgImprimir.comboTipoPeriodo")+"");
+
+    recargaCombo('frmMsgImprimir.comboPeriodo', 'SEGObtenerPeriodosPorTipoPeriodo', 'es.indra.sicc.dtos.seg.DTOPeriodosPorTipoPeriodo',arr);
+
+}
+
+
+function accionAceptar(){
+
+	if (sicc_validaciones_generales()){
+  
+    set("frmMsgImprimir.oidPatronH", patron);
+    set("frmMsgImprimir.codigoClienteH", cliente);
+    set("frmMsgImprimir.oidPeridodH", periodo);
+    
+    var obj = new Object();
+    obj.casoDeUso = 'Simular mensajes';
+    var patron = get("frmMsgImprimir.comboPatron");
+    
+    var cliente =get("frmMsgImprimir.txtCliente");
+    var periodo =  get("frmMsgImprimir.comboPeriodo");
+    
+    set("frmMsgImprimir.oidPatronH", patron);
+    set("frmMsgImprimir.codigoClienteH", cliente);
+    set("frmMsgImprimir.oidPeriodoH", periodo); 
+    
+    obj.oidPatron = patron;
+    obj.codigoCliente = cliente;
+    obj.oidPeriodo = periodo;    
+     
+	  var whnd = mostrarModalSICC('LPConsultarMensajes','Simular mensajes', obj,null, null);
+	
+   
+	}
+}
+
+
+
+function buscarCliente(){ 	
+
+    var obj = new Object();
+    var whnd = mostrarModalSICC('LPBusquedaRapidaCliente','',obj);
+
+    if(whnd==null){
+         }else{
+				var oid = whnd[0];
+                var cod = whnd[1];
+                set("frmMsgImprimir.txtCliente", cod);
+				set("frmMsgImprimir.oids", oid);
+         }
+}
+
+function focalizaTab(){
+	focaliza("frmMsgImprimir.comboPatron");	
+}
+
+function focalizaShTab(){  
+	focalizaBotonHTML('botonContenido','btnAceptar');	
+}
+
+
+function fLimpiar(){    
+	set("frmMsgImprimir.txtCliente", "");
+	set("frmMsgImprimir.comboPatron", "");
+	set("frmMsgImprimir.comboTipoPeriodo", "");
+	var aCombo = new Array(new Array("",""));
+	set_combo("frmMsgImprimir.comboPeriodo",aCombo,[]);
+	accion("frmMsgImprimir.comboPeriodo",".disabled=true");	
+	  	
+    focaliza("frmMsgImprimir.comboPatron");	
+}
+
+
+
+function llenarDigitos(){
+              var txt  = document.getElementsByName("txtCliente").item(0);
+              
+              
+              if(get('frmMsgImprimir.txtCliente') != ''){
+              txt.value = get('frmMsgImprimir.txtCliente');              
+              
+              var uno = txt.value;
+              var valor = new Array(10);
+              var valoraux = new Array();
+              
+              valor = txt.value;
+              
+             
+              var con = Math.abs(11);
+              
+              
+              var dif = con-valor.length;
+              
+              if(valor.length == con){
+                return;
+              }
+             if(valor.length < con){
+                   
+                  for(var i=0; i<dif;i++){
+                   valoraux= valoraux + '0';
+                }
+              
+               // valoraux= valoraux + valor;
+               
+              //  set('frmMsgImprimir.txtCliente',valoraux + valor);
+                set('frmMsgImprimir.txtCliente', valoraux + uno );
+
+              }else{ 
+                  txt.value= "";
+            
+            }
+          }else{
+           
+          }
+        }
+       
+     
+   
+]]> 
+
+
+<VALIDACION>
+	<ELEMENTO name="comboPatron" required="true" cod="823"/>
+	<ELEMENTO name="txtCliente" required="true" cod="263"/>
+	<ELEMENTO name="comboTipoPeriodo" required="true" cod="132"/>
+	<ELEMENTO name="comboPeriodo" required="true" cod="276"/>
+
+</VALIDACION>
+	
+</JAVASCRIPT>
+<FORMULARIO nombre="frmMsgImprimir">
+
+
+<VAR nombre="accion" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="errCodigo" valor=""/>
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="LP" valor=""/>
+
+
+<VAR nombre="hPais" valor=""/>
+<VAR nombre="hIdioma" valor=""/>
+
+
+<VAR nombre="oidPatronH" valor=""/>
+<VAR nombre="codigoClienteH" valor=""/>
+<VAR nombre="oidPeriodoH" valor=""/>
+
+
+
+<CAPA nombre="capaUnica" alto="200" ancho="100%" borde="1" imagenf="" 
+      repeat="" padding="" visibilidad="" contravsb="" zindex="" x="0" y="0">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr > 
+      <td><IMG src="b.gif"/></td>
+      <td >
+      
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="Seleccion"  alto="13" filas="1" valor="" id="legend" cod="00513"/></legend>
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+	                  <tr> 
+		            <td colspan="8"><IMG src="b.gif" width="8" height="8"/></td>
+		          </tr>
+		          <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td><LABELC nombre="codPatron"  alto="13" filas="1" valor="" id="datosTitle" cod="823"/></td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td colspan="2"><LABELC nombre="codCliente"  alto="13" filas="1" valor="" id="datosTitle" cod="263"/></td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td ><LABELC nombre="TipoPeriodo"  alto="13" filas="1" valor="" id="datosTitle" cod="132"/></td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td ><LABELC nombre="Periodo"  alto="13" filas="1" valor="" id="datosTitle" cod="276"/></td>
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td nowrap="nowrap"><COMBO nombre="comboPatron" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onshtab="focalizaShTab();">
+			               <ROWSET>
+			                      	
+			               </ROWSET>
+			         </COMBO>
+			        
+			    </td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td nowrap="nowrap"><CTEXTO nombre="txtCliente" id="datosCampos" max="15" tipo="" req="S" size="19" valor="" validacion="" onchange="llenarDigitos();" /></td>
+	                    <td><IMG src="iconBuscar.gif" onclick="buscarCliente();"/></td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td nowrap="nowrap"><COMBO nombre="comboTipoPeriodo" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onchange="tipoPeriodoOnChange();">
+			               <ROWSET>
+			                      	
+			               </ROWSET>
+			         </COMBO>
+			        
+			    </td>
+			    <td><IMG src="b.gif" width="25" height="8"/></td>
+			     <td nowrap="nowrap"><COMBO nombre="comboPeriodo" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="">
+			               <ROWSET>
+			                      	
+			               </ROWSET>
+			         </COMBO>
+			        
+			    </td>
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr> 
+	                    <td colspan="9"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+          </table>
+        </fieldset>
+          
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td >
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0" >        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnAceptar" ID="botonContenido" tipo="html" estado="false" cod="12" accion="accionAceptar();"  ontab="focalizaTab();"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>       
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+
+  </CAPA>                                            
+
+</FORMULARIO>
+
+
+</PAGINA>
+

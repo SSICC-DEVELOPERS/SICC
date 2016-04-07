@@ -1,0 +1,493 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_informe_estado_hora_generar.xml,v 1.1 2009/12/03 18:46:14 pecbazalar Exp $
+   contenido PED
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_informe_estado_hora_generar" cod="0836" titulo="Generar Informe Estado de Digitación Informe por Hora" estilos="estilosB3.css" colorf="#F0F0F0" 
+	msgle="Generar Informe Estado de Digitación Informe por Hora" onload="onLoad();" xml:lang="es">
+
+   <JS src="sicc_util.js"/>   
+   <JS src="PaginacionSicc.js"/>    
+   <JS src="DruidaTransactionMare.js"/>
+
+<JAVASCRIPT>
+
+<![CDATA[
+
+    function onLoad(){
+      
+      configurarMenuSecundario('Formulario');
+      focaliza('Formulario.cbMarca');
+    
+    }
+
+//------------------------------------------------------------------------------
+
+    function generar(){
+      
+      if(sicc_validaciones_generales() && validarangofechas(get('Formulario.txtFechaInicio'), get('Formulario.txtFechaFin'))){
+        
+        /*recolectarParametros();
+        set('Formulario.conectorAction', 'PEDEstadoDigitacionInformeHora');           
+        set('Formulario.accion', 'generar');
+        enviaSICC('Formulario');*/
+      
+        var a = new Object();
+        a.accion = 'generar';
+        a.marca= get('Formulario.cbMarca');
+        a.canal= get('Formulario.cbCanal');
+        a.periodo= get('Formulario.cbPeriodo');      
+        a.fechaInicio= get('Formulario.txtFechaInicio');
+        a.fechaFin=get('Formulario.txtFechaFin');
+        mostrarModalSICC('PEDEstadoDigitacionInformeHora','generar', a);
+        
+      }
+      
+    }
+
+//------------------------------------------------------------------------------
+
+    function validarangofechas(fechaInicioIngresada,fechaFinIngresada){
+    
+      //la fecha desde real del periodo
+      a = get('Formulario.fechaInicioPeriodo');
+      vfechaInicioPeriodo = a.split("/");
+      nfechaInicioPeriodo = vfechaInicioPeriodo[1] + '/' + vfechaInicioPeriodo[0] + '/' + vfechaInicioPeriodo[2];
+      f1Periodo = new Date(nfechaInicioPeriodo);
+      
+      //la fecha desde ingresada a mano
+      b = fechaInicioIngresada;
+      vfechaInicioIngresada = b.split("/");
+      nfechaInicioIngresada = vfechaInicioIngresada[1] + '/' + vfechaInicioIngresada[0] + '/' + vfechaInicioIngresada[2];
+      f1Ingresada = new Date(nfechaInicioIngresada);
+      
+      //la fecha hasta real del periodo
+      c = get('Formulario.fechaFinPeriodo');
+      vfechaFinPeriodo = c.split("/");
+      nfechaFinPeriodo = vfechaFinPeriodo[1] + '/' + vfechaFinPeriodo[0] + '/' + vfechaFinPeriodo[2];
+      f2Periodo = new Date(nfechaFinPeriodo);
+    
+      //la fecha hasta ingresada a mano
+      d = fechaFinIngresada;
+      vfechaFinIngresada = d.split("/");
+      nfechaFinIngresada = vfechaFinIngresada[1] + '/' + vfechaFinIngresada[0] + '/' + vfechaFinIngresada[2];
+      f2Ingresada = new Date(nfechaFinIngresada);
+      
+      
+      if (f1Ingresada > f2Ingresada){
+        
+        cdos_mostrarAlert(GestionarMensaje('936'));
+        focaliza('Formulario.txtFechaFin');
+        return false;
+      
+      }else{
+        
+        if((f1Ingresada < f1Periodo) || (f1Ingresada > f2Periodo)){
+          cdos_mostrarAlert("La fecha de inicio ingresada no está dentro del periodo seleccionado.");
+          focaliza('Formulario.txtFechaInicio');
+          return false;
+        }
+        
+        if((f2Ingresada > f2Periodo) || (f2Ingresada < f1Periodo)){
+          cdos_mostrarAlert("La fecha de fin ingresada no está dentro del periodo seleccionado.");
+          focaliza('Formulario.txtFechaFin');
+          return false;
+        }
+        
+        return true;
+      
+      }
+      
+      
+    }
+
+//------------------------------------------------------------------------------
+
+    function recolectarParametros(){
+      
+      set('Formulario.marca', get('Formulario.cbMarca'));
+      set('Formulario.canal', get('Formulario.cbCanal'));      
+      set('Formulario.periodo', get('Formulario.cbPeriodo'))      
+      set('Formulario.fechaInicio', get('Formulario.txtFechaInicio'));
+      set('Formulario.fechaFin', get('Formulario.txtFechaFin'));      
+      
+   }
+    
+//------------------------------------------------------------------------------
+
+    function fLimpiar(){
+      
+      var aCombo = new Array(new Array("",""));
+      set_combo('Formulario.cbPeriodo', aCombo, []);
+      
+      focaliza('Formulario.cbMarca'); 
+      
+   }
+
+//------------------------------------------------------------------------------
+
+  function onchangeMarcaCanal(){
+  /*opcionesPeriodo = new Array();
+    set_combo('Formulario.cbPeriodo',opcionesPeriodo);         
+    
+    set('Formulario.txtFechaInicio', '');
+    set('Formulario.txtFechaFin', '');
+     
+    tipoM = get('Formulario.cbMarca','V');
+    tipoC = get('Formulario.cbCanal','V');
+    combo_add('Formulario.cbPeriodo', '', '');
+    
+    for(var k=0;k<lstPeriodo.datos.longitud;k++) {
+      for(var y=0;y<tipoM.length;y++){
+        for(var x=0;x<tipoC.length;x++){
+          if ((lstPeriodo.datos.ij(k,2) == tipoM[y])&&(lstPeriodo.datos.ij(k,3) == tipoC[x])){
+            combo_add('Formulario.cbPeriodo',lstPeriodo.datos.ij(k,0),lstPeriodo.datos.ij(k,1));
+          }
+        }
+      }
+    }*/
+     opcionesPeriodo = new Array();
+     set_combo('Formulario.cbPeriodo',opcionesPeriodo);
+     combo_add('Formulario.cbPeriodo', '', '');
+
+	 var pais = get('Formulario.pais');
+     var tipoM = get('Formulario.cbMarca','V');
+     var tipoC = get('Formulario.cbCanal','V');
+
+     var arr = new Array();
+     arr[arr.length] = ['oidPais', pais];
+     arr[arr.length] = ['marca', tipoM];
+     arr[arr.length] = ['canal', tipoC];
+	 if (tipoM!='' && tipoC!='') {
+	     recargaCombo("Formulario.cbPeriodo", "CRAObtenerPeriodos", "es.indra.sicc.dtos.cra.DTOPeriodo", arr);
+     }
+	 seteoFechasDdeHta();
+  }
+
+//------------------------------------------------------------------------------
+
+function seteoFechasDdeHta() {
+  //recorro oculta, que contiene TODOS los periodos
+  oidPeri = get('Formulario.cbPeriodo','V');
+  if (oidPeri != ''){
+      /*for(var k=0;k<lstPeriodo.datos.longitud;k++) {
+          if (lstPeriodo.datos.ij(k,0) == oidPeri[0]) {
+            set('Formulario.txtFechaInicio', lstPeriodo.datos.ij(k,4));
+            set('Formulario.fechaInicioPeriodo', lstPeriodo.datos.ij(k,4));
+            set('Formulario.txtFechaFin', lstPeriodo.datos.ij(k,5));
+            set('Formulario.fechaFinPeriodo', lstPeriodo.datos.ij(k,5));
+            break;
+          }
+        }*/
+	var pais = get('Formulario.pais');
+    var arr = new Array();
+    arr[arr.length] = ['oid', oidPeri];
+    arr[arr.length] = ['oidPais', pais];
+	var datos = new Array();
+    recargaCombo("Formulario.cbPeriodo", "CRAobtieneFechasPeriodo","es.indra.sicc.dtos.cra.DTOPeriodo", arr,"salidaRecarga(datos)");    
+  }else{
+        set('Formulario.txtFechaInicio', '');
+        set('Formulario.txtFechaFin', '');
+  }
+}
+
+function salidaRecarga( datos )	{
+	 
+	//alert( datos[0] );
+	var formato = get('Formulario.formatoFecha').toLowerCase();
+    set('Formulario.txtFechaInicio', formateaFechaJava( datos[0][0], formato) );
+    set('Formulario.fechaInicioPeriodo', formateaFechaJava( datos[0][0], formato) );
+    set('Formulario.txtFechaFin', formateaFechaJava( datos[0][1], formato) );
+    set('Formulario.fechaFinPeriodo', formateaFechaJava( datos[0][1], formato) );
+	return false;
+} 
+
+function formateaFechaJava( fecha, formato )	{
+
+	var nuevaFecha;
+	if (formato=='dd/mm/yyyy')	{
+	    vfecha = fecha.split("-");
+	    nuevaFecha = vfecha[2] + '/' + vfecha[1] + '/' + vfecha[0]; 
+	}
+	else if (formato=='mm/dd/yyyy')	{
+	    vfecha = fecha.split("-");
+	    nuevaFecha = vfecha[2] + '/' + vfecha[0] + '/' + vfecha[1]; 
+	}
+	else if (formato=='yyyy/mm/dd')	{
+	    vfecha = fecha.split("-");
+	    nuevaFecha = vfecha[0] + '/' + vfecha[1] + '/' + vfecha[2]; 
+	}
+	else if (formato=='dd-mm-yyyy')	{
+	    vfecha = fecha.split("-");
+	    nuevaFecha = vfecha[2] + '-' + vfecha[1] + '-' + vfecha[0]; 
+	}
+	else {
+		nuevaFecha = fecha;
+	}
+	return nuevaFecha;
+}
+//------------------------------------------------------------------------------
+
+    function arrayComponentes(){
+              var arr = new Array();
+              arr[arr.length]= new Array("cbMarca","");
+              arr[arr.length]= new Array("cbCanal","");
+              arr[arr.length]= new Array("cbPeriodo","");              
+              arr[arr.length]= new Array("txtFechaInicio","");
+              arr[arr.length]= new Array("txtFechaFin","");
+              arr[arr.length]= new Array("btnGenerarInforme","BOTON");
+              
+              return arr;
+          }
+          function tabGenerico(nombreComp, tipotab){       
+            var arr = arrayComponentes();
+            var tabular = false;
+            var nombreFormulario = getFormularioSICC();
+            var j = 0;
+            var k = arr.length;
+            if (tipotab != "sh") {
+                j = j-1;                
+                k = k-1;
+            }
+
+            while(j<k){
+                var t;
+                if(tipotab == "sh"){
+                  k--;
+                  t = k;
+                } else{
+                  j++;
+                  t = j;                  
+                }
+                  
+                var nombre = arr[t][0];
+                var tipo = arr[t][1];
+                if (tabular==false){
+                  if (nombreComp==nombre){
+                      tabular=true;
+                      if (tipotab == "sh"){
+                        if (k==0) k= arr.length;
+                      } else {
+                        if ((j+1)==arr.length)  j = -1;
+                      }
+                  }                
+                } else {
+                  try {
+                    var name = nombreFormulario+"."+nombre;
+                    if (tipo=="BOTONXY"){
+                       focalizaBotonHTML_XY(nombre);
+                    } else if (tipo=="BOTON") {
+                       focalizaBotonHTML("botonContenido",nombre)
+                    } else {
+                       focaliza(name);
+                    }
+                    return;
+                  } catch (e) {
+                  }
+                }
+            }
+          } 
+//------------------------------------------------------------------------------               
+
+]]>
+
+</JAVASCRIPT>
+
+<VALIDACION>
+    
+    <ELEMENTO name="txtFechaInicio" required="false" cod="274" format="F" />
+    <ELEMENTO name="txtFechaFin" required="false" cod="251" format="F" />
+      
+</VALIDACION>
+<FORMULARIO nombre="Formulario">
+<VAR nombre="accion" valor="" />
+<VAR nombre="conectorAction" valor="PEDEstadoDigitacionInformeHora" />
+<VAR nombre="casoDeUso" valor=""/>
+<VAR nombre="errCodigo" valor="" />
+<VAR nombre="errDescripcion" valor="" />
+<VAR nombre="idioma" valor="" />
+
+<VAR nombre="pais" valor=""/>
+<VAR nombre="marca" valor="" />
+<VAR nombre="canal" valor="" />
+<VAR nombre="periodo" valor="" />
+<VAR nombre="fechaInicio" valor="" />
+<VAR nombre="fechaFin" valor="" />
+
+<VAR nombre="fechaInicioPeriodo" valor="" />
+<VAR nombre="fechaFinPeriodo" valor="" />
+<VAR nombre="formatoFecha" valor="" />
+
+<CAPA nombre="capa">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblCriteriosSeleccion"  filas="1" valor="" id="legend" cod="00275"/></legend>
+          <!---primera fila-->
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+         
+          <!--<tr><td>
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                 <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblPais" filas="1" id="datosTitle" cod="5" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td class="datosCampos"><LABELC nombre="lbltxtPais" filas="1" id="datosCampos" cod="" />xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1</td>
+	           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>-->
+          
+          <tr><td>
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblMarca" filas="1" id="datosTitle" cod="6" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblCanal" filas="1" id="datosTitle" cod="7" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbMarca" size="1" multiple="N" onchange="onchangeMarcaCanal();" valorinicial="" textoinicial="" id="datosCampos" req="N" ontab="tabGenerico('cbMarca');" onshtab="tabGenerico('cbMarca','sh');">
+                		<ROWSET>
+                  			
+                  	 	</ROWSET>	
+	                </COMBO> 
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" valign="top"><COMBO nombre="cbCanal" size="1" multiple="N" onchange="onchangeMarcaCanal();" valorinicial="" textoinicial="" id="datosCampos" req="N" ontab="tabGenerico('cbCanal');" onshtab="tabGenerico('cbCanal','sh');">
+                		<ROWSET>
+                  			
+			              			
+                  	 	</ROWSET>	
+	                </COMBO> 
+	           </td>
+	           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>
+            
+            <tr><td>
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+               
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblPeriodo" filas="1" id="datosTitle" cod="276" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblFechaInicio" filas="1" id="datosTitle" cod="274" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblFechaFin" filas="1" id="datosTitle" cod="251" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbPeriodo" size="1" multiple="N" valorinicial="" textoinicial="" id="datosCampos" req="N" ontab="tabGenerico('cbPeriodo');" onshtab="tabGenerico('cbPeriodo','sh');" onchange="seteoFechasDdeHta()">
+                		<ROWSET>
+                  			
+			              			
+                  	 	</ROWSET>	
+	                </COMBO> 
+	           </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap"><CTEXTO nombre="txtFechaInicio" id="datosCampos" max="10" tipo="" onchange="" req="N" size="12" valor="" validacion=""  ontab="tabGenerico('txtFechaInicio');" onshtab="tabGenerico('txtFechaInicio','sh');"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap"><CTEXTO nombre="txtFechaFin" id="datosCampos" max="10" tipo="" onchange="" req="N" size="12" valor="" validacion="" ontab="tabGenerico('txtFechaFin');" onshtab="tabGenerico('txtFechaFin','sh');" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>
+             
+           </table>
+       <!---fin primera fila-->
+         
+        
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnGenerarInforme" ID="botonContenido" tipo="html" accion="generar();" estado="false" cod="2495" ontab="tabGenerico('btnGenerarInforme');" onshtab="tabGenerico('btnGenerarInforme','sh');"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>       
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+ </CAPA>                                                                                                                                                           
+
+  
+  
+  <CAPA nombre="capaPeriodo" alto="3" ancho="624" colorf="" borde="0" imagenf="" repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="165" zindex="">
+                    <LISTA seleccion="boton" nombre="lstPeriodo" x="12" y="10" ancho="600" alto="3" multisel="-1" incy="10" incx="10" colorf="#EFEFEF" imagenoff="close_no.gif" imagenon="close_up.gif" accion="" sep="|" pixelsborde="2" colorborde="#CCCCCC">
+                              <CABECERA nombre="cab1" height="20">
+                                         <COL id="datosCamposCabecera" ancho="40">Periodo</COL>
+                                         <COL id="datosCamposCabecera" ancho="60">Descripción</COL>                                         
+                                         <COL id="datosCamposCabecera" ancho="440">Marca</COL>
+                                         <COL id="datosCamposCabecera" ancho="440">Canal</COL>
+                                         <COL id="datosCamposCabecera" ancho="440">FechaInicio</COL>
+                                         <COL id="datosCamposCabecera" ancho="440">FechaFin</COL>
+                              </CABECERA>
+                              <PRESENTACION ancho="590" filas="1" bloquesid="['datosCamposCenterImpar', 'datosCamposCenterPar']">
+                                         <COL ancho="40" caracteres="20"/>
+                                         <COL ancho="60" caracteres="20"/>                                         
+                                         <COL ancho="440" caracteres="30"/>
+                                         <COL ancho="440" caracteres="30"/>
+                                         <COL ancho="440" caracteres="30"/>
+                                         <COL ancho="440" caracteres="30"/>
+                              </PRESENTACION>
+                              <ROWSET>
+                              </ROWSET>
+                    </LISTA>
+          </CAPA>     
+
+  
+  
+
+</FORMULARIO>
+</PAGINA>

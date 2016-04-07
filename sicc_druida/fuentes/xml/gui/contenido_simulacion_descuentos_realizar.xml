@@ -1,0 +1,407 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_simulacion_descuentos_realizar.xml,v 1.1 2009/12/03 18:46:28 pecbazalar Exp $
+   contenido DTO
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_simulacion_descuentos_realizar" cod="0282" titulo="Realizar simulación de descuento" estilos="estilosB3.css" colorf="#F0F0F0" 
+	msgle="" onload="onLoadPag();" xml:lang="es">
+<!-- Barra Modificar Solicitudes cod="0336"-->
+
+ <JS src="sicc_util.js"/>   
+ <JS src="PaginacionSicc.js"/>   
+ <JS src="DruidaTransactionMare.js"/> 
+
+ 
+<JAVASCRIPT>
+  <![CDATA[ 
+
+  function onLoadPag()  {
+    configurarMenuSecundario("formulario");
+    fMostrarMensajeError();
+//alert( 'accion : ' + get('formulario.accion') );
+//alert('hDetalleSolicitudes: ' + get('formulario.hDetalleSolicitudes') );
+   
+    document.all.btnSeleccionarSolicitud.focus();
+    DrdEnsanchaConMargenDcho('listado1',12);
+   
+    document.all["Cplistado1"].style.visibility='visible';
+    document.all["CpLin1listado1"].style.visibility='visible';
+    document.all["CpLin2listado1"].style.visibility='visible';
+    document.all["CpLin3listado1"].style.visibility='visible';
+    document.all["CpLin4listado1"].style.visibility='visible';
+    document.all["primera1Div"].style.visibility='hidden';
+    document.all["ret1Div"].style.visibility='hidden';
+    document.all["ava1Div"].style.visibility='hidden';
+    document.all["separaDiv"].style.visibility='hidden';
+    document.all["btnCalcularDiv"].style.visibility='';
+    document.all["btnAprobarDiv"].style.visibility='';
+    document.all["btnSeleccionarSolicitudDiv"].style.visibility='';
+    document.all["btnModificarSolicitudDiv"].style.visibility=''; 
+    document.all["btnDetalleDiv"].style.visibility=''; 
+   
+    if (get('formulario.hBtnAProbarHab') == 0)
+    {
+        deshabilitarHabilitarBoton('botonContenido','btnAprobar','D');
+        deshabilitarHabilitarBoton('botonContenido','btnCalcular','A');
+    }
+    else
+    {
+        deshabilitarHabilitarBoton('botonContenido','btnAprobar','A');
+        deshabilitarHabilitarBoton('botonContenido','btnCalcular','D');
+    }
+        
+    eval (ON_RSZ);   
+  }
+
+//formulario
+//listado1
+//mipgndo
+//btnCalcular
+//btnAprobar
+//btnSeleccionarSolicitud
+//btnModificarSolicitud
+//btnDetalle
+//-----------------------------------------------------------------------------------------------------------------------------
+  function accionCalcular()  {
+
+    /*
+    if ( get('formulario.accion') == "" )  {
+    //-> deshabilitar los botones aprobar y calcular, y dejar habilitados los botones modificarSolicitud y seleccionarSolicitudes
+      return;
+    }
+    if ( get('formulario.accion') == "calcular" )  {
+    //deshabilitando el botón "calcular" y habilitando el botón "aprobar"
+      return;
+    }*/
+    set('formulario.accion','calcular');
+    enviaSICC('formulario');
+  }
+//-----------------------------------------------------------------------------------------------------------------------------
+  function accionAprobar()  {
+   /* if ( get('formulario.accion') == "" )  {
+    //-> deshabilitar los botones aprobar y calcular, y dejar habilitados los botones modificarSolicitud y seleccionarSolicitudes
+      return;
+    }
+    if ( get('formulario.accion') == "modificar" )  {
+      return;
+    }*/
+    set('formulario.accion','aprobar');
+    enviaSICC('formulario');
+  }
+//-----------------------------------------------------------------------------------------------------------------------------
+  function accionSeleccionarSolicitudes()  {
+    set('formulario.accion','seleccionarSolicitudes');
+    enviaSICC('formulario');
+  }
+//-----------------------------------------------------------------------------------------------------------------------------
+function accionModificarSolicitud()  {
+	//-> Abrir una ventana modal con la llamada en oculto a la lp LPModificarSolicitud con
+    //accion = ""
+    var parametros = new Object();
+    codigo = listado1.codSeleccionados();
+
+    if ( codigo.length == 1 )  {
+		parametros.hOidSolicitud = codigo[0].toString();
+		parametros.hCodCliente = listado1.extraeDato(codigo[0] ,0);
+		parametros.hNombreCliente = listado1.extraeDato(codigo[0] ,1);
+		parametros.hCampaniaSolicitud = listado1.extraeDato(codigo[0] ,2);
+		parametros.hFechaSolicitud = listado1.extraeDato(codigo[0] ,3);
+		parametros.hMontoTotalSolicitud = listado1.extraeDato(codigo[0] ,4);
+		parametros.hDetalleSolicitudes = get('formulario.hDetalleSolicitudes');
+		var detalle = mostrarModalSICC("LPModificarSolicitud","", parametros );
+
+		//mostrar datos de sesion ( incidencia 7765 )
+		//alert('detalle: ' + detalle );
+		if ( detalle != "" )  { //por si cierra la modal sin ACEPTAR los cambios
+			//-> Cuando se cierre la ventana se recupera un array de posiciones, que se guarda en la 
+			//posición de la solicitud correspondiente en la variable oculta "detalleSolicitudes" sustituyendo
+			//los datos que hubiese en la posición.
+			//Nota: Previamente se realizan algunas transformaciones de estructuras de datos para realizar mas
+			//facilmente la sustitucion.
+
+			//transformacion de array de strings en array de arrays
+			var detalleS = new Array();
+			detalleS = detalle.split("|");
+			//alert('detalle spliteado: ' + detalleS );
+			var detalleSolicitud = new Array();
+			longitud = detalleS.length - 1;
+			cantidadRegs = longitud / 5 ;
+			
+			var vTotalLinea = '';
+			var vTotalSolic = 0;
+			var vNumAux = 0;
+
+			//alert('detalleS.length: ' + detalleS.length);
+
+			for (var k = 0; k < detalleS.length; k += 5){
+
+				if (detalleS[k + 3] != null && detalleS[k + 3] != undefined){
+					vNumAux = eval(detalleS[k + 3]);
+					vTotalSolic += vNumAux;
+				}
+			}
+
+			var seleccionados = listado1.codSeleccionados();
+			listado1.insertaDato(seleccionados[0], 4, '' + numeroDeFormatoSICC(vTotalSolic));
+
+			for (f=0; f<cantidadRegs; f++){
+				//detalleSolicitud contiene el detalle de una solicitud,
+				//devuelto desde la pantalla contenido_simulacion_descuentos_realizar.
+				//Luego se insertara en detalleSolicitudes que contiene todas las solicitudes.
+				detalleSolicitud[f] = new Array();
+
+				for (c=0; c<5;c++){
+					detalleSolicitud[f][c] = detalleS[c + f*5];
+				}
+			}
+
+			//alert('detalleSolicitud : ' + detalleSolicitud );
+			//transformacion de strings concatenados por "|",  a array de arrays ( de todas las solicitudes )
+			//alert('hDetalleSolicitudes: ' + get('formulario.hDetalleSolicitudes') );
+        
+			var ds = get('formulario.hDetalleSolicitudes');
+
+			//alert('ds: ' + ds );
+			var arrayTemp = ds.split("|");
+			//alert('arrayTemp: ' + arrayTemp );
+			
+			detalleSolicitudes = new Array();
+			cantidadPosiciones = ( ( arrayTemp.length - 1 ) / 5 );
+			
+			for (c=0; c<cantidadPosiciones; c++){
+				detalleSolicitudes[c] = new Array();
+				detalleSolicitudes[c][0] = arrayTemp[0 + 5*c ];
+				detalleSolicitudes[c][1] = arrayTemp[1 + 5*c ];
+				detalleSolicitudes[c][2] = arrayTemp[2 + 5*c ];
+				detalleSolicitudes[c][3] = arrayTemp[3 + 5*c ];
+				detalleSolicitudes[c][4] = arrayTemp[4 + 5*c ];          
+			}
+
+			//alert('detalleSolicitudes: ' + detalleSolicitudes );
+			//insercion del subconjunto detalleSolicitud en hDetalleSolicitudes
+			//hDetalleSolicitudes = detalleSolicitud ( "oidSolicitud|oidPosicion|cantidad|valorTotal|descuento" )
+			
+			for (s=0; s<detalleSolicitud.length; s++){
+				for (f=0; f<detalleSolicitudes.length; f++){
+					if (detalleSolicitud[s][0] == detalleSolicitudes[f][0])  {
+						if (detalleSolicitud[s][1] == detalleSolicitudes[f][1])  {
+							detalleSolicitudes[f][2] = detalleSolicitud[s][2];
+							detalleSolicitudes[f][3] = detalleSolicitud[s][3];
+							detalleSolicitudes[f][4] = detalleSolicitud[s][4];
+						}
+					}
+				}
+			}
+
+			//alert('detalleSolicitudes modif: ' + detalleSolicitudes );
+			//genera strings concatenados para asignarlo a variable oculta
+
+			var detSol = "";
+			
+			for (f=0; f<detalleSolicitudes.length; f++)  {
+				detSol =  detSol +
+                detalleSolicitudes[f][0] + '|' +
+                detalleSolicitudes[f][1] + '|' +
+                detalleSolicitudes[f][2] + '|' +
+                detalleSolicitudes[f][3] + '|' +
+                detalleSolicitudes[f][4] + '|';
+			}
+
+			//alert('detSol concat | : ' + detSol );
+			
+			set('formulario.hDetalleSolicitudes', detSol);
+			set('formulario.accion','modificar');
+		}
+	} else {
+		GestionarMensaje('2525');
+		document.all.btnModificarSolicitud.focus();
+	}
+}
+
+//-----------------------------------------------------------------------------------------------------------------------------
+  function accionDetalle()  {
+    //-> Abrir una ventana modal con la llamada en oculto a la lp LPSimulacionDescuento con
+    //accion = "detalle"
+    if ( listado1.codSeleccionados().length == 1 )  {
+      var parametros = new Object();
+      codigo = listado1.codSeleccionados();
+      parametros.hOidSolicitud = codigo[0].toString();
+      parametros.hCodCliente = listado1.extraeDato(codigo[0] ,0);
+      parametros.hNombreCliente = listado1.extraeDato(codigo[0] ,1);
+      parametros.hCampaniaSolicitud = listado1.extraeDato(codigo[0] ,2);
+      parametros.hFechaSolicitud = listado1.extraeDato(codigo[0] ,3);
+      parametros.hMontoTotalSolicitud = listado1.extraeDato(codigo[0] ,4);
+      parametros.hDetalleSolicitudes = get('formulario.hDetalleSolicitudes');
+      mostrarModalSICC("LPSimulacionDescuento","detalle", parametros );
+    } else {
+        GestionarMensaje('2525');
+        document.all.btnDetalle.focus();
+      }
+  }
+//-----------------------------------------------------------------------------------------------------------------------------
+  function focalizarOnShTabBC()  {
+    document.all.btnDetalle.focus();
+  }
+  
+  function focalizarOnTabBC()  {
+    try {
+      document.all.btnAprobar.focus();
+    } catch (e)  {
+        document.all.btnSeleccionarSolicitud.focus();
+      }
+  }
+
+  function focalizarOnShTabBA()  {
+    try {
+      document.all.btnCalcular.focus();
+    } catch (e)  {
+        document.all.btnDetalle.focus();
+      }
+  }
+
+  function focalizarOnTabBA()  {
+    try {
+      document.all.btnSeleccionarSolicitud.focus();
+    } catch (e)  {
+        document.all.btnModificarSolicitud.focus();
+      }
+  }
+
+  function focalizarOnShTabBSS()  {
+    try {
+      document.all.btnAprobar.focus();
+    } catch (e)  {
+        try  {
+          document.all.btnCalcular.focus();
+        } catch (e)  {
+            document.all.btnDetalle.focus();            
+          }
+      }
+  }
+
+  function focalizarOnTabBSS()  {
+    document.all.btnModificarSolicitud.focus();
+  }
+
+  function focalizarOnShTabBD()  {
+    document.all.btnModificarSolicitud.focus();
+  }
+
+  function focalizarOnTabBD()  {
+    try {
+      document.all.btnCalcular.focus();
+    } catch (e)  {
+        try  {
+          document.all.btnAprobar.focus();
+        } catch (e)  {
+            document.all.btnSeleccionarSolicitud.focus();            
+          }
+      }
+  }
+//-----------------------------------------------------------------------------------------------------------------------------
+
+
+
+]]> 
+</JAVASCRIPT>
+
+<FORMULARIO nombre="formulario">
+
+<VAR nombre="conectorAction" valor="LPSimulacionDescuento"/>
+<VAR nombre="accion" valor=""/>
+
+<VAR nombre="errCodigo" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>
+
+<VAR nombre="hOidDescuento" valor=""/>
+<VAR nombre="hDetalleSolicitudes" valor=""/>
+<VAR nombre="hOidSolicitud" valor=""/>
+
+<VAR nombre="hCodCliente" valor=""/>
+<VAR nombre="hNombreCliente" valor=""/>
+<VAR nombre="hCampaniaSolicitud" valor=""/>
+<VAR nombre="hFechaSolicitud" valor=""/>
+<VAR nombre="hMontoTotalSolicitud" valor=""/>
+
+<!-- INC 12048 -->
+<VAR nombre="hBtnAProbarHab" valor=""/>
+
+
+
+
+
+<CAPA nombre="capa1">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="100%" ><IMG src="b.gif" width="715" height="8"/></td>
+    
+    </tr>
+ </table>
+</CAPA>
+<LISTAEDITABLE nombre="listado1" ancho="691" alto="301" x="12" y="12" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+        <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+        <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+     <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+           <LINEAS>
+        <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="1" horizTitulo="1" horizBase="1"/> 
+        <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="0027" ID="datosTitle" />
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+        <COL ancho="26" minimizable="S" minimizada="N"/>
+        <COL ancho="40" minimizable="S" minimizada="N" orden="alfanumerico"/> 
+        <COL ancho="13" minimizable="S" minimizada="N"/> 
+        <COL ancho="26" minimizable="S" minimizada="N"/>
+        <COL ancho="23" minimizable="S" minimizada="N" orden="alfanumerico"/> 
+           
+       
+      </COLUMNAS>
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+	<COL colFondo="" ID="EstCab" align="center" cod="263">Cód. cliente</COL> 
+	<COL colFondo="" ID="EstCab" cod="264">Nombre cliente</COL> 
+	<COL colFondo="" ID="EstCab" cod="810">Campaña</COL> 
+	<COL colFondo="" ID="EstCab" cod="188">Fecha</COL> 
+	<COL colFondo="" ID="EstCab" cod="920">Monto total</COL> 
+	
+      </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="1" msgErrMaxSel="" 
+             coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+             onLoad="" colorSelecc="#D0D9E8">
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       
+      </DATOS>
+      <ROWSET>
+	
+      </ROWSET>
+      <PAGINADO nombre="mipgndo" ancho="691" sep="$" x="12" class="botonera" y="290" control="|" conector="conectorSandra" rowset="" cargainicial="N">
+        
+         <BOTON nombre="ret1" x="37" y="294" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+        <BOTON nombre="ava1" x="52" y="294" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>
+        
+    </PAGINADO>
+  </LISTAEDITABLE>
+  <BOTON nombre="primera1" x="20" y="294" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();" />      
+  <BOTON nombre="separa" x="59" y="290" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />      
+  <BOTON nombre="btnCalcular" accion="accionCalcular();" onshtab="focalizarOnShTabBC();" ontab="focalizarOnTabBC();" x="13" y="291" ID="botonContenido" tipo="html" estado="false" cod="1300" /> 
+  <BOTON nombre="btnAprobar" accion="accionAprobar();" onshtab="focalizarOnShTabBA();" ontab="focalizarOnTabBA();" x="71" y="291" ID="botonContenido" tipo="html" estado="false" cod="1169" />       
+  <BOTON nombre="btnSeleccionarSolicitud" accion="accionSeleccionarSolicitudes();" onshtab="focalizarOnShTabBSS();" ontab="focalizarOnTabBSS();" x="131" y="291" ID="botonContenido" tipo="html" estado="false" cod="0420" /> 
+  <BOTON nombre="btnModificarSolicitud" accion="accionModificarSolicitud();" x="279" y="291" ID="botonContenido" tipo="html" estado="false" cod="915" /> 
+  <BOTON nombre="btnDetalle" accion="accionDetalle();" onshtab="focalizarOnShTabBD();" ontab="focalizarOnTabBD();" x="408" y="291" ID="botonContenido" tipo="html" estado="false" cod="3" /> 
+ <CAPA nombre="capaEspacio" alto="12" ancho="100%" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="313" zindex="">
+  </CAPA>
+</FORMULARIO>
+</PAGINA>

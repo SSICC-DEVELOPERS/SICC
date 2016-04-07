@@ -1,0 +1,571 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_estructura_geopolitica_pais_modificar.xml,v 1.1 2009/12/03 18:45:40 pecbazalar Exp $
+   contenido ZON
+
+   DRUIDATARGET=/install/cvsiniciales
+	$Id: contenido_estructura_geopolitica_pais_modificar.xml,v 1.1 2009/12/03 18:45:40 pecbazalar Exp $
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_estructura_geopolitica_pais_modificar" titulo="" estilos="estilosB3.css" colorf="#F0F0F0" 
+	msgle="Modificar Estructura Geopolítica de País" onload="initCarga();" xml:lang="es" cod="0104">
+
+<JS src="sicc_util.js"/>
+ 
+<JAVASCRIPT>
+<![CDATA[
+
+var varNoLimpiarSICC = true;
+	 function initCarga() {	
+            DrdEnsanchaConMargenDcho('listado1',12);
+			document.all["Cplistado1"].style.visibility='';
+			document.all["CpLin1listado1"].style.visibility='';
+			document.all["CpLin2listado1"].style.visibility='';
+			document.all["CpLin3listado1"].style.visibility='';
+			document.all["CpLin4listado1"].style.visibility='';
+			document.all["primera1Div"].style.visibility='hidden';
+			document.all["ret1Div"].style.visibility='hidden';
+			document.all["ava1Div"].style.visibility='hidden';
+			document.all["separaDiv"].style.visibility='hidden';
+		
+			eval (ON_RSZ);
+			
+			//visibilidad('capaResultado','O');
+			var correcto = chequeaErrores();			
+			configurarMenuSecundario("frmformula");
+
+			//llenaCajasValoresAnt();
+
+//			alert("correcto: " + correcto);
+			cantNiveles = listado1.datos.length;
+
+			if (correcto == true)
+			{
+					
+					if(cantNiveles > 0) {
+					   document.getElementById("nivel_0").focus();
+					}else{							 
+							 GestionarMensaje("2531", null, null, null);
+							 set("frmformula.conectorAction", "LPDefinirEG");
+							 set("frmformula.accion", "volver");
+						     enviaSICC("frmformula");	
+					}
+
+					//focaliza("frmformula.nivDivPol0");
+					var exito = get("frmformula.exito");
+					if (exito == "S") {
+							 var wnd = fMostrarMensajeExito();
+							 set("frmformula.conectorAction", "LPModificarEG");
+							 set("frmformula.accion", "volver");
+						     enviaSICC("frmformula")
+					 }
+					//setComboDefault('frmformula.hidPaisABuscar', 'frmformula.comboPais');
+					if (get('frmformula.casoDeUso') == "definir") 
+					{
+						//visibilidad('capaResultado','O');
+					}
+			} 
+	 }
+
+	 var cantNiveles = null;
+
+	 function chequeaErrores()
+	 {
+			var codigoError = get("frmformula.errCodigo");
+			var descError = get("frmformula.errDescripcion");
+
+			if (codigoError == "")
+			{		llenaCajasValoresAnt();
+					return true;
+			} else
+			{
+			       // *************************************************************************
+				   // Muestra lo que el usuario ingreso anteriormente, si es el caso
+				   // *************************************************************************
+				   llenaCajasValoresAnt();
+
+  				   fMostrarMensajeError(codigoError, descError);
+					//alert("Codigo de error: " +  codigoError);
+				
+					if (codigoError == 240050001) {
+					    // Envia a la pantalla de inicio
+						 //set("frmformula.	conectorAction", "LPModificarEG");
+						 set("frmformula.conectorAction", "LPInicioBelcorp");
+						 set("frmformula.accion", "volver");						 
+						 enviaSICC("frmformula")
+					}
+					
+					return false;
+			}
+
+	 }
+	
+	function setComboDefault(hid, cb) {
+		 iSeleccionado = new Array(); 
+		 iSeleccionado[0] = get(hid)
+		 set(cb,iSeleccionado);
+	}
+
+ 
+	 function accionaActualizar() {
+			// ********************************************************************************
+			// Se llama para grabar datos.
+			// ********************************************************************************
+
+			var bDatosValidados = false;
+			var bChequeaCorrelatividad = false;
+
+
+			bDatosValidados = chequearDatos();
+			//alert(bDatosValidados);
+			//bDatosValidados = validaCeros();
+			if (bDatosValidados == true)
+			{
+					bChequeaCorrelatividad = chequeaCorrelatividad();
+					if (bChequeaCorrelatividad == true)
+					{
+							enviaDefinir();
+					};
+
+			}
+	 }
+
+	 function chequearDatos()
+	 {	
+			// **********************************************************************************
+			// Chequea que al menos 1 caja de texto tenga contenido
+			// y que sean datos numéricos.
+			// **********************************************************************************
+
+			var i = 0;
+			var bBreak = false;
+			var bTextoVacio = true; 
+			var bCaracteresInvalidos = false;
+			var sContenidoTextBox;
+			var sValorEtiqueta = "";
+			//alert("cant de niveles: " + cantNiveles);
+			
+			while (bBreak == false && i<cantNiveles)
+			{
+ 			  	  sContenidoTextBox = document.getElementById("nivel_" + i).value; //get("frmformula.nivDivPol"+i);
+
+					// Solo si hay contenido en la caja de texto.
+				  if (sContenidoTextBox != "")
+				  {
+ 						 bTextoVacio = false;  // Setea en false para indicar que hay al menos una caja de texto llena.
+						 // Cheque la validez de los caraceteres en esa caja de texto.
+						 bCaracteresInvalidos = validaChars(sContenidoTextBox);
+						 if (bCaracteresInvalidos == false)
+					    {
+								sValorEtiqueta = devuelveEtiqueta(i);
+								GestionarMensaje("959", sValorEtiqueta, null, null);
+								//alert(sValorEtiqueta + " solo puede contener los sig. caracteres: 0123456789");
+								document.getElementById("nivel_" + i ).focus();
+								//focaliza("frmformula.nivDivPol"+i)
+								bBreak = true;
+						  }
+					 }
+				    i++;
+			}
+
+			if (bTextoVacio == true)
+			{  
+				GestionarMensaje("970", null, null, null);
+				document.getElementById("nivel_0").focus();
+				return false;
+			} 
+			if (bBreak == true)  // Si están todas vacias o si hubo un error con los caracteres.
+					return false;
+			else
+				   return true;
+	 }
+
+	 function chequeaCorrelatividad()
+	 {
+			// Chequea que los datos sean correlativos en las cajas de texto, comenzando por 1. 
+			// Para esto, se vale de un vector de cantNiveles-1 elementos. 
+			// En este vector:
+			
+			var arrayNiveles = new Array(cantNiveles);
+			var indicesCajasConTexto = new Array(cantNiveles);  // Sobre un posible maximo de cantNiveles (todas).
+			var indiceBuffer = 0;
+			var cantCajasTextoLlenas = 0 ;
+			var nValor;
+			var bBreak = false;
+			var i = 0;
+			//alert("chequeaCorrelatividad");
+		
+			// **********************************************************************************************
+			// Trae la cantidad de cajas de texto llenas para luego chequear la correlatividad 
+			// de 1 a cantCajasTextoLlenas. 
+			// Nota: Siempre va a haber al menos 1 llena, ya que se chequea antes en otra función. 
+			// Nota 2:Ya se han validado caracteres, asi que siempre contienen numeros.
+			// **********************************************************************************************
+			while (i < cantNiveles)
+			{
+				var nValor = document.getElementById("nivel_" + i).value;  //get("frmformula.nivDivPol" + i);
+				if (nValor != "")
+				{
+					indicesCajasConTexto[cantCajasTextoLlenas] = i;
+					cantCajasTextoLlenas++;
+				}
+				i++;
+			}
+			//alert("Cant de cajas llenas: "  + cantCajasTextoLlenas);
+			//alert("Array con indices de txtBox que contienen texto: " + indicesCajasConTexto);
+
+			if (cantCajasTextoLlenas == 1)  // Si hay llena una sola caja, chequea que tenga un 1.
+			{
+					nValor = document.getElementById("nivel_" + indicesCajasConTexto[0]).value; //get("frmformula.nivDivPol" + indicesCajasConTexto[0] );
+					//alert("nvalor: "  + nValor);
+					if (nValor == "1")
+					{
+					      return true;
+					} else	
+					{
+						GestionarMensaje("964", null, null, null); 
+						//alert("Si va a seleccionar solo un elemento, este tiene que tener orden 1");
+						return false;
+					}
+			} 
+
+			i = 0;
+
+			// **********************************************************************************************
+			// Primero llena arrayNiveles con la cantidad de veces que apareca cada elemento. 
+			// (números de 1 a cantNiveles - los demás los ignora) 
+			// **********************************************************************************************
+			while (i < cantCajasTextoLlenas)
+			{
+				arrayNiveles[i] = 0;
+				i++;
+			}
+			i = 0;
+			while ( i < cantCajasTextoLlenas )
+			{	
+				nValor = document.getElementById("nivel_"+indicesCajasConTexto[i]).value;
+				//alert("nValor: " + nValor);
+				if ( nValor > 0 && nValor <= cantCajasTextoLlenas)  // Entre 1 y cantNiveles. 
+				{
+					arrayNiveles[nValor-1]++;
+					//("nValor " + (nValor-1)+ ": " + arrayNiveles[nValor-1] );
+				}
+				
+				i++;
+			}
+			//("arrayNiveles: " + arrayNiveles);
+
+			// ********************************************************************************************************************
+			// Con el vector seteado, se recorre. Tiene que haber una secuencia de 1s para chequear correctitud,
+			// de principio a fin (0 significa que no se encontro el valor, mas de 1 significa que se repitio un valor).
+			// ********************************************************************************************************************
+			i = 0;
+			var vBuffer = 0;
+			//alert("chequeo de correlatividad");
+			while (i < cantCajasTextoLlenas && bBreak == false)
+			{
+					vBuffer = arrayNiveles[i];
+					if (vBuffer == 0)
+					{
+						GestionarMensaje("965", (i+1), null, null);
+						//alert("No se encontro elemento " + (i+1) + ". Se debe establecer una secuencia desde 1 a " + cantCajasTextoLlenas );
+						bBreak = true;
+					} else if (vBuffer > 1)
+					{
+						GestionarMensaje("966", (i+1), null, null);
+						//alert("Se ha repetido el elemento " + (i+1) + " unas " + vBuffer + " veces");
+						bBreak = true;
+					}
+
+					i++;
+			}
+
+			return !bBreak;			// Devuelve false si hubo algún problema (bBreak = true);
+	 }
+
+	 function validaChars(str)
+	 {
+			var c;		
+			permitidos="0123456789";
+			for (var i=0; i<str.length; i++)
+			{
+				c=str.charAt(i);
+				if ( permitidos.indexOf(c) == -1 ) 
+				  return false;
+				else if ( c == ' ' && i == 0 )
+				  return false;
+				else if ( c == ' ' && i == (str.length-1) )
+					return false;				
+			}	
+			return true;
+		}
+
+		function devuelveEtiqueta(indice) {
+				return listado1.datos[indice][1];
+		}
+
+		function obtieneOidOcultos()
+		{
+ 			 // ******************************************************************************************************			 
+			 // Retorna los valores ocultos de Oid seteados cuando se cargo la tabla dinámica desde la 
+			 // LP. El formato de retorno es oidUno | oidDos|  oidTres | .... (sin los espacios).
+			 // ******************************************************************************************************
+
+			 var i = 0;
+			 var valorARetornar;
+
+			 while ( i < cantNiveles)
+			 {
+					valorOculto = listado1.datos[i][0];   //get("frmformula.codDivPol" + i);
+					//alert("ValorOculto: " + valorOculto);
+					if (valorOculto == "")
+						valorOculto = "NADA";
+					if (i == 0)
+						valorARetornar = valorOculto;
+					else
+						valorARetornar = valorARetornar + "|" + valorOculto;
+					i++;
+			 }
+			 //alert("Valor a retornar: " + valorARetornar);
+			 return valorARetornar;
+
+   	 }
+
+		 function obtieneValoresCajasTexto()
+		 {
+			 // ******************************************************************************************************
+			 // Retorna los valores seteados en la cajas de texto, de arriba hacia abajo. 
+			 // El valor de retorno es nivelEG | nivelEG | nivelEG | ... (sin los espacios).
+ 			 // ******************************************************************************************************
+			 
+			 var i = 0;
+			 var valorARetornar;
+			 while ( i < cantNiveles)
+			 {
+					valorOculto = document.getElementById("nivel_" + i).value;  //get("frmformula.nivDivPol" + i);
+					if (valorOculto == "")
+						valorOculto = "NADA";
+					//alert("ValorOculto: " + valorOculto);
+					if (i == 0)
+						valorARetornar = valorOculto;
+					else
+						valorARetornar = valorARetornar + "|" + valorOculto;
+					i++;
+			 }
+			 //alert("Valor a retornar: " + valorARetornar);
+			 return valorARetornar;
+
+		 }
+
+
+	 function enviaDefinir()
+	 {
+			var oidOcultos = obtieneOidOcultos();
+			var valoresTextBoxes = obtieneValoresCajasTexto();
+
+			set("frmformula.enviaOid", oidOcultos);
+			set("frmformula.enviaNivel", valoresTextBoxes);    
+
+			set("frmformula.accion", "actualizar");
+			set("frmformula.conectorAction", "LPModificarEG");
+			enviaSICC("frmformula");
+	 }
+
+	 function fGuardar()
+	 {
+			// ********************************************************************************
+			// Accion guardar a traves de la barrita. Solo llama a actualiza
+			// ********************************************************************************
+			accionaActualizar() ;
+	 }
+
+	 function fLimpiar()
+	 {
+		  // ********************************
+		  // Recarga la pantalla. 
+		  // ********************************
+			set("frmformula.conectorAction", "LPModificarEG");
+			set("frmformula.accion", "limpiar");
+			enviaSICC("frmformula");
+	 }
+
+	 function fSalir()
+	 {
+			set("frmformula.conectorAction", "LPInicioBelcorp");
+			enviaSICC("frmformula");
+	 }
+
+	 function validaCeros()
+	 {
+			// Chequea que, dentro de los valores numericos posibles ingresados
+			// no se haya ingresado un 0
+			var bBreak = false;
+
+			var i = 0;
+			var nValor = "";
+
+
+			while (bBreak == false && i < nCantNiveles)
+			{
+					nValor = document.getElementById("nivel_" + i).value; //get("frmformula.nivDivPol" + i);
+					if (nValor == "")
+					{
+						GestionarMensaje("967", null, null, null);
+						document.getElementById("nivel_" + i).focus();						
+						bBreak = true;
+					}
+					i++;
+			}
+
+			return !bBreak;  // Devuelve false si hubo algun problema.
+	 }
+
+	 function llenaCajasValoresAnt()
+	 {
+			// **************************************************************************************************************
+			// Llena las cajas de texto con los valores que el usuario habia seleccionado en la pagina anterior
+			// (para usar en caso de errores y recarga de pagina).
+			// **************************************************************************************************************
+
+			var oidAnterior = get("frmformula.hidRecibeOidAnterior");
+			var nivelAnterior = get("frmformula.hidRecibeNivelAnterior");
+			var cantNiveles = get("frmformula.cantNiveles");
+			var i = 0;
+			var oidSplit = oidAnterior.split("|");
+			var nivelSplit = nivelAnterior.split("|");
+
+			//alert("oidAnterior: " + oidAnterior);
+			//alert("nivelAnterior: " + nivelAnterior);
+			//alert("cantNiveles " + cantNiveles);
+
+			 for (i = 0; i < cantNiveles; i++)
+			    if(nivelSplit[i] && nivelSplit[i]!="NADA"){
+					document.getElementById("nivel_" + i).value = nivelSplit[i];
+					//set("frmformula.nivDivPol" + i, nivelSplit[i]);			
+				} else if(nivelSplit[i] && nivelSplit[i]=="NADA"){
+				     document.getElementById("nivel_" + i).value = "";
+				}
+	 }
+
+	 function llenaCajasValoresDefinir()
+	 {
+            // uze ne nuzno
+			// **************************************************************************************************************
+			// Llena las cajas de texto con los valores que el usuario habia seleccionado en el caso de uso 
+			// Definir Estructura Geopolitica. Toma los datos de la variable de form. "valorDefinido"
+			// que se carga desde la LP.
+			// **************************************************************************************************************
+			var textoCajas = get("frmformula.valorDefinido");
+
+			var spliteado = textoCajas.split("|");
+
+			for (i=0; i  < cantNiveles; i++)
+			{
+					if (spliteado[i] != "NADA") 
+						  set("frmformula.nivDivPol" + i, spliteado[i]);		
+			}
+			return;
+	  }
+
+
+   function focalizaListaTab(FILAEVENTO) {
+		//alert('Evento ontab desde la fila '+FILAEVENTO);
+		//alert('lista: ' + listado1.datos.length);
+		if(FILAEVENTO == (listado1.datos.length - 1)){
+			//setTimeout("focaliza('frmAsociarEstadoZona.comboMarca','')",10); 
+			listado1.preparaCamposDR();            
+            setTimeout("focaliza('frmlistado1.nivel_0','')",10); 
+		}       
+    }
+
+
+	function focalizaListaShTab(FILAEVENTO) {
+		
+		if(FILAEVENTO == 0){
+			linea= listado1.datos.length - 1;
+			listado1.preparaCamposDR();            
+            setTimeout("focaliza('frmlistado1.nivel_' + linea,'')",10); 
+		}       
+    }
+
+
+]]>
+</JAVASCRIPT>
+
+
+<FORMULARIO nombre="frmformula">
+
+	<VAR nombre="accion"		valor="" />
+	<VAR nombre="hidPaisABuscar"	valor="" />
+	<VAR nombre="conectorAction"	valor="" />
+	<VAR nombre="casoDeUso"		valor="" />
+	<VAR nombre="cantNiveles"	valor="" />
+	<VAR nombre="valorEtiquetas" valor=""/>
+	<VAR nombre="valorDefinido" valor=""/>
+	<VAR nombre="enviaOid" valor="" />
+	<VAR nombre="enviaNivel" valor="" />
+	<VAR nombre="errCodigo" valor="" />
+	<VAR nombre="errDescripcion" valor="" />
+	<VAR nombre="exito" valor=""/>
+	<VAR nombre="hidRecibeOidAnterior" valor=""/>
+	<VAR nombre="hidRecibeNivelAnterior" valor=""/>	
+
+
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="100%" ><IMG src="b.gif" width="424" height="8"/></td>    
+    </tr>
+ </table>
+  <LISTAEDITABLE nombre="listado1" ancho="400" alto="254" x="12" y="12" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+        <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+        <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+        <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+     
+      <LINEAS>
+        <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="1" horizTitulo="1" /> 
+        <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999"  /> 
+      </LINEAS>
+     <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00502" ID="datosTitle" />
+      
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+        <COL ancho="80" minimizable="S" minimizada="N"/>
+        <COL ancho="50" minimizable="S" minimizada="N" /> 
+        
+      </COLUMNAS>
+     
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC" ajustarAMitadInf="S">
+        <COL colFondo="" ID="EstCab" align="center" cod="2202">Niveles geográficos</COL> 
+	    <COL colFondo="" ID="EstCab" cod="357">Nivel</COL> 
+	
+      </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="0" msgErrMaxSel="" 
+             coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+             onLoad="" colorSelecc="#D0D9E8">
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="cajatexto" nombre="nivel" size="2" max="2" IDOBJ="EstCajaDatForm" ID="EstDat2"
+	   onTab="focalizaListaTab(FILAEVENTO)" onShTab="focalizaListaShTab(FILAEVENTO);"/>       
+      </DATOS>
+      <ROWSET>
+	
+      </ROWSET>
+      <PAGINADO nombre="mipgndo" ancho="400" sep="$" x="12" class="botonera" y="244" control="|" conector="conectorSandra" rowset="" cargainicial="N">
+        <BOTON nombre="ret1" x="37" y="240" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+        <BOTON nombre="ava1" x="52" y="240" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>
+                
+    </PAGINADO>
+  </LISTAEDITABLE>
+  <BOTON nombre="primera1" x="20" y="240" ID="botonContenido" img="primera_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();"/>  
+  <BOTON nombre="separa" x="59" y="243" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />      
+  
+ <CAPA nombre="capaEspacio" alto="12" ancho="100%" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="267" zindex="">
+  </CAPA>                                            
+
+</FORMULARIO>
+
+</PAGINA>

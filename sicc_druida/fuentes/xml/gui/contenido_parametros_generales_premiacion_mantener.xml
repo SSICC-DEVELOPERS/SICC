@@ -1,0 +1,1222 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+/**
+ * Copyright 2003 © por Indra Sistemas,S.A.. Todos los derechos reservados.
+ * Avda. de Bruselas, 35
+ * Parque Empresarial Arroyo de la Vega
+ * 28108 Alcobendas, Madrid
+ * España
+ *
+ * Privado y Confidencial.
+ * La información contenida en este documento es propiedad de Indra sistemas.
+ * Para uso exclusivo de empleados autorizados no permitiéndose
+ * la distribución de este código sin permiso expreso.
+ */
+ 
+ Autor: Viviana Bongiovanni
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_parametros_generales_premiacion_mantener" cod="" titulo="Crear concurso" estilos="estilosB3.css" colorf="#F0F0F0" msgle="" onload="onLoadPag()" xml:lang="es">
+  
+<JS src="sicc_util.js" />
+<JS src="PaginacionSicc.js"/>
+<JS src="DruidaTransactionMare.js"/>    
+<JS src="pestanyas_concurso_inc.js" />
+
+<JAVASCRIPT>
+ <![CDATA[    
+      
+  varNoLimpiarSICC='S'; 
+  
+  function onLoadPag() {
+      configurarMenuSecundario('formulario');
+
+	  // sapaza -- PER-SiCC-2010-0210 -- 23/04/2010
+      document.getElementById("lblPeriodoInicio").style.display='none';
+      document.getElementById("cbPeriodoInicio").style.display='none';
+	  document.getElementById("lblPeriodoFinal").style.display='none';
+    
+      if(!fMostrarMensajeError()) {
+      
+            cargarPantallaPlantilla();
+            
+            // Ya se han  cargado datos para esta pantalla
+            if(get('formulario.hCbTipoSeleccion')!="") {
+                  cargarPantalla();           
+            }
+                
+            if(get('formulario.opcionMenu')=="Consultar Concurso"){  
+                  deshabilitarPantalla();
+                  btnProxy(1,0);
+                  btnProxy(2,1);
+                  btnProxy(3,0);
+                  btnProxy(4,0);
+                  btnProxy(5,0);
+                  btnProxy(7,0);
+                  btnProxy(8,0);
+                  btnProxy(9,0);
+                  
+            }
+			else if(get('formulario.opcionMenu')=="Modificar Concurso" || 
+                         get('formulario.opcionMenu')=="nueva version"){  
+                  btnProxy(1,1);
+                  btnProxy(2,1);
+                  btnProxy(3,0);
+                  btnProxy(4,0);
+                  btnProxy(5,1);
+                  btnProxy(7,0);
+                  btnProxy(8,0);
+                  btnProxy(9,0);
+                  
+                  // Oculto las pestanias
+                  if(get('formulario.opcionMenu')=="nueva version"){ 
+                      document.getElementById('tblPestanyas1').style.display='none';
+                      document.getElementById('tblPestanyas2').style.display='none';
+                  }
+                  
+                  focaliza("formulario.cbTipoSeleccion");
+                  
+            } else {
+                  focaliza("formulario.cbTipoSeleccion");
+            }
+            
+      } 
+
+      finCargaPagina = true;
+
+}
+
+// vbongiov -- Cambio 20080811 -- 26/08/2009
+function accionBuscarProducto(){  
+	  // Busca el producto
+	  var obj = new Object();
+	  obj.casoDeUso= 'buscarProducto' 
+	  obj.accion = '';
+	  obj.oidMarcaCorporativa = get('formulario.hOidMarca');
+	  var retorno = mostrarModalSICC('LPBuscarProductosDTO', '', obj, null, null);
+	  
+	  if(retorno!=null) {          
+		  // Productos seleccionados
+		  productosString = retorno[0];      
+		  productosString = productosString.substring(1,productosString.length);
+		  
+		  productos = productosString.split('$');
+		  //alert("productos: " + productos);
+		  
+		  // Verifica que se haya seleccionado un producto
+		  if(productos.length==1 ){
+				producto = productos[0].split('|');
+				set('formulario.txtCodProducto', producto[1]); 
+				set('formulario.oidProducto', producto[0]); 
+		  } else {
+				set('formulario.txtCodProducto', ''); 
+				set('formulario.oidProducto', ''); 
+				GestionarMensaje('1497');
+		  }
+	  }
+  }
+
+// vbongiov -- Cambio 20080811 -- 26/08/2009
+function onChangeCodProducto(){  
+	set('formulario.oidProducto', ''); 
+}
+  
+  function cargarPantalla() {
+      // Seleccion de los combos
+      iSeleccionado = new Array(); 
+      
+      iSeleccionado[0] = get('formulario.hCbTipoSeleccion');
+      set('formulario.cbTipoSeleccion', iSeleccionado);
+      
+      iSeleccionado[0] = get('formulario.hCbPeriodo');
+	  //DBLG700000042 - gPineda - 02/10/06
+	  if( get( 'formulario.ckPeriodoDespacho') == "S" ){
+		accion('formulario.cbPeriodo', '.disabled=false');
+		set('formulario.cbPeriodo', iSeleccionado);
+		accion('formulario.txtNumPeriodoObtencion', '.disabled=false');
+		
+		// sapaza -- PER-SiCC-2010-0210 -- 23/04/2010
+		if(get('formulario.cbTipoSeleccion')== get('formulario.OID_TIPO_PREM_BOLSA')) {
+		  iSeleccionado[0] = get('formulario.hCbPeriodoInicio');
+		  accion('formulario.cbPeriodoInicio', '.disabled=false');
+		  set('formulario.cbPeriodoInicio', iSeleccionado);
+		}  
+		
+//		set('formulario.ckPeriodoDespacho', 'S');
+	  }
+      
+      iSeleccionado[0] = get('formulario.hCbTipoEleccion');
+      set('formulario.cbTipoEleccion', iSeleccionado);
+      
+      // Visualización de la capa de niveles
+      if(get('formulario.cbTipoSeleccion')== get('formulario.OID_TIPO_PREM_NIVELES'))            
+            visibilidad('capa3','V');
+
+	  // sapaza -- PER-SiCC-2010-0210 -- 23/04/2010
+      if(get('formulario.cbTipoSeleccion')== get('formulario.OID_TIPO_PREM_BOLSA')) {
+        document.getElementById("lblPeriodoInicio").style.display='inline';
+	    document.getElementById("cbPeriodoInicio").style.display='inline';
+	    document.getElementById("lblPeriodoFinal").style.display='inline';
+	    document.getElementById("lblPeriodo").style.display='none';
+	  } 
+	  else {
+        document.getElementById("lblPeriodoInicio").style.display='none';
+	    document.getElementById("cbPeriodoInicio").style.display='none';
+	    document.getElementById("lblPeriodoFinal").style.display='none';
+	    document.getElementById("lblPeriodo").style.display='inline';
+	  }  
+
+
+	  onChangePremiosElectivos();
+	  
+      // vbongiov -- Cambio 20080811 -- 26/08/2009
+	  if(get('formulario.cbTipoSeleccion')== get('formulario.OID_TIPO_PREMIACION_SORTEO')) {   
+            visibilidad('capa2','O');
+			visibilidad('capa3','O');
+			visibilidad('capa4','V');
+	  }
+  }
+  
+  function cargarPantallaPlantilla() {
+      // Deshabilita flag según la plantilla
+      if(get('formulario.hIndPremiosAcumuPorNiveles')==get('formulario.IND_INACTIVO'))
+            accion('formulario.ckPremiosAcumulativosNiveles', '.disabled=true');
+            
+      if(get('formulario.hIndNivelesRotativos')==get('formulario.IND_INACTIVO'))
+            accion('formulario.ckNivelesRotativos', '.disabled=true');    
+            
+      if(get('formulario.hIndPremiosElectivos')==get('formulario.IND_INACTIVO')) {
+            accion('formulario.ckPremioElectivo', '.disabled=true');         
+            accion('formulario.cbTipoEleccion', '.disabled=true');  
+            
+            // sapaza -- PER-SiCC-2011-0857 -- 23/01/2012
+            accion('formulario.ckSinPremioPorDefecto', '.disabled=true');       
+      }
+	  else {
+            accion('formulario.cbTipoEleccion', '.disabled=true'); 
+            accion('formulario.ckSinPremioPorDefecto', '.disabled=true');         
+      }
+
+	  // sapaza -- PER-SiCC-2010-0388 -- 14/07/2010
+      if(get('formulario.hIndAccesoNivelPremioSuperior')==get('formulario.IND_INACTIVO'))
+            accion('formulario.ckAccesoNivelPremioSuperior', '.disabled=true');    
+      
+      // Oculta la capa de niveles    
+      visibilidad('capa3','O');
+
+	  // vbongiov -- Cambio 20080811 -- 26/08/2009
+	  visibilidad('capa4','O');
+  }
+
+  function cargarPantallaPlantilla2() {
+      // Deshabilita flag según la plantilla
+      if(get('formulario.hIndPremiosAcumuPorNiveles')==get('formulario.IND_INACTIVO'))
+            accion('formulario.ckPremiosAcumulativosNiveles', '.disabled=true');
+            
+      if(get('formulario.hIndNivelesRotativos')==get('formulario.IND_INACTIVO'))
+            accion('formulario.ckNivelesRotativos', '.disabled=true');    
+      
+      // sapaza -- PER-SiCC-2010-0388 -- 14/07/2010
+      if(get('formulario.hIndAccesoNivelPremioSuperior')==get('formulario.IND_INACTIVO'))
+            accion('formulario.ckAccesoNivelPremioSuperior', '.disabled=true');    
+      
+      // Oculta la capa de niveles    
+      visibilidad('capa3','O');
+  }
+  
+  
+  function deshabilitarPantalla() {
+  
+      accion('formulario.cbTipoSeleccion', '.disabled=true');    
+      accion('formulario.txtNumNiveles', '.disabled=true');    
+      accion('formulario.ckPeriodoDespacho', '.disabled=true');    
+      accion('formulario.cbPeriodo', '.disabled=true');
+      
+	  // sapaza -- PER-SiCC-2010-0210 -- 23/04/2010      
+      accion('formulario.cbPeriodoInicio', '.disabled=true');
+          
+      accion('formulario.txtNumPeriodoObtencion', '.disabled=true');    
+      accion('formulario.ckPremiosAcumulativosNiveles', '.disabled=true');    
+      accion('formulario.ckNivelesRotativos', '.disabled=true');    
+      accion('formulario.txtNumRotaciones', '.disabled=true');    
+      accion('formulario.ckAccesoNivelPremioSuperior', '.disabled=true');    
+      accion('formulario.ckPremioElectivo', '.disabled=true');    
+      accion('formulario.cbTipoEleccion', '.disabled=true');    
+      
+      // sapaza -- PER-SiCC-2011-0857 -- 23/01/2012
+      accion('formulario.ckSinPremioPorDefecto', '.disabled=true');
+
+      // vbongiov -- Cambio 20080811 -- 26/08/2009
+	  accion('formulario.txtCantidadNumerosAOtorgar', '.disabled=true');    
+	  accion('formulario.txtCodProducto', '.disabled=true');    
+	  deshabilitarHabilitarBoton('botonContenido','btnBuscar','D')
+      
+      deshabilitarHabilitarBoton('botonContenido','btnAceptar','D')
+  }
+  
+  
+  function onChangePremiosElectivos() {
+  
+      if(get('formulario.ckPremioElectivo')=="S") {
+           accion('formulario.cbTipoEleccion', '.disabled=false'); 
+		   var iSeleccionado = new Array(); 
+		   iSeleccionado[0] = get('formulario.hCbTipoEleccion');
+		   set('formulario.cbTipoEleccion', iSeleccionado);
+		   
+		   // sapaza -- PER-SiCC-2011-0857 -- 23/01/2012
+		   accion('formulario.ckSinPremioPorDefecto', '.disabled=false');
+           
+      } else if(get('formulario.ckPremioElectivo')=="N") {
+          
+           // Validacion de premios electivos
+           cantidadPremiosArticulos = get('formulario.cantidadPremiosArticulos');
+           cantidadPremiosElectivos = cantidadPremiosArticulos.split("|");
+           cambioOK = "S";
+          
+           for(var i=0; i<cantidadPremiosElectivos.length; i++) {
+              if(Number(cantidadPremiosElectivos[i]) > 1) {
+                    cambioOK = "N";                   
+              }
+           }
+                      
+           if(cambioOK=="S") {
+                set('formulario.cbTipoEleccion', '');
+                accion('formulario.cbTipoEleccion', '.disabled=true'); 
+                
+                // sapaza -- PER-SiCC-2011-0857 -- 23/01/2012
+                set('formulario.ckSinPremioPorDefecto', 'N');
+                accion('formulario.ckSinPremioPorDefecto', '.disabled=true');
+           } else {
+                GestionarMensaje("1560");
+                set('formulario.ckPremioElectivo', 'S');
+           }
+      }
+  }
+  
+  function onChangePeriodoDespacho() {
+      if(get('formulario.ckPeriodoDespacho')=="S") {
+           accion('formulario.cbPeriodo', '.disabled=false');    
+           accion('formulario.txtNumPeriodoObtencion', '.disabled=false'); 
+           
+           if(get('formulario.hCbTipoSeleccion')== get('formulario.OID_TIPO_PREM_BOLSA')){
+             accion('formulario.cbPeriodoInicio', '.disabled=false'); 
+           }
+           
+      } else {
+           set('formulario.cbPeriodo', '');
+           set('formulario.txtNumPeriodoObtencion', '');
+           accion('formulario.cbPeriodo', '.disabled=true');    
+           accion('formulario.txtNumPeriodoObtencion', '.disabled=true');
+           
+           if(get('formulario.hCbTipoSeleccion')== get('formulario.OID_TIPO_PREM_BOLSA')){
+              set('formulario.cbPeriodoInicio', '');
+              accion('formulario.cbPeriodoInicio', '.disabled=true');
+           }
+            
+      }
+  }
+  
+  //Funcion modificada por Cristian Valenzuela - 17/2/2006
+  //Incidencia 22630 (INC-29 BLOQUEANTE)
+  function accionAceptar() {      
+      onChangeTipo = true;
+      borraNiveles = false;
+      
+      // Verifica la seleccion previa
+      if(get('formulario.hCbTipoSeleccion')!="" && get('formulario.hCbTipoSeleccion')!=get('formulario.cbTipoSeleccion')) {
+            onChangeTipo = GestionarMensaje('1580');
+                         
+            if(onChangeTipo){
+                  borraNiveles = true;
+            }
+      }
+      
+      if(onChangeTipo){
+            set('formulario.hCbTipoSeleccion', get('formulario.cbTipoSeleccion'));   
+
+			if(get('formulario.hCbTipoSeleccion')== get('formulario.OID_TIPO_PREMIACION_SORTEO')){      
+			
+				  visibilidad('capa2','O');
+				  visibilidad('capa3','O');
+				  visibilidad('capa4','V');
+            
+            } else if(get('formulario.hCbTipoSeleccion')!= get('formulario.OID_TIPO_PREM_NIVELES')){                      
+                  set('formulario.ckPremiosAcumulativosNiveles', 'N');    
+				  set('formulario.txtHastaNivel', '');    
+                  set('formulario.ckNivelesRotativos', 'N');    
+                  set('formulario.txtNumRotaciones', '');    
+                  set('formulario.ckAccesoNivelPremioSuperior', 'N');    
+                  visibilidad('capa3','O');
+                  
+                  // sapaza -- PER-SiCC-2010-0210 -- 23/04/2010
+                  if(get('formulario.ckPeriodoDespacho')=="S")
+                    accion('formulario.cbPeriodoInicio', '.disabled=false');
+                  else
+                    accion('formulario.cbPeriodoInicio', '.disabled=true');
+                  
+                  document.getElementById("lblPeriodoInicio").style.display='inline';
+				  document.getElementById("cbPeriodoInicio").style.display='inline';
+				  document.getElementById("lblPeriodoFinal").style.display='inline';
+	    		  document.getElementById("lblPeriodo").style.display='none';
+                  
+            }
+			else {
+                  // Valores default
+                  cargarPantallaPlantilla2();
+				  
+				  // sapaza -- PER-SiCC-2010-0388 -- 14/07/2010
+				  set('formulario.ckAccesoNivelPremioSuperior', "N");
+                  /*if(get('formulario.hIndFaseCalificacion')=="S" && get('formulario.hCbTipoSeleccion')== get('formulario.OID_TIPO_PREM_NIVELES')) {
+                      set('formulario.ckAccesoNivelPremioSuperior', "S");
+                  }
+				  else {
+                      set('formulario.ckAccesoNivelPremioSuperior', "N");
+                  }*/
+                      
+                  set('formulario.txtNumRotaciones', '1');                                 
+                  visibilidad('capa3','V');
+				  onChangeChkPremios();
+				  
+				  // sapaza -- PER-SiCC-2010-0210 -- 23/04/2010
+                  document.getElementById("lblPeriodoInicio").style.display='none';
+				  document.getElementById("cbPeriodoInicio").style.display='none';
+				  document.getElementById("lblPeriodoFinal").style.display='none';
+	    		  document.getElementById("lblPeriodo").style.display='inline';
+				  
+            }
+            
+            if(borraNiveles){
+                  // Modifica el dtoNivelesPremiacion en session
+                  set('formulario.conectorAction', 'LPMantenerParametrosGeneralesPremiacion');
+                  set('formulario.accion', 'eliminar niveles');
+                  eval('formulario').oculto = 'S';
+                  enviaSICC('formulario', null, null, 'N');
+            }            
+      }
+	  else {
+            // No se desea modificar el tipo premiacion
+            iSeleccionado = new Array(); 
+            iSeleccionado[0] = get('formulario.hCbTipoSeleccion');            
+            set('formulario.cbTipoSeleccion', iSeleccionado);
+      }
+  }
+  
+  //Funcion modificada por Cristian Valenzuela - 17/2/2006
+  //Incidencia 22630 - (INC-29 BLOQUEANTE)
+  function comprobarDatosObligatorios (){
+    var datosObligatorios = true;
+    
+    if(get('formulario.hCbTipoSeleccion')== '')
+          datosObligatorios = false;
+          
+    // Premiacion por niveles    
+    if(get('formulario.hCbTipoSeleccion')== get('formulario.OID_TIPO_PREM_NIVELES')){ 
+    
+          if(get('formulario.txtNumRotaciones')=='')
+              datosObligatorios = false;
+              
+          // Premio electivo
+          if(get('formulario.ckPremioElectivo')=="S" ){
+				if(get('formulario.cbTipoEleccion')=='') {
+					datosObligatorios = false;          
+				}		  
+		  }	
+
+    // vbongiov -- Cambio 20080811 -- 26/08/2009
+    } else if(get('formulario.hCbTipoSeleccion')== get('formulario.OID_TIPO_PREMIACION_SORTEO')){ 
+
+		if(get('formulario.txtCantidadNumerosAOtorgar')=='' && get('formulario.txtCodProducto')==''){
+			datosObligatorios = false;  
+		}		
+	}
+    
+    return datosObligatorios;              
+  }
+
+function onClickPestanyaPremiacion(valor) {
+	//Cleal - 21049
+    // Premiacion por niveles    
+    if(get('formulario.hCbTipoSeleccion')== get('formulario.OID_TIPO_PREM_NIVELES')){ 
+		if(!sicc_validaciones_generales("Obligatorios")){
+			return;
+        }
+
+        // Premio electivo
+        if(get('formulario.ckPremioElectivo')=="S"){
+			if(!sicc_validaciones_generales("Obligatorios2")){
+				return;
+            }
+        }
+
+    // vbongiov -- Cambio 20080811 -- 26/08/2009
+    } else if(get('formulario.hCbTipoSeleccion')== get('formulario.OID_TIPO_PREMIACION_SORTEO')){ 
+
+		if(!sicc_validaciones_generales("gSorteo")){
+				return;
+        }
+	}
+
+	if(!sicc_validaciones_generales("cambioPestania")){
+		return;
+    }
+
+    onClickPestanyaHabilitadaAux(valor, 'formulario', 'LPMantenerParametrosGeneralesPremiacion');
+}  
+
+function fGuardar(){
+	//Cleal - 21049
+    // Premiacion por niveles    
+    if(get('formulario.hCbTipoSeleccion')== get('formulario.OID_TIPO_PREM_NIVELES')){ //cbTipoSeleccion
+		if(!sicc_validaciones_generales("Obligatorios")){
+			return;
+        }
+
+        // Premio electivo
+        if(get('formulario.ckPremioElectivo')=="S"){
+			if(!sicc_validaciones_generales("Obligatorios2")){
+				return;
+            }
+        }
+
+    // vbongiov -- Cambio 20080811 -- 26/08/2009
+    } else if(get('formulario.hCbTipoSeleccion')== get('formulario.OID_TIPO_PREMIACION_SORTEO')){ 
+
+		if(!sicc_validaciones_generales("gSorteo")){
+				return;
+        }
+	}
+
+    if(sicc_validaciones_generales("gAlmacenar")){
+		if(get('formulario.opcionMenu')!= 'nueva version'){
+			eval('formulario').oculto = 'S';
+            set('formulario.conectorAction', 'LPMantenerParametrosGeneralesPremiacion');
+            set('formulario.accion', 'guardar');
+            set('formulario.datosObligatorios', comprobarDatosObligatorios());
+            enviaSICC('formulario','','','N');
+         }
+		 else {
+			eval('formulario').oculto = 'S';
+            set('formulario.conectorAction', 'LPMantenerParametrosGeneralesPremiacion');
+            set('formulario.accion', 'almacenar');
+            set('formulario.datosObligatorios', comprobarDatosObligatorios());
+            enviaSICC('formulario','','','N');
+         }
+    }
+}  
+  
+  function accionDefinirNiveles(){   
+  
+    if(sicc_validaciones_generales("gDefinir")){
+          //alert("opcion Menu: " + get('formulario.opcionMenu'));
+                      // dmaneiro - 20/12/2005 - inc. 21040
+          set('formulario.hCbTipoSeleccion', get('formulario.cbTipoSeleccion'));   
+                      var obj = new Object();
+          obj.opcionMenu = get('formulario.opcionMenu')
+          obj.accion = 'cargar mantener nivel';
+          obj.numeroNiveles = get('formulario.txtNumNiveles');
+          obj.hIndPremiosElectivosPremios = get('formulario.ckPremioElectivo');     
+          obj.hCbTipoSeleccion = get('formulario.hCbTipoSeleccion');
+          
+          var retorno = mostrarModalSICC('LPMantenerParametrosGeneralesPremiacion', 'cargar mantener nivel', obj, '795', '595');
+                      
+          // Validacion de premios electivos
+          if(retorno!=null){
+              set('formulario.cantidadPremiosArticulos',retorno[0]);
+          }          
+              
+          focaliza("formulario.cbTipoSeleccion");                     
+    }
+          }
+  
+  function fLimpiar(){
+      if(get('formulario.opcionMenu')=="Crear concurso"){
+      
+            if(GestionarMensaje('1580')){
+                  set('formulario.cbTipoSeleccion', '');    
+                  set('formulario.hCbTipoSeleccion', '');    
+                  set('formulario.txtNumNiveles', '');    
+                  set('formulario.ckPeriodoDespacho', 'N');    
+                  set('formulario.cbPeriodo', '');    
+                  
+                  // sapaza -- PER-SiCC-2010-0210 -- 23/04/2010
+                  set('formulario.cbPeriodoInicio', '');
+                  
+                  set('formulario.txtNumPeriodoObtencion', '');    
+                  set('formulario.ckPremiosAcumulativosNiveles', 'N');    
+                  set('formulario.ckNivelesRotativos', 'N');    
+                  set('formulario.txtNumRotaciones', '1');    
+                  set('formulario.ckAccesoNivelPremioSuperior', 'N');    
+                  set('formulario.ckPremioElectivo', 'N');    
+                  set('formulario.cbTipoEleccion', '');   
+                  
+                  // sapaza -- PER-SiCC-2011-0857 -- 23/01/2012
+                  set('formulario.ckSinPremioPorDefecto', 'N');
+
+				  // vbongiov -- Cambio 20080811 -- 26/08/2009
+				  set('formulario.txtCantidadNumerosAOtorgar', ''); 
+				  set('formulario.txtCodProducto', ''); 
+				  set('formulario.oidProducto', ''); 
+                  
+                  cargarPantallaPlantilla();
+                  
+                  // Modifica el dtoNivelesPremiacion en session
+                  set('formulario.conectorAction', 'LPMantenerParametrosGeneralesPremiacion');
+                  set('formulario.accion', 'eliminar niveles');
+                  eval('formulario').oculto = 'S';
+                  enviaSICC('formulario', null, null, 'N');
+            }
+            
+      } else {
+            set('formulario.conectorAction', 'LPMantenerParametrosGeneralesPremiacion');
+            set('formulario.accion', '');
+            enviaSICC('formulario','','','N');
+      }
+  }
+  
+  function fVolver(){
+    close();
+  }
+  
+  function cerrarModal(){
+    close();
+  }
+  
+  function terminaEliminarNiveles(){
+    focaliza('formulario.cbTipoSeleccion');
+    eval('formulario').oculto = 'N';
+  }
+  
+  function focalizaTab(campo){
+     if(campo==1) {
+            if(get_visibilidad('capa3')){
+                  if(get('formulario.hIndPremiosAcumuPorNiveles')==get('formulario.IND_INACTIVO')) {
+                      if(get('formulario.hIndNivelesRotativos')==get('formulario.IND_INACTIVO')) {
+                            focaliza("formulario.txtNumRotaciones");
+                      } else {
+                            focaliza("formulario.ckNivelesRotativos");
+                      }
+                  } else {
+                      focaliza("formulario.ckPremiosAcumulativosNiveles");
+                  }
+            } else {
+                  focaliza("formulario.cbTipoSeleccion");
+            }
+     } else if(campo==2) {
+          if(get('formulario.hIndPremiosElectivos')==get('formulario.IND_INACTIVO')) {
+              focaliza("formulario.cbTipoSeleccion");
+          } else {
+              focaliza("formulario.ckPremioElectivo");
+          }
+     } else if(campo==3) {
+          if(get('formulario.ckPremioElectivo')=="S") {
+              focaliza("formulario.cbTipoEleccion");
+          } else {
+              focaliza("formulario.cbTipoSeleccion");
+          }
+     } else if(campo==4) {
+          focaliza("formulario.cbTipoSeleccion");
+     }      
+     
+  }
+  
+  
+  function focalizaShTab(){  
+  
+      if(!get_visibilidad('capa3')){
+            focalizaBotonHTML('botonContenido','btnDefinirNiveles');
+      
+	  // vbongiov -- Cambio 20080811 -- 26/08/2009
+	  } else if(get_visibilidad('capa4')){
+			focalizaBotonHTML('botonContenido','btnBuscar');     
+
+      } else {      
+            if(get('formulario.hIndPremiosElectivos')==get('formulario.IND_INACTIVO')) {
+                  focaliza("formulario.ckAccesoNivelPremioSuperior");
+            }
+			else {
+		  		 focaliza("formulario.ckAccesoNivelPremioSuperior");
+                  /*if(get('formulario.ckPremioElectivo')=="S") {
+                      focaliza("formulario.cbTipoEleccion");
+                  } else {
+                      focaliza("formulario.ckPremioElectivo");
+                  }*/
+            }      
+      }
+  }
+
+ // vbongiov -- Cambio 20080811 -- 26/08/2009
+ function focalizaTipoPremTab(){  
+	 if(get_visibilidad('capa4')){
+		focaliza("formulario.txtCantidadNumerosAOtorgar");
+	 } else {
+		focaliza("formulario.txtNumNiveles");
+	 }
+  }
+
+// vbongiov -- Cambio 20080811 -- 26/08/2009
+ function focalizaBuscarTab(){
+	focaliza("formulario.cbTipoSeleccion");
+ }
+
+
+	function onTabAccesoNivelPremio() {
+		focaliza("formulario.cbTipoSeleccion");
+	}
+
+	function onTabTipoEleccion() {
+		focalizaBotonHTML('botonContenido','btnDefinirNiveles');
+	}
+
+	function onChangeChkPremios() {
+		if(get('formulario.ckPremiosAcumulativosNiveles')=="S") {
+			document.getElementById("lblHastaNivel").style.display='inline';
+			document.getElementById("txtHastaNivel").style.display='inline';
+	
+			if(get('formulario.txtNumNiveles')!="") {
+				var numNiveles = parseInt(get('formulario.txtNumNiveles'), 10);
+				numNiveles = numNiveles + 1;
+				set('formulario.txtHastaNivel', numNiveles);				
+			}			
+		}
+		else {
+	 		set('formulario.txtHastaNivel', '');
+			document.getElementById("lblHastaNivel").style.display='none';
+			document.getElementById("txtHastaNivel").style.display='none';
+		}
+	}          
+  
+]]> 
+<VALIDACION>    
+<ELEMENTO name="txtNumNiveles" required="false" min="0" max="999" format="e" group="gAlmacenar" cod="1818"/>
+<ELEMENTO name="txtNumPeriodoObtencion" required="false" min="0" max="99" format="e" group="gAlmacenar" cod="1800"/>
+<ELEMENTO name="txtHastaNivel" required="false" min="0" max="999" format="e" group="gAlmacenar" cod="1821"/>       
+<ELEMENTO name="txtNumRotaciones" required="false" min="0" max="999" format="e" group="gAlmacenar" cod="1822"/>        
+<ELEMENTO name="txtNumRotaciones" required="true" min="0" max="999" format="e" group="Obligatorios" cod="1822"/>       
+<ELEMENTO name="cbTipoEleccion" required="true" group="Obligatorios2" cod="1825"/>
+<ELEMENTO name="txtNumNiveles" required="true" min="0" max="999" format="e" group="gDefinir" cod="1818"/>
+<ELEMENTO name="cbTipoSeleccion" required="true" group="gDefinir" cod="2450"/>
+
+<ELEMENTO name="txtCantidadNumerosAOtorgar" required="true" min="0" max="99999" format="e" group="gSorteo" cod="3451"/>
+<ELEMENTO name="txtCodProducto" required="true" group="gSorteo" cod="337"/>
+
+<ELEMENTO name="txtNumNiveles" required="false" min="0" max="999" format="e" group="cambioPestania" cod="1818"/>
+<ELEMENTO name="txtNumPeriodoObtencion" required="false" min="0" max="99" format="e" group="cambioPestania" cod="1800"/>
+<ELEMENTO name="txtHastaNivel" required="false" min="0" max="999" format="e" group="cambioPestania" cod="1821"/>       
+</VALIDACION>
+  
+</JAVASCRIPT>
+
+<FORMULARIO nombre="formulario" oculto="N">
+<VAR nombre="accion" valor=""/>
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="errCodigo" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>    
+
+<VAR nombre="opcionMenu" valor=""/> 
+<VAR nombre="hPais" valor=""/> 
+<VAR nombre="hIdioma" valor=""/> 
+<VAR nombre="datosObligatorios" valor=""/> 
+
+ <!-- Hidddens para el manejo de pestañas -->
+<VAR nombre="idPestanyaDest" valor=""/>
+
+<VAR nombre="hIndEstadoProductos" valor=""/>
+<VAR nombre="hIndEstadoAmbitoGeografico" valor=""/>
+<VAR nombre="hIndEstadoCalificion" valor=""/>
+<VAR nombre="hIndEstadoGerentes" valor=""/>
+<VAR nombre="hIndEstadoConsultoras" valor=""/>
+<VAR nombre="hIndEstadoProgramaNuevas" valor=""/>
+<VAR nombre="hIndEstadoMultinivel" valor=""/>
+
+ <!-- Hiddden oid de Premio -->
+<VAR nombre="oidParamGralesPremiacion" valor=""/>
+
+ <!-- Hidddens para manejo de habilitaciones -->
+<VAR nombre="IND_INACTIVO" valor=""/>
+<VAR nombre="IND_ACTIVO" valor=""/>
+<VAR nombre="OID_TIPO_PREM_NIVELES" valor=""/>
+ 
+<VAR nombre="hIndPremiosAcumuPorNiveles" valor=""/>
+<VAR nombre="hIndNivelesRotativos" valor=""/>
+<VAR nombre="hIndFaseCalificacion" valor=""/> 
+<VAR nombre="hIndPremiosElectivos" valor=""/>
+<VAR nombre="hIndSorteo" valor=""/>
+
+ <!-- Hidddens de los combos -->
+<VAR nombre="hCbTipoSeleccion" valor=""/>
+<VAR nombre="hCbPeriodo" valor=""/>
+<VAR nombre="hCbTipoEleccion" valor=""/> 
+
+<!-- vbongiov  Cambio 20080811 26/08/2009 -->
+<VAR nombre="OID_TIPO_PREMIACION_SORTEO" valor=""/>
+<VAR nombre="hOidMarca" valor=""/>
+<VAR nombre="oidProducto" valor=""/>
+
+<!-- sapaza  PER-SiCC-2010-0210  23/04/2010 -->
+<VAR nombre="hCbPeriodoInicio" valor=""/>
+<VAR nombre="OID_TIPO_PREM_BOLSA" valor=""/>
+
+<!-- sapaza  PER-SiCC-2010-0388 23/04/2010 -->
+<VAR nombre="hIndAccesoNivelPremioSuperior" valor=""/>
+
+ <!-- Hiddden de niveles -->
+<VAR nombre="niveles" valor=""/> 
+
+<!-- Articulo -->
+<VAR nombre="cantidadPremiosArticulos" valor=""/>
+
+<!--sapaza - PER-SiCC-2011-0295 - 17/06/2011-->
+<VAR nombre="oidVigenciaConcurso" valor=""/>
+
+
+<!-- DEFINICION DE PESTANYAS -->
+
+ <table width="100%" height="100%" border="0" align="center" cellpadding="0" cellspacing="0" class="menu4" id="tblPestanyas1">
+  <tr> 
+    <td width="12" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="12" height="30"/></td>
+    <td nowrap="nowrap" class="menu5texto">&nbsp;</td>
+    <td width="10" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="92" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="activarPunteroAux('formulario',1,'lblParametrosGenerales');" onclick="onClickPestanyaPremiacion(1);">
+          <tr align="center"> 
+            <td nowrap="nowrap"><LABELC nombre="lblParametrosGenerales"  alto="13" filas="1" valor=""  id="menu5textonegrita" cod="00393"/></td>
+          </tr>
+      </table>
+    </td>
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="activarPunteroAux('formulario',5,'lblProductos');" onclick="onClickPestanyaPremiacion(5);">
+          <tr align="center"> 
+            <td nowrap="nowrap" ><LABELC nombre="lblProductos"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="0094"/></td>
+          </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" bgcolor="#496A9A" >
+          <tr align="center"> 
+            <td nowrap="nowrap" ><LABELC nombre="lblPremios"  alto="13" filas="1" valor="" id="menu5textoblanca" cod="00394"/></td>
+          </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="activarPunteroAux('formulario',7,'lblRequisitos');" onclick="onClickPestanyaPremiacion(7);">
+          <tr align="center"> 
+            <td nowrap="nowrap"  ><LABELC nombre="lblRequisitos"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00395"/></td>
+          </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="activarPunteroAux('formulario',4,'lblObtencionPuntos');" onclick="onClickPestanyaPremiacion(4);">
+          <tr align="center"> 
+            <td nowrap="nowrap" ><LABELC nombre="lblObtencionPuntos"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00396"/></td>
+          </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="activarPunteroAux('formulario',8,'lblDespachoPremios');" onclick="onClickPestanyaPremiacion(8);">
+          <tr align="center"> 
+            <td nowrap="nowrap" ><LABELC nombre="lblDespachoPremios"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00397"/></td>
+          </tr>
+      </table>
+   </td>
+  
+    <td width="16" class="menu5texto"><IMG src="b.gif" width="12" height="8"/></td>
+  </tr>
+</table>          
+ <table width="100%" height="100%" border="0" align="center" cellpadding="0" cellspacing="0" class="menu4" id="tblPestanyas2">
+  <tr> 
+    <td width="12" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="12" height="30"/></td>
+    <td nowrap="nowrap" class="menu5texto">&nbsp;</td>
+    <td width="10" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+     <td width="70" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="activarPunteroAux('formulario', 3, 'lblAmbitoGeografico');" onclick="onClickPestanyaPremiacion(3);">
+          <tr align="center"> 
+            <td nowrap="nowrap" ><LABELC nombre="lblAmbitoGeografico"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="2801"/></td>
+          </tr>
+      </table>
+    </td>
+    <td width="10" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+     <td width="70" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="activarPunteroAux('formulario', 9, 'lblCalificacion');" onclick="onClickPestanyaPremiacion(9);">
+          <tr align="center"> 
+            <td nowrap="nowrap" ><LABELC nombre="lblCalificacion"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00398"/></td>
+          </tr>
+      </table>
+    </td>
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="activarPunteroAux('formulario', 10, 'lblGerentes');" onclick="onClickPestanyaPremiacion(10);">
+          <tr align="center"> 
+            <td nowrap="nowrap" ><LABELC nombre="lblGerentes"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00399"/></td>
+          </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+   <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A"  onmouseover="activarPunteroAux('formulario', 11, 'lblConsultoras');" onclick="onClickPestanyaPremiacion(11);">
+          <tr align="center"> 
+            <td nowrap="nowrap" ><LABELC nombre="lblConsultoras"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00401"/></td>
+          </tr>
+      </table>
+   </td>
+   
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+   
+          <td width="20" nowrap="nowrap" class="menu5texto">
+   <table width="75" border="1" align="center" cellpadding="1" cellspacing="0" ID="DatosGenerales" 
+         bordercolor="#496A9A" onclick="onClickPestanyaPremiacion(2);" onmouseover="activarPunteroAux('formulario', 2, 'lblProgramaNuevas');">
+          <tr align="center"> 
+            <td nowrap="nowrap"><LABELC nombre="lblProgramaNuevas"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00590"/></td>
+          </tr>
+      </table>
+   </td>
+   
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onclick="onClickPestanyaPremiacion(12);" onmouseover="activarPunteroAux('formulario', 12, 'lblMultinivel');">
+          <tr align="center"> 
+            <td nowrap="nowrap"><LABELC nombre="lblMultinivel"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00400"/></td>
+          </tr>
+      </table>
+   </td>
+    <td width="16" class="menu5texto"><IMG src="b.gif" width="12" height="8"/></td>
+  </tr>
+</table>                                                                                                                            
+
+<!-- FIN DEFINICION DE PESTANYAS -->
+
+<CAPA nombre="capa1">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+          <fieldset><legend class="legend"><LABELC nombre="lblDatosSeleccion"  alto="13" filas="1" valor="" id="legend" cod="00263"/></legend>
+          <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+            <tr><td>
+            <!---primera fila-->
+                <table width="585" border="0" align="left" cellspacing="0" cellpadding="0">
+                                 <tr> 
+                                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                                 </tr>
+                                 <tr>
+                                    <td><IMG src="b.gif" width="8" height="8"/></td>
+                                    <td><LABELC nombre="lblTipoPremiacion"  alto="13" filas="1" valor="" id="datosTitle" cod="2450"/></td>
+                                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                 </tr>
+                                 <tr>
+                                    <td><IMG src="b.gif" width="8" height="8"/></td>
+                                    <td  nowrap="nowrap"><COMBO nombre="cbTipoSeleccion" id="datosCampos" size="1" multiple="N" onshtab="focalizaShTab();" req="S" ontab="focalizaTipoPremTab();"  valorinicial="" textoinicial="">
+                                                  <ROWSET>                                                   
+                                                  </ROWSET>
+                                          </COMBO> 
+                                     </td>
+                                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                 </tr>
+                                 <tr> 
+                                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                                 </tr>
+                         </table>
+         <!---fin primera fila-->
+         </td></tr>
+            
+            
+             </table>
+          </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    
+      <tr> 
+          <td><IMG src="b.gif"/></td>
+          <td>
+            <fieldset>
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">          
+                  <tr>
+                    <td class="botonera">
+                      <BOTON nombre="btnAceptar" ID="botonContenido" tipo="html" accion="accionAceptar()" estado="false" cod="12"/>
+                    
+                    </td>
+                  </tr>    
+              </table>          
+            </fieldset>
+          </td>
+          <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>         
+    <tr>
+          <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+          <td width="756" ><IMG src="b.gif"/></td>
+          <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>   
+
+
+<CAPA nombre="capa2" alto="150" ancho="100%" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="165" zindex="">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+	 <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+          <fieldset><legend class="legend"><LABELC nombre="lblParametrosPremiacion"  alto="13" filas="1" valor="" id="legend" cod="00342"/></legend>
+          <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+            <tr><td>
+            <!---primera fila-->
+                <table width="585" border="0" align="left" cellspacing="0" cellpadding="0">
+                                 <tr> 
+                                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                                 </tr>
+                                 <tr>
+                                    <td><IMG src="b.gif" width="8" height="8"/></td>
+                                    <td><LABELC nombre="lblNumNiveles"  alto="13" filas="1" valor="" id="datosTitle" cod="1818"/></td>
+                                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                                    <td><LABELC nombre="lblPeriodoDespachoInicio"  alto="13" filas="1" valor="" id="datosTitle" cod="1843"/></td>
+                                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                                    <td><LABELC nombre="lblPeriodoInicio"  alto="13" filas="1" valor="" id="datosTitle" cod="2631"/></td>
+                                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                                    <td><LABELC nombre="lblPeriodo" alto="13" filas="1" valor="" id="datosTitle" cod="276"/>
+                                        <LABELC nombre="lblPeriodoFinal" alto="13" filas="1" valor="" id="datosTitle" cod="2632"/>
+                                    </td>
+                                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                 </tr>
+                                 <tr>
+                                    <td><IMG src="b.gif" width="8" height="8"/></td>
+                                    <td nowrap="nowrap"><CTEXTO nombre="txtNumNiveles" id="datosCampos" max="3" tipo="" onchange="" req="N" size="3" valor="" validacion="" /></td>
+                                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                                    <td  valign="bottom"><CHECKBOX nombre="ckPeriodoDespacho" id="datosCampos" onclick="onChangePeriodoDespacho()" check="N"/></td>
+                                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                                    <td  nowrap="nowrap"><COMBO nombre="cbPeriodoInicio" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" disabled="S" >
+                                                  <ROWSET>                                                         
+                                                  </ROWSET>
+                                          </COMBO> 
+                                    </td>
+                                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                                    <td  nowrap="nowrap"><COMBO nombre="cbPeriodo" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" disabled="S" >
+                                                  <ROWSET>                                                         
+                                                  </ROWSET>
+                                          </COMBO> 
+                                    </td>
+                                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                 </tr>
+                                 <tr> 
+                                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                                 </tr>
+                         </table>
+         <!---fin primera fila-->
+         </td></tr>
+         
+			<!--a partir de aca se agrega-->
+			
+			<tr><td>
+                         <table width="585" border="0" align="left" cellspacing="0" cellpadding="0">
+                                 <tr>
+                                 <td><IMG src="b.gif" width="8" height="8"/></td>
+												<td><LABELC nombre="lblPremioElectivo"  alto="13" filas="1" valor="" id="datosTitle" cod="1942"/></td>
+                                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                                    <td><LABELC nombre="lblTipoEleccion"  alto="13" filas="1" valor="" id="datosTitle" cod="1825"/></td>
+                                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                                    <td><LABELC nombre="lblSinPremioPorDefecto"  alto="13" filas="1" valor="" id="datosTitle" cod="3487"/></td>
+                                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                                    <td><LABELC nombre="lblNumPeriodoObtencion"  alto="13" filas="1" valor="" id="datosTitle" cod="1800"/></td>
+                                     <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                 </tr>
+                                 <tr>
+												<td><IMG src="b.gif" width="8" height="8"/></td>
+												<td  valign="bottom"><CHECKBOX nombre="ckPremioElectivo" id="datosCampos" ontab="focalizaTab(3);" onclick="onChangePremiosElectivos()" check="N"/></td>
+                                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                                    <td  nowrap="nowrap"><COMBO nombre="cbTipoEleccion" id="datosCampos" size="1" ontab="onTabTipoEleccion();" multiple="N" req="S" valorinicial="" textoinicial="">
+                                                  <ROWSET>                                                   
+                                                  </ROWSET>
+                                          </COMBO> 
+                                     </td>
+                                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                                    <td  valign="bottom"><CHECKBOX nombre="ckSinPremioPorDefecto" id="datosCampos" ontab="focalizaTab(3);" check="N"/></td>
+                                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                                    <td><CTEXTO nombre="txtNumPeriodoObtencion" id="datosCampos" max="2" tipo="" onchange="" req="N" size="2" valor="" validacion="" disabled="S" /></td>
+                                     <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                 </tr>
+                                 <tr> 
+                                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                                 </tr>
+                         </table>
+                  </td></tr>
+					
+					</table>
+          </fieldset>
+<!--fin primer formulario-->
+	
+	</td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    
+		<tr> 
+          <td><IMG src="b.gif"/></td>
+          <td>
+            <fieldset>
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">          
+                  <tr>
+                    <td class="botonera">
+                      <BOTON nombre="btnDefinirNiveles" ID="botonContenido" tipo="html" accion="accionDefinirNiveles()" ontab="focalizaTab(1);" estado="false" cod="1801"/>
+                    </td>
+                  </tr>    
+              </table>          
+            </fieldset>
+          </td>
+          <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>         
+    <tr>
+          <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+          <td width="756" ><IMG src="b.gif"/></td>
+          <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+
+</table>
+</CAPA>
+
+
+<CAPA nombre="capa3" alto="110" ancho="100%" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="310" zindex="">
+          <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+          <fieldset><legend class="legend"><LABELC nombre="lblParemetrosPremiacionPorNiveles"  alto="13" filas="1" valor="" id="legend" cod="00620"/></legend>
+          <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+			 	<tr><td>
+            <!---primera fila-->
+                <table width="585" border="0" align="left" cellspacing="0" cellpadding="0">
+                                 <tr> 
+                                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                                 </tr>
+                                 <tr>
+                                    <td><IMG src="b.gif" width="8" height="8"/></td>
+                                    
+                                    <td><LABELC nombre="lblPremiosAcumulativosNiveles"  alto="13" filas="1" valor="" id="datosTitle" cod="1820"/></td>
+                                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                                    <td><LABELC nombre="lblHastaNivel" alto="13" filas="1" valor="" id="datosTitle" cod="1821"/></td>
+                                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                                    <td><LABELC nombre="lblNivelesRotativos"  alto="13" filas="1" valor="" id="datosTitle" cod="1822"/></td>
+                                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                                    <td><LABELC nombre="lblNumRotaciones" alto="13" filas="1" valor="" id="datosTitle" cod="1824"/></td>
+												
+												<td><IMG src="b.gif" width="25" height="8"/></td>
+												<td><LABELC nombre="lblAccesoNivelPremioSuperior"  alto="13" filas="1" valor="" id="datosTitle" cod="1827"/></td>
+												
+												
+												<td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+											</tr>
+                                 <tr>
+                                    <td><IMG src="b.gif" width="8" height="8"/></td>
+                                    <td  valign="bottom"><CHECKBOX nombre="ckPremiosAcumulativosNiveles" id="datosCampos" onclick="onChangeChkPremios();" check="N"/></td>
+                                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                                    <td><CTEXTO nombre="txtHastaNivel" id="datosCampos" max="3" tipo="" onchange="" req="N" size="4" valor="" validacion="" /></td>
+									<td><IMG src="b.gif" width="25" height="8"/></td>
+                                    <td><CHECKBOX nombre="ckNivelesRotativos" id="datosCampos" onclick="" check="N"/></td>
+                                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                                    <td><CTEXTO nombre="txtNumRotaciones" id="datosCampos" max="2" tipo="" onchange="" req="S" size="2" valor="" validacion="" /></td>												
+												
+												<td><IMG src="b.gif" width="25" height="8"/></td>
+												<td><CHECKBOX nombre="ckAccesoNivelPremioSuperior" id="datosCampos" ontab="onTabAccesoNivelPremio();" onclick="" check="N"/></td>
+                                    
+												
+												<td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                 </tr>
+                                 <tr> 
+                                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                                 </tr>
+                </table>
+				 <!---fin primera fila-->
+				</td></tr>
+		
+			</table>
+			</fieldset>
+
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+           
+    <tr>
+          <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+          <td width="756" ><IMG src="b.gif"/></td>
+          <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+
+<CAPA nombre="capa4" alto="150" ancho="100%" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="165" zindex="">
+	<table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+          <fieldset><legend class="legend"><LABELC nombre="lblParemetrosPremiacionPorSorteo"  alto="13" filas="1" valor="" id="legend" cod="3450"/></legend>
+          <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+			 	<tr><td>
+            <!---primera fila-->
+                <table width="585" border="0" align="left" cellspacing="0" cellpadding="0">
+                                 <tr> 
+                                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                                 </tr>
+                                 <tr>
+                                    <td><IMG src="b.gif" width="8" height="8"/></td>
+                                    
+                                    <td><LABELC nombre="lblCantidadNúmerosAOtorgar"  alto="13" filas="1" valor="" id="datosTitle" cod="3451"/></td>
+                                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                                    <td><LABELC nombre="lblCodProducto" alto="13" filas="1" valor="" id="datosTitle" cod="337"/></td>
+                                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+								 </tr>
+                                 <tr>
+                                    <td><IMG src="b.gif" width="8" height="8"/></td>
+                                    <td><CTEXTO nombre="txtCantidadNumerosAOtorgar" id="datosCampos" max="5" tipo="" onchange="" req="S" size="5" valor="" validacion="" /></td>	
+                                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                                    <td nowrap="nowrap"><CTEXTO nombre="txtCodProducto" id="datosCampos" max="20" tipo="" onchange="onChangeCodProducto()" req="S" size="26" valor="" validacion="" /></td>
+								    <td><BOTON nombre="btnBuscar" ID="botonContenido" tipo="html" accion="accionBuscarProducto();" ontab="focalizaBuscarTab();" estado="false" cod="1"/></td>
+									<td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                 </tr>
+                                 <tr> 
+                                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                                 </tr>
+                </table>
+				 <!---fin primera fila-->
+				</td></tr>
+		
+			</table>
+			</fieldset>
+
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+           
+    <tr>
+          <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+          <td width="756" ><IMG src="b.gif"/></td>
+          <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+
+
+
+</FORMULARIO>
+</PAGINA>

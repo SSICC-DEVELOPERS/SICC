@@ -1,0 +1,662 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_informe_solicitudes_atendidas_generar.xml,v 1.1 2009/12/03 18:45:39 pecbazalar Exp $
+   contenido PED
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_informe_solicitudes_atendidas_generar" cod="0837" titulo="Generar Informe Solicitudes de Pedidos Atendidas" estilos="estilosB3.css" colorf="#F0F0F0" 
+	msgle="Generar Informe Solicitudes de Pedidos Atendidas" onload="onLoad();" xml:lang="es">
+<JS src="sicc_util.js"/>   
+   <JS src="PaginacionSicc.js"/>    
+   <JS src="DruidaTransactionMare.js"/>
+
+<JAVASCRIPT>
+  <![CDATA[ 
+   
+   function onLoad(){
+      configurarMenuSecundario('Formulario');      
+      focaliza('Formulario.cbMarca');
+   }
+
+     function quitarItemVacio(elemento){
+      var elementoADevolver = new Array();
+     
+      for(var k=0;k<elemento.length;k++) {
+          if (elemento[k] != ''){                            
+             elementoADevolver[elementoADevolver.length] = elemento[k];
+          }
+      }
+         
+      return elementoADevolver;
+      
+   }
+//------------------------------------------------------------------------------   
+   function generar(formato){
+      
+      if(sicc_validaciones_generales()){
+          
+          var a = new Object();
+          a.accion = 'generar';
+          a.marca = get('Formulario.cbMarca');
+          a.canal = get('Formulario.cbCanal');
+          a.accesos = quitarItemVacio(get('Formulario.cbAcceso'));
+          a.subaccesos = quitarItemVacio(get('Formulario.cbSubacceso'));
+          a.periodos = quitarItemVacio(get('Formulario.cbPeriodo'));
+          a.tipossolicitudes = quitarItemVacio(get('Formulario.cbTipoSolicitud'));
+          a.regiones = quitarItemVacio(get('Formulario.cbRegion'));
+          a.zonas = quitarItemVacio(get('Formulario.cbZona')) ;           
+          
+          a.formatoSalida = formato;
+         
+         
+          mostrarModalSICC('PEDSolicitudesPedidosAtendidas','generar', a);
+      }
+
+   }
+//------------------------------------------------------------------------------
+  function recolectarParametros(){
+        set('Formulario.marca',get('Formulario.cbMarca')) ;
+        set('Formulario.canal',get('Formulario.cbCanal')) ;
+        set('Formulario.accesos', get('Formulario.cbAcceso'));
+        set('Formulario.subaccesos', get('Formulario.cbSubacceso'));
+        set('Formulario.periodos',get('Formulario.cbPeriodo'));
+        set('Formulario.tipossolicitudes',get('Formulario.cbTipoSolicitud'));
+        set('Formulario.regiones',get('Formulario.cbRegion'));
+        set('Formulario.zonas',get('Formulario.cbZona')) ;
+        
+  }
+//------------------------------------------------------------------------------      
+
+   function fLimpiar(){
+ 
+      var aCombo = new Array(new Array("",""));            
+      set_combo('Formulario.cbAcceso', aCombo, []);            
+      set_combo('Formulario.cbSubacceso', aCombo, []);      
+      set_combo('Formulario.cbPeriodo', aCombo, []);      
+      set_combo('Formulario.cbTipoSolicitud', aCombo, []);      
+      set_combo('Formulario.cbRegion', aCombo, []); 
+      set_combo('Formulario.cbZona', aCombo, []);
+      
+      focaliza('Formulario.cbMarca'); 
+   }
+//------------------------------------------------------------------------------   
+   function cambioCanal(){
+    cargaAccesos();
+    cambioMarcaCanal();
+  }    
+
+  function cargaAccesos(){
+    canal  = get('Formulario.cbCanal');
+    pais   = get('Formulario.pais');
+    idioma = get('Formulario.idioma');
+     
+    if(canal != ''){
+    
+       var arr = new Array();
+             
+       arr[arr.length] = ["oidIdioma", idioma]; 
+       arr[arr.length] = ["oidPais", pais]; 
+       arr[arr.length] = ["oid", canal];
+          
+       recargaCombo("Formulario.cbAcceso","SEGObtieneAccesosPorCanal","es.indra.sicc.util.DTOOID",arr);
+
+       var aCombo = new Array(new Array("",""));
+       set_combo('Formulario.cbSubacceso', aCombo, []);
+       set_combo('Formulario.cbTipoSolicitud', aCombo, []);              
+       
+    }else{
+       var aCombo = new Array(new Array("",""));
+       set_combo('Formulario.cbAcceso', aCombo, []);
+       set_combo('Formulario.cbSubacceso', aCombo, []);
+       set_combo('Formulario.cbTipoSolicitud', aCombo, []);              
+    }
+  } 
+//------------------------------------------------------------------------------          
+   
+   function cambioMarcaCanal(){
+          
+     tipoM = get('Formulario.cbMarca','V');
+     tipoC = get('Formulario.cbCanal','V');
+
+     //(inicio) modificado por Sapaza (Fecha 19/01/2007)        
+     if(tipoM != '' && tipoC != ''){
+       var arr = new Array();     
+       var arr2 = new Array();            
+       pais   = get('Formulario.pais');
+       idioma = get('Formulario.idioma');
+        
+       arr[arr.length] = ["oidIdioma", idioma]; 
+       arr[arr.length] = ["oidPais", pais]; 
+       arr[arr.length] = ["marca", tipoM];
+       arr[arr.length] = ["canal", tipoC];
+
+       arr2[arr2.length] = ["oidPais", pais]; 
+       arr2[arr2.length] = ["oidMarca", tipoM];
+       arr2[arr2.length] = ["oidCanal", tipoC];
+     
+       recargaCombo("Formulario.cbPeriodo","REPCargarPeriodos","es.indra.sicc.dtos.cra.DTOPeriodo",arr);
+       recargaCombo("Formulario.cbRegion","ZONRecargaRegiones", "es.indra.sicc.dtos.zon.DTOUnidadAdministrativa",arr2); 
+        
+       var aCombo = new Array(new Array("","")); 
+       set_combo('Formulario.cbZona', aCombo, []);          
+       
+     } else {
+       var aCombo = new Array(new Array("",""));
+       set_combo('Formulario.cbPeriodo', aCombo, []); 
+       set_combo('Formulario.cbRegion', aCombo, []);          
+       set_combo('Formulario.cbZona', aCombo, []);          
+     }
+     //(fin)
+    
+  }    
+//------------------------------------------------------------------------------          
+   
+   function cambioAccesoMarcaCanal(){
+         
+     opcionesTipoSoli = new Array();     
+     set_combo('Formulario.cbTipoSolicitud',opcionesTipoSoli);        
+     tipoM = get('Formulario.cbMarca','V');
+     tipoC = get('Formulario.cbCanal','V');
+     tipoR = get('Formulario.cbAcceso','V');          
+     combo_add('Formulario.cbTipoSolicitud', '', '');
+       
+     for(var k=0;k<lstTipoSoli.datos.longitud;k++) {
+        for(var y=0;y<tipoM.length;y++){
+          for(var x=0;x<tipoC.length;x++){
+            for(var z=0;z<tipoR.length;z++){              
+               if ((lstTipoSoli.datos.ij(k,3) == tipoM[y])&&
+                   (lstTipoSoli.datos.ij(k,4) == tipoC[x])&&
+                   (lstTipoSoli.datos.ij(k,2) == tipoR[z])){
+                  combo_add('Formulario.cbTipoSolicitud',lstTipoSoli.datos.ij(k,0),lstTipoSoli.datos.ij(k,1));
+        
+               }
+             }
+           }
+        }
+    }  
+  }    
+//------------------------------------------------------------------------------          
+   
+   /*function cambioRegionMarcaCanal(){
+         
+     opcionesNZona = new Array();     
+     set_combo('Formulario.cbZona',opcionesNZona);        
+     tipoM = get('Formulario.cbMarca','V');
+     tipoC = get('Formulario.cbCanal','V');
+     tipoR = get('Formulario.cbRegion','V');          
+     combo_add('Formulario.cbZona', '', '');
+       
+     for(var k=0;k<lstZona.datos.longitud;k++) {
+        for(var y=0;y<tipoM.length;y++){
+          for(var x=0;x<tipoC.length;x++){
+            for(var z=0;z<tipoR.length;z++){              
+               if ((lstZona.datos.ij(k,3) == tipoM[y])&&
+                   (lstZona.datos.ij(k,4) == tipoC[x])&&
+                   (lstZona.datos.ij(k,1) == tipoR[z])){
+                  combo_add('Formulario.cbZona',lstZona.datos.ij(k,0),lstZona.datos.ij(k,2));
+        
+               }
+             }
+           }
+        }
+    }  
+  }*/
+
+ //------------------------------------------------------------------------------
+ // agregado por Sapaza (Fecha 19/01/2007)
+  function cambioRegionMarcaCanal(){
+    
+    opciones = new Array();
+    set_combo('Formulario.cbZona',opciones);
+         
+    combo_add('Formulario.cbZona', '', '');
+
+    var regiones = quitarItemVacio(get('Formulario.cbRegion'));
+    var pais = get('Formulario.pais');
+    var regionConc = new String();
+
+    for(i=0;i<regiones.length;i++){
+      regionConc += regiones[i] + "x";
+    }
+          
+    regionConc = regionConc.substring(0, regionConc.length-1);
+    
+    var arr = new Array();
+    arr[arr.length] = ['cadena', regionConc];
+    arr[arr.length] = ['oidPais', pais]
+    
+    if(regionConc != ''){
+      recargaCombo("Formulario.cbZona", "REPRecargaZonas", "es.indra.sicc.util.DTOString",arr);
+    }     
+  }
+    
+//------------------------------------------------------------------------------          
+   
+   function cambioAcceso(){
+     
+     //alert("change");
+     opciones = new Array();
+     set_combo('Formulario.cbSubacceso',opciones);        
+     tipo = get('Formulario.cbAcceso','V');
+     combo_add('Formulario.cbSubacceso', '', '');
+       
+     for(var k=0;k<lstSubacceso.datos.longitud;k++) {
+        for(var y=0;y<tipo.length;y++){
+          //alert(lstSubacceso.datos.ij(k,1)+" "+tipo[y]+" "+lstSubacceso.datos.ij(k,0)+" "+lstSubacceso.datos.ij(k,2));
+           if (lstSubacceso.datos.ij(k,2) == tipo[y]){ 			 
+              combo_add('Formulario.cbSubacceso',lstSubacceso.datos.ij(k,0),lstSubacceso.datos.ij(k,1));
+    
+           }
+        }
+    }
+    
+    
+    
+    cambioAccesoMarcaCanal();
+  }
+//------------------------------------------------------------------------------ 
+        function arrayComponentes(){
+              var arr = new Array();               
+              arr[arr.length]= new Array("cbMarca","");
+              arr[arr.length]= new Array("cbCanal","");              
+              arr[arr.length]= new Array("cbAcceso","");
+              arr[arr.length]= new Array("cbSubacceso","");
+              arr[arr.length]= new Array("cbPeriodo","");
+              arr[arr.length]= new Array("cbTipoSolicitud","");
+              arr[arr.length]= new Array("cbRegion","");
+              arr[arr.length]= new Array("cbZona","");
+              arr[arr.length]= new Array("btnGenerarInforme","BOTON");
+              arr[arr.length]= new Array("btnGenerarExcel","BOTON");
+              
+              return arr;
+          }
+          function tabGenerico(nombreComp, tipotab){       
+            var arr = arrayComponentes();
+            var tabular = false;
+            var nombreFormulario = getFormularioSICC();
+            var j = 0;
+            var k = arr.length;
+            if (tipotab != "sh") {
+                j = j-1;                
+                k = k-1;
+            }
+
+            while(j<k){
+                var t;
+                if(tipotab == "sh"){
+                  k--;
+                  t = k;
+                } else{
+                  j++;
+                  t = j;                  
+                }
+                  
+                var nombre = arr[t][0];
+                var tipo = arr[t][1];
+                if (tabular==false){
+                  if (nombreComp==nombre){
+                      tabular=true;
+                      if (tipotab == "sh"){
+                        if (k==0) k= arr.length;
+                      } else {
+                        if ((j+1)==arr.length)  j = -1;
+                      }
+                  }                
+                } else {
+                  try {
+                    var name = nombreFormulario+"."+nombre;
+                    if (tipo=="BOTONXY"){
+                       focalizaBotonHTML_XY(nombre);
+                    } else if (tipo=="BOTON") {
+                       focalizaBotonHTML("botonContenido",nombre)
+                    } else {
+                       focaliza(name);
+                    }
+                    return;
+                  } catch (e) {
+                  }
+                }
+            }
+          } 
+//------------------------------------------------------------------------------               
+  ]]> 
+</JAVASCRIPT>
+
+<VALIDACION>
+    
+    <ELEMENTO name="cbMarca" required="true" cod="6"/>
+    <ELEMENTO name="cbCanal" required="true" cod="7"/>
+    <ELEMENTO name="cbPeriodo" required="true" cod="276"/>
+      
+</VALIDACION>
+<FORMULARIO nombre="Formulario">
+<VAR nombre="accion" valor="" />
+<VAR nombre="conectorAction" valor="PEDSolicitudesPedidosAtendidas" />
+<VAR nombre="casoDeUso" valor=""/>
+<VAR nombre="errCodigo" valor="" />
+<VAR nombre="errDescripcion" valor="" />
+<VAR nombre="idioma" valor="" />
+
+<VAR nombre="pais" valor=""/>
+<VAR nombre="marca" valor="" />
+  <VAR nombre="marca" valor=""/>
+  <VAR nombre="canal" valor=""/>
+  <VAR nombre="accesos" valor=""/>
+  <VAR nombre="subaccesos" valor=""/>
+  <VAR nombre="periodos" valor=""/>
+ <VAR nombre="tipossolicitudes" valor=""/>  
+  <VAR nombre="regiones" valor=""/>
+  <VAR nombre="zonas" valor=""/>
+  <VAR nombre="formatoSalida" valor=""/>
+
+<CAPA nombre="capa">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblCriteriosSeleccion"  filas="1" valor="" id="legend" cod="00275"/></legend>
+          <!---primera fila-->
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblMarca" filas="1" id="datosTitle" cod="6" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblCanal" filas="1" id="datosTitle" cod="7" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap" valign="top"><COMBO nombre="cbMarca" onchange="cambioMarcaCanal();" size="1" multiple="N" valorinicial="" textoinicial="" id="datosCampos" req="S" ontab="tabGenerico('cbMarca');" onshtab="tabGenerico('cbMarca','sh');">
+                		<ROWSET>
+                  			
+                  	 	</ROWSET>	
+	                </COMBO> 
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbCanal" onchange="cambioCanal();" size="1" multiple="N" valorinicial="" textoinicial="" id="datosCampos" req="S" ontab="tabGenerico('cbCanal');" onshtab="tabGenerico('cbCanal','sh');">
+                		<ROWSET>
+                  			
+			              			
+                  	 	</ROWSET>	
+	                </COMBO> 
+	           </td>
+	           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>
+            
+            <tr><td>
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+               
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblAcceso" filas="1" id="datosTitle" cod="10" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblSubacceso" filas="1" id="datosTitle" cod="122" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbAcceso" onchange="cambioAcceso();" size="5" multiple="S" valorinicial="" textoinicial="" id="datosCampos" req="N" ontab="tabGenerico('cbAcceso');" onshtab="tabGenerico('cbAcceso','sh');">
+                		<ROWSET>
+                  			
+			              			
+                  	 	</ROWSET>	
+	                </COMBO> 
+	           </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbSubacceso" size="5" multiple="S" valorinicial="" textoinicial="" id="datosCampos" req="N" ontab="tabGenerico('cbSubacceso');" onshtab="tabGenerico('cbSubacceso','sh');">
+                		<ROWSET>
+                  			
+			              			
+                  	 	</ROWSET>	
+	                </COMBO> 
+	           </td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>
+            <tr><td>
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+               
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblPeriodo" filas="1" id="datosTitle" cod="276" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblTipoSolicitud" filas="1" id="datosTitle" cod="415" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbPeriodo" size="5" multiple="S" valorinicial="" textoinicial="" id="datosCampos" req="S" ontab="tabGenerico('cbPeriodo');" onshtab="tabGenerico('cbPeriodo','sh');">
+                		<ROWSET>
+                  			
+                  	 	</ROWSET>	
+	                </COMBO> 
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbTipoSolicitud" size="5" multiple="S" valorinicial="" textoinicial="" id="datosCampos" req="N" ontab="tabGenerico('cbTipoSolicitud');" onshtab="tabGenerico('cbTipoSolicitud','sh');">
+                		<ROWSET>
+                  			
+                  	 	</ROWSET>	
+	                </COMBO> 
+                   </td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>     
+            <tr><td>
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+               
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblRegion" filas="1" id="datosTitle" cod="109" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblZona" filas="1" id="datosTitle" cod="143" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbRegion" onchange="cambioRegionMarcaCanal();" size="5" multiple="S" valorinicial="" textoinicial="" id="datosCampos" req="N" ontab="tabGenerico('cbRegion');" onshtab="tabGenerico('cbRegion','sh');">
+                		<ROWSET>
+                  			
+			              			
+                  	 	</ROWSET>	
+	                </COMBO> 
+	           </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbZona" size="5" multiple="S" valorinicial="" textoinicial="" id="datosCampos" req="N" ontab="tabGenerico('cbZona');" onshtab="tabGenerico('cbZona','sh');">
+                		<ROWSET>
+                  			
+			              			
+                  	 	</ROWSET>	
+	                </COMBO> 
+	           </td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>
+             
+           </table>
+       <!---fin primera fila-->
+         
+        
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnGenerarInforme" ID="botonContenido" tipo="html" accion="generar('pdf');" estado="false" cod="2495" ontab="tabGenerico('btnGenerarInforme');" onshtab="tabGenerico('btnGenerarInforme','sh');"/>
+		  <BOTON nombre="btnGenerarExcel" ID="botonContenido" tipo="html" accion="generar('xls');" estado="false" cod="2526" ontab="tabGenerico('btnGenerarExcel');" onshtab="tabGenerico('btnGenerarExcel','sh');"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>       
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+ </CAPA>          
+   <!--Manejo de mulstiseleccion y recarga multiple-->
+         <CAPA nombre="capaAcceso" alto="3" ancho="624" colorf="" borde="0" imagenf="" repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="165" zindex="">
+                  <LISTA seleccion="boton" nombre="lstAcceso" x="12" y="10" ancho="600" alto="3" multisel="-1" incy="10" incx="10" colorf="#EFEFEF" imagenoff="close_no.gif" imagenon="close_up.gif" accion="" sep="|" pixelsborde="2" colorborde="#CCCCCC">
+                           <CABECERA nombre="cab1" height="20">
+                                    <COL id="datosCamposCabecera" ancho="40">Acceso</COL>
+                                    <COL id="datosCamposCabecera" ancho="60">Descripción</COL>                                    
+                                    <COL id="datosCamposCabecera" ancho="440">Canal</COL>
+                           </CABECERA>
+                           <PRESENTACION ancho="590" filas="1" bloquesid="['datosCamposCenterImpar', 'datosCamposCenterPar']">
+                                    <COL ancho="40" caracteres="20"/>
+                                    <COL ancho="60" caracteres="20"/>                                    
+                                    <COL ancho="440" caracteres="30"/>
+                           </PRESENTACION>
+                           <ROWSET>
+                           </ROWSET>
+                  </LISTA>
+         </CAPA>     
+   <!--Manejo de mulstiseleccion y recarga multiple-->
+         <CAPA nombre="capaSubacceso" alto="3" ancho="624" colorf="" borde="0" imagenf="" repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="165" zindex="">
+                  <LISTA seleccion="boton" nombre="lstSubacceso" x="12" y="10" ancho="600" alto="3" multisel="-1" incy="10" incx="10" colorf="#EFEFEF" imagenoff="close_no.gif" imagenon="close_up.gif" accion="" sep="|" pixelsborde="2" colorborde="#CCCCCC">
+                           <CABECERA nombre="cab1" height="20">
+                                    <COL id="datosCamposCabecera" ancho="40">Subacceso</COL>
+                                    <COL id="datosCamposCabecera" ancho="60">Descripción</COL>                                    
+                                    <COL id="datosCamposCabecera" ancho="440">Acceso</COL>
+                           </CABECERA>
+                           <PRESENTACION ancho="590" filas="1" bloquesid="['datosCamposCenterImpar', 'datosCamposCenterPar']">
+                                    <COL ancho="40" caracteres="20"/>
+                                    <COL ancho="60" caracteres="20"/>                                    
+                                    <COL ancho="440" caracteres="30"/>
+                           </PRESENTACION>
+                           <ROWSET>
+                           </ROWSET>
+                  </LISTA>
+         </CAPA>     
+   <!--Manejo de mulstiseleccion y recarga multiple-->
+         <CAPA nombre="capaPeriodo" alto="3" ancho="624" colorf="" borde="0" imagenf="" repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="165" zindex="">
+                  <LISTA seleccion="boton" nombre="lstPeriodo" x="12" y="10" ancho="600" alto="3" multisel="-1" incy="10" incx="10" colorf="#EFEFEF" imagenoff="close_no.gif" imagenon="close_up.gif" accion="" sep="|" pixelsborde="2" colorborde="#CCCCCC">
+                           <CABECERA nombre="cab1" height="20">
+                                    <COL id="datosCamposCabecera" ancho="40">Periodo</COL>
+                                    <COL id="datosCamposCabecera" ancho="60">Descripción</COL>                                    
+                                    <COL id="datosCamposCabecera" ancho="440">Marca</COL>
+                                    <COL id="datosCamposCabecera" ancho="440">Canal</COL>
+                                    <COL id="datosCamposCabecera" ancho="440">FechaInicio</COL>
+                                    <COL id="datosCamposCabecera" ancho="440">FechaFin</COL>
+                           </CABECERA>
+                           <PRESENTACION ancho="590" filas="1" bloquesid="['datosCamposCenterImpar', 'datosCamposCenterPar']">
+                                    <COL ancho="40" caracteres="20"/>
+                                    <COL ancho="60" caracteres="20"/>                                    
+                                    <COL ancho="440" caracteres="30"/>
+                                    <COL ancho="440" caracteres="30"/>
+                                    <COL ancho="440" caracteres="30"/>
+                                    <COL ancho="440" caracteres="30"/>
+                           </PRESENTACION>
+                           <ROWSET>
+                           </ROWSET>
+                  </LISTA>
+         </CAPA>     
+   <!--Manejo de mulstiseleccion y recarga multiple-->
+         <CAPA nombre="capaRegion" alto="3" ancho="624" colorf="" borde="0" imagenf="" repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="165" zindex="">
+                  <LISTA seleccion="boton" nombre="lstRegion" x="12" y="10" ancho="600" alto="3" multisel="-1" incy="10" incx="10" colorf="#EFEFEF" imagenoff="close_no.gif" imagenon="close_up.gif" accion="" sep="|" pixelsborde="2" colorborde="#CCCCCC">
+                           <CABECERA nombre="cab1" height="20">
+                                    <COL id="datosCamposCabecera" ancho="40">Region</COL>
+                                    <COL id="datosCamposCabecera" ancho="60">Descripción</COL>                                    
+                                    <COL id="datosCamposCabecera" ancho="440">Marca</COL>
+                                    <COL id="datosCamposCabecera" ancho="440">Canal</COL>
+                           </CABECERA>
+                           <PRESENTACION ancho="590" filas="1" bloquesid="['datosCamposCenterImpar', 'datosCamposCenterPar']">
+                                    <COL ancho="40" caracteres="20"/>
+                                    <COL ancho="60" caracteres="20"/>                                    
+                                    <COL ancho="440" caracteres="30"/>
+                                    <COL ancho="440" caracteres="30"/>
+                           </PRESENTACION>
+                           <ROWSET>
+                           </ROWSET>
+                  </LISTA>
+         </CAPA>     
+   <!--Manejo de mulstiseleccion y recarga multiple-->
+         <CAPA nombre="capaZona" alto="3" ancho="624" colorf="" borde="0" imagenf="" repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="165" zindex="">
+                  <LISTA seleccion="boton" nombre="lstZona" x="12" y="10" ancho="600" alto="3" multisel="-1" incy="10" incx="10" colorf="#EFEFEF" imagenoff="close_no.gif" imagenon="close_up.gif" accion="" sep="|" pixelsborde="2" colorborde="#CCCCCC">
+                           <CABECERA nombre="cab1" height="20">
+                                    <COL id="datosCamposCabecera" ancho="40">Zona</COL>
+                                    <COL id="datosCamposCabecera" ancho="40">Region</COL>
+                                    <COL id="datosCamposCabecera" ancho="60">Descripción</COL>                                    
+                                    <COL id="datosCamposCabecera" ancho="440">Marca</COL>
+                                    <COL id="datosCamposCabecera" ancho="440">Canal</COL>
+                           </CABECERA>
+                           <PRESENTACION ancho="590" filas="1" bloquesid="['datosCamposCenterImpar', 'datosCamposCenterPar']">
+                                    <COL ancho="40" caracteres="20"/>
+                                    <COL ancho="60" caracteres="20"/>                                    
+                                    <COL ancho="440" caracteres="30"/>
+                                    <COL ancho="440" caracteres="30"/>
+                                    <COL ancho="440" caracteres="30"/>
+                           </PRESENTACION>
+                           <ROWSET>
+                           </ROWSET>
+                  </LISTA>
+         </CAPA>     
+   <!--Manejo de mulstiseleccion y recarga multiple-->
+         <CAPA nombre="capaTipoSolicitud" alto="3" ancho="624" colorf="" borde="0" imagenf="" repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="165" zindex="">
+                  <LISTA seleccion="boton" nombre="lstTipoSoli" x="12" y="10" ancho="600" alto="3" multisel="-1" incy="10" incx="10" colorf="#EFEFEF" imagenoff="close_no.gif" imagenon="close_up.gif" accion="" sep="|" pixelsborde="2" colorborde="#CCCCCC">
+                           <CABECERA nombre="cab1" height="20">
+                                    <COL id="datosCamposCabecera" ancho="40">TipoSoli</COL>
+                                    <COL id="datosCamposCabecera" ancho="40">Descripción</COL>
+                                    <COL id="datosCamposCabecera" ancho="60">Acceso</COL>                                    
+                                    <COL id="datosCamposCabecera" ancho="440">Marca</COL>
+                                    <COL id="datosCamposCabecera" ancho="440">Canal</COL>
+                           </CABECERA>
+                           <PRESENTACION ancho="590" filas="1" bloquesid="['datosCamposCenterImpar', 'datosCamposCenterPar']">
+                                    <COL ancho="40" caracteres="20"/>
+                                    <COL ancho="60" caracteres="20"/>                                    
+                                    <COL ancho="440" caracteres="30"/>
+                                    <COL ancho="440" caracteres="30"/>
+                                    <COL ancho="440" caracteres="30"/>
+                           </PRESENTACION>
+                           <ROWSET>
+                           </ROWSET>
+                  </LISTA>
+         </CAPA>  
+         
+</FORMULARIO>
+</PAGINA>

@@ -1,0 +1,422 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/PROY
+   $Id: contenido_Consultar_Actividades.xml,v 1.1 2009/12/03 18:45:52 pecbazalar Exp $
+   DESC
+
+   DRUIDATARGET=/../../config/scripts/iniciales
+-->
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+<PAGINA nombre="contenido_Consultar_Actividades" titulo="Consultar Actividades"
+         estilos="estilos.css" colorf="#F0F0F0" msgle="Consultar Actividades"
+         onload="inicializacion();posicionarCombo()" xml:lang="es" cod="092">
+  <ESTILO>#MA {font-family: Arial, Helvetica, sans-serif;background-color:#CED7E7;
+                                     font-size:8pt;font-weight:bold;color:#526D84;}
+                  #S  {font-family: Arial, Helvetica, sans-serif;background-color:#526D84;
+                                     font-size:8pt;font-face:Arial;font-weight:bold;color:#FFFFFF;}
+                  #DOFF {font-family: Arial, Helvetica, sans-serif;background-color:white;
+                                              font-size:8pt;text-decoration:none;color:black;font-weight:bold;}
+                  #DON {font-family: Arial, Helvetica, sans-serif;background-color:#292084;
+                                             font-size:8pt;text-decoration:none;color:white;font-weight:bold;}
+                  #FDS {font-family: Arial, Helvetica, sans-serif;color:black;background-color:white;
+                                             font-size:8pt;text-decoration:none;font-weight:bold;}
+                  #F {background-color:red;font-family: Arial, Helvetica, sans-serif;text-decoration:none;
+                                    font-size:8pt;font-weight:bold;}
+                  #estcomboF {width:355px}
+                  #estcombo1F {width:435px}</ESTILO>
+  <JS src="sicc_util.js"/>
+  <JAVASCRIPT>
+    <![CDATA[
+
+
+         function fLimpiar() {
+                  var aa = new Array();
+
+                  set('frmConsultarActividades.cbPaises','');
+                  set('frmConsultarActividades.cbCanales','');
+                  set('frmConsultarActividades.cbMarcas','');
+                  set_combo('frmConsultarActividades.cbActiv', aa, '');
+                  focaliza('frmConsultarActividades.cbPaises');
+                  focaliza('frmConsultarActividades.cbPaises');
+         }
+    
+    function modificarActividad(){
+         if(Lista1.getSeleccion() == ""){
+                  GestionarMensaje('8');
+         }
+         else{
+                  set('frmConsultarActividades.hActividad', Lista1.getSeleccion());
+                  set('frmConsultarActividades.hCasoDeUso', 'modificar');
+                  set('frmConsultarActividades.accion', "");
+                  set('frmConsultarActividades.conectorAction', "LPModificarActividad");
+                  set('frmConsultarActividades.hPasoActividad', Lista1.getSeleccion());
+                  enviarFormulario();
+         }	
+    }
+    
+    function mostrarMsgVal(){
+         if (get('frmConsultarActividades.txtDescripcion')==""){
+                  GestionarMensaje('708','frmConsultarActividades.txtDescripcion');
+                  return;
+         }
+    }
+    
+    function inicializacion(){
+                  //alert("CU " + get('frmConsultarActividades.hCasoDeUso'));
+                  //alert("Accion " + get('frmConsultarActividades.accion'));
+         onLoadCargarBarra();
+    }
+    
+    function obtenerPaisMarcaCanal(){
+         set('frmConsultarActividades.hPais', get('frmConsultarActividades.cbPaises'));
+         set('frmConsultarActividades.hCanal', get('frmConsultarActividades.cbCanales'));
+         set('frmConsultarActividades.hMarca', get('frmConsultarActividades.cbMarcas'));
+         set('frmConsultarActividades.descPais', get('frmConsultarActividades.cbPaises', 'T'));
+         set('frmConsultarActividades.descCanal', get('frmConsultarActividades.cbCanales', 'T'));
+         set('frmConsultarActividades.descMarca', get('frmConsultarActividades.cbMarcas', 'T'));
+    }
+    
+    function onLoadCargarBarra() {
+
+			/*
+         if (get('frmConsultarActividades.tipoBarra')=="eliminar" ){
+                  cargarBarra("barra_Consultar_Actividades", "A");
+         }
+         else{
+                  cargarBarra("barra_Consultar_Actividades");
+         }*/
+			configurarMenuSecundario('frmConsultarActividades');
+         if(get('frmConsultarActividades.hidErrDescripcion')!=''){
+                  var wnd = fMostrarMensajeError(get('frmConsultarActividades.hidErrCodigo'),get('frmConsultarActividades.hidErrDescripcion'));
+                   
+                    set('frmConsultarActividades.hPais', '');
+                    set('frmConsultarActividades.hMarca', '');
+                    set('frmConsultarActividades.hCanal', '');
+                    set('frmConsultarActividades.hActividad', '');
+                  
+                    if (get('frmConsultarActividades.hCasoDeUso')=="Eliminar" ){
+                             set('frmConsultarActividades.conectorAction', 'LPEliminarActividades');
+           }
+         //  enviarFormulario();
+                  }
+                   focaliza('frmConsultarActividades.cbPaises');
+                   accion('frmConsultarActividades.chkTodasMarcas','.disabled=true');
+    }
+    
+    function posicionarCombo() {
+         var iSeleccionadoP = new Array();
+         iSeleccionadoP[0] = get('frmConsultarActividades.hPais');
+         set('frmConsultarActividades.cbPaises',iSeleccionadoP);
+    
+         var iSeleccionadoM = new Array();
+         iSeleccionadoM[0] = get('frmConsultarActividades.hMarca');
+         set('frmConsultarActividades.cbMarcas',iSeleccionadoM);
+    
+         var iSeleccionado = new Array();
+         iSeleccionado[0] = get('frmConsultarActividades.hCanal');
+         set('frmConsultarActividades.cbCanales',iSeleccionado);
+    
+         var iSeleccionadoA = new Array();
+         iSeleccionadoA[0] = get('frmConsultarActividades.hActividad');
+         set('frmConsultarActividades.cbActiv',iSeleccionadoA);
+    }
+    
+    // Va a permitir limpiar las selecciones y el text field
+    function Limpiar() {
+     
+    }
+    
+    function enviarFormulario() {
+         obtenerPaisMarcaCanal();
+         enviaSICC('frmConsultarActividades');
+    }
+    
+    function cargarActividades() {
+         if(	
+                  get('frmConsultarActividades.cbPaises')	!= "" && 
+                  get('frmConsultarActividades.cbMarcas')	!= "" && 
+                  get('frmConsultarActividades.cbCanales') != ""){
+    
+                  set('frmConsultarActividades.accion', 'consulta');
+    
+                  if (get('frmConsultarActividades.hCasoDeUso')=="Eliminar" ){
+                           set('frmConsultarActividades.conectorAction', 'LPEliminarActividades');
+                  }
+                  else{
+                           set('frmConsultarActividades.conectorAction', 'LPConsultarActividades');
+                  }
+                  
+                  enviarFormulario();
+                  }
+    }
+    
+         function cargarListaActividades() {
+                  setTimeout("cargarListaActividades2()",100)
+         }
+
+    function cargarListaActividades2() {
+         if(	
+                  fValidarCOMBO('frmConsultarActividades.cbPaises') && 
+                  fValidarCOMBO('frmConsultarActividades.cbMarcas') && 
+                  fValidarCOMBO('frmConsultarActividades.cbCanales') != ""){
+    
+                                    set('frmConsultarActividades.hActividad', get('frmConsultarActividades.cbActiv'));
+                                    set('frmConsultarActividades.accion', 'cargarLista');
+                  
+                  
+                                    if (get('frmConsultarActividades.hCasoDeUso')=="Eliminar" ){
+                                             set('frmConsultarActividades.conectorAction', 'LPEliminarActividades');
+                                    }
+                                    else{
+                                             set('frmConsultarActividades.conectorAction', 'LPConsultarActividades');
+                                    }
+                  
+                                    enviarFormulario();
+                  }
+    }
+    
+    function borrar(){
+         if(Lista1.getSeleccion() == ""){
+                  GestionarMensaje('4');
+         }
+         else{
+                           if(GestionarMensaje('5')) {
+                           set('frmConsultarActividades.accion', "eliminar");
+                           set('frmConsultarActividades.conectorAction', "LPEliminarActividades");
+                           set('frmConsultarActividades.hActividad', Lista1.getSeleccion());
+                           enviarFormulario();
+                           }
+         }
+    }
+    
+    
+    ]]>
+  </JAVASCRIPT>
+  <FORMULARIO nombre="frmConsultarActividades">
+    <VAR nombre="accion" valor=""/>
+    <VAR nombre="conectorAction" valor="LPConsultarActividades"/>
+    <VAR nombre="hidErrCodigo" valor=""/>
+    <VAR nombre="hidErrDescripcion" valor=""/>
+    <VAR nombre="hCasoDeUso" valor=""/>
+    <VAR nombre="hPais" valor=""/>
+    <VAR nombre="hMarca" valor=""/>
+    <VAR nombre="hCanal" valor=""/>
+    <VAR nombre="hActividad" valor=""/>
+    <VAR nombre="descPais" valor=""/>
+    <VAR nombre="descMarca" valor=""/>
+    <VAR nombre="descCanal" valor=""/>
+    <VAR nombre="descActividad" valor=""/>
+    <VAR nombre="hPasoActividad" valor=""/>
+         <VAR nombre="tipoBarra" valor="" />
+    <!-- PRIMER Busqueda -->
+
+         <CAPA nombre="capaBusqueda" alto="215" ancho="100%" colorf="" borde="0"
+           imagenf="" repeat="" padding="" visibilidad="visible" contravsb=""
+           x="0" y="0" zindex="">
+                           
+                  <TABLE width="624" border="0" cellspacing="0" cellpadding="0" align="left">
+                           <TR> 
+                                    <TD align="center" width="12"><IMG src="b.gif" width="12" height="8" /></TD>
+                                    <TD width="400"></TD>
+                                    <TD width="12"><IMG src="b.gif" width="12" height="1" /></TD>
+                           </TR>
+                           <TR> 
+                                    <TD align="center"></TD>
+                                    <TD>
+                                             <TABLE width="100%" border="1" cellspacing="1" cellpadding="0" bordercolor="#CCCCCC">
+                                                      <TR> 
+                                                                <TD>
+                                                                         <TABLE width="98%" border="0" cellspacing="0" cellpadding="0" align="left" >
+                                                                                  <TR>
+                                                                                           <TD class="datosCampos">
+                                                                                                    <LABELC nombre="lblXXX" ancho="140" alto="5"
+                                                                                                                      filas="1" id="datosTitleRight" cod=""
+                                                                                                                      valor="" enviaroculto="N"/>
+                                                                                           </TD>
+                                                                                  </TR>
+                                                                                  <TR>
+                                                                                           <TD width="120">
+                                                                                                    <LABELC nombre="lblPais" ancho="140" alto="30" filas="1" id="datosTitleRight" cod="154" valor="" enviaroculto="N"/>
+
+                                                                                           </TD>
+                                                                                           <TD width="1%">
+                                                                                                    <IMG src="b.gif" width="8" height="8"/>
+                                                                                           </TD>
+                                                                                           <TD width="98%">
+                                                                                                    <COMBO textoinicial="" valorinicial="" req="N" multiple="N" size="1" id="estcombo" nombre="cbPaises" onchange="cargarActividades()" onshtab="focaliza('frmConsultarActividades.cbActiv')">
+                                                                                                             <ROWSET>
+                                                                                                             </ROWSET>
+                                                                                                    </COMBO>
+                                                                                           </TD>
+                                                                                  </TR>
+                                                                                  <TR>
+                                                                                           <TD width="120" valign="top">
+                                                                                                    <LABELC nombre="lblMarca" ancho="140" alto="30" filas="1" id="datosTitleRight" cod="165" valor="" enviaroculto="N"/>
+                                                                                           </TD>
+                                                                                           <TD width="1%">
+                                                                                                    <IMG src="b.gif" width="8" height="8"/>
+                                                                                           </TD>
+                                                                                           <TD width="98%">
+                                                                                                    <COMBO req="N" multiple="N" size="2" id="estcombo" 
+                                                                                                              nombre="cbMarcas"
+                                                                                                              onchange="cargarActividades()">
+                                                                                                             <ROWSET>
+                                                                                                             </ROWSET>
+                                                                                                    </COMBO>
+                                                                                           </TD>
+                                                                                  </TR>
+                                                                                  <TR>
+                                                                                           <TD></TD>
+                                                                                           <TD width="1%"><IMG src="b.gif" width="8" height="8"/></TD>
+                                                                                           <TD>
+                                                                                                    <TABLE>
+                                                                                                             <TR>
+                                                                                                                      <TD width="120" align="right">
+                                                                                                                                <CHECKBOX onfocus="" onclick="" id="estilos.css" req="N" validacion="" check="N" texto="" nombre="chkTodasMarcas"/>
+                                                                                                                      </TD>
+                                                                                                                      <TD width="98%">
+                                                                                                                                <LABELC nombre="lblTodasMarcas" ancho="220"
+                                                                                                                                           alto="30" filas="1" id="datosTitleLeft"
+                                                                                                                                           cod="777" valor="" enviaroculto="N"/>
+                                                         
+                                                                                                                      </TD>
+                                                                                                             </TR>
+                                                                                                    </TABLE>
+                                                                                           </TD>
+                                                                                  </TR>
+                                                                                  <TR>
+                                                                                           <TD width="120">
+                                                                                                    <LABELC nombre="lblCanal" ancho="140" alto="30" filas="1" id="datosTitleRight" cod="166" valor="" enviaroculto="N"/>
+                                                                                           </TD>
+                                                                                           <TD width="1%">
+                                                                                                    <IMG src="b.gif" width="8" height="8"/>
+                                                                                           </TD>
+                                                                                           <TD width="98%">
+                                                                                                    <COMBO textoinicial="" valorinicial="" req="N" multiple="N" size="1"
+                                                                                                                 id="estcombo" nombre="cbCanales"
+                                                                                                                 onchange="cargarActividades()" >
+                                                                                                             <ROWSET>
+                                                                                                             </ROWSET>
+                                                                                                    </COMBO>
+                                                                                           </TD>
+                                                                                  </TR>
+                                                                                  <TR>
+                                                                                           <TD width="120">
+                                                                                                    <LABELC nombre="lblActiv" ancho="140" alto="30"
+                                                                                                                      filas="1" id="datosTitleRight" cod="800"
+                                                                                                                      valor="" enviaroculto="N"/>
+                                                                                           </TD>
+                                                                                           <TD width="1%">
+                                                                                                    <IMG src="b.gif" width="8" height="8"/>
+                                                                                           </TD>
+                                                                                           <TD width="98%">
+                                                                                                    <COMBO req="N" multiple="N" size="1"
+                                                                                                                 id="estcombo1" nombre="cbActiv" onchange=""
+                                                                                                                 valorinicial="" textoinicial="" ontab="focaliza('frmConsultarActividades.cbPaises')">
+                                                                                                             <ROWSET>
+                                                                                                             </ROWSET>
+                                                                                                    </COMBO>
+                                                                                           </TD>
+                                                                                  </TR>
+                                                                                  <TR>
+                                                                                           <TD class="datosCampos">
+                                                                                                    <LABELC nombre="lblYYY" ancho="140" alto="5"
+                                                                                                                      filas="1" id="datosTitleRight" cod=""
+                                                                                                                      valor="" enviaroculto="N"/>
+                                                                                           </TD>
+                                                                                  </TR >
+                                                                         </TABLE>
+                                                                </TD>
+                                                      </TR>
+                                                      <TR> 
+                                                                <TD bgcolor="#CCCCCC">
+                                                                         <BOTON cod="141" estado="true" accion="javascript:cargarListaActividades();" tipo="html" ID="BotonContenido" nombre="btnBuscar"/>
+                                                                </TD>
+                                                      </TR> 
+                                             </TABLE>
+                                    </TD>
+                           </TR>
+                  </TABLE>
+
+
+    </CAPA>
+    
+    <CAPA nombre="capa2" alto="100" ancho="615" colorf="" borde="0" imagenf=""
+           repeat="" padding="" visibilidad="hidden" contravsb="" x="0" y="220"
+           zindex="">
+    
+                  <LISTA seleccion="boton" nombre="Lista1" ancho="600" alto="95" y="0" x="12" multisel="1" incy="350" incx="23" colorf="#EFEFEF" imagenoff="close_no.gif" imagenon="close_up.gif" accion="" sep="|" pixelsborde="1" colorborde="#CCCCCC">
+
+                           <CABECERA nombre="cabecera" height="20" colorf="#CCCCCC">
+                                             
+                      <COL id="fondoCabecera" ancho="20" align="left">
+                                                      <LABELC nombre="lblIconos" ancho="20" alto="20" filas="1" id="datosCamposCabecera" cod="" valor="" enviaroculto="N"/>
+                                             </COL>					
+                      <COL id="fondoCabecera" ancho="120" align="left">
+                                                      <LABELC nombre="lblCodAct" ancho="120" alto="20" filas="1" id="datosCamposCabecera" cod="799" valor="" enviaroculto="N"/>
+                                             </COL>
+                      <COL id="fondoCabecera" ancho="410">
+                                                      <LABELC nombre="lblNomAct" ancho="410" alto="20" filas="1" id="datosCamposCabecera" cod="800" valor="" enviaroculto="N"/>
+                                             </COL>
+                      <COL id="fondoCabecera" ancho="130">
+                                                      <LABELC nombre="lblTipAct" ancho="130" alto="20" filas="1" id="datosCamposCabecera" cod="801" valor="" enviaroculto="N"/>
+                                             </COL>
+                      <COL id="fondoCabecera" ancho="120">
+                                                      <LABELC nombre="lblActOrig" ancho="120" alto="20" filas="1" id="datosCamposCabecera" cod="2464" valor="" enviaroculto="N"/>
+                                             </COL>
+                      <COL id="fondoCabecera" ancho="250  ">
+                                                      <LABELC nombre="lblAreaResp" ancho="250" alto="20" filas="1" id="datosCamposCabecera" cod="803" valor="" enviaroculto="N"/>
+                                             </COL>
+                      <COL id="fondoCabecera" ancho="90">
+                                                      <LABELC nombre="lblEbel" ancho="90" alto="20" filas="1" id="datosCamposCabecera" cod="804" valor="" enviaroculto="N"/>
+                                             </COL>
+                                             <COL id="fondoCabecera" ancho="130">
+                                                      <LABELC nombre="lblProcAsig" ancho="130" alto="20" filas="1" id="datosCamposCabecera" cod="805" valor="" enviaroculto="N"/>
+                                             </COL>
+                      <COL id="fondoCabecera" ancho="10" align="left">
+                                                      <LABELC nombre="lblRelleno" ancho="10" alto="20" filas="1" id="datosCamposCabecera" cod="" valor="" enviaroculto="N"/>
+                                             </COL>				
+                      <COL id="fondoCabecera" ancho="20" align="left">                                                  
+                                             </COL>						
+                                             
+                  </CABECERA>
+
+                  <PRESENTACION ancho="1270" filas="1" bloquesid="['datosCamposCenterImPar', 'datosCamposCenterPar', 'datosCamposCenterImPar', 'datosCamposCenterPar', 'datosCamposCenterImPar', 'datosCamposCenterPar',  'datosCamposRightImPar']">                         
+                                             <COL ancho="10"/>	<!-- Iconos    -->
+                      <COL ancho="120"/>  <!-- Cod Act   -->
+                      <COL ancho="410"/>  <!-- Nom Act   -->
+                      <COL ancho="130"/>  <!-- Tip Act   -->
+                      <COL ancho="120"/>  <!-- Act Orig  -->
+                      <COL ancho="250"/>  <!-- Area Resp -->
+                      <COL ancho="90"/>   <!-- Ebel Noti -->
+                      <COL ancho="130"/>  <!-- Proc Asig -->
+                  </PRESENTACION>
+                  
+                                    <ROWSET>
+                  </ROWSET>
+                           </LISTA>
+                  </CAPA>
+                  <CAPA  nombre="capaBotonModificar" visibilidad="hidden" alto="30" ancho="600" borde="n" imagenf="" repeat="" padding="0"  contravsb="" x="12" y="315" zindex="">
+                           <table width="100%" border="0" cellspacing="1" cellpadding="0" bordercolor="#CCCCCC" bgcolor="#CCCCCC">
+                                    <tr>
+                                             <td>
+                                                      <BOTON cod="142" estado="true"
+                                                                   accion="javascript:modificarActividad();"
+                                                                   tipo="html" ID="BotonContenido"
+                                                                   nombre="btnBuscar2"/>
+                                             </td>
+                                    </tr>
+                           </table>
+                  </CAPA>
+                  <CAPA  nombre="capaBotonEliminar" visibilidad="hidden" alto="30" ancho="600" borde="n" imagenf="" repeat="" padding="0"  contravsb="" x="12" y="315" zindex="">
+                           <table width="100%" border="0" cellspacing="1" cellpadding="0" bordercolor="#CCCCCC" bgcolor="#CCCCCC">
+                                    <tr>
+                                             <td>
+                                                      <BOTON nombre="btnEliminar" ID="botonContenido" tipo="html" accion="javascript:borrar();" estado="false" cod="143" />
+                                             </td>
+                                    </tr>
+                           </table>
+                  </CAPA>
+
+  </FORMULARIO>
+</PAGINA>

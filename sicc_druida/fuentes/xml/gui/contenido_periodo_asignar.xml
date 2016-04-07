@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_periodo_asignar.xml,v 1.1 2009/12/03 18:43:52 pecbazalar Exp $
+   contenido MSG
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_periodo_asignar" cod="0248" titulo="Crear patrón"  estilos="estilosB3.css" colorf="#F0F0F0" 
+	msgle="Crear patrón" onload="onLoad();" xml:lang="es">
+
+<!-- Barra Modificar patrón cod="0275"
+     Barra Eliminar patrón cod="0251"
+     Barra Consultar patrón cod="0238"-->
+<VALIDACION>
+    <ELEMENTO name="comboTipoPeriodo" required="true" cod="132" />
+	<ELEMENTO name="comboPeriodoCorporativo" required="true" cod="2511" />
+</VALIDACION>
+
+<JAVASCRIPT>
+<![CDATA[ 
+
+function onLoad(){
+	configurarMenuSecundario('frmFormulario');
+	focaliza('frmFormulario.comboTipoPeriodo','');
+	
+	if (combo_get('frmFormulario.comboPatronOrigen','L') == 1)  {
+		var arr = new Array();
+		arr[arr.length] = new Array('','');
+		arr[arr.length] = new Array('',get('frmFormulario.hCodigoPatron'));
+		set_combo('frmFormulario.comboPatronOrigen', arr);
+	}
+	if (get('frmFormulario.hPatronOrigenHabilitado')=='false'){
+		set('frmFormulario.comboPatronOrigen',new Array(get('frmFormulario.hOidPatronOrigen')));
+		accion('frmFormulario.comboPatronOrigen', '.disabled=true' );		
+	}
+}
+
+
+function tipoPeriodoOnChange(){
+	var arr = new Array();
+	arr[arr.length] = new Array("oidTipoPeriodo", get('frmFormulario.comboTipoPeriodo'));
+
+	recargaCombo('frmFormulario.comboPeriodoCorporativo','SEGObtenerPeriodosPorTipoPeriodo',
+				'es.indra.sicc.dtos.seg.DTOPeriodosPorTipoPeriodo',arr);
+}
+
+
+function accionAceptar(){
+	if (sicc_validaciones_generales())  {
+		set('frmFormulario.hOidPeriodoCorporativo', get('frmFormulario.comboPeriodoCorporativo'));
+		set('frmFormulario.hOidPatronOrigen', get('frmFormulario.comboPatronOrigen'));		
+		set('frmFormulario.conectorAction','LPMantenimientoPatrones');
+		set('frmFormulario.accion','Guardar patron por periodo');
+		enviaSICC('frmFormulario');
+	}
+}
+
+
+function fLimpiar(){
+	set_combo('frmFormulario.comboPeriodoCorporativo', new Array(new Array("","")));
+
+}
+
+function cerrar(patronOrigen){
+		var arr = new Array();
+		arr[0] = get('frmFormulario.comboPeriodoCorporativo');
+		arr[1] = patronOrigen;
+		returnValue = arr;
+		close();
+}
+
+function onshtab_TipoPeriodo(){
+	focalizaBotonHTML('botonContenido', 'btnAceptar');
+}
+
+function ontab_Aceptar(){
+	focaliza('frmFormulario.comboTipoPeriodo','');
+}
+
+]]> 
+</JAVASCRIPT>
+
+<JS src="sicc_util.js" />
+<JS src="PaginacionSicc.js"/>
+<JS src="DruidaTransactionMare.js"/> 
+
+<FORMULARIO nombre="frmFormulario" oculto="S">
+
+<VAR nombre="accion" valor=""/>
+<VAR nombre="casoDeUso" valor=""/>
+<VAR nombre="opcionMenu" valor=""/>
+<VAR nombre="conectorAction" valor="LPMantenimientoPatrones"/>
+<VAR nombre="errCodigo" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="hPais" valor=""/>
+<VAR nombre="hIdioma" valor=""/>
+
+<VAR nombre="hOidPeriodoCorporativo" valor=""/>
+<VAR nombre="hOidPatronOrigen" valor=""/>
+<VAR nombre="hOidTipoPeriodo" valor=""/>
+<VAR nombre="hPatronOrigenHabilitado" valor=""/>
+<VAR nombre="hCodigoPatron" valor=""/>
+
+
+
+<CAPA nombre="capa">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr > 
+      <td><IMG src="b.gif"/></td>
+      <td >
+      
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="Asignar"  alto="13" filas="1" valor="" id="legend" cod="0222"/></legend>
+	
+          <!---primera fila-->
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+             <table width="480" border="0" align="left" cellspacing="0" cellpadding="0">
+	                  <tr> 
+		            <td colspan="8"><IMG src="b.gif" width="8" height="8"/></td>
+		          </tr>
+		          <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td><LABELC nombre="lblTipoPeriodo"  alto="13" filas="1" valor="" id="datosTitle" cod="132"/></td>
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td nowrap="nowrap"><COMBO nombre="comboTipoPeriodo" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onchange="tipoPeriodoOnChange();" onshtab="onshtab_TipoPeriodo();">
+			               <ROWSET>
+			                      	
+			               </ROWSET>
+			         </COMBO>
+			        
+			    </td>
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr> 
+	                    <td colspan="9"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	            </table>
+	     </td></tr>
+       <!---fin primera fila-->
+       <tr><td>
+             <table width="480" border="0" align="left" cellspacing="0" cellpadding="0">
+	                  <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td><LABELC nombre="lblPeriodoCorporativo"  alto="13" filas="1" valor="" id="datosTitle" cod="2511"/></td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td><LABELC nombre="lblPatronOrigen"  alto="13" filas="1" valor="" id="datosTitle" cod="964"/></td>
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td nowrap="nowrap"><COMBO nombre="comboPeriodoCorporativo" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="">
+			               <ROWSET>
+			                      	
+			               </ROWSET>
+			         </COMBO>
+			        
+			    </td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td nowrap="nowrap" valign="bottom"><COMBO nombre="comboPatronOrigen" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+			               <ROWSET>
+			                      	
+			               </ROWSET>
+			         </COMBO>
+			        
+			    </td>
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr> 
+	                    <td colspan="9"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	            </table>
+	     </td></tr>
+          </table>
+        </fieldset>
+          
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td >
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0" >        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnAceptar" ID="botonContenido" tipo="html" accion="accionAceptar();" estado="false" cod="12" ontab="ontab_Aceptar();"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>       
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+
+
+  </CAPA>                                            
+
+</FORMULARIO>
+
+
+</PAGINA>
+

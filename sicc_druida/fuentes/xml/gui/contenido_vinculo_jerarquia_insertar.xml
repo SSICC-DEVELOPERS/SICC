@@ -1,0 +1,483 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_vinculo_jerarquia_insertar.xml,v 1.1 2009/12/03 18:45:04 pecbazalar Exp $
+   contenido CCC
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_vinculo_jerarquia_insertar" cod="0639" titulo="" estilos="estilosB3.css" colorf="#F0F0F0" 
+	msgle="" onload="onLoadPag();" xml:lang="es">
+
+<!-- Barra Consultar vínculos de jerarquía cod="0640"
+     Barra Eliminar vínculos de jerarquía cod="0641"-->
+
+  <JS src="DruidaTransactionMare.js"/>
+  <JS src="sicc_util.js"/>
+
+<JAVASCRIPT>
+  <![CDATA[ 
+
+  var limpiar = "";
+  var varNoLimpiarSICC = true;
+
+  function onLoadPag()   {
+
+      configurarMenuSecundario("frmVinculo");
+      
+      if (get('frmVinculo.hContDefCbAcceso') == "")
+          guardarContCombos('frmVinculo.cbAcceso', 'frmVinculo.hContDefCbAcceso');
+      if (get('frmVinculo.hContDefCbSubacceso') == "")
+          guardarContCombos('frmVinculo.cbSubacceso', 'frmVinculo.hContDefCbSubacceso');
+
+		  if (get('frmVinculo.errDescripcion')!='') {
+          cargarCombosDependientes();
+          posicionarCombos();
+        	mostrarCodigoError();
+          focaliza('frmVinculo.cbMarca'); 
+      } else {
+          if (get('frmVinculo.accion') == "detalle") {
+              accionDetalle();
+          } else {
+              posicionarCombos();
+              focaliza('frmVinculo.cbMarca'); 
+              if (get('frmVinculo.hCanal') == "")
+                  accion('frmVinculo.cbAcceso','.disabled=true');
+              if (get('frmVinculo.hAcceso') == "")
+                  accion('frmVinculo.cbSubacceso','.disabled=true');
+          }
+      }
+    
+  }
+
+   function mostrarCodigoError() {  
+	     
+		  var vErrCodigo = get('frmVinculo.errCodigo');
+		  var vErrDescrip = get('frmVinculo.errDescripcion');
+
+		  if (get('frmVinculo.errDescripcion')!=''){
+      		var wnd = fMostrarMensajeError( vErrCodigo,vErrDescrip);
+      }		
+	       //aceptar();			
+
+    }
+
+    function cargarCombosDependientes() {
+          cbSubacceso.disabled = true;
+          if( get( 'frmVinculo.hContCbAcceso' ) != '' ) {
+            var aComboA = new Array();
+            if( get('frmVinculo.hAcceso') != '' ) {
+                aComboA[0] = get('frmVinculo.hAcceso');
+                cbSubacceso.disabled = false;
+            } else {
+                cbSubacceso.disabled = true;
+            }
+            set_combo( 'frmVinculo.cbAcceso', eval(get( 'frmVinculo.hContCbAcceso' )), aComboA );
+          } else {
+            cbAcceso.disabled = true;
+          }
+
+          if( get( 'frmVinculo.hContCbSubacceso' ) != '' ) {
+            var aComboS = new Array();
+            if( get('frmVinculo.hSubacceso') != '' ) {
+                aComboS[0] = get('frmVinculo.hSubacceso');
+            }
+            set_combo( 'frmVinculo.cbSubacceso', eval(get( 'frmVinculo.hContCbSubacceso' )), aComboS );
+          }
+
+
+    }
+
+   function posicionarCombos() 
+   {
+      var aCombo = new Array();
+      if (get('frmVinculo.hMarca') != "") {
+        aCombo[0] = get('frmVinculo.hMarca');
+        set('frmVinculo.cbMarca',aCombo);
+      }
+      if (get('frmVinculo.hCanal') != "") {
+        aCombo[0] = get('frmVinculo.hCanal');
+        set('frmVinculo.cbCanal',aCombo);
+      }
+      if (get('frmVinculo.hAcceso') != "") {
+        aCombo[0] = get('frmVinculo.hAcceso');
+        set('frmVinculo.cbAcceso',aCombo);
+      }
+      if (get('frmVinculo.hSubacceso') != "") {
+        aCombo[0] = get('frmVinculo.hSubacceso');
+        set('frmVinculo.cbSubacceso',aCombo);
+      }
+      if (get('frmVinculo.hEmpresa') != "") {
+        aCombo[0] = get('frmVinculo.hEmpresa');
+        set('frmVinculo.cbEmpresa',aCombo);
+      }
+   }
+
+
+  function accionDetalle() {
+          accion('frmVinculo.cbMarca','.disabled=true');
+          accion('frmVinculo.cbCanal','.disabled=true');
+          accion('frmVinculo.cbAcceso','.disabled=true');
+          accion('frmVinculo.cbSubacceso','.disabled=true');
+          accion('frmVinculo.cbEmpresa','.disabled=true');
+          if (get('frmVinculo.hCasoDeUsoDeta') =="eliminar")
+              parent.frames["iconos"].txt_to("etiqueta1",GestionarMensaje("1524"));
+          else
+              parent.frames["iconos"].txt_to("etiqueta1",GestionarMensaje("1523"));
+          //document.all.legend.innerText = "";
+
+          var aCombo = new Array();
+          var datos;
+          if (get('frmVinculo.hListaMarca') != "") {
+            datos = [["1", get('frmVinculo.hListaMarca')]];
+      			set_combo('frmVinculo.cbMarca', eval(datos), aCombo);
+          }
+          if (get('frmVinculo.hListaCanal') != "") {
+            datos = [["1", get('frmVinculo.hListaCanal')]];
+      			set_combo('frmVinculo.cbCanal', eval(datos), aCombo);
+          }
+          if (get('frmVinculo.hListaAcceso') != "") {
+            datos = [["1", get('frmVinculo.hListaAcceso')]];
+      			set_combo('frmVinculo.cbAcceso', eval(datos), aCombo);
+          }
+          if (get('frmVinculo.hListaSubacceso') != "") {
+            datos = [["1", get('frmVinculo.hListaSubacceso')]];
+      			set_combo('frmVinculo.cbSubacceso', eval(datos), aCombo);
+          }
+          if (get('frmVinculo.hListaEmpresa') != "") {
+            datos = [["1", get('frmVinculo.hListaEmpresa')]];
+      			set_combo('frmVinculo.cbEmpresa', eval(datos), aCombo);
+          }
+  }
+
+
+    function canalOnChange () {  
+
+      if (get('frmVinculo.cbCanal')!='') {
+          var arr = new Array();
+          arr[arr.length]=new Array('oid', get('frmVinculo.cbCanal'));
+          arr[arr.length]=new Array('oidIdioma', get('frmVinculo.hIdioma'));
+
+          recargaCombo('frmVinculo.cbAcceso', 'SEGObtenerAccesosSinFiltro', 'es.indra.sicc.util.DTOOID', arr);
+          accion('frmVinculo.cbAcceso','.disabled=false');
+ 
+          var  aComboS = new Array();
+          aComboS[0] = "";
+          set('frmVinculo.cbSubacceso',aComboS);
+          accion('frmVinculo.cbSubacceso','.disabled=true');
+
+          
+      } else {
+         accion('frmVinculo.cbAcceso','.disabled=true');
+          accion('frmVinculo.cbSubacceso','.disabled=true');
+          var aCombo = new Array(new Array("",""));
+          set_combo('frmVinculo.cbSubacceso',aCombo, []);
+          set_combo('frmVinculo.cbAcceso',aCombo, []);
+          //aCombo[0] = "";
+          //set('frmVinculo.cbAcceso',aCombo);
+      }
+      
+    }
+
+    function accesoOnChange () {  
+
+      if (get('frmVinculo.cbAcceso')!='') {
+          var arr = new Array();
+          arr[arr.length]=new Array('oid', get('frmVinculo.cbAcceso') == null ? "" : get('frmVinculo.cbAcceso'));
+          arr[arr.length]=new Array('oidIdioma', get('frmVinculo.hIdioma'));
+
+          recargaCombo('frmVinculo.cbSubacceso', 'SEGObtenerSubccesosSinFiltro', 'es.indra.sicc.util.DTOOID', arr);
+          accion('frmVinculo.cbSubacceso','.disabled=false');
+      } else {
+          accion('frmVinculo.cbSubacceso','.disabled=true');
+          var aCombo = new Array();
+          aCombo[0] = "";
+          set('frmVinculo.cbSubacceso',aCombo);
+      }
+
+    }
+
+
+    function guardarContCombos( cmb, hidd ){
+
+      var longitud = combo_get( cmb, 'L' );
+      var strArray = '[';
+      var i;
+
+      for( i = 0; i < longitud; i++ ){
+        strArray = strArray + '["' + combo_get( cmb, 'V', i ) + '", "' + combo_get( cmb, 'T', i ) + '"]';
+        if( i < (longitud - 1) ){
+          strArray = strArray + ', ';
+        }
+      }
+      strArray = strArray + ']';
+
+      //asigna el string a la variable oculta
+      //'frmDatos.hContComboUnidad1'
+      //alert("hidd: "+hidd+"    strArray: "+strArray);
+      set( hidd, strArray );
+    }
+
+    
+    function enviarFormulario() 
+    {
+        //acciones antes del enviaSICC
+        set('frmVinculo.hMarca', get('frmVinculo.cbMarca'));
+        set('frmVinculo.hCanal', get('frmVinculo.cbCanal'));
+        set('frmVinculo.hAcceso', get('frmVinculo.cbAcceso'));
+        set('frmVinculo.hSubacceso', get('frmVinculo.cbSubacceso'));
+        set('frmVinculo.hEmpresa', get('frmVinculo.cbEmpresa'));
+        
+        enviaSICC('frmVinculo');
+    }
+
+    function fGuardar() {
+        if (get('frmVinculo.cbMarca') == "" && get('frmVinculo.cbCanal') == "" && get('frmVinculo.cbAcceso') == "" &&
+           get('frmVinculo.cbSubacceso') == "" && get('frmVinculo.cbEmpresa') == "") {
+              GestionarMensaje("1513");
+              focaliza('frmVinculo.cbMarca'); 
+              return;
+        }
+
+        guardarContCombos('frmVinculo.cbAcceso', 'frmVinculo.hContCbAcceso');
+        guardarContCombos('frmVinculo.cbSubacceso', 'frmVinculo.hContCbSubacceso');
+        
+        set( 'frmVinculo.accion', 'guardar' );
+        set( 'frmVinculo.casoDeUso', 'insertar' );
+        set( 'frmVinculo.conectorAction', 'LPMantenimientoVinculosJerarquia' );
+
+        set('frmVinculo.hMarca', get('frmVinculo.cbMarca'));
+        set('frmVinculo.hCanal', get('frmVinculo.cbCanal'));
+        set('frmVinculo.hAcceso', get('frmVinculo.cbAcceso'));
+        set('frmVinculo.hSubacceso', get('frmVinculo.cbSubacceso'));
+        set('frmVinculo.hEmpresa', get('frmVinculo.cbEmpresa'));
+        eval('frmVinculo').oculto = 'S';
+        enviaSICC('frmVinculo', '', '', 'N');   
+        
+        //enviarFormulario();
+    }
+
+    function fLimpiar() {
+        eval('frmVinculo').oculto = 'N';
+        limpiar = "S";
+        var aCombo = new Array();
+        aCombo[0] = get('frmVinculo.hDefMarca');
+        set('frmVinculo.cbMarca',aCombo);
+
+        aCombo[0] = get('frmVinculo.hDefCanal');
+        set('frmVinculo.cbCanal',aCombo);
+
+        aCombo[0] = get('frmVinculo.hDefEmpresa');
+        set('frmVinculo.cbEmpresa',aCombo);
+
+        accion('frmVinculo.cbAcceso','.disabled=false');
+        accion('frmVinculo.cbSubacceso','.disabled=false');
+        var aComboA = new Array();
+        aComboA[0] = get('frmVinculo.hDefAcceso');
+        set_combo( 'frmVinculo.cbAcceso', eval(get( 'frmVinculo.hContDefCbAcceso' )), aComboA );
+
+        var aComboS = new Array();
+        aComboS[0] = get('frmVinculo.hDefSubacceso');
+        set_combo( 'frmVinculo.cbSubacceso', eval(get( 'frmVinculo.hContDefCbSubacceso' )), aComboS );
+
+        focaliza('frmVinculo.cbMarca'); 
+
+    }
+
+    function prueba() {
+      alert("event: "+event.propertyName);
+
+    }
+
+      function fVolver(){
+          window.close();		
+      }
+
+      function setTabFocus(obj) { 
+          focaliza('frmVinculo.'+obj); 
+      }
+      
+      //retorno de la grabacion, seteo valores x def. .. 
+      function persistioOk() {
+
+         eval('frmVinculo').oculto = 'N';
+         fLimpiar();
+
+         /*set("frmVinculo.hMarca", p1);
+         set("frmVinculo.hCanal", p2);
+         set("frmVinculo.hAcceso", p3);
+         set("frmVinculo.hSubacceso", p4);
+         set("frmVinculo.hEmpresa", p5);
+         
+         //getConfiguracionMenu("LPMantenimientoVinculosJerarquia","insertar");
+
+         set( 'frmVinculo.accion', 'insertar' );
+         set( 'frmVinculo.casoDeUso', 'insertar' );
+         set( 'frmVinculo.conectorAction', 'LPMantenimientoVinculosJerarquia' );
+
+         enviaSICC('frmVinculo');*/
+      
+      }
+      
+      function ejecucionERROR() {
+        focaliza('frmVinculo.cbMarca');
+        eval('frmVinculo').oculto = 'N';
+      }
+
+  ]]> 
+</JAVASCRIPT>
+
+<FORMULARIO nombre="frmVinculo">
+
+    <VAR nombre="accion" valor=""/>
+    <VAR nombre="casoDeUso" valor=""/>
+    <VAR nombre="conectorAction" valor=""/>
+    <VAR nombre="conectorActionOculto" valor=""/>
+    <VAR nombre="oculto" valor=""/>
+    <VAR nombre="hIdioma" valor=""/>
+    <VAR nombre="hMarca" valor=""/>
+    <VAR nombre="hCanal" valor=""/>
+    <VAR nombre="hAcceso" valor=""/>
+    <VAR nombre="hSubacceso" valor=""/>
+    <VAR nombre="hEmpresa" valor=""/>
+    <VAR nombre="hListaMarca" valor=""/>
+    <VAR nombre="hListaCanal" valor=""/>
+    <VAR nombre="hListaAcceso" valor=""/>
+    <VAR nombre="hListaSubacceso" valor=""/>
+    <VAR nombre="hListaEmpresa" valor=""/>
+    <VAR nombre="hContCbAcceso" valor=""/>
+    <VAR nombre="hContCbSubacceso" valor=""/>
+    <VAR nombre="hDefMarca" valor=""/>
+    <VAR nombre="hDefCanal" valor=""/>
+    <VAR nombre="hDefAcceso" valor=""/>
+    <VAR nombre="hDefSubacceso" valor=""/>
+    <VAR nombre="hDefEmpresa" valor=""/>
+    <VAR nombre="hContDefCbAcceso" valor=""/>
+    <VAR nombre="hContDefCbSubacceso" valor=""/>
+    <VAR nombre="hCasoDeUsoDeta" valor=""/>
+    <VAR nombre="errCodigo" valor=""/>
+    <VAR nombre="errDescripcion" valor=""/>
+    
+
+<CAPA nombre="capa" >
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr > 
+      <td><IMG src="b.gif"/></td>
+      <td >
+      
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblAlta"  alto="13" filas="1" valor="" id="legend" cod="00127"/></legend>
+	
+          <!---primera fila-->
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+             <table width="500" border="0" align="left" cellspacing="0" cellpadding="0">
+	                  <tr> 
+		            <td colspan="8"><IMG src="b.gif" width="8" height="8"/></td>
+		          </tr>
+		          <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td><LABELC nombre="lblMarca"  alto="13" filas="1" valor="" id="datosTitle" cod="6"/></td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td><LABELC nombre="lblCanal"  alto="13" filas="1" valor="" id="datosTitle" cod="7"/></td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td><LABELC nombre="lblAcceso"  alto="13" filas="1" valor="" id="datosTitle" cod="10"/></td>
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td><COMBO nombre="cbMarca" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" onshtab="focaliza('frmVinculo.cbEmpresa');">
+			               <ROWSET>
+			                      <ROW ID="01">
+						     <CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="01"/>
+						     <CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR=""/>
+						</ROW>		
+			               </ROWSET>
+			         </COMBO>
+			        
+			    </td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td><COMBO nombre="cbCanal" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" onchange="canalOnChange();">
+			               <ROWSET>
+			                      	
+			               </ROWSET>
+			         </COMBO>
+			        
+			    </td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td><COMBO nombre="cbAcceso" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" onchange="accesoOnChange();" onpropertychange="prueba();">
+			               <ROWSET>
+			                      
+			               </ROWSET>
+			         </COMBO>
+			        
+			    </td>
+			    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr> 
+	                    <td colspan="9"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	            </table>
+	     </td></tr>
+       <!---fin primera fila-->
+             <tr><td>           
+         	 <table width="500" border="0" align="left" cellspacing="0" cellpadding="0">
+	                 
+		          <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td><LABELC nombre="lblSubacceso"  alto="13" filas="1" valor="" id="datosTitle" cod="122"/></td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td><LABELC nombre="lblEmpresa"  alto="13" filas="1" valor="" id="datosTitle" cod="57"/></td>
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td><COMBO nombre="cbSubacceso" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+			               <ROWSET>
+			                     	
+			               </ROWSET>
+			         </COMBO>
+			        
+			    </td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td><COMBO nombre="cbEmpresa" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" ontab="setTabFocus('cbMarca');">
+			               <ROWSET>
+			                      	
+			               </ROWSET>
+			         </COMBO>
+			        
+			    </td>
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr> 
+	                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	            </table>
+	  </td></tr>
+	  
+	  </table>
+        </fieldset>
+          
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+      
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+                                                                                                                                        
+</FORMULARIO>
+</PAGINA>	

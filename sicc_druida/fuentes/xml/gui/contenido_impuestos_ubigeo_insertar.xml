@@ -1,0 +1,347 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/PROY
+   $Id: contenido_impuestos_ubigeo_insertar.xml,v 1.1 2009/12/03 18:44:36 pecbazalar Exp $
+   DESC
+
+   DRUIDATARGET=/../../config/scripts/iniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_impuestos_ubigeo_insertar" cod="" titulo="" estilos="estilosB3.css" colorf="#F0F0F0"
+        msgle="Insertar Impuestos por Ubigeo" onload="onLoad();" xml:lang="es">
+<JS src="sicc_util.js"/>	 
+
+<VALIDACION>
+  <ELEMENTO name="txtCodigoSap" required="true" cod="585" />
+	<ELEMENTO name="cbCanal" required="true" cod="7" />
+	<ELEMENTO name="cbAcceso" required="true" cod="10" />
+  <ELEMENTO name="cbSubacceso" required="true" cod="122" />
+
+</VALIDACION>
+
+<JAVASCRIPT>
+  <![CDATA[ 
+
+  var varNoLimpiarSICC = true;
+  var formName = "frmFormulario";
+
+  function onLoad(){     
+     configurarMenuSecundario(formName);
+     focaliza('frmFormulario.txtCodigoSap');
+     
+		alert( get('frmFormulario.hidCasodeUso') );
+     if(get('frmFormulario.hidCasodeUso') == 'modificar'){
+        cargarPantalla();
+     }
+
+     if(get('frmFormulario.hidCasodeUso') == 'consultar'){
+        cargarPantallaConsultar();
+     }   
+     
+  }
+ //---------------------recarga de acceso---------------------------//
+  function canalOnChange(){
+     var combo=window.event.srcElement.getAttribute("NAME");
+	   var option=window.event.srcElement.options;
+	   for(var i=0;i<option.length;i++){
+		   if(option.item(i).getAttribute("selected")){
+			   set('frmFormulario.nameComboSelected',combo);
+			   set('frmFormulario.valueComboSelected',option.item(i).getAttribute("value"));
+         borrarCombo();
+			   cargarComboEditable();
+		   }
+	   }
+   }
+
+   function cargarComboEditable(){
+	    var name = get('frmFormulario.nameComboSelected');
+      var cad = new String();
+	    cad=name;
+      var largo = cad.length;
+
+      var Lista = document.getElementById("cbAcceso");
+      for(var k=0;k<Lista1.datos.longitud;k++) {
+         if ( Lista1.datos.ij(k,2) == get('frmFormulario.valueComboSelected')) {
+   	 	      var option =  document.createElement("OPTION");
+            Lista.options.add(option);
+        		option.innerText=Lista1.datos.ij(k,1);
+			      option.value= Lista1.datos.ij(k,0);
+		     }
+	    }
+   }
+
+
+   function borrarCombo(){    
+
+      var aCombo = new Array(new Array("",""));
+      set_combo('frmFormulario.cbAcceso',aCombo, []);
+      set_combo('frmFormulario.cbSubacceso',aCombo, []);
+    }
+   //-----------------------------------------------------------//
+   //--------------------------recarga de subacceso--------------//
+
+   function accesoOnChange(){
+     var combo=window.event.srcElement.getAttribute("NAME");
+	   var option=window.event.srcElement.options;
+	   for(var i=0;i<option.length;i++){
+   		 if(option.item(i).getAttribute("selected")){
+     
+			   set('frmFormulario.nameComboSelected2',combo);
+			   set('frmFormulario.valueComboSelected2',option.item(i).getAttribute("value"));
+         borrarCombo2();
+			   cargarComboEditable2();
+		   }
+	   }
+   }
+
+   
+
+   function cargarComboEditable2(){
+	    var name = get('frmFormulario.nameComboSelected2');
+      var cad = new String();
+	    cad=name;
+      var largo = cad.length;
+      
+      var Lista = document.getElementById("cbSubacceso");
+      for(var k=0;k<Lista2.datos.longitud;k++) {
+         if ( Lista2.datos.ij(k,2) == get('frmFormulario.valueComboSelected2')) {
+     	 	    var option =  document.createElement("OPTION");
+            Lista.options.add(option);
+        		option.innerText=Lista2.datos.ij(k,1);
+			      option.value= Lista2.datos.ij(k,0);
+		     }
+	    }
+   }
+
+
+   function borrarCombo2(){
+	    var aCombo = new Array(new Array("",""));
+      set_combo('frmFormulario.cbSubacceso',aCombo, []);
+   }
+   //-----------------------------------------------------------//
+
+
+   function fGuardar(){
+       if(!sicc_validaciones_generales()){
+			   return false;
+		  }else{
+                 
+         if(get('frmFormulario.hidCasodeUso') == 'modificar'){
+            set('frmFormulario.conectorAction', 'LPModificacionImpuestos')
+            set('frmFormulario.accion', 'guardar');
+            eval('frmFormulario').oculto = 'S';
+            enviaSICC('frmFormulario');
+
+         }else{
+            set('frmFormulario.conectorAction', 'LPInsertarImpuestosUBIGEO')
+            set('frmFormulario.accion', 'guardar');
+            eval('frmFormulario').oculto = 'S';
+            enviaSICC('frmFormulario');
+         }
+         
+      }
+	}
+
+  function guardoOk(){
+     set('frmFormulario.txtCodigoSap', '');
+     focaliza('frmFormulario.txtCodigoSap');
+     set('frmFormulario.cbIndicadorImpuesto', '');
+     set('frmFormulario.cbCanal', '');
+     var aCombo = new Array(new Array("",""));
+     set_combo('frmFormulario.cbAcceso',aCombo, []);
+     set_combo('frmFormulario.cbSubacceso',aCombo, []);
+     
+  }
+
+  function fVolver(){
+     this.close();
+  }
+
+  function noGuardo(){
+  }
+
+  function fLimpiar(){
+     if(get('frmFormulario.hidCasodeUso') == 'modificar'){
+        var oid = get('frmFormulario.hOidImpuesto');
+        set("frmFormulario.cbIndicadorImpuesto",new Array(oid));
+        focaliza('frmFormulario.cbIndicadorImpuesto');
+     }else{
+        if(get('frmFormulario.hidCasodeUso') != 'consultar'){
+           guardoOk();
+        }
+     } 
+   
+  }
+
+  function cargarPantalla(){
+
+     set('frmFormulario.txtCodigoSap', get('frmFormulario.hProducto'));
+     accion("frmFormulario.txtCodigoSap",".disabled=true");
+
+     combo_add("frmFormulario.cbCanal","1",get("frmFormulario.hCanal"));
+     set("frmFormulario.cbCanal",new Array("1"));
+     accion("frmFormulario.cbCanal",".disabled=true");
+         
+     combo_add("frmFormulario.cbAcceso","2",get("frmFormulario.hAcceso"));
+     set("frmFormulario.cbAcceso",new Array("2"));
+     accion("frmFormulario.cbAcceso",".disabled=true");
+
+     combo_add("frmFormulario.cbSubacceso","3",get("frmFormulario.hSubacceso"));
+     set("frmFormulario.cbSubacceso",new Array("3"));
+     accion("frmFormulario.cbSubacceso",".disabled=true");
+     
+     var oid = get('frmFormulario.hOidImpuesto');
+     set("frmFormulario.cbIndicadorImpuesto",new Array(oid));
+     focaliza('frmFormulario.cbIndicadorImpuesto');
+
+     
+     
+  }
+
+  function cargarPantallaConsultar(){
+
+     set('frmFormulario.txtCodigoSap', get('frmFormulario.hProducto'));
+     accion("frmFormulario.txtCodigoSap",".disabled=true");
+
+     combo_add("frmFormulario.cbIndicadorImpuesto","5",get("frmFormulario.hImpuesto"));
+     set("frmFormulario.cbIndicadorImpuesto",new Array("5"));
+     accion("frmFormulario.cbIndicadorImpuesto",".disabled=true");
+
+     combo_add("frmFormulario.cbCanal","1",get("frmFormulario.hCanal"));
+     set("frmFormulario.cbCanal",new Array("1"));
+     accion("frmFormulario.cbCanal",".disabled=true");
+         
+     combo_add("frmFormulario.cbAcceso","2",get("frmFormulario.hAcceso"));
+     set("frmFormulario.cbAcceso",new Array("2"));
+     accion("frmFormulario.cbAcceso",".disabled=true");
+
+     combo_add("frmFormulario.cbSubacceso","3",get("frmFormulario.hSubacceso"));
+     set("frmFormulario.cbSubacceso",new Array("3"));
+     accion("frmFormulario.cbSubacceso",".disabled=true");
+     
+     
+
+
+
+  }
+
+  function modificoOk(){
+      
+  }
+
+  function noModifico(){
+
+  }
+
+
+
+   
+  ]]> 
+</JAVASCRIPT>
+
+<FORMULARIO nombre="frmFormulario">
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="accion" valor=""/>
+<VAR nombre="errCodigo" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="nameComboSelected" valor=""/>
+<VAR nombre="valueComboSelected" valor=""/>
+<VAR nombre="nameComboSelected2" valor=""/>
+<VAR nombre="valueComboSelected2" valor=""/>
+<VAR nombre="hidCasodeUso" valor=""/>
+<VAR nombre="hProducto" valor=""/>
+<VAR nombre="hOidImpuesto" valor=""/>
+<VAR nombre="hCanal" valor=""/>
+<VAR nombre="hAcceso" valor=""/>
+<VAR nombre="hSubacceso" valor=""/>
+<VAR nombre="oid" valor=""/>
+<VAR nombre="hImpuesto" valor=""/>
+<CAPA nombre="capaEspacio" x="0" y="0">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblDatosAlta" alto="13" filas="1" valor="" id="legend" cod="00125"/></legend>
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblCodigoSap" alto="13" filas="1" valor="" id="datosTitle" cod="585"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblIndicadorImpuesto" alto="13" filas="1" valor="" id="datosTitle" cod="1333"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblCanal" alto="13" filas="1" valor="" id="datosTitle" cod="7"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"><CTEXTO nombre="txtCodigoSap" id="datosCampos" max="20" tipo="" onchange="" req="S" size="27" valor="" validacion="" onshtab="focaliza('frmFormulario.cbSubacceso')"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td>
+                      <COMBO nombre="cbIndicadorImpuesto" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                      	<ROWSET>
+                      	</ROWSET>
+                      </COMBO>
+                    </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap">
+                      <COMBO nombre="cbCanal" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onchange="canalOnChange();">
+                      	<ROWSET>
+                      	</ROWSET> 
+                      </COMBO>
+                    </td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="3"><IMG src="b.gif" width="8" height="7"/></td>
+                </tr>
+              </table>
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblAcceso" alto="13" filas="1" valor="" id="datosTitle" cod="10"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblSubacceso" alto="13" filas="1" valor="" id="datosTitle" cod="122"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap">
+                      <COMBO nombre="cbAcceso" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onchange="accesoOnChange();">
+                      	<ROWSET>
+                      	</ROWSET>
+                      </COMBO>
+                    </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap">
+                      <COMBO nombre="cbSubacceso" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" ontab="focaliza('frmFormulario.txtCodigoSap')">
+                      	<ROWSET>
+                      	</ROWSET>
+                      </COMBO>
+                    </td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="3"><IMG src="b.gif" width="8" height="7"/></td>
+                </tr>
+              </table>
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+  </table>
+</CAPA>
+</FORMULARIO>
+</PAGINA>                                                                           
+                                                        

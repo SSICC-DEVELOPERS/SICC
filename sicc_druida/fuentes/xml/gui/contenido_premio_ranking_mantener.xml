@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+/**
+ * Copyright 2003 © por Indra Sistemas,S.A.. Todos los derechos reservados.
+ * Avda. de Bruselas, 35
+ * Parque Empresarial Arroyo de la Vega
+ * 28108 Alcobendas, Madrid
+ * España
+ *
+ * Privado y Confidencial.
+ * La información contenida en este documento es propiedad de Indra sistemas.
+ * Para uso exclusivo de empleados autorizados no permitiéndose
+ * la distribución de este código sin permiso expreso.
+ */
+ 
+ Autor: Viviana Bongiovanni
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_premios_ranking_mantener" cod="" titulo="" estilos="estilosB3.css" colorf="#F0F0F0"
+        msgle="" onload="onLoadPag()" xml:lang="es" >
+ <JS src="sicc_util.js" />
+<JS src="PaginacionSicc.js"/>
+<JS src="DruidaTransactionMare.js"/>    
+<JS src="pestanyas_concurso_ranking_inc.js" />
+<JAVASCRIPT>
+ <![CDATA[    
+      
+	function onLoadPag() {
+      configurarMenuSecundario('formulario');
+    
+      if(!fMostrarMensajeError()) {
+         
+          cargarPantalla();		         
+             
+          if(get('formulario.opcionMenu')=="Consultar Concurso Ranking"){  
+              deshabilitarPantalla();
+              btnProxy(1,0);
+              btnProxy(2,1);
+              btnProxy(3,0);
+              btnProxy(4,0);
+              btnProxy(5,0);
+              btnProxy(7,0);
+              btnProxy(8,0);
+              btnProxy(9,0);
+              
+          } else if(get('formulario.opcionMenu')=="Modificar Concurso Ranking"){  
+              btnProxy(1,1);
+              btnProxy(2,1);
+              btnProxy(3,0);
+              btnProxy(4,0);
+              btnProxy(5,1);
+              btnProxy(7,0);
+              btnProxy(8,0);
+              btnProxy(9,0);
+              
+              focaliza("formulario.txtNumNiveles");
+              
+          } else {
+              focaliza("formulario.txtNumNiveles");
+          }
+          
+      } 
+      
+      finCargaPagina = true;
+
+	}
+  
+  function cargarPantalla() {
+      // Seleccion de los combos
+      iSeleccionado = new Array(); 
+      
+      iSeleccionado[0] = get('formulario.hCbPeriodoDespacho');
+      set('formulario.cbPeriodoDespacho', iSeleccionado);
+      
+      // Deshabilitacion 
+      if(get('formulario.ckComunicacion')=="N")
+          accion('formulario.txtMensaje', '.disabled=true');
+      
+  }
+  
+  
+  function deshabilitarPantalla() {
+  
+      accion('formulario.txtNumNiveles', '.disabled=true');    
+      accion('formulario.cbPeriodoDespacho', '.disabled=true');     
+      accion('formulario.ckComunicacion', '.disabled=true');    
+      accion('formulario.txtMensaje', '.disabled=true');
+  }
+  
+  
+  function onChangeComunicacion() {
+      if(get('formulario.ckComunicacion')=="S") {
+         accion('formulario.txtMensaje', '.disabled=false');  
+      } else {
+         set('formulario.txtMensaje', '');         
+         accion('formulario.txtMensaje', '.disabled=true'); 
+      }
+  }
+  
+  
+  function comprobarDatosObligatorios (){
+    var datosObligatorios = true;
+    
+    if(get('formulario.txtNumNiveles')== '')
+        datosObligatorios = false;
+    
+    return datosObligatorios;            
+  }
+  
+  
+  function fGuardar(){
+      if(sicc_validaciones_generales("gAlmacenar")){
+
+          eval('formulario').oculto = 'S';
+          set('formulario.conectorAction', 'LPMantenerPremiosRanking');
+          set('formulario.accion', 'guardar');
+          set('formulario.datosObligatorios', comprobarDatosObligatorios());
+          enviaSICC('formulario','','','N');
+      }
+  }
+  
+  
+  function accionDefinirNiveles(){
+  
+    if(sicc_validaciones_generales("gAlmacenar")){
+        //alert("opcion Menu: " + get('formulario.opcionMenu'));
+        var obj = new Object();
+        obj.opcionMenu = get('formulario.opcionMenu')
+        obj.accion = 'cargar mantener nivel';
+        obj.numeroNiveles = get('formulario.txtNumNiveles');
+        
+        var retorno = mostrarModalSICC('LPMantenerPremiosRanking', 'cargar mantener nivel', obj, '795', '595');
+          
+        focaliza("formulario.txtNumNiveles");			
+    }
+	}
+  
+  function fLimpiar(){
+      if(get('formulario.opcionMenu')=="Crear Concurso Ranking"){
+      
+          set('formulario.txtNumNiveles', '');  
+          set('formulario.cbPeriodoDespacho', '');    
+          set('formulario.ckComunicacion', 'N');    
+          set('formulario.txtMensaje', ''); 
+          accion('formulario.txtMensaje', '.disabled=true');
+          
+          focaliza("formulario.txtNumNiveles");
+          
+      } else {
+          set('formulario.conectorAction', 'LPMantenerPremiosRanking');
+          set('formulario.accion', '');
+          enviaSICC('formulario','','','N');
+      }
+  }
+  
+  function fVolver(){
+    close();
+  }
+  
+  function focalizaTab(){
+      focaliza("formulario.txtNumNiveles");
+  }
+    
+  function focalizaShTab(){  
+      focalizaBotonHTML('botonContenido','btnDefinirNiveles');
+  }
+        
+  
+]]> 
+<VALIDACION>	
+	<ELEMENTO name="txtNumNiveles" required="true" min="0" max="999" format="e" group="gAlmacenar" cod="1818"/>	
+</VALIDACION>
+  
+</JAVASCRIPT>
+
+  
+<FORMULARIO nombre="formulario" oculto="N">
+<VAR nombre="accion" valor=""/>
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="errCodigo" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>    
+
+<VAR nombre="opcionMenu" valor=""/> 
+<VAR nombre="hPais" valor=""/> 
+<VAR nombre="hIdioma" valor=""/> 
+<VAR nombre="datosObligatorios" valor=""/> 
+
+ <!-- Hidddens para el manejo de pestañas -->
+<VAR nombre="idPestanyaDest" valor=""/>
+
+<VAR nombre="hIndEstadoConsultoras" valor=""/>
+<VAR nombre="hIndEstadoParametrosConsultoras" valor=""/>
+<VAR nombre="hIndEstadoVariablesVenta" valor=""/>
+
+ <!-- Hiddden oid de Premio -->
+<VAR nombre="oidParamGralesPremiacion" valor=""/>
+
+ <!-- Hidddens para manejo de habilitaciones -->
+<VAR nombre="IND_INACTIVO" valor=""/>
+<VAR nombre="IND_ACTIVO" valor=""/>
+
+ <!-- Hidddens de los combos -->
+<VAR nombre="hCbPeriodoDespacho" valor=""/>
+
+ <!-- Hiddden de niveles -->
+<VAR nombre="niveles" valor=""/> 
+
+<!-- Articulo -->
+<VAR nombre="cantidadPremiosArticulos" valor=""/>
+
+<!-- DEFINICION DE PESTANYAS -->
+
+<table width="100%" height="100%" border="0" align="center" cellpadding="0" cellspacing="0" class="menu4">
+  <tr> 
+    <td width="12" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="12" height="30"/></td>
+    <td nowrap="nowrap" class="menu5texto">&nbsp;</td>
+    <td width="10" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="92" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" 
+    onmouseover="activarPuntero('formulario',1,'lblDatosGenerales');" onclick="onClickPestanyaHabilitada(1, 'formulario', 'LPMantenerPremiosRanking');">
+        <tr align="center"> 
+          <td nowrap="nowrap" class="menu5textonegrita"><LABELC nombre="lblDatosGenerales" alto="13" filas="1" valor="" id="menu5textonegrita" cod="0011"/></td>
+        </tr>
+      </table>
+    </td>
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" 
+    onmouseover="activarPuntero('formulario',2,'lblAlcanceGeografico');" onclick="onClickPestanyaHabilitada(2, 'formulario', 'LPMantenerPremiosRanking');">
+        <tr align="center"> 
+          <td nowrap="nowrap" class="menu5textonegrita"><LABELC nombre="lblAlcanceGeografico" alto="13" filas="1" valor="" id="menu5textonegrita" cod="00368"/></td>
+        </tr>
+      </table>
+   </td>   
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" 
+    onmouseover="activarPuntero('formulario',3,'lblParametrosGerentes');" onclick="onClickPestanyaHabilitada(3, 'formulario', 'LPMantenerPremiosRanking');">
+        <tr align="center"> 
+          <td nowrap="nowrap" class="menu5textonegrita"><LABELC nombre="lblParametrosGerentes" alto="13" filas="1" valor="" id="menu5textonegrita" cod="00594"/></td>
+        </tr>                                                                                                                                                                      
+      </table>
+   </td>       
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" 
+    onmouseover="activarPuntero('formulario',4,'lblParametrosConsultoras');" onclick="onClickPestanyaHabilitada(4, 'formulario', 'LPMantenerPremiosRanking');">
+        <tr align="center"> 
+          <td nowrap="nowrap" class="menu5textonegrita"><LABELC nombre="lblParametrosConsultoras" alto="13" filas="1" valor="" id="menu5textonegrita" cod="00595"/></td>
+        </tr>                                                                                                                                                                      
+      </table>
+   </td>       
+    <td width="16" class="menu5texto"><IMG src="b.gif" width="12" height="8"/></td>
+  </tr>
+  </table>
+  <table width="100%" height="100%" border="0" align="center" cellpadding="0" cellspacing="0" class="menu4">
+  <tr> 
+    <td width="12" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="12" height="30"/></td>
+    <td nowrap="nowrap" class="menu5texto">&nbsp;</td>
+    <td width="10" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" 
+    onmouseover="activarPuntero('formulario',5,'lblProductos');" onclick="onClickPestanyaHabilitada(5, 'formulario', 'LPMantenerPremiosRanking');">
+        <tr align="center"> 
+          <td nowrap="nowrap" class="menu5textonegrita"><LABELC nombre="lblProductos" alto="13" filas="1" valor="" id="menu5textonegrita" cod="0094"/></td>
+        </tr>
+      </table>
+   </td>
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" bgcolor="#496A9A">
+        <tr align="center"> 
+          <td nowrap="nowrap" class="menu5textonegrita"><LABELC nombre="lblPremios" alto="13" filas="1" valor="" id="menu5textoblanca" cod="00394"/></td>
+        </tr>
+      </table>
+   </td> 
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A"  
+    onmouseover="activarPuntero('formulario',7,'lblVariablesVenta');" onclick="onClickPestanyaHabilitada(7, 'formulario', 'LPMantenerPremiosRanking');">
+        <tr align="center"> 
+          <td nowrap="nowrap" class="menu5textonegrita"><LABELC nombre="lblVariablesVenta" alto="13" filas="1" valor="" id="menu5textonegrita" cod="1951"/></td>
+        </tr>
+      </table>
+   </td> 
+    <td width="16" class="menu5texto"><IMG src="b.gif" width="12" height="8"/></td>
+  </tr>
+</table>                 
+
+<!-- FIN DEFINICION DE PESTANYAS -->
+
+<CAPA nombre="capa1">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+      <tr>
+        <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+        <td width="750"><IMG src="b.gif"/></td>
+        <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+      </tr>
+      <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <legend class="legend"><LABELC nombre="lblDatosPremiosRanking" alto="13" filas="1" valor="" id="legend" cod="00600"/></legend>
+            <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+              <tr><td> 
+              <table width="413" border="0" align="left" cellspacing="0" cellpadding="0">
+              <tr> 
+                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr>  
+              <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td><LABELC nombre="lblNumNiveles" alto="13" filas="1" valor="" id="datosTitle" cod="1818"/></td>
+                <td><IMG src="b.gif" width="25" height="8"/></td>
+                <td><LABELC nombre="lblPeriodoDespacho" alto="13" filas="1" valor="" id="datosTitle" cod="1843"/></td>
+                <td><IMG src="b.gif" width="25" height="8"/></td>
+                <td><LABELC nombre="lblComunicacion" alto="13" filas="1" valor="" id="datosTitle" cod="1812"/></td>                                   
+                <td><IMG src="b.gif" width="25" height="8"/></td>
+                <td><LABELC nombre="lblMensaje" alto="13" filas="1" valor="" id="datosTitle" cod="531"/></td>                                   
+                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>    
+              </tr> 
+              <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td nowrap="nowrap"><CTEXTO nombre="txtNumNiveles" id="datosCampos" max="3" tipo="" onchange="" req="S" size="3" valor="" onshtab="focalizaShTab();" validacion=""/></td>
+                <td><IMG src="b.gif" width="25" height="8"/></td>
+                <td nowrap="nowrap">
+                  <COMBO nombre="cbPeriodoDespacho" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                    <ROWSET>    
+                    </ROWSET>
+                  </COMBO> 
+                </td>
+                <td><IMG src="b.gif" width="25" height="8"/></td>		   
+                <td nowrap="nowrap" valign="top"><CHECKBOX check="" id="" msjreq="" nombre="ckComunicacion" onclick="onChangeComunicacion()" onfocus="" readonly="" req="" tabindex="1" texto="" validacion=""/></td> 
+                <td><IMG src="b.gif" width="25" height="8"/></td>		   
+                <td nowrap="nowrap">
+                 <CTEXTO nombre="txtMensaje" id="datosCampos" max="5" tipo="" onchange="" req="N" size="5" valor="" validacion="" />
+                </td>
+                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td> 
+              </tr> 
+              <tr> 
+                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr>      
+            </table>
+            </td>
+              </tr>       
+            </table>                                                
+          </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr> 
+      <tr> 
+        <td><IMG src="b.gif"/></td>
+      	  <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnDefinirNiveles" ID="botonContenido" tipo="html" accion="accionDefinirNiveles()" estado="false" ontab="focalizaTab();" cod="1801"/>
+		 
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>
+      <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750"><IMG src="b.gif"/></td>
+      	<td width="12"><IMG src="b.gif" width="12" height="12"/></td>
+      </tr>
+    </table> 
+  </CAPA>
+
+
+</FORMULARIO>
+</PAGINA>

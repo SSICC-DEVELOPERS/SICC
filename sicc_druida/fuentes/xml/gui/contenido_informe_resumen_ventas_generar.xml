@@ -1,0 +1,407 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_informe_resumen_ventas_generar.xml,v 1.1 2009/12/03 18:44:46 pecbazalar Exp $
+   contenido CCC
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_informe_resumen_ventas_generar" cod="0845" titulo="Generar informe resumen de ventas" estilos="estilosB3.css" colorf="#F0F0F0" 
+	msgle="" onload="onLoad();" xml:lang="es">
+ <JS src="sicc_util.js"/>   
+  
+<JAVASCRIPT>
+  <![CDATA[ 
+  
+  var validaFecha;
+   
+   function onLoad(){
+      configurarMenuSecundario('Formulario');
+      fMostrarMensajeError();
+      focaliza('Formulario.cbVista');
+      deshabilitarCampos();
+      
+   }
+//------------------------------------------------------------------------------   
+   function generar(formato){
+      if(sicc_validaciones_generales()){
+         if(validarFecha()){
+         
+            var a = new Object();
+            a.accion = 'generar';
+            a.vista = get('Formulario.cbVista');  
+            a.vistaDesc = get('Formulario.cbVista', 'T');  
+            a.criterio = get('Formulario.cbCriterioSeleccion');
+            a.criterioDesc = get('Formulario.cbCriterioSeleccion', 'T');
+            a.fechaContable = get('Formulario.txtFechaContable');  
+            a.periodo = get('Formulario.txtPeriodo');
+            a.ejercicio = get('Formulario.txtEjercicio');  
+            a.tipoPeriodo = get('Formulario.cbTipoPeriodo');
+            a.periodoComercial = get('Formulario.cbPeriodoComercial');  
+            
+            a.formato = formato;
+            mostrarModalSICC('CCCResumenVentas','generar', a);  
+        }     
+      }
+   }
+
+//------------------------------------------------------------------------------   
+
+   function validarFecha(){
+      var fecha = get('Formulario.txtFechaContable');
+      var formatoFecha = get('Formulario.hFormatoFechaPais');
+      
+      if(fecha != ''){
+         if (! EsFechaValida_SICC(fecha, "Formulario")){
+             GestionarMensaje("1006", formatoFecha, null, null);
+             focaliza("Formulario.txtFechaContable");
+             return false;
+         }else{
+            return true;
+         }
+      }else{
+         return true;
+      }
+   
+   
+   }
+  
+   
+//------------------------------------------------------------------------------   
+
+   function vistaOnChange(){
+      var vista = get('Formulario.cbVista');
+      
+      if(vista  == '1'){
+         accion('Formulario.cbCriterioSeleccion','.disabled=false');
+         sicc_cambiar_estado('cbCriterioSeleccion', true);
+      }else{
+         accion('Formulario.cbCriterioSeleccion','.disabled=true');
+         sicc_cambiar_estado('cbCriterioSeleccion', false);
+         limpiarTodo();
+      }
+   
+   }
+
+//------------------------------------------------------------------------------   
+   function limpiarTodo(){
+   
+      set('Formulario.cbCriterioSeleccion', '');
+      set('Formulario.txtFechaContable', '');
+      set('Formulario.txtPeriodo', '');
+      set('Formulario.txtEjercicio', '');
+      set('Formulario.cbTipoPeriodo', '');
+      set('Formulario.cbPeriodoComercial', '');
+  
+   }
+
+//------------------------------------------------------------------------------   
+   
+    function criterioOnchange(){
+       var criterio = get('Formulario.cbCriterioSeleccion');
+              
+       if(criterio == '1'){
+          manejaCriterio1();
+       }
+       if(criterio == '2'){
+          manejaCriterio2();
+       }
+       if(criterio == '3'){
+          manejaCriterio3();
+       }
+       
+    }
+      
+//------------------------------------------------------------------------------      
+
+   function manejaCriterio1(){    
+      //limpio el resto
+      set('Formulario.txtPeriodo', '');
+      set('Formulario.txtEjercicio', '');
+      set('Formulario.cbTipoPeriodo', '');
+      set('Formulario.cbPeriodoComercial', '');
+      
+      //lo deshabilito
+      accion('Formulario.txtPeriodo','.disabled=true');
+      accion('Formulario.txtEjercicio','.disabled=true');
+      accion('Formulario.cbTipoPeriodo','.disabled=true');
+      accion('Formulario.cbPeriodoComercial','.disabled=true');
+      
+      //le saco la obligatoriedad
+      sicc_cambiar_estado('txtPeriodo', false);
+      sicc_cambiar_estado('txtEjercicio', false);
+      sicc_cambiar_estado('cbTipoPeriodo', false);
+      sicc_cambiar_estado('cbPeriodoComercial', false);
+      
+      //ahora habilito el campo relacionado y lo pongo obligatorio
+      accion('Formulario.txtFechaContable','.disabled=false');
+      sicc_cambiar_estado('txtFechaContable', true);
+      focaliza('Formulario.txtFechaContable');
+      validaFecha = true;
+  }
+  
+//------------------------------------------------------------------------------      
+
+  function manejaCriterio2(){    
+      set('Formulario.txtFechaContable', '');
+      set('Formulario.cbTipoPeriodo', '');
+      set('Formulario.cbPeriodoComercial', '');
+      
+      //lo deshabilito
+      accion('Formulario.txtFechaContable','.disabled=true');
+      accion('Formulario.cbTipoPeriodo','.disabled=true');
+      accion('Formulario.cbPeriodoComercial','.disabled=true');
+      
+      //le saco la obligatoriedad
+      sicc_cambiar_estado('txtFechaContable', false);
+      sicc_cambiar_estado('cbTipoPeriodo', false);
+      sicc_cambiar_estado('cbPeriodoComercial', false);
+      
+      //ahora habilito el campo relacionado y lo pongo obligatorio
+      accion('Formulario.txtPeriodo','.disabled=false');
+      accion('Formulario.txtEjercicio','.disabled=false');
+      sicc_cambiar_estado('txtPeriodo', true);
+      sicc_cambiar_estado('txtEjercicio', true);
+      focaliza('Formulario.txtPeriodo');
+      validaFecha = false;
+ 
+  }
+  
+//------------------------------------------------------------------------------      
+
+   function manejaCriterio3(){
+      //limpio el resto
+      set('Formulario.txtFechaContable', '');
+      set('Formulario.txtPeriodo', '');
+      set('Formulario.txtEjercicio', '');
+           
+      //lo deshabilito
+      accion('Formulario.txtFechaContable','.disabled=true');
+      accion('Formulario.txtPeriodo','.disabled=true');
+      accion('Formulario.txtEjercicio','.disabled=true');
+      
+      //le saco la obligatoriedad
+      sicc_cambiar_estado('txtFechaContable', false);
+      sicc_cambiar_estado('txtPeriodo', false);
+      sicc_cambiar_estado('txtEjercicio', false);
+      
+      //ahora habilito el campo relacionado y lo pongo obligatorio
+      accion('Formulario.cbTipoPeriodo','.disabled=false');
+      accion('Formulario.cbPeriodoComercial','.disabled=false');
+      
+      sicc_cambiar_estado('cbTipoPeriodo', true);
+      sicc_cambiar_estado('cbPeriodoComercial', true);
+      
+      focaliza('Formulario.cbTipoPeriodo')
+      validaFecha = false;
+    
+   }
+//------------------------------------------------------------------------------           
+      
+  
+   function deshabilitarCampos(){
+      
+      accion('Formulario.cbCriterioSeleccion','.disabled=true');
+      accion('Formulario.txtFechaContable','.disabled=true');
+      accion('Formulario.txtPeriodo','.disabled=true');
+      accion('Formulario.txtEjercicio','.disabled=true');
+      accion('Formulario.cbTipoPeriodo','.disabled=true');
+      accion('Formulario.cbPeriodoComercial','.disabled=true');
+      
+      
+
+   
+   }
+
+  
+  ]]> 
+  
+  <VALIDACION>
+    
+    <ELEMENTO name="cbVista" required="true" cod="2647"/>
+    <ELEMENTO name="cbCriterioSeleccion" required="false" cod="2668"/>
+    <ELEMENTO name="txtFechaContable" required="false" cod="2669"/>
+    <ELEMENTO name="txtPeriodo" required="false" cod="276"/>
+    <ELEMENTO name="txtEjercicio" required="false" cod="2327"/>
+    <ELEMENTO name="cbTipoPeriodo" required="false" cod="132"/>
+    <ELEMENTO name="cbPeriodoComercial" required="false" cod="2670"/>
+    
+    
+   
+</VALIDACION>
+</JAVASCRIPT>
+
+
+
+
+<FORMULARIO nombre="Formulario">
+<VAR nombre="accion" valor="" />
+<VAR nombre="conectorAction" valor="" />
+<VAR nombre="casoDeUso" valor=""/>
+<VAR nombre="errCodigo" valor="" />
+<VAR nombre="errDescripcion" valor="" />
+
+
+<VAR nombre="pais" valor="" />
+<VAR nombre="vista" valor="" />
+<VAR nombre="criterio" valor="" />
+<VAR nombre="fechaContable" valor="" />
+<VAR nombre="periodo" valor="" />
+<VAR nombre="ejercicio" valor="" />
+<VAR nombre="tipoPeriodo" valor="" />
+<VAR nombre="periodoComercial" valor="" />
+<VAR nombre="ejercicioPeriodoComercial" valor="" />
+<VAR nombre="formato" valor="" />
+
+<CAPA nombre="capa1">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblCriteriosSeleccion"  alto="13" filas="1" valor="" id="legend" cod="00275"/></legend>
+          <!---primera fila-->
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+            <tr><td>
+
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblVista"  alto="13" filas="1" id="datosTitle" cod="2647" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblEjercicio"  alto="13" filas="1" id="datosTitle" cod="2327" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblCriterioSeleccion"  alto="13" filas="1" id="datosTitle" cod="2668" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblFechaContable"  alto="13" filas="1" id="datosTitle" cod="2669" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbVista" size="1" multiple="N" valorinicial="" textoinicial="" id="datosCampos" req="S" onchange="vistaOnChange()" onshtab="focalizaBotonHTML('botonContenido','btnGenerarExcel');">
+                		<ROWSET>
+                  	      <ROW ID="1">
+                     	     <CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="1"/>
+                     		 <CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="Venta"/>
+                  		  </ROW>
+                          <ROW ID="2">
+                     	     <CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="2"/>
+                     		 <CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="Resumen venta"/>
+                  		  </ROW>
+                	   </ROWSET>	
+	                </COMBO> 
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" valign="bottom" ><CTEXTO nombre="txtEjercicio" id="datosCampos" max="4" tipo="" onchange="" req="N" size="4" valor="" validacion=""/></td>                
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" valign="bottom"><COMBO nombre="cbCriterioSeleccion" size="1" multiple="N" valorinicial="" textoinicial="" id="datosCampos" req="N" onchange="criterioOnchange();">
+                		<ROWSET>
+                  			<ROW ID="1">
+                     				<CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="1"/>
+                     				<CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="Fecha contable"/>
+                  			</ROW>
+			               	<ROW ID="2">
+                     				<CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="2"/>
+                     				<CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="Periodo contable"/>
+                  			</ROW>	
+                  	 	
+                      <ROW ID="3">
+                     				<CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="3"/>
+                     				<CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="Periodo comercial"/>
+                  			</ROW>	
+                  	 	</ROWSET>	
+	                </COMBO> 
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap"  valign="bottom"><CTEXTO nombre="txtFechaContable" id="datosCampos" max="10" tipo="" onchange="" req="N" size="12" valor="" validacion=""/></td>                
+                   <td width="100%"><cbIMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>
+            <tr><td>
+
+              <table width="10%" border="0" align="left" cellspacing="0" cellpadding="0">
+                 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblTipoPeriodo"  alto="13" filas="1" id="datosTitle" cod="132" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblPeriodo"  alto="13" filas="1" id="datosTitle" cod="276" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblPeriodoComercial"  alto="13" filas="1" id="datosTitle" cod="2670" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbTipoPeriodo" size="1" multiple="N" valorinicial="" textoinicial="" id="datosCampos" req="N">
+                		<ROWSET>
+                  				
+                  	 	</ROWSET>	
+	                </COMBO> 
+	           </td>
+	           <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"  ><CTEXTO nombre="txtPeriodo" id="datosCampos" max="2" tipo="" onchange="" req="N" size="4" valor="" validacion=""/></td>    
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"  >
+                  <CTEXTO nombre="cbPeriodoComercial" id="datosCampos" max="2" tipo="" onchange="" req="N" size="4" valor="" validacion=""/></td>                            
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   
+                </tr>
+                <tr>
+                   <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>
+          
+            
+           </table>
+       <!---fin primera fila-->
+         
+        
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnGenerarInforme" ID="botonContenido" tipo="html" accion="generar('pdf')" estado="false" cod="2495"/>
+		  <BOTON nombre="btnGenerarExcel" ID="botonContenido" tipo="html" accion="generar('xls')" estado="false" cod="2526" ontab="focaliza('Formulario.cbVista')"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>       
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+ </CAPA>                                                                                                                                                           
+</FORMULARIO>
+</PAGINA>  

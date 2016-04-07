@@ -1,0 +1,409 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_informe_ficha_tecnica_generar.xml,v 1.1 2009/12/03 18:45:59 pecbazalar Exp $
+   contenido EDU
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_informe_ficha_tecnica_generar" cod="0803" titulo="Generar Informe Ficha Técnica del Curso" estilos="estilosB3.css" colorf="#F0F0F0" 
+	msgle="" onload="onLoadPag();" xml:lang="es">     
+
+<JS src="sicc_util.js"/>   
+   <JS src="PaginacionSicc.js"/>    
+   <JS src="DruidaTransactionMare.js"/>
+<JAVASCRIPT>
+ <![CDATA[   
+       
+  function onLoadPag()   {
+  
+     ocultarLista();
+     DrdEnsanchaConMargenDcho('listado1',12);
+     eval (ON_RSZ);  
+     configurarMenuSecundario('Formulario');
+     fMostrarMensajeError();
+     setearPais();
+     focaliza('Formulario.cbPais');
+ }
+//------------------------------------------------------------------------------   
+   function generar(){
+       var codigos = new Array();
+       codigos = listado1.codSeleccionados();
+	   var cant = codigos.length;
+	   var posicion = obtenerPosicionListaEditable(listado1.codSeleccionados(),listado1);   
+    
+            
+       
+       if (cant == 1)  {
+          /*set('Formulario.conectorAction', 'EDUFichaTecnicaCurso');           
+          set('Formulario.accion', 'generar');
+          set("Formulario.oidCurso", codigos[0]);
+
+                  
+          enviaSICC('Formulario');*/
+          var a = new Object();
+          a.accion = 'generar';
+          a.codigoTipoCurso = listado1.datos[posicion][3];     
+          a.codigoCurso = listado1.datos[posicion][4];  
+          alert("codigos " + listado1.datos[posicion][3]     );
+		            alert("codigos " + listado1.datos[posicion][4]     );
+		  return;
+          mostrarModalSICC('EDUFichaTecnicaCurso','generar', a);  
+       }else{
+          GestionarMensaje('1486');
+      
+       }     
+
+       
+      
+   }
+
+//------------------------------------------------------------------------------   
+
+   function ocultarLista() {
+        document.all["Cplistado1"].style.visibility='hidden'; 
+        document.all["CpLin1listado1"].style.visibility='hidden';
+        document.all["CpLin2listado1"].style.visibility='hidden' ;
+        document.all["CpLin3listado1"].style.visibility='hidden' ;
+        document.all["CpLin4listado1"].style.visibility='hidden';
+        document.all["primera1Div"].style.visibility='hidden'; 
+        document.all["ret1Div"].style.visibility='hidden'; 
+        document.all["ava1Div"].style.visibility='hidden';   
+        document.all["separaDiv"].style.visibility='hidden';
+        document.all["GenerarInformeDiv"].style.visibility='hidden';
+        
+    }
+         
+//------------------------------------------------------------------------------   
+    
+    function mostrarLista() {
+       document.all["Cplistado1"].style.visibility='visible';
+       document.all["CpLin1listado1"].style.visibility='visible';
+       document.all["CpLin2listado1"].style.visibility='visible';
+       document.all["CpLin3listado1"].style.visibility='visible';
+       document.all["CpLin4listado1"].style.visibility='visible';
+       document.all["primera1Div"].style.visibility='visible';
+       document.all["ret1Div"].style.visibility='visible';
+       document.all["ava1Div"].style.visibility='visible';
+       document.all["separaDiv"].style.visibility='visible';
+       document.all["GenerarInformeDiv"].style.visibility='visible';
+   }
+
+//------------------------------------------------------------------------------   
+  function buscar(){
+  
+     if(validarFechas()){
+        var pais             = get('Formulario.cbPais');
+        var tipoCurso        = get('Formulario.cbCodTipoCurso');
+        var curso            = get('Formulario.cbCodCurso', 'T');
+        var fechaDisponible  = get('Formulario.txtFechaDisponible');
+        var fechaLanzamiento = get('Formulario.txtFechaLanzamiento');
+        var fechaFinCurso    = get('Formulario.txtFechaFinCurso');
+   
+  
+        var arrayDatos = new Array();
+        
+        arrayDatos[arrayDatos.length] = ['oidPais', pais];
+        arrayDatos[arrayDatos.length] = ['oidTipoCurso', tipoCurso]
+        arrayDatos[arrayDatos.length] = ['codigoCurso', curso]
+        arrayDatos[arrayDatos.length] = ['fechaDisponible', fechaDisponible]
+        arrayDatos[arrayDatos.length] = ['fechaLanzamiento', fechaLanzamiento]
+        arrayDatos[arrayDatos.length] = ['fechaFinCurso', fechaFinCurso]
+        
+        configurarPaginado( mipgndo, "EDUBuscarFichaTecnica", "ConectorBusquedaFichaTecnica", "es.indra.sicc.dtos.edu.DTOBusquedaFichaTecnica", arrayDatos);
+     }
+      
+   }
+//------------------------------------------------------------------------------   
+
+   function validarFechas(){
+   
+       var fechaDisponible  = get('Formulario.txtFechaDisponible');
+       var fechaLanzamiento = get('Formulario.txtFechaLanzamiento');
+       var fechaFinCurso    = get('Formulario.txtFechaFinCurso');
+       var formatoFecha = get('Formulario.hFormatoFechaPais');
+          
+       if(fechaDisponible != ''){
+         if(! EsFechaValida_SICC(fechaDisponible , "Formulario")){
+            GestionarMensaje("1006", formatoFecha, null, null);
+            focaliza("Formulario.txtFechaDisponible");
+            return false;
+          }
+       }
+      
+       if(fechaLanzamiento != ''){
+         if (! EsFechaValida_SICC(fechaLanzamiento , "Formulario")){
+            GestionarMensaje("1006", formatoFecha, null, null);
+            focaliza("Formulario.txtFechaLanzamiento");
+            return false;
+         }
+       }
+      
+      if(fechaFinCurso != ''){
+         if (! EsFechaValida_SICC(fechaFinCurso , "Formulario")){
+            GestionarMensaje("1006", formatoFecha, null, null);
+            focaliza("Formulario.txtFechaFinCurso");
+            return false;
+         }
+      }
+      
+      return true;
+   
+   
+   }
+
+//------------------------------------------------------------------------------   
+
+   function fLimpiar(){
+      var aCombo = new Array(new Array("",""));
+      set_combo('Formulario.cbCodCurso', aCombo, []);
+   
+      focaliza('Formulario.cbPais');
+ 
+   }
+   
+//------------------------------------------------------------------------------       
+
+   function setearPais(){
+      var pais = get('Formulario.pais');
+      
+      iSeleccionado = new Array(); 
+      iSeleccionado[0] = pais;
+      set('Formulario.cbPais',iSeleccionado);
+   }
+   
+//------------------------------------------------------------------------------       
+    function onchangeTipoCurso(){
+           
+       var pais   = get('Formulario.cbPais');
+       var tipoCurso = get('Formulario.cbCodTipoCurso');
+      
+       if(tipoCurso != '' && pais != ''){
+       
+          var arr = new Array();
+          arr[arr.length] = ["oidPais", pais]; 
+          arr[arr.length] = ["oidTipoCurso", tipoCurso];
+          
+          recargaCombo("Formulario.cbCodCurso","EDUObtieneCodigoCurso", "es.indra.sicc.dtos.edu.DTORelacionesCurso",arr); 
+                  
+       }else{
+          var aCombo = new Array(new Array("",""));
+          set_combo('Formulario.cbCodCurso', aCombo, []);
+       }
+   
+    } 
+//------------------------------------------------------------------------------           
+    function prueba(ultima, rowset, error){
+       var tamano = rowset.length;
+    
+       if (tamano > 0) {
+          mostrarLista();
+          return true;
+       }else{
+          ocultarLista(); 
+          cdos_mostrarAlert(error);
+          return false;
+     }
+  } 
+
+ 
+   
+
+
+  ]]>
+  
+ 
+</JAVASCRIPT>
+
+<FORMULARIO nombre="Formulario">
+<VAR nombre="accion" valor="" />
+<VAR nombre="conectorAction" valor="" />
+<VAR nombre="casoDeUso" valor=""/>
+<VAR nombre="errCodigo" valor="" />
+<VAR nombre="errDescripcion" valor="" />
+<VAR nombre="idioma" valor="" />
+
+<VAR nombre="pais" valor=""/>
+<VAR nombre="paisSelec" valor=""/>
+<VAR nombre="oidCurso" valor="" />
+
+
+
+<CAPA nombre="capaContenido">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblCriteriosBusqueda" filas="1" valor="" id="legend" cod="0075"/></legend>
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr><td> 
+                <table width="535" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblPais"  filas="1" id="datosTitle" cod="5" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblCodTipoCurso"  filas="1" id="datosTitle" cod="2646" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblCodCurso"  filas="1" id="datosTitle" cod="715" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbPais" size="1" multiple="N" valorinicial="" textoinicial="" id="datosCampos" req="N" onchange="onchangeTipoCurso();">
+                		<ROWSET>
+                  			
+                  	 	</ROWSET>	
+	                </COMBO> 
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbCodTipoCurso" size="1" multiple="N" valorinicial="" textoinicial="" id="datosCampos" req="N" onchange="onchangeTipoCurso();">
+                		<ROWSET>
+                  			
+                  	 	</ROWSET>	
+	                </COMBO> 
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbCodCurso" size="1" multiple="N" valorinicial="" textoinicial="" id="datosCampos" req="N">
+                		<ROWSET>
+                  			
+                  	 	</ROWSET>	
+	                </COMBO> 
+                   </td>
+	           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+              </table>
+              </td></tr>
+                <tr><td> 
+                <table width="535" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblFechaDisponible"  filas="1" id="datosTitle" cod="725" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblFechaLanzamiento"  filas="1" id="datosTitle" cod="729" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblFechaFinCurso"  filas="1" id="datosTitle" cod="726" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"><CTEXTO nombre="txtFechaDisponible" id="datosCampos" max="10" tipo="" onchange="" req="N" size="12" valor="" validacion="" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap"><CTEXTO nombre="txtFechaLanzamiento" id="datosCampos" max="10" tipo="" onchange="" req="N" size="12" valor="" validacion="" /></td>
+	           <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap"><CTEXTO nombre="txtFechaFinCurso" id="datosCampos" max="10" tipo="" onchange="" req="N" size="12" valor="" validacion="" /></td>
+	           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+              </table>
+              </td></tr>
+              </table>
+       <!---fin primera fila-->
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+	<fieldset>
+	  <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	    <tr>
+	      <td class="botonera">
+                <BOTON nombre="btnBuscar" ID="botonContenido" tipo="html" accion="buscar();" estado="false" cod="1"/>
+              </td>
+	    </tr>    
+	  </table>        
+	</fieldset>
+      </td>
+      <td><IMG src="b.gif" width="8" height="12"/></td>
+    </tr>     
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+
+  <LISTAEDITABLE nombre="listado1" ancho="538" alto="317" x="12" y="162" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+	<BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+	<BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+	<BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+      <LINEAS>
+	<GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="1" horizTitulo="1" horizBase="1"/> 
+	<COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00135" ID="datosTitle" />
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+        <COL ancho="60" minimizable="S" minimizada="N"/>
+        <COL ancho="120" minimizable="S" minimizada="N"/> 
+        <COL ancho="120" minimizable="S" minimizada="N"/>
+        <COL ancho="100" minimizable="S" minimizada="N"/>
+        <COL ancho="120" minimizable="S" minimizada="N"/> 
+        <COL ancho="135" minimizable="S" minimizada="N"/>
+        <COL ancho="135" minimizable="S" minimizada="N"/> 
+        <COL ancho="135" minimizable="S" minimizada="N"/>
+      </COLUMNAS>
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+	<COL colFondo="" ID="EstCab" cod="5"></COL> 
+	<COL colFondo="" ID="EstCab" cod="716"></COL> 
+	<COL colFondo="" ID="EstCab" cod="2646"></COL> 
+	<COL colFondo="" ID="EstCab" cod="715"></COL> 
+	<COL colFondo="" ID="EstCab" cod="2648"></COL> 
+	<COL colFondo="" ID="EstCab" cod="725"></COL>
+	<COL colFondo="" ID="EstCab" cod="729"></COL> 
+	<COL colFondo="" ID="EstCab" cod="726"></COL>  
+      </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+             coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+             onLoad="" colorSelecc="#D0D9E8">
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+      </DATOS>
+      <ROWSET>
+	
+	
+      </ROWSET>
+      <PAGINADO nombre="mipgndo" ancho="538" sep="$" x="12" class="botonera" y="456" control="|" conector="conector_prototipo_2" rowset="" cargainicial="N" onload="procesarPaginado(mipgndo,msgError, ultima, rowset, 'prueba(ultima, rowset)')">
+    	<BOTON nombre="ret1" x="37" y="460" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+    	<BOTON nombre="ava1" x="52" y="460" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>        
+      </PAGINADO>
+   </LISTAEDITABLE>
+
+    <BOTON nombre="primera1" x="20" y="460" ID="botonContenido" img="primera_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();"/>  
+    <BOTON nombre="separa" x="59" y="456" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />
+    <BOTON nombre="GenerarInforme" x="80" y="457" ID="botonContenido" tipo="html" estado="false" cod="2495" accion="generar();"/>
+
+<CAPA nombre="capaEspacio2" alto="12" ancho="100" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="479" zindex="">
+</CAPA>
+
+</FORMULARIO>
+</PAGINA>

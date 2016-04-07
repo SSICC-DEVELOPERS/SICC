@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/PROY
+   $Id: contenido_entre_grupos_mover.xml,v 1.1 2009/12/03 18:45:16 pecbazalar Exp $
+   DESC
+
+   DRUIDATARGET=/../../config/scripts/iniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_entre_grupos_mover" titulo="" estilos="estilosB3.css" colorf="#F0F0F0" msgle="" 
+        onload="inicia();" xml:lang="es" cod="068">
+
+	<JS src="sicc_util.js"/>   
+	<JS src="I18NJS.js"/>   
+	<JS src="DruidaTransactionMare.js"/>   
+    
+   <JAVASCRIPT>   
+     <![CDATA[    
+         var grFin; 
+            function inicia(){            
+    
+              if (get('frmModificarGruposZonas.hcerrar')=='false'){              
+                   configurarMenuSecundario("frmModificarGruposZonas");   
+                   posicionarCombos();   
+                   mostrarCodigoError();   
+                 } else {   
+                   returnValue = 'guardo';   
+                   window.close();   
+                 }                     
+            }   
+             function mostrarCodigoError() {     
+                  
+              var vErrCodigo = get('frmModificarGruposZonas.errCodigo');   
+              var vErrDescrip = get('frmModificarGruposZonas.errDescripcion');   
+    
+              if (get('frmModificarGruposZonas.errDescripcion')!='') {   
+                     var wnd = fMostrarMensajeError( vErrCodigo,vErrDescrip);   
+                     /*if (get('frmModificarGruposZonas.errCodigo')=='260020002')   
+                            focaliza('frmModificarGruposZonas.');*/   
+              }   
+             
+            }         
+            function posicionarCombos(){   
+              iSeleccionado = new Array();             
+              iSeleccionado[0] = get('frmModificarGruposZonas.sGrupoDeZonasBusqueda');                
+              set('frmModificarGruposZonas.comboGrupoInicial',iSeleccionado);   
+              accion('frmModificarGruposZonas.comboGrupoInicial','.disabled=true');     
+                 
+              iSeleccionadob = new Array();             
+              iSeleccionadob[0] = get('frmModificarGruposZonas.sGrupoDeZonasPrevio');         
+              set('frmModificarGruposZonas.comboGrupoFinal',iSeleccionadob);   
+              grFin=get('frmModificarGruposZonas.comboGrupoFinal');
+              focaliza('frmModificarGruposZonas.comboGrupoFinal');   
+            }   
+               
+            function fGuardar(){   
+              controlaZonas();
+              //accionAceptaGrupos();   
+            }   
+            function fVolver(){   
+              window.close();   
+            }   
+
+            
+           function controlaZonas(){
+					 var arr = new Array();
+                     arr[arr.length]=new Array("oidPais", get("frmModificarGruposZonas.hPais"));
+                     arr[arr.length]=new Array("oidMarca", get('frmModificarGruposZonas.hMarca'));
+                     arr[arr.length]=new Array("oidCanal", get('frmModificarGruposZonas.hCanal'));
+                     arr[arr.length]=new Array("oidRegion", '');
+                   
+                     recargaCombo("frmModificarGruposZonas.comboZonas2", "CRAObtenerZonasNoAsignadasPorRegion", "es.indra.sicc.dtos.cra.DTOGrupoZonas", arr , "validar(datos)");
+
+		   }
+
+          function validar(datos){
+                  //alert("datos: " + datos);
+                  if (datos!=''){
+                              //aca debo preguntar si desea continuar porque hay zonas sin asignar
+                              var res = GestionarMensaje('1427');     
+                              if (res==false) {							              
+                                         //no salir
+                                         //alert("no salir");
+                                         return false;
+                              }
+                  }
+                  //salir
+                  accionAceptaGrupos();
+           }
+    
+        
+            function accionAceptaGrupos(){   
+               var datosCI='';   
+               var datosCF='';               
+               datosCI=comboToStr('frmModificarGruposZonas.comboZonas');   
+               datosCF=comboToStr('frmModificarGruposZonas.comboZonas2');
+               var grAct = get('frmModificarGruposZonas.comboGrupoFinal');
+
+               if((datosCI == '') || ((grFin != '')&&(datosCF == ''))){
+                  if(GestionarMensaje('1369')){
+                      set('frmModificarGruposZonas.sZonasInicial', datosCI );   
+                      set('frmModificarGruposZonas.sZonasFinal', datosCF );              
+                      set('frmModificarGruposZonas.accion','aceptaGrupos');             
+                      set('frmModificarGruposZonas.conectorAction','LPMantieneGruposZonas');   
+                      envia('frmModificarGruposZonas');    
+
+                  }else{
+                     return;
+                  }
+
+               }else{
+                   set('frmModificarGruposZonas.sZonasInicial', datosCI );   
+                   set('frmModificarGruposZonas.sZonasFinal', datosCF );              
+                   set('frmModificarGruposZonas.accion','aceptaGrupos');             
+                   set('frmModificarGruposZonas.conectorAction','LPMantieneGruposZonas');   
+                   envia('frmModificarGruposZonas');    
+
+
+               }
+              
+            }       
+
+			function agregando(){                
+              if (get('frmModificarGruposZonas.comboGrupoFinal')!=""){   
+                 traspasar('frmModificarGruposZonas.comboZonas', 'frmModificarGruposZonas.comboZonas2');   
+              }   
+            }   
+            function eliminando(){   
+              traspasar('frmModificarGruposZonas.comboZonas2', 'frmModificarGruposZonas.comboZonas');   
+            }    
+            function traspasar(listaOrigen, listaDestino){   
+              vectorValue = get(listaOrigen,'V');   
+              vectorDesc = get(listaOrigen,'T');   
+                      
+              for (var i=0;i <= vectorValue.length - 1;i++){   
+                 if ((vectorValue[i] != null) && (vectorValue[i] != '')){   
+                   del_combo(listaOrigen, 'V', vectorValue[i]);   
+                   combo_add(listaDestino, vectorValue[i], vectorDesc[i]);   
+                 }   
+              }   
+            }   
+    
+            function cambioGrupoFinal(){   
+              var datosCI='';   
+              var datosCF='';   
+              datosCI=comboToStr('frmModificarGruposZonas.comboZonas');   
+              datosCF=comboToStr('frmModificarGruposZonas.comboZonas2');              
+
+               if((datosCI == '') || ((grFin != '')&&(datosCF == ''))){
+                      if(GestionarMensaje('1369')){
+                      set('frmModificarGruposZonas.sZonasInicial', datosCI );   
+                      set('frmModificarGruposZonas.sZonasFinal', datosCF );   
+                      set('frmModificarGruposZonas.accion','cambioGrupoFinal');             
+                      set('frmModificarGruposZonas.conectorAction','LPMantieneGruposZonas');   
+                      envia('frmModificarGruposZonas');  
+                      }else{
+                          iSeleccionadob = new Array();             
+                          iSeleccionadob[0] = grFin;         
+                          set('frmModificarGruposZonas.comboGrupoFinal',iSeleccionadob);
+                         return;
+                      }
+                 }else{
+                    set('frmModificarGruposZonas.sZonasInicial', datosCI );   
+                    set('frmModificarGruposZonas.sZonasFinal', datosCF );   
+                    set('frmModificarGruposZonas.accion','cambioGrupoFinal');             
+                    set('frmModificarGruposZonas.conectorAction','LPMantieneGruposZonas');   
+                    envia('frmModificarGruposZonas');                   
+                 }              
+                  
+            }   
+            function comboToStr(campo){   
+            var l=combo_get(campo,'L');   
+            var arrai=new Array();   
+            var datos='';   
+            for(var i=0;i<l;i++) {   
+             datos += combo_get(campo,'V',i)+'~~';   
+             datos += combo_get(campo,'T',i)+'~~';   
+            }   
+            return datos;   
+            }             
+    
+            function fLimpiar(){   
+              set('frmModificarGruposZonas.accion','limpiarMover');             
+              set('frmModificarGruposZonas.conectorAction','LPMantieneGruposZonas');   
+              envia('frmModificarGruposZonas');         
+            }   
+
+
+     ]]>       
+     </JAVASCRIPT>     
+
+<FORMULARIO nombre="frmModificarGruposZonas">
+    <VAR nombre="accion" valor=""/>
+    <VAR nombre="conectorAction" valor="LPMantieneGruposZonas"/>
+    <VAR nombre="errCodigo" valor=""/>
+    <VAR nombre="errDescripcion" valor=""/>
+    <VAR nombre="hCasoDeUso" valor=""/>
+    <VAR nombre="hcerrar" valor="false"/>
+
+    <VAR nombre="sZonasInicial" valor=""/>
+    <VAR nombre="sZonasFinal" valor=""/>
+
+    <VAR nombre="sGrupoDeZonasBusqueda" valor=""/>
+    <VAR nombre="sGrupoDeZonasPrevio" valor=""/>
+    <VAR nombre="sGrupoDeZonasActual" valor=""/>
+
+    <VAR nombre="hPais" valor=""/>
+    <VAR nombre="hMarca" valor=""/>
+    <VAR nombre="hCanal" valor=""/>
+    
+<CAPA nombre="capaBuscar" x="0" y="0">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primero formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblDatosGruposZonas" alto="13" filas="1" valor="" id="legend" cod="00496"/></legend>
+          <!---primera fila-->
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblGrupoInicial" alto="13" filas="1" valor="" id="datosTitle" cod="203"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblGrupoFinal" alto="13" filas="1" valor="" id="datosTitle" cod="204"/></td> 
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td>
+		     <COMBO nombre="comboGrupoInicial" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+		       <ROWSET>
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td>
+		     <COMBO nombre="comboGrupoFinal" id="datosCampos" onchange="cambioGrupoFinal();" size="1" multiple="N" req="N" valorinicial="" textoinicial="" onshtab="focaliza('frmModificarGruposZonas.comboZonas2');">
+		       <ROWSET>
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+              </table>
+       <!---fin primera fila-->
+       <!---segunda fila-->
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td><LABELC nombre="lblZonas" alto="13" filas="1" valor="" id="datosTitle" cod="205"/></td>
+                   <td colspan="3"><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lblZonas2" alto="13" filas="1" valor="" id="datosTitle" cod="206"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td nowrap="nowrap">
+                    <COMBO nombre="comboZonas" id="datosCampos" size="5" multiple="S" req="N">
+                      <ROWSET>
+                      </ROWSET>
+                    </COMBO>
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td nowrap="nowrap">
+		     <table width="100%">
+		       <tr>
+			 <td class="botonera">
+			   <BOTON nombre="btnEliminar" ID="botonContenido" tipo="html" accion="agregando();" estado="false" alt="&gt;"/>
+			 </td>			
+		       </tr>
+		       <tr>
+			 <td class="botonera">
+			   <BOTON nombre="btnAgregar" ID="botonContenido" tipo="html" accion="eliminando();" estado="false" codi="1" alt="&lt;"/>
+			 </td>			
+		       </tr>	
+		     </table>
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td  nowrap="nowrap">
+                     <COMBO nombre="comboZonas2" id="datosCampos" size="5" multiple="S" req="N" ontab="focaliza('frmModificarGruposZonas.comboGrupoFinal');">
+                       <ROWSET>		       
+                       </ROWSET>
+                     </COMBO>
+                   </td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr> 
+                  <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+              </table>
+       <!---fin segunda fila-->
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr>   
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+</FORMULARIO>
+</PAGINA>

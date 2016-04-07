@@ -1,0 +1,549 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_controles_almacen_modificar" cod="01038" titulo="" estilos="estilosB3.css" colorf="#F0F0F0"
+        msgle="" onload="onLoadPag();" xml:lang="es">
+
+
+  <JS src="sicc_util.js"/>
+  <JS src="PaginacionSicc.js"/>
+  <JS src="DruidaTransactionMare.js"/>
+
+<JAVASCRIPT>
+  <![CDATA[ 
+
+  function onLoadPag()   {
+
+    configurarMenuSecundario("formulario");
+    DrdEnsanchaConMargenDcho('listado1',12);
+    document.all["Cplistado1"].style.visibility='hidden';
+    document.all["CpLin1listado1"].style.visibility='hidden';
+    document.all["CpLin2listado1"].style.visibility='hidden';
+    document.all["CpLin3listado1"].style.visibility='hidden';
+    document.all["CpLin4listado1"].style.visibility='hidden';
+
+    document.all["primera1Div"].style.visibility='hidden';
+    document.all["ret1Div"].style.visibility='hidden';
+    document.all["ava1Div"].style.visibility='hidden'; 
+    document.all["separaDiv"].style.visibility='hidden';
+
+    document.all["btnDetalleDiv"].style.visibility='hidden';
+    document.all["btnModificarDiv"].style.visibility='hidden';
+    document.all["btnEliminarDiv"].style.visibility='hidden';
+    eval (ON_RSZ);
+
+    fMostrarMensajeError();
+    
+	accion('formulario.txtCodigoProducto','.disabled=true');
+  }
+
+  
+  function fBorrar(){
+	accionEliminar();
+  }
+
+  function fLimpiar(){
+	ocultarLista();	
+  }
+  
+  function onChangeCanal() {
+      var arra = new Array();
+      arra[0] = ["oidPais",get('formulario.pais')];
+      arra[1] = ["oidIdioma",get('formulario.idioma')];      
+      arra[2] = ["oid",get('formulario.cbCanal')];
+      recargaCombo("formulario.cbAcceso","SEGObtieneAccesosPorCanal","es.indra.sicc.util.DTOOID",arra);
+  }
+
+  function onChangeAcceso() {
+      var arra = new Array();
+      arra[0] = ["oidPais",get('formulario.pais')];
+      arra[1] = ["oidIdioma",get('formulario.idioma')];      
+      arra[2] = ["oid",get('formulario.cbAcceso')];
+      recargaCombo("formulario.cbSubacceso","SegObtenerSubaccesosPorAcceso","es.indra.sicc.util.DTOOID",arra);
+  }
+
+  function accionBuscar(){
+
+	if ( sicc_validaciones_generales() ) {
+		configurarPaginado(mipgndo,"BELBuscarControlAlmacen", "ConectorBuscarControlAlmacen",
+	    				"es.indra.sicc.dtos.bel.DTOControlAlmacen", armaArray());
+
+    }
+  }
+
+  
+
+  function accionEliminar() {
+      var seleccionados = listado1.codSeleccionados();
+      var cantSeleccionados = seleccionados.length;
+	  
+      if (cantSeleccionados == 0){
+          GestionarMensaje("4", null, null, null);
+          return;
+      }
+
+      if (cantSeleccionados > 0) {
+          listado1.eliminarSelecc();
+		  eliminarFilas(seleccionados, "BELEliminarControlAlmacen", mipgndo);
+
+	  }  
+  }
+
+
+  function accionDetalle() {
+      var codigos = new Array();
+      codigos = listado1.codSeleccionados();
+      var cant = codigos.length;
+      var posicion = obtenerPosicionListaEditable(listado1.codSeleccionados(),listado1);
+
+      if (cant == 1) {
+          var obj = new Object();
+          obj.oidControlAlmacen = codigos[0];
+		  obj.opcionMenu = get('formulario.opcionMenu');
+          mostrarModalSICC('LPMantenimientoControlesAlmacen',"detalle",obj,750,350);
+      } else    {
+          GestionarMensaje('50');
+      }
+  }
+
+
+  function accionModificar() {
+      var codigos = new Array();
+      codigos = listado1.codSeleccionados();
+      var cant = codigos.length;
+      var posicion = obtenerPosicionListaEditable(listado1.codSeleccionados(),listado1);
+      set("formulario.oidControlAlmacen", codigos[0]);
+  
+      if (cant == 1) {
+          var obj = new Object();
+          obj.oidControlAlmacen = codigos[0];
+		  obj.opcionMenu = get('formulario.opcionMenu');
+          var salida = mostrarModalSICC('LPMantenimientoControlesAlmacen',"modificar",obj);
+          accionBuscar();
+      } else {
+          GestionarMensaje('50');
+      }
+  }
+
+
+  function armaArray(){
+      var arrDatos = new Array();
+      var i=0;
+
+      arrDatos[i] = new Array('oidPais',get('formulario.pais'));
+      i++;
+      
+      arrDatos[i] = new Array('oidIdioma',get('formulario.idioma'));
+      i++;
+	  
+      if (get('formulario.cbAcceso')!=''){
+          arrDatos[i] = new Array('oidAcceso',get('formulario.cbAcceso'));
+          i++;
+      }
+      if (get('formulario.cbSubacceso')!=''){
+            arrDatos[i] = new Array('oidSubacceso',get('formulario.cbSubacceso'));
+            i++;
+      }
+      if (get('formulario.oidProducto')!=''){
+            arrDatos[i] = new Array('oidProducto',get('formulario.oidProducto'));
+            i++;
+      }
+      if (get('formulario.cbAlmacen')!=''){
+            arrDatos[i] = new Array('oidAlmacen',get('formulario.cbAlmacen'));
+            i++;
+      }
+      if (get('formulario.txtStockMinimo')!=''){
+            arrDatos[i] = new Array('stockMinimo',get('formulario.txtStockMinimo'));
+            i++;
+      }  
+	  if (get('formulario.txtStockMaximo')!=''){
+            arrDatos[i] = new Array('stockMaximo',get('formulario.txtStockMaximo'));
+            i++;
+      }  
+	  if (get('formulario.txtStockReposicion')!=''){
+            arrDatos[i] = new Array('stockReposicion',get('formulario.txtStockReposicion'));
+            i++;
+      }  
+	  if (get('formulario.cbCanal')!=''){
+            arrDatos[i] = new Array('oidCanal',get('formulario.cbCanal'));
+            i++;
+      }
+      return arrDatos;      
+}
+	
+	function muestraLista(ultima, rowset) {
+        var tamano = rowset.length;
+		cambiarListadoValores(rowset);
+		if (tamano > 0) {
+           visualizarLista();
+           return true;
+        } else {
+           ocultarLista();
+           // No se ha encontrado ningún elemento con los criterios especificados
+           focaliza('formulario.cbCanal');
+           return false;
+		}
+
+	}
+
+	function visualizarLista() {
+        DrdEnsanchaConMargenDcho('listado1',12);
+
+		document.all["Cplistado1"].style.visibility='';
+        document.all["CpLin1listado1"].style.visibility='';
+        document.all["CpLin2listado1"].style.visibility='';
+        document.all["CpLin3listado1"].style.visibility='';
+        document.all["CpLin4listado1"].style.visibility='';
+
+        document.all["primera1Div"].style.visibility='';
+        document.all["ret1Div"].style.visibility='';
+        document.all["ava1Div"].style.visibility='';
+        document.all["separaDiv"].style.visibility='';
+        
+        if (get('formulario.opcionMenu')=='ModificarControlesAlmacen'){ // Para modificar
+           document.all["btnModificarDiv"].style.visibility='visible';
+           document.all["btnDetalleDiv"].style.visibility='hidden';
+   	       document.all["btnEliminarDiv"].style.visibility='hidden';
+		}
+		if (get('formulario.opcionMenu')=='ConsultarControlesAlmacen'){ // Para ver detalle
+		   document.all["btnModificarDiv"].style.visibility='hidden';
+           document.all["btnDetalleDiv"].style.visibility='visible';
+		   document.all["btnEliminarDiv"].style.visibility='hidden';
+		}
+		if (get('formulario.opcionMenu')=='EliminarControlesAlmacen'){ // Para ver detalle
+		   document.all["btnModificarDiv"].style.visibility='hidden';
+           document.all["btnDetalleDiv"].style.visibility='hidden';
+		   document.all["btnEliminarDiv"].style.visibility='visible';
+		}
+
+		eval (ON_RSZ);
+	}
+
+	function ocultarLista() {
+        document.all["Cplistado1"].style.visibility='hidden';
+        document.all["CpLin1listado1"].style.visibility='hidden';
+        document.all["CpLin2listado1"].style.visibility='hidden';
+        document.all["CpLin3listado1"].style.visibility='hidden';
+        document.all["CpLin4listado1"].style.visibility='hidden';
+
+        document.all["primera1Div"].style.visibility='hidden';
+        document.all["ret1Div"].style.visibility='hidden';
+        document.all["ava1Div"].style.visibility='hidden';
+        document.all["separaDiv"].style.visibility='hidden';
+
+	    document.all["btnDetalleDiv"].style.visibility='hidden';
+		document.all["btnModificarDiv"].style.visibility='hidden';
+		document.all["btnEliminarDiv"].style.visibility='hidden';
+
+		eval (ON_RSZ);
+	}
+
+	function accionBuscarProducto() {
+    
+          var prodSelecc;
+          var cantProdSelecc = 0;
+
+		// inc BELC300023322 cdos gPineda 
+		set("formulario.casoDeUso","buscarProducto");
+
+          var obj = new Object();
+
+  		// inc BELC300023322 cdos gPineda 
+		  obj.casoDeUso = "buscarProducto";
+
+          var whnd = mostrarModalSICC('LPBuscarProductosDTO','',obj);
+          if (whnd != null) {
+              prodSelecc = whnd[0].split("$");
+              /* La LPBuscarProductosDTO devuelve un array de tres elementos donde
+                el primero ([0]) son los productos separados por '$',
+                 con dicho simbolo al comienzo de cada uno.
+                 Dentro de cada producto los campos están separados por '|'
+                 y son: oid|codigo|descripcion */
+              cantProdSelecc = prodSelecc.length - 1; // Le restamos uno por split de "$asdfa" da 2 elementos
+          }
+          if (cantProdSelecc != 1) {
+              if (cantProdSelecc != 0) {
+                  GestionarMensaje("1226", null, null, null);  //Solo puede seleccionar un producto.
+              }
+          } else {
+              var prod = prodSelecc[1].split("|");
+              set("formulario.txtCodigoProducto", prod[1]);
+              set("formulario.oidProducto", prod[0]);
+          }
+      
+    
+    }
+
+	 function cambiarListadoValores(rowset){
+        var i;
+        var activado = 9;
+        var acti = GestionarMensaje("BEL-ACT");
+        var inacti = GestionarMensaje("BEL-INA");
+        for( i = 0; i < rowset.length; i++ ){
+            if( rowset[i][activado] == "A") {
+                rowset[i][activado] = acti;
+            }
+			if ( rowset[i][activado] == "I") {
+                rowset[i][activado] = inacti;
+			}
+        }
+        return true;
+    } 
+
+
+
+  ]]> 
+</JAVASCRIPT>
+
+<VALIDACION>
+     <ELEMENTO name="txtStockMinimo" format="e" required="false" cod="1593" min="0" max="999999999"/>
+      <ELEMENTO name="txtStockMaximo" format="e" required="false" cod="1595" min="0" max="999999999"/>
+      <ELEMENTO name="txtStockReposicion" format="e" required="false" cod="1594" min="0" max="999999999"/>
+</VALIDACION>
+
+<FORMULARIO nombre="formulario" oculto = "N">
+
+    <VAR nombre="accion" valor=""/>
+    <VAR nombre="conectorAction" valor=""/>
+    <VAR nombre="casoDeUso" valor=""/>
+    <VAR nombre="errCodigo" valor=""/>
+    <VAR nombre="errDescripcion" valor=""/>
+    <VAR nombre="opcionMenu" valor=""/>
+    <VAR nombre="habilitaBtnBuscarProd" valor=""/>
+	<VAR nombre="habilitaBtnGuardar" valor=""/>
+	<VAR nombre="habilitaBtnDetalle" valor=""/>
+	<VAR nombre="habilitaBtnModificar" valor=""/>
+	<VAR nombre="habilitaBtnEliminar" valor=""/>
+
+	<VAR nombre="pais" valor=""/>
+	<VAR nombre="idioma" valor=""/>
+	<VAR nombre="producto" valor=""/>
+	<VAR nombre="habilitaCodigoProducto" valor=""/>
+
+
+<CAPA nombre="capa1">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblDatosControlAlmacen"  alto="13" filas="1" valor="" id="legend" cod="01034"/></legend>
+	 <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+       <!---primera fila-->
+              <table width="499" border="0" align="left" cellspacing="0" cellpadding="0">
+               <tr> 
+						<td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+					</tr>
+               <tr>
+						 <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblCanal"  alto="13" filas="1" valor="" cod="7" id="datosTitle"/></td>						 
+						  <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblAcceso"  alto="13" filas="1" valor="" cod="10" id="datosTitle"/></td>						
+						  <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblSubacceso"  alto="13" filas="1" valor="" cod="122" id="datosTitle"/></td>	
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+               </tr> 
+
+					 <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+						 <td  nowrap="nowrap">
+								<COMBO nombre="cbCanal" id="datosCampos" size="1" onchange="onChangeCanal();" multiple="N" req="N" valorinicial="" textoinicial="" onshtab="focaliza('formulario.txtStockReposicion');">
+									<ROWSET>
+									</ROWSET>
+								</COMBO> 
+			          </td>
+						 <td><IMG src="b.gif" width="25" height="8"/></td>
+						 <td  nowrap="nowrap">
+								<COMBO nombre="cbAcceso" id="datosCampos" size="1" onchange="onChangeAcceso();" multiple="N" req="N" valorinicial="" textoinicial="" >
+									<ROWSET>
+									</ROWSET>
+								</COMBO> 
+			          </td>
+						 <td><IMG src="b.gif" width="25" height="8"/></td>
+						 <td  nowrap="nowrap">
+								<COMBO nombre="cbSubacceso" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+									<ROWSET>
+									</ROWSET>
+								</COMBO> 
+			          </td>
+						   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+
+					 </table>             
+       <!---primera fila-->
+        </td></tr>						 
+		  
+			<tr><td>
+       <!---segunda fila-->
+              <table width="499" border="0" align="left" cellspacing="0" cellpadding="0">
+               <tr> 
+						<td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+					</tr>
+               <tr>
+						  <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblAlmacen"  alto="13" filas="1" valor="" cod="797" id="datosTitle"/></td>			
+						 <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblProducto"  alto="13" filas="1" valor="" cod="574" id="datosTitle"/></td>		
+						 <td><IMG src="b.gif" width="25" height="8"/></td>
+						 <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+
+					 <tr>
+						 <td><IMG src="b.gif" width="8" height="8"/></td>
+						 <td  nowrap="nowrap">
+								<COMBO nombre="cbAlmacen" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+									<ROWSET>
+									</ROWSET>
+								</COMBO> 
+			          </td>
+						  <td><IMG src="b.gif" width="25" height="8"/></td>
+						  <td nowrap="nowrap" valign="bottom"><CTEXTO nombre="txtCodigoProducto" id="datosCampos" max="15" tipo="" onchange="" req="N" size="15" valor="" validacion="" /></td>
+						  <td><IMG src="iconBuscar.gif" onclick="accionBuscarProducto()"/></td>
+              		  <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+
+					 </table>             
+       <!---segunda fila-->
+        </td></tr>
+			
+			<tr><td>
+       <!---tercera fila-->
+              <table width="499" border="0" align="left" cellspacing="0" cellpadding="0">
+				      <tr> 
+						  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+					   </tr>
+						<tr>
+						  <td><IMG src="b.gif" width="8" height="8"/></td>
+                    <td><LABELC nombre="lblStockMinimo"  alto="13" filas="1" valor="" cod="1593" id="datosTitle"/></td>		
+						  <td><IMG src="b.gif" width="25" height="8"/></td>
+						  <td><LABELC nombre="lblStockMaximo"  alto="13" filas="1" valor="" cod="1595" id="datosTitle"/></td>		
+						  <td><IMG src="b.gif" width="25" height="8"/></td>
+                    <td><LABELC nombre="lblStockReposicion"  alto="13" filas="1" valor="" cod="1594" id="datosTitle"/></td>		
+						  <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+               <tr>
+						  <td><IMG src="b.gif" width="8" height="8"/></td>
+						  <td nowrap="nowrap" valign="bottom"><CTEXTO nombre="txtStockMinimo" id="datosCampos" max="10" tipo="" onchange="" req="N" size="10" valor="" validacion=""/></td>
+    					  <td><IMG src="b.gif" width="25" height="8"/></td>
+						  <td nowrap="nowrap" valign="bottom"><CTEXTO nombre="txtStockMaximo" id="datosCampos" max="10" tipo="" onchange="" req="N" size="10" valor="" validacion=""/></td>
+						  <td><IMG src="b.gif" width="25" height="8"/></td>
+						  <td nowrap="nowrap" valign="bottom"><CTEXTO nombre="txtStockReposicion" id="datosCampos" max="10" tipo="" onchange="" req="N" size="10" valor="" validacion="" ontab="focaliza('formulario.cbCanal');" /></td>
+                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                 </tr> 
+                <tr> 
+						 <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+					 </tr>              
+				  </table>             
+       <!---tercera fila-->
+        </td></tr>
+         </table>
+        </fieldset>
+        
+<!--fin primer formulario-->
+
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+
+	  <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+			<fieldset>
+				<table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+				<tr>
+					<td class="botonera">
+						<BOTON nombre="btnBuscar" ID="botonContenido" tipo="html" accion="accionBuscar()" cod="1" estado="false"/>
+              </td>
+				</tr>    
+				</table>        
+			</fieldset>
+      </td>
+      <td><IMG src="b.gif" width="8" height="12"/></td>
+    </tr>
+
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	   <td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+
+ <LISTAEDITABLE nombre="listado1" ancho="690" alto="317" x="12" y="202" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+        <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+        <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+        <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+      <LINEAS>
+        <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="0" horizTitulo="1" horizBase="1"/> 
+        <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00135" ID="datosTitle" />
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/>
+        <COL ancho="100" minimizable="S" minimizada="N"/>
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/>     
+	<COL ancho="100" minimizable="S" minimizada="N"/>
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/>     
+        <COL ancho="100" minimizable="S" minimizada="N"/>  
+      </COLUMNAS>
+
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+			<COL colFondo="" ID="EstCab" cod="7"></COL> 
+			<COL colFondo="" ID="EstCab" cod="10"></COL> 
+			<COL colFondo="" ID="EstCab" cod="122"></COL> 
+			<COL colFondo="" ID="EstCab" cod="797"></COL>
+			<COL colFondo="" ID="EstCab" cod="574"></COL> 
+			<COL colFondo="" ID="EstCab" cod="1593"></COL> 
+			<COL colFondo="" ID="EstCab" cod="1595"></COL> 
+			<COL colFondo="" ID="EstCab" cod="1594"></COL> 
+			<COL colFondo="" ID="EstCab" cod="242"></COL>			
+      </CABECERA>
+
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+             coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+             onLoad="" colorSelecc="#D0D9E8">
+			<COL tipo="texto" ID="EstDat"/> 
+			<COL tipo="texto" ID="EstDat2"/>
+			<COL tipo="texto" ID="EstDat"/> 
+			<COL tipo="texto" ID="EstDat2"/>
+			<COL tipo="texto" ID="EstDat"/> 		
+			<COL tipo="texto" ID="EstDat2"/>
+			<COL tipo="texto" ID="EstDat"/> 
+			<COL tipo="texto" ID="EstDat2"/>
+			<COL tipo="texto" ID="EstDat"/> 
+      </DATOS>
+
+      <ROWSET></ROWSET>
+      <PAGINADO nombre="mipgndo" ancho="690" sep="$" x="12" class="botonera" y="496" control="|" conector="" rowset="" cargainicial="N" onload="procesarPaginado(mipgndo,msgError, ultima, rowset, 'muestraLista(ultima, rowset)')" >        
+        <BOTON nombre="ret1" x="37" y="500" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+        <BOTON nombre="ava1" x="52" y="500" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>
+        
+    </PAGINADO>
+  </LISTAEDITABLE>
+  <BOTON nombre="primera1" x="20" y="500" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();" />      
+  <BOTON nombre="separa" x="59" y="496" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />      
+  <BOTON nombre="btnModificar" x="80" y="497" ID="botonContenido" tipo="html" estado="false" cod="2" accion="accionModificar()" />  
+  <BOTON nombre="btnDetalle" x="80" y="497" ID="botonContenido" tipo="html" estado="false" cod="3" accion="accionDetalle()" />  
+  <BOTON nombre="btnEliminar" x="80" y="497" ID="botonContenido" tipo="html" estado="false" cod="1254" accion="accionEliminar()" />  
+	
+	<CAPA nombre="capaEspacio" alto="12" ancho="100%" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="519" zindex="">
+  </CAPA>  
+
+</FORMULARIO>
+</PAGINA>         

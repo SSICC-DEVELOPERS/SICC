@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_alcance_clientes_detalle.xml,v 1.1 2009/12/03 18:46:15 pecbazalar Exp $
+   GEN
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_alcance_clientes_detalle" 
+        cod="0644" 
+        titulo="Ingresar valores descuentos" 
+        estilos="estilosB3.css" 
+        colorf="#F0F0F0"
+        msgle="" 
+        onload="onLoadPag();" 
+        xml:lang="es" >
+      
+      <!--
+           0233 Consultar descuentos
+           0354 Modificar valores de descuentos
+           0343 Eliminar descuentos
+           0644 Crear valores de descuentos           
+        --> 
+		  <JS src="sicc_util.js" />
+		  <JS src="DruidaTransactionMare.js"/>
+  <JAVASCRIPT>
+  <![CDATA[ 
+
+        function onLoadPag(){
+   		configurarMenuSecundario('formulario');
+		fMostrarMensajeError();
+	        accion('formulario.txtCodCliente','.readOnly=false');
+	        focaliza('formulario.txtCodCliente');
+	 }
+
+       	 function asignarDatosCliente(oidClie, codClie, nombUsua, nombUsua2, apeUsua, apeUsua2){
+
+                var vNombre = nombUsua + ' ' + nombUsua2;
+                var vApellido = apeUsua + ' ' + apeUsua2;
+
+		set("formulario.hidOidCliente", oidClie);
+		set("formulario.codCliente", codClie);
+		set("formulario.nombre", vNombre);
+		set("formulario.apellido", vApellido);
+		set("formulario.txtCodCliente", codClie);
+		focaliza('formulario.txtDescuento');
+
+	 }
+		
+	 function codClienteRellenar(){
+	   
+	   var value = get("formulario.txtCodCliente");
+	   var longmax = get("formulario.hidLongCliente");
+	   var long = get("formulario.txtCodCliente");
+
+	   set("formulario.txtCodCliente",rellenaCeros(value,longmax,long.length));
+
+//	   if (get("formulario.hidOidCliente") == '')
+//	   {
+	       //puso el codigo de cliente a mano, por lo cual tiro una busqueda de cliente por atras...........
+
+  	       eval('formulario').oculto = 'S';
+               set("formulario.accion", "busquedaRapidaOculta");
+               set('formulario.conectorAction','LPMantenimientoAlcanceCliente');
+	       enviaSICC('formulario','','','S');
+//	   }
+				
+	 }
+
+	 function buscar(){
+			var obj = new Object();
+			obj.hidOidDescuento = get('formulario.hidOidDescuento');
+			var whnd = mostrarModalSICC('LPBusquedaRapidaCliente','',obj);
+			if(whnd==null){
+				////alert("result == null");
+			}else{
+				var cod = whnd[1];
+                var vNombre = whnd[2] + ' ' + whnd[3];
+                var vApellido = whnd[4] + ' ' + whnd[5];
+                
+				set("formulario.hidOidCliente",whnd[0]);
+				set("formulario.codCliente",whnd[1]);
+				set("formulario.nombre", vNombre);
+				set("formulario.apellido",vApellido);
+				set("formulario.txtCodCliente", cod);
+			}
+			focaliza('formulario.txtDescuento');
+		}
+
+	function accionAceptar() {
+        if(sicc_validaciones_generales()){
+            if((get("formulario.txtDescuento")!="") && (get("formulario.txtImporteFijoDto")!="")){
+                            //alert("No se puede ingresar importe y porcentaje a la vez");
+                            GestionarMensaje("1387",null,null,null);
+            }else 
+                if((get("formulario.txtDescuento")=="") && (get("formulario.txtImporteFijoDto")=="")){
+                        GestionarMensaje("1387",null,null,null);
+                        focaliza('formulario.txtDescuento');
+		}else{
+
+                    var arrDatosClte = new Array();
+
+		    arrDatosClte[0] = get("formulario.hidOidCliente");
+		    arrDatosClte[1] = get("formulario.codCliente");
+		    arrDatosClte[2] = get("formulario.nombre");
+		    arrDatosClte[3] = get("formulario.apellido");
+		    arrDatosClte[4] = get("formulario.txtDescuento")
+		    arrDatosClte[5] = get("formulario.txtImporteFijoDto")
+
+	            returnValue = arrDatosClte;   
+		    close(); 
+                }
+        }
+		 
+    }
+
+	function errorClienteBusqueda(){
+		//fMostrarMensajeError();
+		set("formulario.txtCodCliente", '');
+		focaliza('formulario.txtCodCliente');
+	}
+	 
+	 function cerrar(){
+	        var arr = new Array();   
+            arr[0] = get("formulario.hidOidCliente");            
+			arr[1] = get("formulario.txtCodCliente");
+            arr[2] = get("formulario.nombre");
+            arr[3] = get("formulario.apellido");
+            arr[4] = get("formulario.txtDescuento");
+            arr[5] = get("formulario.txtImporteFijoDto");
+            returnValue = arr;   
+            close(); 
+	 }
+
+     function fVolver(){
+        window.close();
+     }
+     
+     function fGuardar()
+     {
+        accionAceptar();
+     }
+     
+	 
+	  ]]> 
+</JAVASCRIPT>
+  
+ <VALIDACION>
+      <ELEMENTO name="txtCodCliente" required="true" cod="263" />
+</VALIDACION> 
+
+<FORMULARIO nombre="formulario" oculto="S">     
+<VAR nombre="accion" valor=""/>
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="errCodigo" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="hidOidCliente" valor=""/>
+<VAR nombre="codCliente" valor=""/>
+<VAR nombre="nombre" valor=""/>
+<VAR nombre="apellido" valor=""/>
+<VAR nombre="hidPorcentajeDescuento" valor=""/>
+<VAR nombre="hidImporteFijoDescuento" valor=""/>
+<VAR nombre="hidOidDescuento" valor=""/>
+<VAR nombre="hidIdioma" valor=""/>
+<VAR nombre="hidLongCliente" valor=""/>
+
+
+ <CAPA nombre="capa1" > 
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+	<fieldset><legend class="legend"><LABELC nombre="lblDatosCliente"  alto="13" filas="1" valor="" cod="0091" id="legend" /></legend>
+	   <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+
+              <table width="320" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td colspan="3"><LABELC nombre="lblCodCliente"  alto="13" filas="1" valor="" id="datosTitle" cod="263"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>	                   
+                   <td><LABELC nombre="lblDescuento"  alto="13" filas="1" valor="" id="datosTitle" cod="341"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblImporteFijoDto"  alto="13" filas="1" valor="" id="datosTitle" cod="898"/></td>
+                   <td width="100%" colspan="2"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"><CTEXTO nombre="txtCodCliente" id="datosCampos" max="15" tipo="" onchange="codClienteRellenar()" req="S" size="19" valor="" validacion=""/></td>	                    
+	           <td><IMG src="b.gif" /></td>
+	           <td> <IMG src="iconBuscar.gif" onclick="buscar();"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" class="datosCampos" valign="bottom">
+                   	<CTEXTO nombre="txtDescuento" id="datosCampos" max="3" tipo="" onchange="" req="N" size="3" valor="" validacion="" onshtab="focalizaBotonHTML('botonContenido','btnAceptar')"/>%
+                   </td>
+
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td  valign="bottom"><CTEXTO nombre="txtImporteFijoDto" id="datosCampos" max="10" tipo="" onchange="" req="N" size="10" valor="" validacion="" /></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+            </td></tr>
+            </table>
+        </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr> 
+      <tr> 
+        <td><IMG src="b.gif"/></td>
+      	  <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnAceptar" ID="botonContenido" tipo="html" accion="accionAceptar();" estado="false" cod="12" ontab="focaliza('formulario.txtDescuento')"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>       
+      <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750"><IMG src="b.gif"/></td>
+      	<td width="12"><IMG src="b.gif" width="12" height="12"/></td>
+      </tr>
+    </table> 
+</CAPA>
+</FORMULARIO>
+</PAGINA>

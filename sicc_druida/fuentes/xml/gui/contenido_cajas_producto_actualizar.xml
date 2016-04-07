@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_cajas_producto_actualizar" cod="" titulo="" estilos="estilosB3.css" colorf="#F0F0F0" msgle="" onload="onLoad()" xml:lang="es">
+<JS src="sicc_util.js"/>
+<JS src="PaginacionSicc.js"/>
+<JS src="DruidaTransactionMare.js"/>
+
+<!--
+     cod:ApeCajasCheq.query.label =  Chequear cajas
+--> 
+
+    
+<JAVASCRIPT>
+  <![CDATA[
+        function onLoad() {
+            configurarMenuSecundario('formulario');
+            btnProxy(2,1);
+            btnProxy(3,0);
+        }  
+        
+        function onClickAceptar() {
+            var cantidadSacada = cdos_trim(get("formulario.txtCantSacada"));
+            var cantidadRequerida = get("formulario.hCantidadRequerida");
+            
+            //si ingresa valor en Cantidad Sacada
+            if(cantidadSacada != '') {
+                if (!sicc_validaciones_generales()) {
+                    return false;
+                }            
+            
+                if(cantidadSacada == cantidadRequerida) {
+                    set("formulario.hCantidadSacada", cantidadSacada);
+                    
+                } else if(cantidadSacada < cantidadRequerida) {
+                    //Mostrar el mensaje de exito APE049 : "Faltan n Unidades"
+                    var whnd = GestionarMensaje("APE049", cantidadRequerida - cantidadSacada, null, null);
+    
+                    if (whnd) {
+                        set("formulario.hCantidadSacada", "");
+                    } else {
+                        return false;
+                    }
+                } else if(cantidadSacada > cantidadRequerida) {
+                    //Mostrar el mensaje de exito APE050 : "Sobran n Unidades"
+                    var whnd = GestionarMensaje("APE050", cantidadSacada - cantidadRequerida, null, null);
+    
+                    if (whnd) {
+                        set("formulario.hCantidadSacada", "");
+                    } else {
+                        return false;
+                    }
+                }  
+                
+                if (get("formulario.hCantidadSacada") != "") {
+                    set('formulario.conectorAction', 'LPChequearCajas');
+                    set('formulario.accion', 'actualizarCaja');
+                    eval('formulario').oculto = "S";
+    
+                    enviaSICC('formulario');
+                }
+                else {
+                    var arr = new Array();
+                    arr[0] = "";
+                     
+                    returnValue = arr;
+                    close();
+                }
+            } //sino, no se actualiza nada y sigue con el siguiente producto de la lista
+            else {
+                var arr = new Array();
+                arr[0] = "";
+                 
+                returnValue = arr;
+                close();
+            }            
+            
+            return true;
+        }  
+        
+        function fVolver() {
+            var arr = new Array();
+            arr[0] = "Volver"; //indicador de haber hecho click en boton [Volver]
+             
+            returnValue = arr;
+            close();
+        }
+        
+        function ejecutaBien(){
+            var arr = new Array();
+            arr[0] = get("formulario.hCantidadSacada"); //cantidad a chequear
+             
+            returnValue = arr;
+            close();
+        }
+
+        function ejecutaMal(){ }
+  ]]> 
+</JAVASCRIPT>
+
+<VALIDACION>
+    <ELEMENTO name="txtCantSacada" required="false" cod="ApeCajasCheq.cantSacado.label" format="e" />
+</VALIDACION>
+
+<FORMULARIO nombre="formulario" oculto="N">
+
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="errCodigo" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>   
+
+<VAR nombre="accion" valor=""/>
+<VAR nombre="opcionMenu" valor=""/>
+<VAR nombre="varIdioma" valor=""/>
+<VAR nombre="varPais" valor=""/>
+
+<VAR nombre="hOidDetallePicado" valor=""/>
+<VAR nombre="hCantidadRequerida" valor=""/>
+<VAR nombre="hCantidadSacada" valor=""/>
+
+<CAPA nombre="capa1">
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr>
+	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+	<td width="750" ><IMG src="b.gif"/></td>
+	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+</tr>
+<tr>
+  <td><IMG src="b.gif"/></td>
+  <td>
+  <fieldset>
+		<legend class="legend">
+			<LABELC nombre="lblDatosDeAlta" alto="13" filas="1" cod="ApeCajasCheq.datosProd.label" id="legend" />
+		</legend>
+
+		<table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">   
+			<tr>
+				<td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+			</tr>
+
+			<tr>
+				<td><IMG src="b.gif" width="8" height="8"/></td>
+				<td><LABELC nombre="lblDescripcion" alto="13" filas="1" valor="" id="datosTitle" cod="3147"/></td>
+				<td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+			</tr>
+			<tr>
+				<td><IMG src="b.gif" width="8" height="8"/></td>
+			<td><LABELC nombre="Descripcion" alto="13" filas="1" valor="" id="datosCampos"/></td>
+				<td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+			</tr>
+			<tr>
+				<td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+			</tr>
+
+			<tr>
+				<td><IMG src="b.gif" width="8" height="8"/></td>
+				<td><LABELC nombre="lblCantSacada" alto="13" filas="1" valor="" id="datosTitle" cod="3148"/></td>
+				<td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+			</tr>
+			<tr>
+				<td><IMG src="b.gif" width="8" height="8"/></td>
+				<td nowrap="nowrap" >
+					<CTEXTO nombre="txtCantSacada" id="datosCampos" max="8" tipo="" req="N" size="10" valor="" validacion="" />
+				</td>
+				<td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+			</tr>
+			<tr>
+				<td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+			</tr>
+
+			 			<tr>
+			<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+			<td width="756" ><IMG src="b.gif"/></td>
+			<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+			</tr>
+
+		</table>
+
+	
+		</fieldset>
+		<fieldset>
+			<table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">   
+
+			<tr>
+				<td class="botonera">
+				<BOTON nombre="btnAceptar" ID="botonContenido" tipo="html" accion="onClickAceptar();" estado="false" cod="ApeCajasCheq.aceptar.label" ontab=""/>
+				</td>
+			</tr>    
+			</table>        
+		</fieldset>
+
+		  	</td>
+			<td><IMG src="b.gif" width="8" height="12"/></td>
+			</tr>       
+			<tr>
+			<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+			<td width="756" ><IMG src="b.gif"/></td>
+			<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+			</tr>
+	
+			<tr>
+			<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+			<td width="756" ><IMG src="b.gif"/></td>
+			<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+			</tr>
+      
+
+	  </table>	
+	
+</CAPA>
+
+</FORMULARIO>
+</PAGINA>

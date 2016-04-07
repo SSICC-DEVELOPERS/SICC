@@ -1,0 +1,1043 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_multinivel_mantener.xml,v 1.1 2009/12/03 18:45:55 pecbazalar Exp $
+   contenido CCC
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_multinivel_mantener" cod="" titulo="Crear concurso" estilos="estilosB3.css" colorf="#F0F0F0" 
+         msgle="" onload="onLoadPag()" xml:lang="es">
+  
+<JS src="sicc_util.js"></JS>
+<JS src="PaginacionSicc.js"/>
+<JS src="DruidaTransactionMare.js"></JS>
+<JS src="i18NJS.js"/>
+<JS src="pestanyas_concurso_inc.js"></JS>
+
+<JAVASCRIPT>
+  <![CDATA[ 
+
+function onLoadPag(){   
+   //Se configura el menu secundario
+   configurarMenuSecundario("formulario");
+   btnProxy(2, 0);    
+   cargaDatos();
+      
+    var campos = get("formulario.deshaCampos");  
+    if(campos == "si"){
+         deshabilitaCamposA();
+    }   
+    
+    var camposCK = get("formulario.deshaCamposCheck");    
+    if(camposCK == "si"){
+         deshabilitaCamposB();
+    }    
+    
+    var act = get("formulario.ckActividad");    
+    if (act =="S"){     
+         accion("formulario.txtMontoMinPedidoHijas1", ".disabled=false");
+         accion("formulario.txtUnidadesMinPedidoHijas1", ".disabled=false");    
+    }    
+    
+    var camposCKP = get("formulario.deshaCamposCheckPago");     
+    if(camposCKP == "si"){
+         habilitaCamposC(); 
+    }
+         else{           
+         deshabilitaCamposC();
+         }	
+  
+         var menu = get("formulario.opcionMenu");  
+
+         if (menu == "Modificar Concurso"){
+                  btnProxy(2,'1');
+                  btnProxy(3,'0');
+                  btnProxy(7,'0');
+                  btnProxy(8,'0');
+                  btnProxy(9,'0');
+         }
+
+         if (menu == "Consultar Concurso"){
+      deshabilitaCamposD();      
+      btnProxy(1, 0);
+      btnProxy(2, 1);
+      btnProxy(3, 0);
+      btnProxy(5, 0);      
+      btnProxy(7, 0);
+      btnProxy(8, 0);
+      btnProxy(9, 0);
+         }
+         else{  
+                  onChangeActividad();
+                  onChangePagoTiempo();
+                  focaliza("formulario.cbPeriodoDesde");
+         }
+
+         finCargaPagina = true;              
+ }
+
+ function fVolver() {
+         window.close();
+}
+ 
+function habilitaCamposC(){
+         accion("formulario.cbPeriodoDesdePagoTiempo", ".disabled=false");
+    accion("formulario.cbPeriodoHastaPagoTiempo", ".disabled=false");
+    accion("formulario.txtDiasGracia", ".disabled=false");
+}
+ 
+function cargaDatos(){      
+           //1° Periodo desde
+      set("formulario.cbPeriodoDesde", new Array( get("formulario.TempcbPeriodoDesde") ));
+
+           //2° Periodo hasta
+      set("formulario.cbPeriodoHasta", new Array(get("formulario.TempcbPeriodoHasta")));
+
+           //3° Periodos para calculo      
+      set("formulario.txtPeriodoEsperaParaCalculo", get("formulario.TemptxtPeriodoEsperaParaCalculo"));
+
+           //4° Periodos sobre calculo
+      set("formulario.txtPeriodoEsperaSobreCalculo", get("formulario.TemptxtPeriodoEsperaSobreCalculo"));
+
+           //5° Numero minimo recomendadas      
+      set("formulario.txtNumMinRecomendadas", get("formulario.TemptxtNumMinRecomendadas"));      
+
+           //6° Monto minomo red
+      set("formulario.txtMontoMinRed", get("formulario.TemptxtMontoMinRed"));
+
+           //7° Pedidos minimo red      
+      set("formulario.txtPedidoMinRed", get("formulario.TemptxtPedidoMinRed"));
+
+           //8° Unidades min red
+      set("formulario.txtUnidadesMinRed", get("formulario.TemptxtUnidadesMinRed"));
+
+           //9° Monto minimo madre      
+      set("formulario.txtMontoMinMadre", get("formulario.TemptxtMontoMinMadre"));   
+           
+           //10° Pedidos minimos madre
+      set("formulario.txtPedidoMinMadre", get("formulario.TemptxtPedidoMinMadre"));
+
+           //11° Unidades min madre
+      set("formulario.txtUnidadesMinMadre", get("formulario.TemptxtUnidadesMinMadre"));    
+           
+           //12° Monto min pedido por hijas     
+      set("formulario.txtMontoMinPedidoHijas",get("formulario.TemptxtMontoMinPedidoHijas"));
+
+           //13° Pedidos minimos hijas
+      set("formulario.txtPedidoMinHijas", get("formulario.TemptxtPedidoMinHijas"));   
+           
+           //14° Unidades min hijas
+           set("formulario.txtUnidadesMinPedidoHijas",get("formulario.TemptxtUnidadesMinPedidoHijas"));      
+
+           //15° Calculo premio
+           set("formulario.cbCalculoPremio", new Array(get("formulario.TempcbCalculoPremio")) );
+
+           //16° Porcentaje sobre ventas
+           set("formulario.txtPorcentajePremioSobreVenta", get("formulario.TemptxtPorcentajePremioSobreVenta"));
+
+           //17° Porcentaje sobre cobranza
+      set("formulario.txtPorcentajePremioSobreCobranza", get("formulario.TemptxtPorcentajePremioSobreCobranza"));
+
+           //18° Actividad
+           var actividad = get("formulario.TempckActividad");
+      if(actividad == "true"){
+           set("formulario.ckActividad", "S");
+      }
+
+           //19° Monto minimo pedido hijas
+           set("formulario.txtMontoMinPedidoHijas1",get("formulario.TemptxtMontoMinPedidoHijas1"));      
+
+           //20° Unidades min pedido hijas
+      set("formulario.txtUnidadesMinPedidoHijas1",get("formulario.TemptxtUnidadesMinPedidoHijas1"));      
+
+           //21° Pago a tiempo
+           var pago = get("formulario.TempckPagoTiempo");
+      if(pago == "true"){
+           set("formulario.ckPagoTiempo", "S");
+      }
+
+           //22° Periodo desde pago	  
+      set("formulario.cbPeriodoDesdePagoTiempo", new Array(get("formulario.TempcbPeriodoDesdePagoTiempo")) );
+
+           //23° Periodo hasta pago
+           set("formulario.cbPeriodoHastaPagoTiempo", new Array(get("formulario.TempcbPeriodoHastaPagoTiempo")) );
+
+           //24° Dias gracia	         
+      set("formulario.txtDiasGracia", get("formulario.TemptxtDiasGracia"));           
+
+           //25° Oid
+           set("formulario.oid", get("formulario.oid"));           
+}
+
+function deshabilitaCamposA(){  
+         //--Segun el modelo, este valor se setea desde la LP
+    accion("formulario.txtMontoMinPedidoHijas1", ".disabled=true");
+    accion("formulario.txtUnidadesMinPedidoHijas1", ".disabled=true");
+    accion("formulario.cbPeriodoDesdePagoTiempo", ".disabled=true");
+    accion("formulario.cbPeriodoHastaPagoTiempo", ".disabled=true");
+    accion("formulario.txtDiasGracia", ".disabled=true");  
+} 
+
+function deshabilitaCamposB(){
+    accion("formulario.txtMontoMinPedidoHijas1", ".disabled=false");
+    accion("formulario.txtUnidadesMinPedidoHijas1", ".disabled=false");  
+}
+
+function deshabilitaCamposC(){
+         accion("formulario.cbPeriodoDesdePagoTiempo", ".disabled=true");
+         accion("formulario.cbPeriodoHastaPagoTiempo", ".disabled=true");
+         accion("formulario.txtDiasGracia", ".disabled=true");
+}  
+ 
+function deshabilitaCamposD(){
+    accion("formulario.cbPeriodoDesde", ".disabled=true");
+    accion("formulario.cbPeriodoHasta", ".disabled=true");
+    accion("formulario.txtPeriodoEsperaParaCalculo", ".disabled=true");
+    accion("formulario.txtPeriodoEsperaSobreCalculo", ".disabled=true");
+    accion("formulario.txtNumMinRecomendadas", ".disabled=true");     
+    accion("formulario.txtMontoMinRed", ".disabled=true");
+    accion("formulario.txtPedidoMinRed", ".disabled=true");
+    accion("formulario.txtUnidadesMinRed", ".disabled=true");
+    accion("formulario.txtMontoMinMadre", ".disabled=true");
+    accion("formulario.txtPedidoMinMadre", ".disabled=true");  
+    accion("formulario.txtUnidadesMinMadre", ".disabled=true");
+    accion("formulario.txtMontoMinPedidoHijas", ".disabled=true");
+    accion("formulario.txtPedidoMinHijas", ".disabled=true");
+    accion("formulario.txtUnidadesMinPedidoHijas", ".disabled=true");
+    accion("formulario.cbCalculoPremio", ".disabled=true");  
+    accion("formulario.txtPorcentajePremioSobreVenta", ".disabled=true");
+    accion("formulario.txtPorcentajePremioSobreCobranza", ".disabled=true");
+    accion("formulario.ckActividad", ".disabled=true");
+    accion("formulario.txtMontoMinPedidoHijas1", ".disabled=true");
+    accion("formulario.txtUnidadesMinPedidoHijas1", ".disabled=true");  
+    accion("formulario.ckPagoTiempo", ".disabled=true");
+    accion("formulario.cbPeriodoDesdePagoTiempo", ".disabled=true");
+    accion("formulario.cbPeriodoHastaPagoTiempo", ".disabled=true");
+    accion("formulario.txtDiasGracia", ".disabled=true");
+}
+  
+function focalizaShTab(){
+         focaliza("formulario.txtDiasGracia");  
+}
+  
+function  focalizaTab(){
+         focaliza("formulario.cbPeriodoDesde");
+}  
+  
+function onChangeActividad(){      
+         var uno = get("formulario.ckActividad");  
+         if(uno == "S"){
+                  accion("formulario.txtMontoMinPedidoHijas1", ".disabled=false");
+         accion("formulario.txtUnidadesMinPedidoHijas1", ".disabled=false");
+    }
+         else{            
+             var monMinPedHijas = get("formulario.txtMontoMinPedidoHijas1");
+         
+         if (monMinPedHijas != ""){
+                      set("formulario.txtMontoMinPedidoHijas1", "");             
+         }            
+                  
+                  accion("formulario.txtMontoMinPedidoHijas1", ".disabled=true");
+
+      var monUMinPedHijas = get("formulario.txtUnidadesMinPedidoHijas1");
+             
+         if (monUMinPedHijas !=""){
+                           set("formulario.txtUnidadesMinPedidoHijas1", "");    
+         }                   
+         
+         accion("formulario.txtUnidadesMinPedidoHijas1", ".disabled=true"); 
+    }
+} 
+  
+function onChangePagoTiempo(){        
+         var dos = get("formulario.ckPagoTiempo");      
+    if (dos == "S"){                
+             accion("formulario.cbPeriodoDesdePagoTiempo", ".disabled=false");
+         accion("formulario.cbPeriodoHastaPagoTiempo", ".disabled=false");
+         accion("formulario.txtDiasGracia", ".disabled=false");      
+    }
+         else{ 	
+                  var arr = new Array();
+
+                  var cbPeriodoDesdePagoTiempo = get("formulario.cbPeriodoDesdePagoTiempo");
+                  var cbPeriodoHastaPagoTiempo = get("formulario.cbPeriodoHastaPagoTiempo");
+                  
+                  if(cbPeriodoDesdePagoTiempo != ""){
+                  
+                           set("formulario.cbPeriodoDesdePagoTiempo", arr);
+                  }
+
+                  if(cbPeriodoHastaPagoTiempo != ""){
+                  
+                           set("formulario.cbPeriodoHastaPagoTiempo", arr);
+                  }
+
+                           set("formulario.txtDiasGracia", "");	
+                    accion("formulario.cbPeriodoDesdePagoTiempo", ".disabled=true");
+         accion("formulario.cbPeriodoHastaPagoTiempo", ".disabled=true");           
+         accion("formulario.txtDiasGracia", ".disabled=true");           
+         set("formulario.deshaCamposCheckPago", "si");
+    }    
+}  
+  
+function comprobarDatosObligatorios(){
+         //Si se ingresan todos los datos obligatorios
+         if((get("formulario.cbPeriodoDesde")!="") && 
+            (get("formulario.cbPeriodoHasta")!="") &&
+            (get("formulario.txtPeriodoEsperaParaCalculo")!="") && 
+            (get("formulario.txtPeriodoEsperaSobreCalculo")!="") &&
+            (get("formulario.txtNumMinRecomendadas")!="") && 
+            (get("formulario.cbCalculoPremio")!="")) {	
+
+            //Si se chequea pago tiempo
+            if(get("formulario.ckPagoTiempo")=="S") {
+
+                           //Si se ingresa un valor para periodo pago desde y dias gracia
+                           if((get("formulario.cbPeriodoDesdePagoTiempo")!="") && 
+                                  (get("formulario.txtDiasGracia")!="")) {
+
+                                    //Si se chequea actividad
+                                    if(get("formulario.ckActividad")=="S") {
+
+                                             //Si se ingresa valor para monto minimo pedido hijas
+                                             //y unidades mini pedido hijas, devuelve true
+                                             if((get("formulario.txtMontoMinPedidoHijas1")!="") && 		     (get("formulario.txtUnidadesMinPedidoHijas1")!="")) {
+                                                      return true;
+                                             }
+                                             //Si NO se ingresa valor para monto minimo pedidio hijas
+                                             //y unidades mini pedido hijas, devuelve false
+                                             else {
+                                                      return false;
+                                             }
+                                    }
+                                    //Si NO se chequea actividad devuelve true
+                                    else {
+                                             return true;
+                                    }
+                           }
+                           //Si NO se ingresa un valor para periodo pago desde y dias gracia 
+                           //devuele false
+                           else {
+                                    return false;
+                           }
+            }
+            //Si NO se chequea pago tiempo
+            else {
+                           //Si se chequea actividad
+                           if(get("formulario.ckActividad")=="S") {
+
+                                    //Si se ingresa un valor para monto min pedido hijas
+                                    //y unidades min pedido hijas, devuelve true
+                                    if((get("formulario.txtMontoMinPedidoHijas1")!="") && 		     (get("formulario.txtUnidadesMinPedidoHijas1")!="")) {
+                                                      return true;
+                                    }
+                                    //Si NO se ingresa un valor para monto min pedido hijas
+                                    //y unidades min pedido hijas, devuelve false
+                                    else {
+                                             return false;
+                                    }
+                           }
+                           //Si NO se chequea actividad
+                           else {
+                                    return true;
+                           }	
+            }
+         }	
+         //Si NO se ingresan todos los datos obligatorios devuelve false
+         else {
+                  return false;
+         }
+} 
+  
+function fGuardar(){ 
+         //Agregado por dmaneiro - 01/12/2005 - inc. 21877
+         var ckActividad =  get("formulario.ckActividad");
+         var ckPagoTiempo = get("formulario.ckPagoTiempo");    
+
+         //Se validan los campos numericos
+         if(!sicc_validaciones_generales('validaNumeros')) {
+                  return;
+         }	
+
+         if(!sicc_validaciones_generales('validaTexto')){
+                  return;	
+         }
+
+         if (ckActividad == "S"){     
+                           if(!sicc_validaciones_generales('segunActividad')) {
+                                             return;
+                           }	 
+          }  
+
+         if (ckPagoTiempo == "S"){     
+                           if(!sicc_validaciones_generales('segunPagoTiempo')) {
+                                             return;
+                           }	 
+          }  	
+         
+         //Si paso las validaciones, toma los valores de los campos
+         //de la pantalla
+         tomarValoresCamposPantalla();
+
+         //Se realiza el envia oculto para guardar
+         eval("formulario").oculto= "S";
+    set("formulario.conectorAction","LPMantenerMultinivel");
+    set("formulario.accion","guardar");         
+    enviaSICC('formulario','','','N');   
+} 
+ 
+function fLimpiar(){
+         //Deja la pantalla como cuando ingreso (Requisitos generales)
+         onLoadPag();
+}
+
+function onClickPestanyaPaginaMultinivel(valor, form, nombreLP) {
+   //Agregado por dmaneiro - 01/12/2005 - inc. 21877
+         var ckActividad =  get("formulario.ckActividad");
+         var ckPagoTiempo = get("formulario.ckPagoTiempo");      
+
+         //1° Al hacer click en otra pestaña, valida los campos numericos
+         if(!sicc_validaciones_generales('validaNumeros')) {
+                  return;
+         }
+
+         //Agregado por dmaneiro - 01/12/2005 - inc. 21877
+         if(!sicc_validaciones_generales('validaTexto')){
+                  return;	
+         }
+
+         if (ckActividad == "S"){     
+                           if(!sicc_validaciones_generales('segunActividad')) {
+                                             return;
+                           }	 
+          }  
+
+         if (ckPagoTiempo == "S"){     
+                           if(!sicc_validaciones_generales('segunPagoTiempo')) {
+                                             return;
+                           }	 
+          }  	
+
+         //2° Si pasa las validaciones, toma los valores de los campos
+         //de la pantalla y redirige a la otra pestaña
+         tomarValoresCamposPantalla();	
+         onClickPestanyaHabilitada(valor, form, nombreLP);
+}
+
+function tomarValoresCamposPantalla() {
+         //Se toman todos los valores de la pantalla
+         var TempcbPeriodoDesde = get("formulario.cbPeriodoDesde");
+         var TempcbPeriodoHasta = get("formulario.cbPeriodoHasta");
+         var TemptxtPeriodoEsperaParaCalculo = get("formulario.txtPeriodoEsperaParaCalculo");
+         var TemptxtPeriodoEsperaSobreCalculo = get("formulario.txtPeriodoEsperaSobreCalculo");
+         var TemptxtNumMinRecomendadas = get("formulario.txtNumMinRecomendadas");
+         var TemptxtMontoMinRed = get("formulario.txtMontoMinRed");
+         var TemptxtPedidoMinRed = get("formulario.txtPedidoMinRed");
+         var TemptxtUnidadesMinRed = get("formulario.txtUnidadesMinRed");
+         var TemptxtMontoMinMadre = get("formulario.txtMontoMinMadre");
+         var TemptxtPedidoMinMadre = get("formulario.txtPedidoMinMadre");
+         var TemptxtUnidadesMinMadre = get("formulario.txtUnidadesMinMadre");
+         var TemptxtMontoMinPedidoHijas = get("formulario.txtMontoMinPedidoHijas");
+         var TemptxtPedidoMinHijas = get("formulario.txtPedidoMinHijas");
+         var TemptxtUnidadesMinPedidoHijas = get("formulario.txtUnidadesMinPedidoHijas");
+         var TempcbCalculoPremio = get("formulario.cbCalculoPremio");
+         var TemptxtPorcentajePremioSobreVenta = get("formulario.txtPorcentajePremioSobreVenta");
+         var TemptxtPorcentajePremioSobreCobranza = get("formulario.txtPorcentajePremioSobreCobranza");
+         var TempckActividad = get("formulario.ckActividad");
+         var TemptxtMontoMinPedidoHijas1 = get("formulario.txtMontoMinPedidoHijas1");
+         var TemptxtUnidadesMinPedidoHijas1 = get("formulario.txtUnidadesMinPedidoHijas1");
+         var TempckPagoTiempo = get("formulario.ckPagoTiempo");
+         var TempcbPeriodoDesdePagoTiempo = get("formulario.cbPeriodoDesdePagoTiempo");
+         var TempcbPeriodoHastaPagoTiempo = get("formulario.cbPeriodoHastaPagoTiempo");
+         var TemptxtDiasGracia = get("formulario.txtDiasGracia");
+         
+         var datosObligatorios = comprobarDatosObligatorios();
+         var opcionMenu = get("formulario.opcionMenu");
+
+         set("formulario.TempcbPeriodoDesde", TempcbPeriodoDesde);
+         set("formulario.TempcbPeriodoHasta", TempcbPeriodoHasta);
+         set("formulario.TemptxtPeriodoEsperaParaCalculo", TemptxtPeriodoEsperaParaCalculo);
+         set("formulario.TemptxtPeriodoEsperaSobreCalculo", TemptxtPeriodoEsperaSobreCalculo);
+         set("formulario.TemptxtNumMinRecomendadas", TemptxtNumMinRecomendadas);
+         set("formulario.TemptxtMontoMinRed", TemptxtMontoMinRed);
+         set("formulario.TemptxtPedidoMinRed", TemptxtPedidoMinRed);
+         set("formulario.TemptxtUnidadesMinRed", TemptxtUnidadesMinRed);
+         set("formulario.TemptxtMontoMinMadre", TemptxtMontoMinMadre);
+         set("formulario.TemptxtPedidoMinMadre", TemptxtPedidoMinMadre);
+         set("formulario.TemptxtUnidadesMinMadre", TemptxtUnidadesMinMadre);
+         set("formulario.TemptxtMontoMinPedidoHijas", TemptxtMontoMinPedidoHijas);
+         set("formulario.TemptxtPedidoMinHijas", TemptxtPedidoMinHijas);
+         set("formulario.TemptxtUnidadesMinPedidoHijas", TemptxtUnidadesMinPedidoHijas);
+         set("formulario.TempcbCalculoPremio", TempcbCalculoPremio);
+         set("formulario.TemptxtPorcentajePremioSobreVenta", TemptxtPorcentajePremioSobreVenta);
+         set("formulario.TemptxtPorcentajePremioSobreCobranza", TemptxtPorcentajePremioSobreCobranza);
+         set("formulario.TempckActividad", TempckActividad);
+         set("formulario.TemptxtMontoMinPedidoHijas1", TemptxtMontoMinPedidoHijas1);
+         set("formulario.TemptxtUnidadesMinPedidoHijas1", TemptxtUnidadesMinPedidoHijas1);
+         set("formulario.TempckPagoTiempo", TempckPagoTiempo);
+         set("formulario.TempcbPeriodoDesdePagoTiempo", TempcbPeriodoDesdePagoTiempo);
+         set("formulario.TempcbPeriodoHastaPagoTiempo", TempcbPeriodoHastaPagoTiempo);
+         set("formulario.TemptxtDiasGracia", TemptxtDiasGracia);
+
+         set("formulario.datosObligatorios", datosObligatorios);
+         set("formulario.opcionMenu", opcionMenu);
+}
+
+function onShTabPeriodoDesde() {
+         if(get("formulario.ckPagoTiempo")=="S") {
+                  focaliza("formulario.txtDiasGracia");
+         }
+         else {
+                  focaliza("formulario.ckPagoTiempo");
+         }
+}
+
+function OntabPagoTiempo() {
+         if(document.getElementById("cbPeriodoDesdePagoTiempo").disabled == true) {
+                  focaliza("formulario.cbPeriodoDesde");
+         }
+         else {
+                  focaliza("formulario.cbPeriodoDesdePagoTiempo");
+         }	
+}
+ 
+]]> 
+
+</JAVASCRIPT>
+
+<VALIDACION>
+<!-- Para la validacion de los numeros -->  
+
+  <ELEMENTO name="cbPeriodoDesde" required="true" cod="1175" group="validaNumeros"/>    
+  <ELEMENTO name="cbPeriodoHasta" required="true" cod="1176" group="validaNumeros"/>
+  <ELEMENTO name="txtPeriodoEsperaParaCalculo" required="true" min="0" max="999" format="e" cod="1764" group="validaNumeros"/>  
+  <ELEMENTO name="txtPeriodoEsperaSobreCalculo" required="true" min="0" max="999" format="e" cod="1765" group="validaNumeros"/>
+
+  <ELEMENTO name="txtNumMinRecomendadas" required="true"  min="0" max="999999" format="e" cod="1766" group="validaNumeros"/>    
+  <ELEMENTO name="txtMontoMinRed" required="false" format="n" min="0" max="9999999.99" cod="1768" group="validaNumeros"/>
+  <ELEMENTO name="txtPedidoMinRed" required="false" format="e" min="0" max="9999" cod="1769" group="validaNumeros"/>
+  <ELEMENTO name="txtUnidadesMinRed" required="false" format="e" min="0" max="9999" cod="1770" group="validaNumeros"/>
+
+  <ELEMENTO name="txtMontoMinMadre" required="false" format="n" min="0" max="9999999.99" cod="1771" group="validaNumeros"/>
+  <ELEMENTO name="txtPedidoMinMadre" required="false" format="e" min="0" max="9999" cod="1772" group="validaNumeros"/>
+  <ELEMENTO name="txtUnidadesMinMadre" required="false" format="e" min="0" max="9999" cod="1773" group="validaNumeros"/>
+
+  <ELEMENTO name="txtMontoMinPedidoHijas" required="false" format="n" min="0" max="9999999.99" cod="2610" group="validaNumeros"/>
+  <ELEMENTO name="txtPedidoMinHijas" required="false" format="e" min="0" max="9999" cod="1775" group="validaNumeros"/>
+  <ELEMENTO name="txtUnidadesMinPedidoHijas" required="false" format="e" min="0" max="9999" cod="1776" group="validaNumeros"/>
+
+  <ELEMENTO name="cbCalculoPremio" required="true" cod="1799" group="validaTexto"/>
+  <ELEMENTO name="txtPorcentajePremioSobreVenta" required="false" format="n" min="0" max="999.99" cod="1845" group="validaNumeros"/>
+  <ELEMENTO name="txtPorcentajePremioSobreCobranza" required="false" format="n" min="0" max="999.99" cod="2583" group="validaNumeros"/>
+  
+  <ELEMENTO name="txtMontoMinPedidoHijas1" required="true" format="n" min="0" max="9999999.99" cod="1807" group="segunActividad"/> 
+  <ELEMENTO name="txtUnidadesMinPedidoHijas1" required="true" format="e" min="0" max="9999" cod="1808" group="segunActividad"/> 
+  
+  <ELEMENTO name="cbPeriodoDesdePagoTiempo" required="true" cod="1809" group="segunPagoTiempo"/> 
+  <ELEMENTO name="txtDiasGracia" required="true" format="e" min="0" max="999" cod="1645" group="segunPagoTiempo"/>
+<!-- Para la validacion de los numeros -->  
+  
+</VALIDACION>
+
+
+<FORMULARIO nombre="formulario" oculto="N">
+<VAR nombre="TempcbPeriodoDesde" valor=""/>
+<VAR nombre="TempcbPeriodoHasta" valor=""/>
+<VAR nombre="TemptxtPeriodoEsperaParaCalculo" valor=""/>
+<VAR nombre="TemptxtPeriodoEsperaSobreCalculo" valor=""/>
+<VAR nombre="TemptxtNumMinRecomendadas" valor=""/>
+<VAR nombre="TemptxtMontoMinRed" valor=""/>
+<VAR nombre="TemptxtPedidoMinRed" valor=""/>
+<VAR nombre="TemptxtUnidadesMinRed" valor=""/>
+<VAR nombre="TemptxtMontoMinMadre" valor=""/>
+<VAR nombre="TemptxtPedidoMinMadre" valor=""/>
+<VAR nombre="TemptxtUnidadesMinMadre" valor=""/>
+<VAR nombre="TemptxtMontoMinPedidoHijas" valor=""/>
+<VAR nombre="TemptxtPedidoMinHijas" valor=""/>
+<VAR nombre="TemptxtUnidadesMinPedidoHijas" valor=""/>
+<VAR nombre="TempcbCalculoPremio" valor=""/>
+<VAR nombre="TemptxtPorcentajePremioSobreVenta" valor=""/>
+<VAR nombre="TemptxtPorcentajePremioSobreCobranza" valor=""/>
+<VAR nombre="TempckActividad" valor=""/>
+<VAR nombre="TemptxtMontoMinPedidoHijas1" valor=""/>
+<VAR nombre="TemptxtUnidadesMinPedidoHijas1" valor=""/>
+<VAR nombre="TempckPagoTiempo" valor=""/>
+<VAR nombre="TempcbPeriodoDesdePagoTiempo" valor=""/>
+<VAR nombre="TempcbPeriodoHastaPagoTiempo" valor=""/>
+<VAR nombre="TemptxtDiasGracia" valor=""/>
+
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="accion" valor=""/>
+<VAR nombre="errCodigo" valor=""/> 
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="hIdioma" valor=""/>
+<VAR nombre="hPais" valor=""/>
+
+<VAR nombre="hIndEstadoAmbitoGeografico" valor=""/>
+<VAR nombre="campos" valor=""/>
+
+<VAR nombre="opcionMenu" valor=""/>
+<VAR nombre="idPestanyaDest" valor=""/>
+
+<VAR nombre="deshaCampos" valor=""/>
+<VAR nombre="deshaCamposCheck" valor=""/>
+<VAR nombre="deshaCamposCheckPago" valor=""/>
+<VAR nombre="deshaCamposEditables" valor=""/>
+
+<VAR nombre="hdatosObligatorios" valor=""/>
+<VAR nombre="datosObligatorios" valor=""/>
+
+<VAR nombre="oid" valor=""/>
+
+<!-- Hidddens para los valores ocultos de la pantalla -->
+<VAR nombre="hOidPerDesde" valor=""/>
+<VAR nombre="hOidCbPeriodoHasta" valor=""/>
+<VAR nombre="hTxtPeriodosParaCalculo" valor=""/>
+<VAR nombre="hTxtPeriodosSobreCalculo" valor=""/>
+<VAR nombre="hTxtNumerominimoRecomendadas" valor=""/>
+<VAR nombre="hTxtMontoMinimoRed" valor=""/>
+<VAR nombre="hTxtPedidosMinimosRed" valor=""/>
+<VAR nombre="hTxtUnidadesMinimasRed" valor=""/>
+<VAR nombre="hTxtMontoMinimoMadre" valor=""/>
+<VAR nombre="hTxtPedidosMinimosMadre" valor=""/>
+<VAR nombre="hTxtUnidadesMinimasMadre" valor=""/>
+<VAR nombre="hTxtMontoMinimoPedidoPorHijas" valor=""/>
+<VAR nombre="hTxtMontoMinimoPedidoHijas" valor=""/>
+<VAR nombre="hTxtPedidosMinimosHijas" valor=""/>
+<VAR nombre="hTxtUnidadesMinimasHijas" valor=""/>
+<VAR nombre="hTxtUnidadesMinimasPedidosHijas" valor=""/>
+<VAR nombre="hOidCalculoPremio" valor=""/>
+<VAR nombre="hTxtPorcentajeSobreVenta" valor=""/>
+<VAR nombre="hTxtPorcentajeSobreCobranza" valor=""/>
+<VAR nombre="hChkActividad" valor=""/>
+<VAR nombre="hChkPagoTiempo" valor=""/>
+<VAR nombre="hOidPeriodoATiempoDesde" valor=""/>
+<VAR nombre="hOidPeriodoATiempoHasta" valor=""/>
+<VAR nombre="hTxtDiasGracia" valor=""/>
+
+<VAR nombre="txtMminPedHijas" valor=""/>
+<VAR nombre="hUnidadesPedidoHijas" valor=""/>
+<VAR nombre="hPedMinHijas" valor=""/>
+<VAR nombre="hMontoPedidoHijas" valor=""/>
+
+
+<!-- Hidddens para el manejo de pestañas -->
+<VAR nombre="hIndEstadoProductos" valor=""/>
+<VAR nombre="hIndEstadoAmbitoGeografico" valor=""/>
+<VAR nombre="hIndEstadoCalificion" valor=""/>
+<VAR nombre="hIndEstadoGerentes" valor=""/>
+<VAR nombre="hIndEstadoConsultoras" valor=""/>
+<VAR nombre="hIndEstadoProgramaNuevas" valor=""/>
+<VAR nombre="hIndEstadoMultinivel" valor=""/>
+
+
+<!-- DEFINICION DE PESTANYAS -->
+
+ <table width="100%" height="100%" border="0" align="center" cellpadding="0" cellspacing="0" class="menu4">
+  <tr> 
+    <td width="12" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="12" height="30"/></td>
+    <td nowrap="nowrap" class="menu5texto">&nbsp;</td>
+    <td width="10" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <!--td width="92" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="poneManito('lblParametrosGenerales');" onclick="onClickPestanya(1);"-->
+    <td width="92" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="activarPuntero('formulario',1,'lblParametrosGenerales');" 
+         onclick="onClickPestanyaPaginaMultinivel(1,'formulario','LPMantenerMultinivel');">    
+         <tr align="center"> 
+           <td nowrap="nowrap"><LABELC nombre="lblParametrosGenerales"  alto="13" filas="1" valor=""  id="menu5textonegrita" cod="00393"/></td>
+         </tr>
+      </table>
+    </td>
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <!--<td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="poneManito('lblProductos');" onclick="onClickPestanya(2);">-->
+         <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" 
+         onmouseover="activarPuntero('formulario',5,'lblProductos');" onclick="onClickPestanyaPaginaMultinivel(5,'formulario','LPMantenerMultinivel');">
+         <tr align="center"> 
+           <td nowrap="nowrap" ><LABELC nombre="lblProductos"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="0094"/></td>
+         </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <!--td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="poneManito('lblPremios');" onclick="onClickPestanya(3);"-->
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" 
+         onmouseover="activarPuntero('formulario',6,'lblPremios');" onclick="onClickPestanyaPaginaMultinivel(6,'formulario','LPMantenerMultinivel');">
+         <tr align="center"> 
+           <td nowrap="nowrap" ><LABELC nombre="lblPremios"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00394"/></td>
+         </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <!--td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="poneManito('lblRequisitos');" onclick="onClickPestanya(4);"-->
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" 
+         onmouseover="activarPuntero('formulario',7,'lblRequisitos');" onclick="onClickPestanyaPaginaMultinivel(7,'formulario','LPMantenerMultinivel');">
+         <tr align="center"> 
+           <td nowrap="nowrap"  ><LABELC nombre="lblRequisitos"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00395"/></td>
+         </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <!--td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="poneManito('lblObtencionPuntos');" onclick="onClickPestanya(5);"-->
+    <td width="20" nowrap="nowrap" class="menu5texto">
+          <table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" bgcolor="" 
+                                    onmouseover="activarPuntero('formulario',4,'lblObtencionPuntos');" onclick="onClickPestanyaPaginaMultinivel(4,'formulario','LPMantenerMultinivel');">
+         <tr align="center"> 
+           <td nowrap="nowrap" ><LABELC nombre="lblObtencionPuntos"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00396"/></td>
+         </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <!--td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="poneManito('lblDespachoPremios');" onclick="onClickPestanya(6);"-->
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" 
+         onmouseover="activarPuntero('formulario',8,'lblDespachoPremios');" onclick="onClickPestanyaPaginaMultinivel(8,'formulario','LPMantenerMultinivel');">
+         <tr align="center"> 
+           <td nowrap="nowrap" ><LABELC nombre="lblDespachoPremios"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00397"/></td>
+         </tr>
+      </table>
+   </td>
+  
+    <td width="16" class="menu5texto"><IMG src="b.gif" width="12" height="8"/></td>
+  </tr>
+</table>         
+ <table width="100%" height="100%" border="0" align="center" cellpadding="0" cellspacing="0" class="menu4">
+  <tr> 
+    <td width="12" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="12" height="30"/></td>
+    <td nowrap="nowrap" class="menu5texto">&nbsp;</td>
+    <td width="10" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+     <td width="70" nowrap="nowrap" class="menu5texto">
+            <table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" 
+                           onmouseover="activarPuntero('formulario',3,'lblAmbitoGeografico');" onclick="onClickPestanyaPaginaMultinivel(3,'formulario','LPMantenerMultinivel');">
+         <tr align="center"> 
+           <td nowrap="nowrap" ><LABELC nombre="lblAmbitoGeografico"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="2801"/></td>
+         </tr>
+      </table>
+    </td>
+    <td width="10" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+     <!--td width="70" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="poneManito('lblCalificacion');" onclick="onClickPestanya(8);"-->
+     <td width="70" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" 
+         onmouseover="activarPuntero('formulario',9,'lblCalificacion');" onclick="onClickPestanyaPaginaMultinivel(9,'formulario','LPMantenerMultinivel');">
+         <tr align="center"> 
+           <td nowrap="nowrap" ><LABELC nombre="lblCalificacion"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00398"/></td>
+         </tr>
+      </table>
+    </td>
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <!--td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="poneManito('lblGerentes');" onclick="onClickPestanya(9);"-->
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" 
+         onmouseover="activarPuntero('formulario',10,'lblGerentes');" onclick="onClickPestanyaPaginaMultinivel(10,'formulario','LPMantenerMultinivel');">
+         <tr align="center"> 
+           <td nowrap="nowrap" ><LABELC nombre="lblGerentes"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00399"/></td>
+         </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+   <!--td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="poneManito('lblConsultoras');" onclick="onClickPestanya(10);"-->
+   <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" 
+         onmouseover="activarPuntero('formulario',11,'lblConsultoras');" onclick="onClickPestanyaPaginaMultinivel(11,'formulario','LPMantenerMultinivel');">
+         <tr align="center"> 
+           <td nowrap="nowrap" ><LABELC nombre="lblConsultoras"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00401"/></td>
+         </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+         <td width="20" nowrap="nowrap" class="menu5texto">
+   <!--table width="75" border="1" align="center" cellpadding="1" cellspacing="0" ID="DatosGenerales" 
+        bordercolor="#496A9A" onclick="onClickPestanya(11);" onmouseover="poneManito('lblProgramaNuevas');"-->
+   <table width="75" border="1" align="center" cellpadding="1" cellspacing="0" ID="DatosGenerales" bordercolor="#496A9A" 
+         onmouseover="activarPuntero('formulario',2,'lblProgramaNuevas');" onclick="onClickPestanyaPaginaMultinivel(2,'formulario','LPMantenerMultinivel');">
+         <tr align="center"> 
+           <td nowrap="nowrap"><LABELC nombre="lblProgramaNuevas"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00590"/></td>
+         </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" bgcolor="#496A9A" 
+         onmouseover="" onclick="">
+         <tr align="center"> 
+           <td nowrap="nowrap"><LABELC nombre="lblMultinivel"  alto="13" filas="1" valor="" id="menu5textoblanca" cod="00400"/></td>
+         </tr>
+      </table>
+   </td>
+    <td width="16" class="menu5texto"><IMG src="b.gif" width="12" height="8"/></td>
+  </tr>
+</table>                                                                                                             
+
+
+<!-- FIN DEFINICION DE PESTANYAS -->
+
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+         <fieldset><legend class="legend"><LABELC nombre="lblParametrosMultinivel"  alto="13" filas="1" valor="" id="legend" cod="00332"/></legend>
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+           <tr><td>
+
+           <!---primera fila-->
+              <table width="575" border="0" align="left" cellspacing="0" cellpadding="0">
+                             <tr> 
+                                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                             </tr>
+                             <tr>
+                                <td><IMG src="b.gif" width="8" height="8"/></td>
+                                <td><LABELC nombre="lblPeriodoDesde"  alto="13" filas="1" valor="" id="datosTitle" cod="1175"/></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td><LABELC nombre="lblPeriodoHasta"  alto="13" filas="1" valor="" id="datosTitle" cod="1176"/></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td><LABELC nombre="lblPeriodoEsperaParaCalculo"  alto="13" filas="1" valor="" id="datosTitle" cod="1764"/></td>
+                                 <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td><LABELC nombre="lblPeriodoEsperaSobreCalculo"  alto="13" filas="1" valor="" id="datosTitle" cod="1765"/></td>
+                                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                             </tr>
+                             <tr>
+                                <td><IMG src="b.gif" width="8" height="8"/></td>
+                                <td  nowrap="nowrap"><COMBO nombre="cbPeriodoDesde" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onshtab="onShTabPeriodoDesde();">
+                                            <ROWSET>
+                                                    		
+                                            </ROWSET>
+                                     </COMBO> 
+                                 </td>
+                                 <td><IMG src="b.gif" width="25" height="8"/></td>
+                                 <td nowrap="nowrap"><COMBO nombre="cbPeriodoHasta" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="">
+                                            <ROWSET>
+                                                    		
+                                            </ROWSET>
+                                     </COMBO> 
+                                </td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                 <td nowrap="nowrap"><CTEXTO nombre="txtPeriodoEsperaParaCalculo" id="datosCampos" max="3" tipo="" onchange="" req="S" size="3" valor="" validacion="" /></td>
+                                  <td><IMG src="b.gif" width="25" height="8"/></td>
+                                 <td nowrap="nowrap"><CTEXTO nombre="txtPeriodoEsperaSobreCalculo" id="datosCampos" max="3" tipo="" onchange="" req="S" size="3" valor="" validacion="" /></td>
+                                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                             </tr>
+                             <tr> 
+                                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                             </tr>
+                      </table>
+        <!---fin primera fila-->
+        </td></tr>
+         
+            <tr><td>
+                      <table width="575" border="0" align="left" cellspacing="0" cellpadding="0">
+                             
+                             <tr>
+                                <td><IMG src="b.gif" width="8" height="8"/></td>
+                                <td><LABELC nombre="lblNumMinRecomendadas"  alto="13" filas="1" valor="" id="datosTitle" cod="1766" /></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td><LABELC nombre="lblMontoMinRed"  alto="13" filas="1" valor="" id="datosTitle" cod="1768"/></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td><LABELC nombre="lblPedidoMinRed"  alto="13" filas="1" valor="" id="datosTitle" cod="1769" /></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td><LABELC nombre="lblUnidadesMinRed"  alto="13" filas="1" valor="" id="datosTitle" cod="1770"/></td>
+                                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                             </tr>
+                             <tr>
+                                <td><IMG src="b.gif" width="8" height="8"/></td>
+                                <td nowrap="nowrap"><CTEXTO nombre="txtNumMinRecomendadas" id="datosCampos" max="7" tipo="" onchange="" req="S" size="9" valor="" validacion="" /></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td nowrap="nowrap" ><CTEXTO nombre="txtMontoMinRed" id="datosCampos" max="12" tipo="" onchange="" req="N" size="15" valor="" validacion="" /></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td nowrap="nowrap" ><CTEXTO nombre="txtPedidoMinRed" id="datosCampos" max="5" tipo="" onchange="" req="N" size="7" valor="" validacion="" /></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td nowrap="nowrap" ><CTEXTO nombre="txtUnidadesMinRed" id="datosCampos" max="5" tipo="" onchange="" req="N" size="7" valor="" validacion="" /></td>
+                                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                             </tr>
+                             <tr> 
+                                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                             </tr>
+                      </table>
+                </td></tr>
+            <tr><td>
+                        <table width="575" border="0" align="left" cellspacing="0" cellpadding="0">
+                             
+                             <tr>
+                                <td><IMG src="b.gif" width="8" height="8"/></td>
+                                <td><LABELC nombre="lblMontoMinMadre"  alto="13" filas="1" valor="" id="datosTitle" cod="1771"/></td>
+                                 <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td><LABELC nombre="lblPedidoMinMadre" alto="13" filas="1" valor="" id="datosTitle" cod="1772"/></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td><LABELC nombre="lblUnidadesMinMadre" alto="13" filas="1" valor="" id="datosTitle" cod="1773"/></td>
+                                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                             </tr>
+                             <tr>
+                                <td><IMG src="b.gif" width="8" height="8"/></td>
+                                <td nowrap="nowrap" ><CTEXTO nombre="txtMontoMinMadre" id="datosCampos" max="12" tipo="" onchange="" req="N" size="15" valor="" validacion="" /></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td nowrap="nowrap" ><CTEXTO nombre="txtPedidoMinMadre" id="datosCampos" max="5" tipo="" onchange="" req="N" size="7" valor="" validacion="" /></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td nowrap="nowrap" ><CTEXTO nombre="txtUnidadesMinMadre" id="datosCampos" max="5" tipo="" onchange="" req="N" size="7" valor="" validacion="" /></td>
+                                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                             </tr>
+                             <tr> 
+                                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                             </tr>
+                      </table>
+                 </td></tr>
+            <tr><td>
+                        <table width="575" border="0" align="left" cellspacing="0" cellpadding="0">
+                             
+                             <tr>
+                                <td><IMG src="b.gif" width="8" height="8"/></td>
+                                <td><LABELC nombre="lblMontoMinPedidoHijas" alto="13" filas="1" valor="" id="datosTitle" cod="2610"/></td>
+                                 <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td><LABELC nombre="lblPedidoMinHijas" alto="13" filas="1" valor="" id="datosTitle" cod="1775"/></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td><LABELC nombre="lblUnidadesMinPedidoHijas" alto="13" filas="1" valor="" id="datosTitle" cod="1776"/></td>
+                                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                             </tr>
+                             <tr>
+                                <td><IMG src="b.gif" width="8" height="8"/></td>
+                                <td nowrap="nowrap" ><CTEXTO nombre="txtMontoMinPedidoHijas" id="datosCampos" max="12" tipo="" onchange="" req="N" size="15" valor="" validacion="" /></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td nowrap="nowrap" ><CTEXTO nombre="txtPedidoMinHijas" id="datosCampos" max="4" tipo="" onchange="" req="N" size="6" valor="" validacion="" /></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td nowrap="nowrap" ><CTEXTO nombre="txtUnidadesMinPedidoHijas" id="datosCampos" max="4" tipo="" onchange="" req="N" size="6" valor="" validacion="" /></td>
+                                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                             </tr>
+                             <tr> 
+                                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                             </tr>
+                      </table>
+                 </td></tr>
+            <tr><td>
+                      <table width="575" border="0" align="left" cellspacing="0" cellpadding="0">
+                           
+                             <tr>
+                                <td><IMG src="b.gif" width="8" height="8"/></td>
+                                <td><LABELC nombre="lblCalculoPremio" alto="13" filas="1" valor="" id="datosTitle" cod="1799"/></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td colspan="3"><LABELC nombre="lblPorcentajePremioSobreVenta" alto="13" filas="1" valor="" id="datosTitle" cod="1845"/></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td colspan="3"><LABELC nombre="lblPorcentajePremioSobreCobranza" alto="13" filas="1" valor="" id="datosTitle" cod="2583"/></td>
+                                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                             </tr>
+                             <tr>
+                                <td><IMG src="b.gif" width="8" height="8"/></td>
+                                <td  nowrap="nowrap"><COMBO nombre="cbCalculoPremio" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="">
+                                            <ROWSET>
+                                            </ROWSET>
+                                     </COMBO> 
+                                 </td>
+                                 <td><IMG src="b.gif" width="25" height="8"/></td>
+                                 <td nowrap="nowrap" ><CTEXTO nombre="txtPorcentajePremioSobreVenta" id="datosCampos" max="6" tipo="" onchange="" req="N" size="8" valor="" validacion="" /></td>
+                                <td class="datosCampos">%</td>
+                                <td><IMG src="b.gif" width="80" height="8"/></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td nowrap="nowrap" ><CTEXTO nombre="txtPorcentajePremioSobreCobranza" id="datosCampos" max="6" tipo="" onchange="" req="N" size="8" valor="" validacion="" /></td>
+                                <td class="datosCampos">%</td>
+                                <td><IMG src="b.gif" width="100" height="8"/></td>
+                                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                             </tr>
+                             <tr> 
+                                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                             </tr>
+                      </table>
+                    </td></tr>
+            </table>   
+         </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr>    
+    
+    <tr>
+      <td colspan="4"><IMG src="b.gif" width="12" height="15"/></td>
+     
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+         <fieldset><legend class="legend"><LABELC nombre="lblDatosAdicionales"  alto="13" filas="1" valor="" id="legend" cod="0052"/></legend>
+          <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+        
+            <tr><td>
+                    <table width="575" border="0" align="left" cellspacing="0" cellpadding="0">
+                             <tr> 
+                                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                             </tr>
+                             <tr>
+                                <td><IMG src="b.gif" width="8" height="8"/></td>
+                                 <td><LABELC nombre="lblActividad"  alto="13" filas="1" valor="" id="datosTitle" cod="173"/></td>
+                                 <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td><LABELC nombre="lblMontoMinPedidoHijas1"  alto="13" filas="1" valor="" id="datosTitle" cod="1807"/></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td><LABELC nombre="lblUnidadesMinPedidoHijas1" alto="13" filas="1" valor="" id="datosTitle" cod="1808"/></td>
+                                <td width="100%"><IMG src="b.gif" width="112" height="8"/></td>
+                             </tr>
+                             <tr>
+                                <td><IMG src="b.gif" width="8" height="8"/></td>
+                                <td  valign="bottom"><CHECKBOX nombre="ckActividad" id="datosCampos" onclick="onChangeActividad();" check="N"/></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td nowrap="nowrap" ><CTEXTO nombre="txtMontoMinPedidoHijas1" id="datosCampos" max="12" tipo="" onchange="" req="S" size="15" valor="" validacion="" /></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                              <td nowrap="nowrap" ><CTEXTO nombre="txtUnidadesMinPedidoHijas1" id="datosCampos" max="5" tipo="" onchange="" req="S" size="7" valor="" validacion="" /></td>
+                                <td width="100%"><IMG src="b.gif" width="112" height="8"/></td>
+                             </tr>
+                             <tr> 
+                                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                             </tr>
+                      </table>
+                  </td></tr>
+            <tr><td>
+                      <table width="575" border="0" align="left" cellspacing="0" cellpadding="0">
+                             
+                             <tr>
+                                <td><IMG src="b.gif" width="8" height="8"/></td>
+                                <td><LABELC nombre="lblPagoTiempo" alto="13" filas="1" valor="" id="datosTitle" cod="1644"/></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td><LABELC nombre="lblPeridoDesdePagoTiempo" alto="13" filas="1" valor="" id="datosTitle" cod="1809"/></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td><LABELC nombre="lblPeriodoHastaPagoTiempo" alto="13" filas="1" valor="" id="datosTitle"  cod="1810"/></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td><LABELC nombre="lblDiasGracia"  alto="13" filas="1" valor="" id="datosTitle" cod="1645"/></td>
+                                <td width="100%"><IMG src="b.gif" width="112" height="8"/></td>
+                             </tr>
+                             <tr>
+                                <td><IMG src="b.gif" width="8" height="8"/></td>
+                                <td valign="bottom"><CHECKBOX nombre="ckPagoTiempo" id="datosCampos" onclick="onChangePagoTiempo();" check="N" ontab="OntabPagoTiempo();"/></td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                 <td  nowrap="nowrap"><COMBO nombre="cbPeriodoDesdePagoTiempo" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="">
+                                            <ROWSET>
+                                                    		
+                                            </ROWSET>
+                                     </COMBO> 
+                                 </td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                 <td  nowrap="nowrap" valign="bottom"><COMBO nombre="cbPeriodoHastaPagoTiempo" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                                            <ROWSET>
+                                                    		
+                                            </ROWSET>
+                                     </COMBO> 
+                                 </td>
+                                <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td nowrap="nowrap" ><CTEXTO nombre="txtDiasGracia" id="datosCampos" max="3" tipo="" onchange="" req="S" size="5" valor="" validacion=""  ontab="focalizaTab();"/></td>
+                                <td width="100%"><IMG src="b.gif" width="112" height="8"/></td>
+                             </tr>
+                             <tr> 
+                                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                             </tr>
+                      </table>
+                  </td></tr>
+            </table>    
+         </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr>
+         <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+         <td width="756" ><IMG src="b.gif"/></td>
+         <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>                                                                                                                                                          
+</FORMULARIO>
+</PAGINA>  
+

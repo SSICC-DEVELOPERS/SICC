@@ -1,0 +1,367 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_simulacion_descuentos_realizar_detalle.xml,v 1.1 2009/12/03 18:44:22 pecbazalar Exp $
+   contenido DTO
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_simulacion_descuentos_realizar_detalle" cod="0282" titulo="Realizar simulación de descuento" estilos="estilosB3.css" colorf="#F0F0F0" 
+	msgle="" onload="onLoadPag();" xml:lang="es">
+<!-- Barra Modificar Solicitudes cod="0336"-->
+
+ <JS src="sicc_util.js"/>   
+ <JS src="PaginacionSicc.js"/>   
+ <JS src="DruidaTransactionMare.js"/> 
+
+<JAVASCRIPT>
+  <![CDATA[ 
+
+    //para el caso de cerrar la modal sin realizar modificaciones en ninguna cantidad
+    var detalle = "";
+    returnValue = detalle;
+    
+    function onLoadPag()   {
+        configurarMenuSecundario("formulario");
+        fMostrarMensajeError();
+        //alert( 'accion : ' + get('formulario.accion') );
+        document.all.btnAceptar.focus();
+
+        DrdEnsanchaConMargenDcho('listado1',12);
+   
+        document.all["Cplistado1"].style.visibility='visible';
+        document.all["CpLin1listado1"].style.visibility='visible';
+        document.all["CpLin2listado1"].style.visibility='visible';
+        document.all["CpLin3listado1"].style.visibility='visible';
+        document.all["CpLin4listado1"].style.visibility='visible';
+        document.all["primera1Div"].style.visibility='hidden';
+        document.all["ret1Div"].style.visibility='hidden';
+        document.all["ava1Div"].style.visibility='hidden';
+        document.all["separaDiv"].style.visibility='hidden';
+   
+        eval (ON_RSZ);   
+    }
+
+
+    //Se devuelve un arreglo con los siguientes datos concatenados y separados por "|":
+    //"oidSolicitud|oidPosicion|cantidad|valorTotal|descuento"
+    function accionAceptar()  {
+        oidsPosicion = listado1.codigos();
+        //alert('oidsPosicion: ' + oidsPosicion );
+        for ( f=0; f<oidsPosicion.length; f++)  {
+            detalle = detalle + get('formulario.hOidSolicitud') + '|';
+            detalle = detalle + oidsPosicion[f] + '|';
+            var cantidad = listado1.extraeDato(oidsPosicion[f],2);
+            detalle = detalle + numeroDeFormatoSICC(cantidad) + '|';
+            var valorTotal = listado1.extraeDato(oidsPosicion[f],4);
+            detalle = detalle + numeroDeFormatoSICC(valorTotal) + '|';
+            var descuento = listado1.extraeDato(oidsPosicion[f],5);
+            detalle = detalle + numeroDeFormatoSICC(descuento) + '|';
+        }
+        //alert('detalle: ' + detalle );
+        returnValue = detalle;
+        //Cerrar la ventana
+        window.close();
+    }
+
+
+    //Cuando se modifica la cantidad se recalcula el valor en el mismo registro de la
+    //columna "valorTotal", asignando el resultado de multiplicar la nueva cantidad por el
+    //precio unidad.
+    function cantidadOnChange(FILAEVENTO)  {
+        //alert('FILAEVENTO: ' + FILAEVENTO);
+        var oids = listado1.codigos();
+        //alert('oids: ' + oids );
+        //alert('oids[FILAEVENTO]: ' + oids[FILAEVENTO] );
+        //alert('listado1.extraeDato(oids[FILAEVENTO],2): ' + listado1.extraeDato(oids[FILAEVENTO],2) );
+        //alert('listado1.extraeDato(oids[FILAEVENTO],3): ' + listado1.extraeDato(oids[FILAEVENTO],3) );
+
+        var oTxtCantidad1 = window.event.srcElement;
+        var valorTxtCantidad1 = oTxtCantidad1.value;
+
+        if ( fValidarCTEXTListaEditable(oTxtCantidad1) )  {
+            if ( fValidarNatural(listado1.extraeDato(oids[FILAEVENTO],2),'6','0','999999') ) {
+                var msgValidaCantidad = ValidaNum(valorTxtCantidad1);
+                if (msgValidaCantidad != 'OK')  {
+                    // no dejamos salir de la caja de texto y lanza mensaje
+                    event.returnValue=false;
+                    event.cancelBubble=true;   
+                    cdos_mostrarAlert(msgValidaCantidad);
+                    //focalizo sobre lista editable
+                    eval("listado1"+".preparaCamposDR()");
+                    focaliza('frm'+'listado1'+'.'+'txtCantidad1'+'_'+FILAEVENTO,''); 
+                    return;
+                }
+
+                //alert("hSeparadorDecimalPais: " + get('formulario.hSeparadorDecimalPais'));
+                //alert("hCantidadDecimalesPais: " + get('formulario.hCantidadDecimalesPais'));
+                var cantidad = listado1.extraeDato(oids[FILAEVENTO],2);
+                var precioUnidad = listado1.extraeDato(oids[FILAEVENTO],3);
+                var newValorTotalNumber = numeroDeFormatoSICC(cantidad,1) * numeroDeFormatoSICC(precioUnidad,1)
+
+                // truncamos a la cantidad de decimales segun el pais
+                newValorTotalNumber = truncarDecimalesPais(newValorTotalNumber, get('formulario.hCantidadDecimalesPais'));
+
+                // pasamos al formato segun el pais
+                var newValorTotalFormateado = numeroAsFormatoSICC(newValorTotalNumber);
+
+                // insertamos el nuevo valor total
+                listado1.insertaDato(oids[FILAEVENTO],4,newValorTotalFormateado);
+            } else {
+                // no dejamos salir de la caja de texto
+                event.returnValue=false;
+                event.cancelBubble=true;   
+            }
+        } else  {
+            // no dejamos salir de la caja de texto
+            event.returnValue=false;
+            event.cancelBubble=true;   
+            //focalizo sobre lista editable
+            eval("listado1"+".preparaCamposDR()");
+            focaliza('frm'+'listado1'+'.'+'txtCantidad1'+'_'+FILAEVENTO,''); 
+        }
+        //focalizo sobre lista editable
+        eval("listado1"+".preparaCamposDR()");
+        focaliza('frm'+'listado1'+'.'+'txtCantidad1'+'_'+FILAEVENTO,''); 
+    }
+
+
+    // Trunca un mumero a n decimales.
+    function truncarDecimalesPais(numero, decimales) {
+        var numeroStr = new String(numero);
+        var arrEnteroDecimal = numeroStr.split(".");
+        // verifica si tiene o no decimales
+        if (arrEnteroDecimal.length == 1) {
+            numeroTruncado = numero;
+        } else {
+            var decimal = arrEnteroDecimal[1];
+            var decimalesTruncado = decimal.substr(0,decimales);
+            var numeroTruncado = arrEnteroDecimal[0] + "." + decimalesTruncado;
+        }
+        return parseFloat(numeroTruncado);
+    }
+
+
+    // Pasa un munero a String segun el formato del pais.
+    // @gdmarzi. La pase a sicc_util.js
+    function numeroAsFormatoSICCLocal(numero) {
+        var separadorDecimal = get('formulario.hSeparadorDecimalPais');
+        var separadorMiles = get('formulario.hSeparadorMilesPais');
+        var numeroStr = new String(numero);
+        var arrEnteroDecimal = numeroStr.split(".");
+        //forma parte decimal
+        if (arrEnteroDecimal.length == 1) {
+            var decimal = "";
+            separadorDecimal = "";
+        } else {
+            var decimal = arrEnteroDecimal[1];
+        }
+        //forma parte entera
+        var entero = arrEnteroDecimal[0];
+        var enteroConSeparadores;
+        if (entero.length > 3) {
+            var entero = reverseLocal(entero);
+            //tomo los primero tres elementos
+            enteroConSeparadores = entero.substr(0,3);
+            //agregs los separador de miles necesarios
+            for(var i=3; i < entero.length;i+=3) {
+                enteroConSeparadores = enteroConSeparadores + separadorMiles + entero.substr(i,3);
+            }
+            enteroConSeparadores = reverseLocal(enteroConSeparadores);
+        } else {
+            enteroConSeparadores = entero;
+        }
+        //une la parte enetera formateada con el separador de decimales y la parte decimal
+        var numeroFormateadoPais = enteroConSeparadores + separadorDecimal + decimal;         
+        return numeroFormateadoPais;
+    }
+
+    // Retorna un arreglo de strings en orden inverso sus elementos
+    // @gdmarzi. La pase a sicc_util.js
+    function reverseLocal(str) {
+        var revertido = new String("");
+        for(var i=str.length-1; i >= 0; i--) {
+            revertido = revertido + str.charAt(i);
+        }
+        return revertido;        
+    }
+
+
+    //Valida ingreso de valor en una campo de texto de una lista editable
+    function fValidarCTEXTListaEditable( objElement )  {
+        /*
+        Parametros:
+                   objElement = Es el objeto CTEXTO de la lista editable"
+        Retorna:
+                true --- si se ingresaron datos en el campo
+                false --- si NO se ingresaron datos en el campo
+        Nota:
+                Se realizar un TRIM de los espacios
+        */
+        var pValor = new String( objElement.value + "");
+
+        if ( cdos_trim( pValor ) == "" )  {
+          event.returnValue=false;
+          event.cancelBubble=true;
+          GestionarMensaje('27',  pValor);
+          try {
+                objElement.focus();
+          } catch(e) {
+            }
+          return false;
+        }
+        return true;   
+    }
+//-----------------------------------------------------------------------------------------------------------------------------
+  function focalizarOnShTabBA()  {
+  }
+  
+  function focalizarOnTabBA()  {
+  }
+//-----------------------------------------------------------------------------------------------------------------------------
+
+  function fVolver()  {
+    window.close();
+  }
+
+
+]]> 
+</JAVASCRIPT>
+
+<FORMULARIO nombre="formulario">
+
+<VAR nombre="conectorAction" valor="LPModificarSolicitud"/>
+<VAR nombre="accion" valor=""/>
+
+<VAR nombre="hOidSolicitud" valor=""/>
+
+<VAR nombre="errCodigo" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>
+
+
+  <CAPA nombre="capa2">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr>
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--tercer formulario-->
+	<fieldset><legend class="legend">
+			<LABELC nombre="lblSolicitud2" alto="13" filas="1" id="legend" cod="990" />
+		  </legend>
+          <!---primera fila-->
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+              <table width="676" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblCodCliente2"  alto="13" filas="1" id="datosTitle" cod="263" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblNombreCliente2"  alto="13" filas="1" id="datosTitle" cod="264" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblCampanaSolicitud2"  alto="13" filas="1" id="datosTitle" cod="812" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblFechaSolicitud2"  alto="13" filas="1" id="datosTitle" cod="1171" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblMontoTotalSolicitud2"  alto="13" filas="1" id="datosTitle" cod="921" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lbldtCodCliente2" alto="13" filas="1" id="datosCampos" valor="" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lbldtNombreCliente2" alto="13" filas="1" id="datosCampos" valor="" /></td>
+                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lbldtCampanaSolicitud2" alto="13" filas="1" id="datosCampos" valor="" /></td>
+                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lbldtFechaSolicitud2" alto="13" filas="1" id="datosCampos" valor="" /></td>
+                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lbldtMontoTotalSolicitud2"  alto="13" filas="1" id="datosCampos" valor="" /></td>
+	           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+          <!---fin primera fila-->
+           </td></tr>
+        </table>
+       </fieldset>
+<!--fin tercer formulario-->
+      </td>
+      <td><IMG src="b.gif"/></td>
+    </tr>        
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+  
+</CAPA>  
+ <LISTAEDITABLE nombre="listado1" ancho="680" alto="317" x="12" y="84" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+        <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+        <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+        <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+           <LINEAS>
+        <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="1" horizTitulo="1" horizBase="1"/> 
+        <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="0089" ID="datosTitle" />
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+         <COL ancho="26" minimizable="S" minimizada="N"/>
+        <COL ancho="40" minimizable="S" minimizada="N" orden="alfanumerico"/> 
+        <COL ancho="13" minimizable="S" minimizada="N"/> 
+        <COL ancho="26" minimizable="S" minimizada="N"/>
+        <COL ancho="23" minimizable="S" minimizada="N" orden="alfanumerico"/> 
+        <COL ancho="18" minimizable="S" minimizada="N"/>    
+           
+       
+      </COLUMNAS>
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+	<COL colFondo="" ID="EstCab" align="center" cod="336">Cód. venta</COL> 
+	<COL colFondo="" ID="EstCab" cod="338">Descripción producto</COL> 
+	<COL colFondo="" ID="EstCab" cod="1172">Cantidad</COL> 
+	<COL colFondo="" ID="EstCab" cod="1173">Precio unidad</COL> 
+	<COL colFondo="" ID="EstCab" cod="583">Valor total</COL> 
+	<COL colFondo="" ID="EstCab" cod="341">Descuento</COL> 	
+      </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+             coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+             onLoad="" colorSelecc="#D0D9E8">
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="cajatexto" nombre="txtCantidad1" onchange="cantidadOnChange(FILAEVENTO);" size="6" max="6" IDOBJ="EstCajaDatForm" ID="EstDat"  validacion="ValidaAlfanumerico(valor)"/>
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" nombre="txtValortotal" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+      </DATOS>
+      <ROWSET>
+	
+      </ROWSET>
+      <PAGINADO nombre="mipgndo" ancho="680" sep="$" x="12" class="botonera" y="378" control="|" conector="" rowset="" cargainicial="N">
+        <BOTON nombre="ret1" x="61" y="382" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+        <BOTON nombre="ava1" x="76" y="382" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>
+      
+    </PAGINADO>
+  </LISTAEDITABLE>
+  <BOTON nombre="primera1" x="44" y="382" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();" />      
+  <BOTON nombre="separa" x="83" y="378" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />      
+  <BOTON nombre="btnAceptar" onshtab="focalizarOnShTabBA();" ontab="focalizarOnTabBA();" accion="accionAceptar();" x="13" y="379" ID="botonContenido" tipo="html" estado="false" cod="12" /> 
+</FORMULARIO>
+</PAGINA>
+

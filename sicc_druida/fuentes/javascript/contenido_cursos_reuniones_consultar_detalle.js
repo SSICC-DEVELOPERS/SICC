@@ -1,0 +1,3 @@
+function fVolver(){
+	window.close();            
+}

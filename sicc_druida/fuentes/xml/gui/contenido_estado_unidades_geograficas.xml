@@ -1,0 +1,938 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/PROY
+   $Id: contenido_estado_unidades_geograficas.xml,v 1.1 2009/12/03 18:46:14 pecbazalar Exp $
+   DESC
+
+   DRUIDATARGET=/../../config/scripts/iniciales
+-->
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+<PAGINA nombre="contenido_estado_unidades_geograficas" titulo="ffffffffff" cod="0359" estilos="estilos.css" colorf="white"
+        msgle="dfgdfgdgdfg" onload="LoadBar()" xml:lang="es" >
+<JS src="sicc_util.js"/>
+<STYLE TYPE="text/css">
+.treelistcontrol {
+	font-family: microsoft sans serif, verdana;
+	font-size: 8pt;
+	position: relative;
+	border: 2px inset;
+	background-color: white;
+}
+
+.tlc_headings {
+	position:relative;
+	font-family: Arial, Helvetica, sans-serif; 
+	font-size: 9pt; 
+	font-weight: bold; 
+	color: #000000; 
+	background-color: CCCCCC;
+	height:16px;
+}
+
+.tlc_columnheading {
+	font-size: 8pt;
+	position: absolute;
+	background-color: threedface;
+	border: 1px outset;
+	border-top: 1px solid white;
+	border-left: 1px solid white;
+	padding-left: 2px;
+	padding-bottom: 1px;
+}
+
+.tlc_node {
+	position: relative;
+}
+
+.tlc_node_row {
+	position: relative;
+	border-top: 1px dotted #EEEEEE;
+	background-color: #F0F0F0; 
+	font-family: Arial, Helvetica, sans-serif; 
+	font-size: 9pt; 
+	font-weight: bold; 
+	color: #000000; 
+	height:16px;
+}
+
+.tlc_node_row_hover {
+	position: relative;
+	border-top: 1px dotted #EEEEEE;
+	background-color: #F0F0F0; 
+	font-family: Arial, Helvetica, sans-serif; 
+	font-size: 9pt; 
+	font-weight: bold; 
+	color: #000000;
+	height:16px;
+}
+
+.tlc_node_row_click {
+	position: relative;
+	border-top: 1px dotted #EEEEEE;
+	background-color: darkblue;
+	font-weight: bold; 
+	color: white;
+	height:16px;
+}
+
+.tlc_node_text {
+	position: absolute;
+	height: 16px;
+	vertical-align: middle;
+	overflow: hidden;
+	padding-left: 2px;
+	white-space: nowrap;
+}
+
+.tlc_node_children {
+}
+
+</STYLE>
+<JAVASCRIPT>
+<![CDATA[
+
+//alert("CARGA UNIGEO!");
+
+var formName = 'frmContenido';
+var barra_cargar = 'barra_estado_unidades_geograficas';
+
+var APP_DATA = parent.frames['datos']; 
+
+var stmt = false;
+var StLoaded = false;
+
+var unidades = "";
+var dacPaises;
+
+TreeListControlHandler = {
+	nextID					: 0,
+	getUniqueID				: function() { return this.nextID++; },
+	allTrees				   : new Array(),
+	preventRowClick		: false,
+	callExpand				: function(treeID, nodeID) { this.allTrees[treeID].allNodes[nodeID].expand(); },
+	callCollapse			: function(treeID, nodeID) { this.allTrees[treeID].allNodes[nodeID].collapse(); },
+	callRowClick			: function(treeID, nodeID) { this.allTrees[treeID].allNodes[nodeID].click(); },
+	callCheckBoxes			: function(treeID, nodeID) { this.allTrees[treeID].allNodes[nodeID].recalcCheckBoxes(); },	
+	imgConnectMore			: 'cn_more.gif',
+	imgConnectEnd			: 'cn_end.gif',
+	imgConnectBridge		: 'cn_bridge.gif',
+	imgHandleCollapseMore	: 'hdl_coll_more.gif',
+	imgHandleCollapseEnd	: 'hdl_coll_end.gif',
+	imgHandleExpandMore	: 'hdl_exp_more.gif',
+	imgHandleExpandEnd	: 'hdl_exp_end.gif',
+	imgEmpty				   : 'vacio.gif',
+	imgIconDefault			: 'carpeta.gif',	
+	xmlHTTPStateChange	: function(treeID, nodeID) { this.allTrees[treeID].allNodes[nodeID].xmlCallback(); }
+}
+
+function mifunc2(datos) {
+   //alert(datos);
+	//var x = createXMLstrByArray(datos);
+
+	//setTimeout("loadFirstNodeByArray(" + datos + ");", 10000);
+	loadFirstNodeByArray(datos);
+}
+
+function createXMLstrByArray(arr) {
+  var xml = "";
+  if(arr != "") {
+     xml = "<ROWSET>";
+     for(var i = 0; i < arr.length;i++) {
+         xml += "<ROW>";
+         for(var j = 0; j < arr[i].length;j++) {
+            xml += "<CAMPO>" + arr[i][j] + "</CAMPO>";
+         }
+         xml += "</ROW>";
+     }
+     xml += "</ROWSET>";
+  }
+  //alert(xml);
+  return xml;
+}
+
+function loadFirstNodeByArray(arr) {
+   alert(arr);
+   if(arr != "") {
+      var xDoc = createXMLstrByArray(arr);
+      set(formName + '.hidNode',xDoc);	
+      /*dOriginal = new ActiveXObject("Microsoft.XMLDOM");    
+       dOriginal.loadXML("<rowset2></rowset2>");*/	
+      firstDoc = new ActiveXObject("Microsoft.XMLDOM");
+      firstDoc.loadXML(xDoc); 
+      if(firstDoc.readyState == 4) {
+           var xmlDocElem = firstDoc.documentElement;
+           var parentNodes = 0;
+           if(xmlDocElem.hasChildNodes()) {                     
+               var node = xmlDocElem.firstChild;			
+            while(node != null)	{
+                       //addRecord(dOriginal, node.childNodes[0].text +',' + node.childNodes[10].text);
+                       /*
+                          OID_VALO_ESTR_GEOP  - node.childNodes[0].text
+                          COD_UNID_GEOG       - node.childNodes[1].text
+                          DES_GEOG            - node.childNodes[2].text
+                          IND_ACTI            - node.childNodes[3].text
+                          COD_NSE1            - node.childNodes[4].text
+                          COD_NSE2            - node.childNodes[5].text
+                          COD_NSE3            - node.childNodes[6].text
+                          COD_POST            - node.childNodes[7].text
+                       */
+                  _nodeTree = new TreeListControlNode(false, null, 'invalid.text',node.childNodes[0].text);
+                  _nodeTree.setText('',node.childNodes[0].text,node.childNodes[2].text, node.childNodes[4].text,node.childNodes[5].text,node.childNodes[6].text,node.childNodes[7].text);
+                  _nodeTree.checked = node.childNodes[3].text;
+                  _nodeTree.loaded_base = node.childNodes[3].text;
+                  _nodeTree.ubigeo = node.childNodes[8].text;
+                    //alert("_nodeTree : " + _nodeTree);
+                    //alert("Tree : " + tree);
+                   //alert();
+                    tree.add(_nodeTree);
+                    /* PARA CASO CONSULTAR */
+                    /* document.getElementById(node.childNodes[0].text).disabled = true; */
+                  node = node.nextSibling;
+            }		
+         }
+         //alert("Remove 2");
+         tree.allNodes[2].remove();
+         tree.allNodes[4].remove();
+         //tree.recalcImages();
+         document.getElementById("treelistcontrol0").style.display = "block";
+         set(formName + '.hidNode','');
+      }
+   }else{
+      alert("Return null");
+   }
+}
+
+function LoadBar() {
+    //alert("CARGA UNIGEO  BARRA!");    
+	 configurarMenuSecundario(formName);
+    asignar([['LISTA', '', 'ConectorPruebaArbol', 'dtoSalida.resultado_ROWSET', 'ConectorConsultaUnidadesGeograficasEstado|xxx','loadFirstNodeByArray(datos);']], '', '');
+
+	 //asignar([['LISTA', '', 'ConectorDTZON', 'dtoSalida.resultado_ROWSET', 'ConectorConsultaUnidadesGeograficasEstado|xxx','loadFirstNodeByArray(datos);']], '', '');
+
+    document.getElementById("div_pais").innerHTML = "<b>" + get( formName + '.hidPais').toString() + "</b>";
+
+    //alert(getById("div_labels").innerHTML);
+    document.getElementById("s_23").innerHTML = getById("e98").children[0].children[0].children[0].children[0].innerText;;
+    document.getElementById("s_24").innerHTML = getById("e98").children[0].children[0].children[0].children[0].innerText;
+    document.getElementById("s_25").innerHTML = getById("e99").children[0].children[0].children[0].children[0].innerText + "1";
+    document.getElementById("s_26").innerHTML = getById("e99").children[0].children[0].children[0].children[0].innerText + "2";
+    document.getElementById("s_27").innerHTML = getById("e99").children[0].children[0].children[0].children[0].innerText + "3";
+    document.getElementById("s_28").innerHTML = "Codigo Postal";
+    
+	 //asignar([["LISTA","","PruebaArbol","'dtoSalida.resultado_ROWSET'","xxx|xxx","loadFirstNodeByArray(datos);"]],"","");	 
+	 //asignar([["LISTA","","ConectorConsultaUnidadesGeograficas","dtoSalida.resultado","xxx|xxx","loadFirstNodeByArray(datos);"]],"","");
+	 //asignar([["LISTA","","tpncon","NivelesGeograficos","xxx|xxx","loadFirstNodeByArray(datos);"]],"","");	 
+	//ShowError();
+}
+
+function getById(id){ return document.getElementById(id); }
+
+function chequeaErrores() {
+			var codigoError = get(formName + ".errCodigo");
+			var descError = get(formName + ".errDescripcion");
+			if (codigoError == "") {
+					return true;
+			} else	{
+  				   fMostrarMensajeError(codigoError, descError);
+					//alert("Codigo de error: " +  codigoError);				
+					if (codigoError == 280050001) {
+					    // Envia a la pantalla de inicio
+						 set(formName + ".conectorAction", "LPModificarEstadoUnidadesGeograficas");
+						 set(formName + ".accion", "Volver");
+					    enviaSICC(formName)
+					 }					 
+					// *************************************************************************
+					// Muestra lo que el usuario ingreso anteriormente, si es el caso
+					// *************************************************************************
+					// llenaCajasValoresAnt();
+					return false;
+			}
+ }
+
+var ob = new Object();
+
+function TreeListControl(sRootLabel, sIconSrc, hideColumnHeadings, hideRootNode) {
+	this.ID						= TreeListControlHandler.getUniqueID();
+	TreeListControlHandler.allTrees[this.ID] = this;
+	this.all					= new Array(); //user indices
+	this.allNodes				= new Array(); //system indices
+	this.columns				= new Array();
+	this.rootNode				= new TreeListControlNode(true, sIconSrc, null, 1);
+	this.rootNode.columnText[0]	= sRootLabel;
+	this.rootNode.depth			= 0;
+	this.rootNode.bShowHandle	= false;
+	this.rootNode.oTree			= this;
+	this.allNodes[this.rootNode.ID] = this.rootNode;
+	this.rendered				= false;
+	this.nLabelColumn			= 0; //this is the column in which the icons and branches are drawn
+	this.iconPath				= '/sicc/es/img/zon/';
+	this.showColumnHeadings		= hideColumnHeadings ? false : true;
+	this.showRootNode			= hideRootNode ? false : true;
+	this.disableRecalc			= false;
+}
+
+TreeListControl.prototype.toString = function() {
+	var str, x;
+	str = '';
+	x = 0;
+	for(var i=0; i<this.columns.length; i++) {
+		str += '<div class="tlc_columnheading" style="width:' + this.columns[i].width + 'px; left:' + x + 'px; ' +
+			   ' ">' + this.columns[i].name + "</div>";
+		x += this.columns[i].width;
+	}
+	//str = '<div id="treelistcontrol' + this.ID + '" class="treelistcontrol" style="width:' + x +
+	//	  'px;"><table cellpadding="0" cellspacing="0" border="0"><tr>' + str +
+	//	  '</tr></table>' + this.rootNode + '</div>';
+	//alert(this.ID);
+	str = '<div id="treelistcontrol' + this.ID + '" class="treelistcontrol" style="width:' + (x + 4) +
+		  'px; top: 15px; display: none;"><div class="tlc_headings" style="display:expression(TreeListControlHandler.allTrees[' + this.ID +
+			   '].showColumnHeadings ? \'block\' : \'none\');">' + str + '</div>' + this.rootNode + '</div>';
+	this.rendered = true;
+   //alert(str);
+	return str;
+}
+
+TreeListControl.prototype.redraw = function() {
+	//redraw all icons in the tree
+}
+
+TreeListControl.prototype.add = function(oNode) {
+	this.rootNode.add(oNode);
+}
+
+TreeListControl.prototype.addColumn = function(oColumn) {
+	this.columns[this.columns.length] = oColumn;
+}
+
+function TreeListControlColumn(width, name, onclickdisabled) {
+	this.name = name;
+	this.width = width ? width : '100';
+	this.onclickdisabled = onclickdisabled ? true : false;
+	
+}
+
+function TreeListControlNode(bShowChildren, sIconSrc, sXMLSrc, refKey) {
+	//refKey is an optional user-specified value which will be matched to this node for easy reference later
+	this.columnText			= new Array();
+	this.ckKeys			    = new Array();
+	this.checked			= 0;
+   this.ubigeo			   = "";
+	this.loaded_base        = 0;
+	this.bShowChildren 		= bShowChildren ? true : false;
+	this.sIconSrc			= sIconSrc ? sIconSrc : null;
+	this.sXMLSrc			= (typeof(sXMLSrc) == 'string') ? sXMLSrc : '';
+	this.bDynamicNode		= this.sXMLSrc.length > 0 ? true : false; //set to false once children are loaded to prevent sXMLSrc being used to dynamically load the children
+	this.bShowHandle		= true; //this is the + or - icon
+	this.refKey				= (refKey || refKey == 0) ? refKey : null;
+	this.ID					= TreeListControlHandler.getUniqueID();            
+	this.sImages			= '';
+	this.sHandle			= '';
+	this.onclick			= '';
+	this.onclickCheckBox	= '';
+	this.stage			    = 0;
+	this.stageCounter		= 0;
+	this.useIcon			= true;
+
+	this.nextSibling		= null;
+	this.previousSibling	= null;
+	this.firstChild			= null;
+	this.lastChild			= null;
+	this.parentNode			= null;
+	this.oTree				= null;
+	this.rendered			= false;
+	this.nodes			    = 0;
+	
+	//this.className			= 'tlc_node_row';
+	//this.classNameHover		= 'tlc_node_row_hover';
+	//this.classNameClick		= 'tlc_node_row_click';		
+}
+
+TreeListControlNode.prototype.toString = function() {
+	var str = '<div class="tlc_node" id="tlcnode' + this.ID + '">';
+	str += '<div class="tlc_node_row" onmouseenter="this.className=\'tlc_node_row_hover\'"' +
+		   ' onmouseleave="this.className=\'tlc_node_row\';" style="cursor:default;' +
+		   (this.parentNode == null ? 'display:expression(TreeListControlHandler.allTrees[' + this.oTree.ID +
+			   '].showRootNode ? \'block\' : \'none\');' : '') + '" onclick="if(!TreeListControlHandler.preventRowClick) { ' + this.onclick + ' }"' +
+		   ' onmousedown="if(!TreeListControlHandler.preventRowClick) this.className=\'tlc_node_row_click\';" onmouseup="this.className=\'tlc_node_row_hover\';">';
+	var c = this.oTree.columns;
+	var x = 0;
+	for(var i=0; i<c.length; i++) {
+		str += '<div class="tlc_node_text" style="width:' + c[i].width + 'px; left:' + x + 'px;"' +
+				(c[i].onclickdisabled ? ' onmouseenter="TreeListControlHandler.preventRowClick=true;" onmouseleave="TreeListControlHandler.preventRowClick=false;"' : '' )+ '>';
+		if(this.oTree.nLabelColumn == i) {
+			if(!this.oTree.disableRecalc) this.recalcImages();
+			str += '<span>'; //handle and images
+			str += this.sImages + this.sHandle + '<img src="' + (this.sIconSrc ? this.sIconSrc : this.oTree.iconPath + TreeListControlHandler.imgIconDefault) + '" width="16" height="16" align="absmiddle">';
+			str += '</span>&nbsp;';
+		}
+		if(i == 1) {
+          var chk = "";
+		  //alert(this.columnText[i]);
+		  //alert(this.checked);
+		  if(this.checked == "1") chk = "checked";		  
+		  str += '<span><input type="checkbox" id="'+(this.columnText[i] ? this.columnText[i] : '&nbsp;')+'" nodes="0" onclick="TreeListControlHandler.callCheckBoxes('+this.oTree.ID+','+this.ID+');" tree_node="" '+chk+'></input></span></div>';
+		}else{
+		  str += '<span>' + (this.columnText[i] ? this.columnText[i] : '&nbsp;') + '</span></div>';
+		}
+		x += c[i].width;
+	}
+	str += '</div><div id="children' + this.ID + '" class="tlc_node_children" style="display:' + ((this.bShowChildren && this.firstChild) ? 'block' : 'none') + '">';
+	var node = this.firstChild;
+	while(node) {
+		str += node;
+		node = node.nextSibling;
+	}
+	str += "</div></div>";
+	this.rendered = true
+	return str;
+}
+
+TreeListControlNode.prototype.recalcImages = function() {
+	var h = TreeListControlHandler;
+	this.sImages = '';
+	if(this.parentNode) {
+		if(this.parentNode.parentNode) {
+			this.sImages = this.parentNode.sImages;
+			this.sImages += '<img src="' + this.oTree.iconPath +
+							(this.parentNode.nextSibling ? h.imgConnectBridge : h.imgEmpty) +
+							'" width="16" height="16" align="absmiddle">';
+		}
+		if(this.firstChild || this.bDynamicNode) {
+			if(this.bShowChildren && !this.bDynamicNode) {
+				this.sHandle = '<img src="' + this.oTree.iconPath +
+								(this.nextSibling ? h.imgHandleCollapseMore : h.imgHandleCollapseEnd) +
+								 '" style="cursor:hand;"' +
+								' width="16" height="16" align="absmiddle" onmouseenter="TreeListControlHandler.preventRowClick=true;" onmouseleave="TreeListControlHandler.preventRowClick=false;"' +
+								' onclick="TreeListControlHandler.callCollapse(' +
+								this.oTree.ID + ',' + this.ID + ');">';
+			} else {
+				this.sHandle = '<img src="' + this.oTree.iconPath +
+								(this.nextSibling ? h.imgHandleExpandMore : h.imgHandleExpandEnd) +
+								 '" style="cursor:hand;"' +
+								' width="16" height="16" align="absmiddle"' +
+								' onmouseenter="TreeListControlHandler.preventRowClick=true;"' +
+								' onmouseleave="TreeListControlHandler.preventRowClick=false;"' +
+								' onclick="TreeListControlHandler.callExpand(' +
+								this.oTree.ID + ',' + this.ID + ');">';
+			}
+		} else {
+			this.sHandle = '<img src="' + this.oTree.iconPath +
+							(this.nextSibling ? h.imgConnectMore : h.imgConnectEnd) +
+							'" width="16" height="16" align="absmiddle">';
+		}
+	}
+	if(this.rendered) {
+		var o = document.all['tlcnode'+this.ID].firstChild.childNodes[this.oTree.nLabelColumn].firstChild;
+		o.innerHTML = this.sImages + this.sHandle + (this.useIcon ? '<img src="' + (this.sIconSrc ? this.sIconSrc : this.oTree.iconPath + TreeListControlHandler.imgIconDefault) + '" width="16" height="16" align="absmiddle">' : '');
+	}
+}
+
+TreeListControlNode.prototype.recalcChildImages = function() {
+	var node = this.firstChild;
+	while(node) {
+		node.recalcImages();
+		node.recalcChildImages();
+		node = node.nextSibling;
+	}
+}
+
+TreeListControlNode.prototype.expand = function() {
+	this.bShowChildren = true;
+	var o = document.all['tlcnode' + this.ID];    
+	o.lastChild.style.display = 'block';
+	var id1 = this.oTree.ID;
+	var id2 = this.ID;
+	if(!this.oTree.disableRecalc) this.recalcImages();
+	if(this.bDynamicNode) {
+		document.all['tlcnode' + this.ID].firstChild.className = 'tlc_node_row';
+		this.bDynamicNode = false;		
+		ob = this;        
+		//alert(ob.refKey);
+		//alert(this.ID);
+		searchNivel(this.refKey);
+	}else{  // if not dynamicNode
+	   var bool = (document.getElementById(this.refKey).checked == false)?true:false;
+		for(var s = 0; s < this.nodes; s++)
+		{
+			if(bool) document.getElementById(this.ckKeys[s]).checked = (!bool);
+			document.getElementById(this.ckKeys[s]).disabled = bool;			
+		}
+	}
+}
+
+
+function searchNivel(csv_orde) {
+   asignar([['LISTA', '', 'ConectorPruebaArbol', 'dtoSalida.resultado_ROWSET', 'ConectorConsultaUnidadesGeograficasEstado|' + csv_orde,'loadNode(datos);']], '', '');
+}
+
+function loadNode(arr) {
+     alert(arr);
+     /*
+        OID_VALO_ESTR_GEOP  - node.childNodes[0].text
+        COD_UNID_GEOG       - node.childNodes[1].text
+        DES_GEOG            - node.childNodes[2].text
+        IND_ACTI            - node.childNodes[3].text
+        COD_NSE1            - node.childNodes[4].text
+        COD_NSE2            - node.childNodes[5].text
+        COD_NSE3            - node.childNodes[6].text
+        COD_POST            - node.childNodes[7].text
+        ubigeo              - node.childNodes[8].text;
+     */
+	  //alert(ob);
+	 //alert(xDocument)
+	 var xDocument = createXMLstrByArray(arr);
+	 if(xDocument != null && xDocument != "") {
+		var nodeResult = new ActiveXObject("Microsoft.XMLDOM");
+		nodeResult.loadXML(xDocument);        
+	   if(nodeResult.readyState == 4) {
+      var xmlDocElem = nodeResult.documentElement;
+		var parentNodes = 0;
+        if(xmlDocElem.hasChildNodes()) {                     
+            var node = xmlDocElem.firstChild;			
+			while(node != null)	{
+			    var b = node.childNodes.length;	
+			    //alert(node.childNodes[3].text);
+				var subNode = node.firstChild;				
+				while(subNode != null) {			   
+				   //alert(subNode.xml);
+                   strKey += subNode.text;
+				   //alert(subNode.childNodes[i].xml);
+				   var ssNode = subNode.firstChild;
+				   var i = 0;
+                   var strKey = "";
+				   /*while(ssNode != null) {
+					   //alert(subNode.childNodes[i].attributes.getNamedItem("VALOR").value);	
+					   alert(subNode.childNodes[i].value);	
+				       //strKey += subNode.childNodes[i].attributes.getNamedItem("VALOR").value;
+					   strKey += subNode.childNodes[i].value;
+					   i++;
+					   ssNode = ssNode.nextSibling;
+				   }*/
+                  
+				   subNode = subNode.nextSibling;
+				}
+				 var o;
+				 //alert(ob.refKey);
+				 //alert((ob.refKey).length);
+				 var rKey = "";
+				 var modes = 'invalid.text';
+
+				   if(ob.stage == 9) {
+                     o = new TreeListControlNode(false,null,null,node.childNodes[0].text);
+				         o.setText('',node.childNodes[0].text,node.childNodes[2].text,node.childNodes[4].text,node.childNodes[5].text,node.childNodes[6].text,node.childNodes[7].text);
+				   }else{
+                  o = new TreeListControlNode(false,null,'invalid.text',node.childNodes[0].text);
+					   o.setText('',node.childNodes[0].text,node.childNodes[2].text,node.childNodes[4].text,node.childNodes[5].text,node.childNodes[6].text,node.childNodes[7].text);
+					   o.sXMLSrc = '<rowset id="data_' + node.childNodes[0].text + '" oid="'+node.childNodes[0].text+'" activo="'+node.childNodes[3].text+'" ubigeo="' +  node.childNodes[8].text + '" />';
+					   o.checked = node.childNodes[3].text;
+					   o.loaded_base = node.childNodes[3].text;
+                  o.ubigeo = node.childNodes[8].text;
+				   }
+				   //alert(ob.stage);
+				   //alert(node.childNodes[0].text);				  
+				   o.stage = ob.stage + 1;
+				   ob.ckKeys[parentNodes] = node.childNodes[0].text;				 
+			       ob.add(o);
+                /* PARA CASO CONSULTAR */
+                /* document.getElementById(node.childNodes[0].text).disabled = true; */
+				   if(!document.getElementById(ob.refKey).checked) {
+                     o.checked = 0;
+					 document.getElementById(o.refKey).checked = false;
+					 document.getElementById(node.childNodes[0].text).disabled = true;
+				   }
+                   parentNodes++;
+				   node = node.nextSibling;
+			}		
+		}
+         //alert(ob.refKey +  " - -  " + parentNodes);
+         //document.getElementById(ob.refKey).setAttribute('nodes',parentNodes);
+         ob.nodes = parentNodes;
+         document.getElementById(ob.refKey).nodes = parentNodes;
+         ob.recalcImages();
+		}
+	}else{
+       ob.sXMLSrc = null;
+	   ob.collapse();
+	   ob.recalcImages();
+	   ob.recalcChildImages();	   
+	}	
+}
+
+var d = 0;
+
+TreeListControlNode.prototype.cleanCheckBoxes = function(obj, bool) {   
+      //alert(obj.nodes);
+	   for(i = 0; i < obj.nodes; i++) {
+        //alert(obj.ckKeys[i]);
+		  if(bool) document.getElementById(obj.ckKeys[i]).checked = (!bool);
+		  document.getElementById(obj.ckKeys[i]).disabled = bool;
+      }
+      for(i = 0; i < obj.nodes; i++) {
+        //alert(obj.ckKeys[i]);
+		  if(bool) {
+				   var node = obj.firstChild;
+				   if(this.stageCounter != 6) {
+                      this.stageCounter++;				     
+                       while(node != null) {
+                           this.cleanCheckBoxes(node,bool);
+                        node = node.nextSibling;
+                      }  
+               }
+			    }
+      }  
+}
+
+TreeListControlNode.prototype.recalcCheckBoxes = function() {
+	var bool = (document.getElementById(this.refKey).checked == false)?true:false;
+	with (this) {
+       checked = (bool)?0:1;
+	   stageCounter = 0;
+	   cleanCheckBoxes(this,bool);
+	}
+}
+
+TreeListControlNode.prototype.callCheckBoxes = function(){
+  alert("CALL");
+  alert(this);
+}
+
+TreeListControlNode.prototype.collapse = function() {
+	this.bShowChildren = false;
+	var o = document.all['tlcnode' + this.ID];
+	o.lastChild.style.display = 'none';
+	var img = o.childNodes[0].childNodes[this.oTree.nLabelColumn].firstChild.lastChild.previousSibling;
+	var id1 = this.oTree.ID;
+	var id2 = this.ID;
+	img.onclick = function() { TreeListControlHandler.callExpand(id1, id2); return false; };
+	img.src = this.oTree.iconPath + (this.nextSibling ? TreeListControlHandler.imgHandleExpandMore : TreeListControlHandler.imgHandleExpandEnd);
+}
+
+TreeListControlNode.prototype.click = function() {
+	
+}
+
+TreeListControlNode.prototype.setText = function() {
+	for(var i=0; i<arguments.length; i++)
+		this.setColumnText(i, arguments[i]);
+}
+
+TreeListControlNode.prototype.setColumnText = function(nColumn, sText) {
+	this.columnText[nColumn] = (sText ? sText : '');
+	if(this.rendered) {
+		var o = document.all['tlcnode' + this.ID];
+		o.firstChild.childNodes[nColumn].lastChild.innerHTML = this.columnText[nColumn];
+	}
+}
+
+TreeListControlNode.prototype.add = function(oNode, bNoRedraw, oSibling, bInsertAfter) {
+	if(bNoRedraw) this.oTree.disableRecalc = true;
+	this.bDynamicNode = false;
+	oNode.oTree = this.oTree;
+	oNode.parentNode = this;
+	if(oNode.refKey || oNode.refKey == 0) this.oTree.all[oNode.refKey] = oNode;
+	this.oTree.allNodes[oNode.ID] = oNode;
+	if(!this.firstChild) {
+		this.firstChild = oNode;
+		this.lastChild = oNode;
+	} else {
+		var node1, node2;
+		if(oSibling) {
+			if(bInsertAfter) {
+				node1 = oSibling;
+				node2 = oSibling.nextSibling;
+			} else {
+				node1 = oSibling.previousSibling;
+				node2 = oSibling;
+			}
+		} else {
+			node1 = this.lastChild;
+			node2 = null;
+		}
+		if(node1) {
+			oNode.previousSibling = node1;
+			node1.nextSibling = oNode;
+		} else {
+			this.firstChild = oNode;
+		}
+		if(node2) {
+			oNode.nextSibling = node2;
+			node2.previousSibling = oNode;
+		} else {
+			this.lastChild = oNode;
+		}
+	}
+	if(this.oTree.rendered) {
+		var oSib;
+		var html = oNode + '';
+		var oParent = document.all['tlcnode' + this.ID];
+		if(node1) {
+			oSib = document.all['tlcnode' + node1.ID];
+			oSib.insertAdjacentHTML('afterEnd', html);
+		} else if(node2) {
+			oSib = document.all['tlcnode' + node2.ID];
+			oSib.insertAdjacentHTML('beforeBegin', html);
+		} else {
+			oParent.lastChild.innerHTML = html;
+		}
+		if(this.parentNode) this.expand();
+		if(!node2 && node1) {
+			node1.recalcImages();
+			node1.recalcChildImages();
+		}
+	}
+	if(bNoRedraw) this.oTree.disableRecalc = false;
+}
+
+TreeListControlNode.prototype.insertBefore = function(oNode, bNoRedraw) {
+	this.parentNode.add(oNode, bNoRedraw, this, false);
+}
+
+TreeListControlNode.prototype.insertAfter = function(oNode, bNoRedraw) {
+	this.parentNode.add(oNode, bNoRedraw, this, true);
+}
+
+TreeListControlNode.prototype.remove = function() {
+	this.removeChildren();
+	var node1 = this.previousSibling;
+	var node2 = this.nextSibling;
+	if(node1)
+		node1.nextSibling = node2;
+	else
+		this.parentNode.firstChild = node2;
+	if(node2)
+		node2.previousSibling = node1;
+	else
+		this.parentNode.lastChild = node1;
+	this.oTree.allNodes[this.ID] = null;
+	if(this.refKey != null) this.oTree.all[this.refKey] = null;
+	var p = document.all['tlcnode' + this.ID].parentElement;
+	document.all['tlcnode' + this.ID].removeNode(true);
+	if(this.rendered && this.previousSibling && !this.nextSibling) {
+		this.previousSibling.recalcImages();
+		this.previousSibling.recalcChildImages();
+	}
+	if(!this.parentNode.firstChild) {
+		this.parentNode.recalcImages();
+		p.style.display = 'none';
+	}
+	this.rendered = false;
+	this.parentNode = null;
+	this.nextSibling = null;
+	this.previousSibling = null;
+	this.firstChild = null;
+	this.lastChild = null;
+	return this;
+}
+
+TreeListControlNode.prototype.removeChildren = function() {
+	var node = this.firstChild;
+	while(node) {
+		node.removeChildren();
+		this.oTree.allNodes[node.ID] = null;
+		var dead = node;
+		node = node.nextSibling;
+		delete dead;
+	}
+}
+
+TreeListControlNode.prototype.xmlCallback = function() {
+	var failed;
+	if(this.xmlhttp.readyState == 4)
+		if(this.xmlhttp.status==0) {
+			var xml = new ActiveXObject("Microsoft.XMLDOM");
+			if(xml.loadXML(this.xmlhttp.responseText)) {
+				failed = false;
+				this.firstChild.remove();
+				if(xml.documentElement) {
+					this.addXMLChildNodes(xml.documentElement, this);
+				}
+				this.recalcImages();
+			} else {
+				failed = true;
+			}
+		} else {
+			failed = true;
+		}
+		if(failed) {
+			this.firstChild.setColumnText(this.oTree.nLabelColumn, '<span style="color:red">Unavailable - ' + this.xmlhttp.status + '</span>');
+			this.firstChild.useIcon = false;
+			this.firstChild.recalcImages();
+		}
+}
+
+TreeListControlNode.prototype.addXMLChildNodes = function(xml, oParent) {
+	var showchildren, refkey, xmlsrc, onclick, iconsrc;
+	if(xml.childNodes.length > 0) {
+		var x = xml.lastChild;
+		while(x) {
+			showchildren = x.getAttribute('showchildren');
+			if(!showchildren) showchildren = false;
+			else showchildren = (showchildren == 'yes' ? true : false);
+			refkey = x.getAttribute('refkey');
+			if(!refkey) refkey = null;
+			xmlsrc = x.getAttribute('xmlsrc');
+			if(!xmlsrc) xmlsrc = null;
+			onclick = x.getAttribute('onclick');
+			if(!onclick) onclick = null;
+			iconsrc = x.getAttribute('iconsrc');
+			if(!iconsrc) iconsrc = null;
+			var node = new TreeListControlNode(showchildren, iconsrc, xmlsrc, refkey);
+			node.onclick = onclick;
+			for(var i=0; i<x.childNodes.length-1; i++)
+				node.setColumnText(i,x.childNodes[i].firstChild.nodeValue+'');
+			if(oParent.firstChild)
+				oParent.firstChild.insertBefore(node);
+			else
+				oParent.add(node);
+			if(x.lastChild.childNodes.length > 0)
+				this.addXMLChildNodes(x.lastChild, node)
+			x = x.previousSibling;
+		}
+	}
+}
+
+function getResultDocument() {
+    _stageCounter = 1;
+	sResult = '<rowset2 id="root">\n';
+	var xmlDocElem = firstDoc.documentElement;
+	if(xmlDocElem.hasChildNodes()) {
+	    var cnt = 8;
+       //alert(tree.allNodes[8]);
+		var node = xmlDocElem.firstChild;			
+		while(node != null)	{
+         //alert(tree.allNodes[cnt]);
+			if(tree.allNodes[cnt].checked == 1) {			   
+			   sResult += '\t<rowset OID="'+tree.allNodes[cnt].refKey+'" ACTIVO="1" ACTIVO_LOADED="'+tree.allNodes[cnt].loaded_base+'" UBIGEO="' + tree.allNodes[cnt].ubigeo + '" >\n';
+			   var _node_1 = tree.allNodes[cnt].firstChild;
+			   if(_node_1 != null) {
+			     while(_node_1 != null) {				 
+                    d++;
+					//alert(d);
+				   _rAddNode(_node_1);
+                  _node_1 = _node_1.nextSibling;
+                 }
+			   }
+               sResult += '\t</rowset>\n';
+			} else {
+			  //if(tree.allNodes[cnt].loaded_base != 0) {
+               sResult += '\t<rowset OID="'+tree.allNodes[cnt].refKey+'" ACTIVO="0" ACTIVO_LOADED="'+tree.allNodes[cnt].loaded_base+'" UBIGEO="' + tree.allNodes[cnt].ubigeo + '" />\n';
+			  //}
+			}			 
+            cnt++;
+			node = node.nextSibling;
+		}		
+	}
+	sResult += '</rowset2>';
+	// save(sResult);
+	//alert(sResult);
+	return sResult;
+}
+
+var _stageCounter;
+var sResult = "";
+var csv_druida_grabara = "";
+var d = 0;
+function _rAddNode(node) {
+   var space = "";
+   if( d == 1) _stageCounter++; 
+   for(var sp = 0;sp < _stageCounter;sp++) {				
+				space += "\t";   
+   }
+   if(node.checked == 1) {     	 	 
+	 sResult += space + '<rowset OID="'+node.refKey+'" ACTIVO="1" ACTIVO_LOADED="'+node.loaded_base+'" UBIGEO="' + node.ubigeo + '" >\n';	 				     
+	 var next_node = node.firstChild;	 
+	 if(next_node != null) {
+	     d = 0;
+		 while(next_node != null) {
+		   d++;
+		  _rAddNode(next_node);		  
+		  next_node = next_node.nextSibling;
+		 }
+	 }
+	 sResult += space + '</rowset>\n';
+   } else {	     
+	 sResult += space + '<rowset OID="'+node.refKey+'" ACTIVO="0" ACTIVO_LOADED="'+node.loaded_base+'" UBIGEO="' + node.ubigeo + '"/>\n';
+   }
+}
+
+
+function fGuardar() {
+  //alert(dOriginal.xml);
+  unidades = getResultDocument();
+  alert(unidades);
+  //unidades = "<ROWSET2><ROWSET>zdzczzzzxc</ROWSET></ROWSET2>";
+  //alert(est_unidadades);
+  set(formName + '.hidEstadoUnidades', unidades );
+  set(formName + '.conectorAction', 'LPModificarEstadoUnidadGeografica');
+  set(formName + '.accion','Modificar');  
+  set(formName + '.casoDeUso','Modificar');
+  //enviaSICC(formName);
+}
+
+// ancho debe ser 552 px !
+
+tree = new TreeListControl('UBIGEOTree', '');
+
+tree.addColumn ( new TreeListControlColumn(1, '') );
+
+tree.addColumn ( new TreeListControlColumn(38, '<span id="s_23"></span>', true) );
+tree.addColumn ( new TreeListControlColumn(280,'<span id="s_24"></span>') );
+tree.addColumn ( new TreeListControlColumn(40, '<span id="s_25"></span>') );
+tree.addColumn ( new TreeListControlColumn(40, '<span id="s_26"></span>') );
+tree.addColumn ( new TreeListControlColumn(40, '<span id="s_27"></span>') );
+tree.addColumn ( new TreeListControlColumn(80, '<span id="s_28"></span>') );
+
+tree.rootNode.setText('','chk_root','UBIGEOTree','','?');
+tree.showRootNode = (!tree.showRootNode);
+tree.nLabelColumn = 2;
+
+var node = new TreeListControlNode(true);
+node.setText('.','chk_1','....','....','....');
+tree.add(node);
+
+var node2 = new TreeListControlNode(false, null, null);
+node2.setText('','chk_9','....','....','....');
+node.add(node2);
+var node3 = new TreeListControlNode(true);
+node3.setText('.','chk_2','....','....','....');
+node.insertBefore(node3);
+var node4 = new TreeListControlNode(true);
+node4.setText('.','chk_3','....','....','....');
+node2.insertBefore(node4);
+var node5 = new TreeListControlNode(true);
+node5.setText('','chk_4','....','....','....');
+node4.add(node5);
+var node6 = new TreeListControlNode(true);
+node6.setText('','chk_5','....','....','....');
+node3.add(node6);
+
+document.write("<div id=\"div_pais\" class=\"tlc_columnheading\" style=\"width: 522px; left:0px;\"></div>" + tree);
+//document.write(tree);
+//setTimeout("wTree();", 1000);
+
+function wTree() {
+  document.write("<div class=\"tlc_columnheading\" style=\"width: 520px; left:0px;\">  <b> ARGENTINA</b></div>" + tree);
+  //document.write(tree);
+}
+
+]]>
+</JAVASCRIPT>
+<FORMULARIO id="frmContenido" nombre="frmContenido">
+ <VAR nombre="accion" valor=""/>
+ <VAR nombre="conectorAction" valor="" />
+ <VAR nombre="errCodigo" valor=""/>
+ <VAR nombre="errDescripcion"  valor="" />
+ <!-- <VAR nombre="casoDeUso" valor=""/> -->
+ <VAR nombre="hidPais" valor=""/>
+ <VAR nombre="hidNode" valor="" />
+ <VAR nombre="hidEstadoUnidades" valor=""/>
+ <VAR nombre="exito" valor=""/>
+ <CAPA nombre="CAPITA" alto="202" ancho="612" colorf="" borde="0" imagenf="" repeat="" padding="" visibilidad="hidden"       	  contravsb="" x="0" y="124" zindex="">
+ <DIV id="div_labels" >
+<LABELC nombre="e98" cod="242" id="datosTitle" />
+<LABELC nombre="e99" cod="243" id="datosTitle" />
+</DIV>
+</CAPA>
+ </FORMULARIO>
+</PAGINA>
+

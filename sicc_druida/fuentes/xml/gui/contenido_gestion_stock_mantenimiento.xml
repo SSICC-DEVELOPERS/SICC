@@ -1,0 +1,644 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_gestion_stock_mantenimiento.xml,v 1.1 2009/12/03 18:44:58 pecbazalar Exp $
+   prueba arbol 
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+<PAGINA nombre="contenido_gestion_stock_mantenimiento" cod="0451" titulo="" estilos="estilosB3.css" colorf="#F0F0F0" 
+         msgle="" onload="onLoadPag();" xml:lang="es">
+
+  <JS src="sicc_util.js"></JS>
+  <JS src="DruidaTransactionMare.js"/>    
+  <JS src="PaginacionSicc.js"/>
+  <JS src="contenido_gestion_stock_mantenimiento.js"/>
+
+  <VALIDACION>
+         <ELEMENTO name="cbMarca" required="true" cod="6" group="GrupoBusqueda"/>
+         <ELEMENTO name="cbCanal" required="true" cod="7" group="GrupoBusqueda"/>
+         <ELEMENTO name="cbPeriodo" required="true" cod="276" group="GrupoBusqueda"/>
+         <ELEMENTO name="txtCodigoVentaBuscar" required="false" cod="336" group="GrupoBusqueda"/>
+
+         <ELEMENTO name="txtLimiteVenta" required="true" cod="1428" group="Grupo2"/>
+         <ELEMENTO name="txtControlStock" required="true" cod="1451" group="Grupo2"/>
+         <ELEMENTO name="txtControlStockPorcentual" required="true" cod="2338" group="Grupo2"/>
+         <ELEMENTO name="chkControlLiquidacion" required="true" cod="1429" group="Grupo2"/>
+
+         <ELEMENTO name="txtCodigoVenta" required="false" cod="336" group="GrupoCodigoVenta"/>
+
+         <ELEMENTO name="txtCodigoVenta" required="false" cod="336" group="GrupoModificacion"/>
+         <ELEMENTO name="cbTipoCliente" required="true" cod="1869" group="GrupoModificacion"/>
+
+
+         <ELEMENTO name="cbTipoCliente" required="true" cod="1869" group="GrupoAnyadir"/>
+         <!--ELEMENTO name="cbCodVenta2" required="true" cod="336" group="GrupoAnyadir"/-->
+         <ELEMENTO name="txtLimiteVenta" required="false" cod="1428" format="e" min="0" max="9999999999" group="GrupoAnyadir"/>
+         <ELEMENTO name="txtControlStock" required="false" format="e" cod="1451" min="0" max="9999999999" group="GrupoAnyadir"/>
+         <ELEMENTO name="txtControlStockPorcentual" required="false" format="N" cod="2338" min="0" max="999.999" group="GrupoAnyadir"/>
+
+
+
+
+         
+  </VALIDACION>
+
+<JAVASCRIPT>
+ <![CDATA[    
+         
+  ]]>
+  </JAVASCRIPT>
+
+<STYLE TYPE="text/css">
+  <![CDATA[ 
+
+#Cplistado1{visibility:hidden;}
+#CpLin1listado1{visibility:hidden;}
+#CpLin2listado1{visibility:hidden;}
+#CpLin3listado1{visibility:hidden;}
+#CpLin4listado1{visibility:hidden;}
+#capa1{visibility:hidden;}
+#ModificarDiv{visibility:hidden;}
+#EliminarDiv{visibility:hidden;}
+#primera1Div{visibility:hidden;}
+#ret1Div{visibility:hidden;}
+#ava1Div{visibility:hidden;}
+#separaDiv{visibility:hidden;}
+#capaContenido2{visibility:hidden;}
+
+  ]]> 
+</STYLE>
+
+
+<FORMULARIO nombre="frmContenido" oculto="N">
+
+         <VAR nombre="accion" valor=""/>
+         <VAR nombre="conectorAction" valor="LPMantieneGestionStock"/>
+         <VAR nombre="errDescripcion" valor=""/>
+         <VAR nombre="errCodigo" valor=""/>
+
+         <VAR nombre="formato" valor=""/>
+         
+         <VAR nombre="hIdioma" valor=""/>
+         <VAR nombre="exito" valor=""/>
+         <VAR nombre="ejecutar" valor=""/>
+
+         <!--temp campos-->
+         <VAR nombre="hMarca" valor=""/>
+         <VAR nombre="hCanal" valor=""/>
+         <VAR nombre="hPeriodo" valor=""/>
+         <VAR nombre="hPais" valor=""/> 
+
+         <VAR nombre="hRegion" valor=""/>
+         <VAR nombre="hZona" valor=""/>
+         <VAR nombre="hTipoCliente" valor=""/>
+         <VAR nombre="hSubtipoCliente" valor=""/>
+         <VAR nombre="hTipoClasificacion" valor=""/>
+         <VAR nombre="hClasificacion" valor=""/>
+         <VAR nombre="hControlLiquidacion" valor=""/>
+         <VAR nombre="hUltimasNoticias" valor=""/>
+
+         <!--Se usan para agregar el codigo de venta al combo, cuando se vuelve de la lp-->
+         <!--Cuando se pulsa anyadir-->
+         <VAR nombre="hAnyadirCodigoVenta" valor=""/>
+         <VAR nombre="hOidCodigoVenta" valor=""/>
+         <VAR nombre="hTxtCodigoVenta" valor=""/>
+
+         <!--Codigos de venta separados por pipes-->
+         <!--VAR nombre="hCodigosVentaAEliminar" valor=""/-->
+
+
+         <!--Codigos seleccionados en la lista editable, para poder ser usados en la lp-->
+         <!--Separados por '|'-->
+         <!--VAR nombre="hCodSeleccionados" valor=""/-->
+
+         <!--Usadas en modificar y anyadir-->
+         <!--VAR nombre="varGestionStock" valor=""/-->
+         <!--VAR nombre="varIdGestionStock" valor=""/-->
+         
+         <VAR nombre="hCodSeleccionadosEnListaEditable" valor=""/>
+
+         <!--Flag para mostrar u ocultar la capa de detalles. S o N-->
+         <!--VAR nombre="hMostrarCapaDetalles" valor=""/-->
+
+         <VAR nombre="hAsignarCombosBusqueda" valor=""/>
+         <VAR nombre="hAsignarCamposModificar" valor=""/>
+
+         <!--VAR nombre="hMostrarLista" valor=""/-->
+
+         <!--flag para indicar que se deshabilitan: 
+         btnBuscarCodVenta 
+         txtCodigoVenta 
+         btnAnyadirCodigo 
+         btnEliminarCodigo -->
+         <!--VAR nombre="hDeshabilitarControlesCodigoVenta" valor=""/-->
+
+         <VAR nombre="hSiI18N" valor=""/>
+         <VAR nombre="hNoI18N" valor=""/>
+
+         <VAR nombre="hMarcaDefecto" valor=""/>
+         <VAR nombre="hCanalDefecto" valor=""/>
+
+         <VAR nombre="hCargarMarcaCanalDefecto" valor=""/>
+
+         <!--VAR nombre="hTxtRegion" valor=""/>
+         <VAR nombre="hTxtZona" valor=""/>
+         <VAR nombre="hTxtTipoCliente" valor=""/>
+         <VAR nombre="hTxtSubtipoCliente" valor=""/>
+         <VAR nombre="hTxtTipoClasificacion" valor=""/>
+         <VAR nombre="hTxtClasificacion" valor=""/-->
+
+<CAPA nombre="capaTemporal" visibilidad="hidden">
+    <COMBO nombre="cbTemporal" valorinicial="" req="S" multiple="N" size="1" id="datosCamposTemporal" textoinicial="" onchange="">
+         <ROWSET>
+         </ROWSET>
+    </COMBO>
+</CAPA>
+
+<CAPA nombre="capaContenido">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+         <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+         <td width="750" ><IMG src="b.gif"/></td>
+         <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+     <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+         <fieldset><legend class="legend"><LABELC nombre="lblCriteriosBusqueda" alto="13" filas="1" valor="" id="legend" cod="0075"/></legend> 
+                <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                  <tr> <td>
+                  <table width="597" border="0" align="left" cellspacing="0" cellpadding="0">
+                  <tr> 
+                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>                     
+                     <td><LABELC nombre="lblMarca" alto="13" filas="1" valor="" id="datosTitle" cod="6"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td> 
+                     <td><LABELC nombre="lblCanal" alto="13" filas="1" valor="" id="datosTitle" cod="7"/></td>
+                     <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr> 
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>                     
+                     <td nowrap="nowrap">                           
+                        <COMBO nombre="cbMarca" valorinicial="" req="S" multiple="N" size="1" id="datosCampos" textoinicial="" onchange="onChangeMarca();" ontab="setTabFocus('cbMarca');" onshtab="setSHTabFocus('cbMarca');">
+                          <ROWSET>
+                          </ROWSET>
+                        </COMBO>
+                     </td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td> 
+                     <td nowrap="nowrap">                           
+                        <COMBO nombre="cbCanal" valorinicial="" req="S" multiple="N" size="1" id="datosCampos" textoinicial="" onchange="onChangeCanal();" ontab="setTabFocus('cbCanal');" onshtab="setSHTabFocus('cbCanal');">
+                          <ROWSET>
+                          </ROWSET>
+                        </COMBO>
+                     </td>
+                     <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>    
+                </table>
+                </td>
+                  </tr>    
+                <tr> <td>
+                  <table width="597" border="0" align="left" cellspacing="0" cellpadding="0">
+                  <tr> 
+                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                  <tr>
+                                    <td nowrap="nowrap">
+                                             <table width="597" border="0" align="left" cellspacing="0" cellpadding="0">
+                                             <tr>
+                                   <td><IMG src="b.gif" width="8" height="8"/></td>                     
+                                        <td><LABELC nombre="lblPeriodo" alto="13" filas="1" valor="" id="datosTitle" cod="276"/></td>
+                                                 <td><IMG src="b.gif" width="25" height="8"/></td>
+                                                 <td><LABELC nombre="lblCodigoVenta" alto="13" filas="1" valor="" id="datosTitle" cod="336"/></td>
+                                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                                                </tr>
+                                              <tr>
+                                                <td><IMG src="b.gif" width="8" height="8"/></td>                     
+                                                 <td nowrap="nowrap">
+                                                                <COMBO nombre="cbPeriodo" valorinicial="" req="S" multiple="N" size="1" id="datosCampos" textoinicial="" ontab="setTabFocus('cbPeriodo');" onshtab="setSHTabFocus('cbPeriodo');">
+                                                          <ROWSET>
+                                                          </ROWSET>
+                                                                 </COMBO>
+                                                 </td>
+                                                 <td><IMG src="b.gif" width="8" height="8"/></td>
+                                                          <td nowrap="nowrap"><CTEXTO nombre="txtCodigoVentaBuscar" id="datosCampos" max="18" tipo="" onchange="" req="N" size="24" valor="" validacion="" ontab="setTabFocus('txtCodigoVentaBuscar');" onshtab="setSHTabFocus('txtCodigoVentaBuscar');"/></td>   
+                                                      <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                          </tr>
+                                              <tr> 
+                                                      <td width="4"><IMG src="b.gif" width="8" height="8"/></td>
+                                              </tr>
+                                             </table>
+                                    </td>
+                  </tr>
+                  <tr>
+                     <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>                  
+                </table>
+                </td>
+                  </tr>  
+                </table>
+         </fieldset>         
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+         <td><IMG src="b.gif"/></td>
+         <td>
+           <fieldset>
+             <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">         
+                <tr>
+                  <td class="botonera">
+                    <BOTON nombre="btnBuscar" ID="botonContenido" tipo="html" accion="onClickBuscar();" estado="false" cod="1" ontab="setTabFocus('btnBuscar');" onshtab="setSHTabFocus('btnBuscar');"/>
+                  </td>
+                </tr>    
+             </table>         
+           </fieldset>
+         </td>
+         <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>     
+    <tr>
+         <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+         <td width="750" ><IMG src="b.gif"/></td>
+         <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+
+<CAPA nombre="capaContenido2" x="0" y="146" visibilidad="hidden">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+         <fieldset><legend class="legend"><LABELC nombre="lblDatosStock" alto="13" filas="1" valor="" id="legend" cod="00272"/></legend>
+           <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+             <tr> 
+                <td>
+                  <table width="597" border="0" align="left" cellspacing="0" cellpadding="0">
+                    <tr> 
+                      <td colspan="7"><IMG src="b.gif" width="8" height="8"/></td>
+                    </tr>
+                    <tr>
+                      <td><IMG src="b.gif" width="8" height="8"/></td>
+                      <td><LABELC nombre="lblCodigoVenta" alto="13" filas="1" valor="" id="datosTitle" cod="336"/></td>
+                      <td colspan="2"><IMG src="b.gif" /></td>
+                      <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                   </tr> 
+                   <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td nowrap="nowrap"><CTEXTO nombre="txtCodigoVenta" id="datosCampos" max="18" tipo="" onchange="" req="S" size="24" valor="" validacion="" ontab="setTabFocus('txtCodigoVenta');" onshtab="setSHTabFocus('txtCodigoVenta');"/></td>     <!--req-->
+                     <td><IMG src="b.gif" width="16" height="8"/></td>
+                     <td align="left" nowrap="nowrap" ><BOTON nombre="btnAnyadirCodigo" ID="botonContenido" tipo="html" accion="onClickAnyadirCodigo();" estado="false" cod="404" ontab="setTabFocus('btnAnyadirCodigo');" onshtab="setSHTabFocus('btnAnyadirCodigo');"/>
+                     <BOTON nombre="btnBuscarCodVenta" ID="botonContenido" tipo="html" accion="onClickBuscarCodVenta();" estado="false" cod="1" ontab="setTabFocus('btnBuscarCodVenta');" onshtab="setSHTabFocus('btnBuscarCodVenta');"/>
+                     </td>
+                     <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                   </tr> 
+                   <tr>
+                     <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                   </tr>
+                 </table>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                 <table width="597" border="0" align="left" cellspacing="0" cellpadding="0">
+                   
+                   <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td nowrap="nowrap">                           
+                        <COMBO nombre="cbCodVenta2" valorinicial="" req="N" multiple="M" size="5" id="datosCampos" textoinicial="" ontab="setTabFocus('cbCodVenta2');" onshtab="setSHTabFocus('cbCodVenta2');">
+                          <ROWSET>
+                          </ROWSET>
+                        </COMBO>
+                     </td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td valign="bottom" ><BOTON nombre="btnEliminarCodigo" ID="botonContenido" tipo="html" accion="onClickEliminarCodigo();" estado="false" cod="1254" ontab="setTabFocus('btnEliminarCodigo');" onshtab="setSHTabFocus('btnEliminarCodigo');"/></td>
+                     <td width="100%"><IMG src="b.gif" width="8" height="8"/></td> 
+                   </tr> 
+                   <tr>
+                     <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                   </tr>
+                </table>
+             </td>
+           </tr>
+          <tr>
+              <td>
+                 <table border="0" align="left" cellspacing="0" cellpadding="0">
+                   <tr>
+                     <td>
+                        <table border="0" align="left" cellspacing="0" cellpadding="0">
+                            <tr>
+                              <td><IMG src="b.gif" width="8" height="8"/></td>
+                              <td>
+                                    <RADIOB nombre="rbTipoUbic" tipo="H" id="datosTitle">
+                                         <RBINPUT valor="R" check="S" onfocus="" id="datosCampos" cod="109" onclick="habilitarListaRegionZona()"/>
+                                    </RADIOB>
+                              </td>
+                              <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                            </tr>
+                            <tr>
+                              <td><IMG src="b.gif" width="8" height="8"/></td>
+                              <td nowrap="nowrap">
+                                 <COMBO nombre="cbRegion" valorinicial="" req="N" multiple="S" size="5" id="datosCampos" textoinicial=""                                         ontab="setTabFocus('cbRegion');" onshtab="setSHTabFocus('cbRegion');">
+                                    <ROWSET>
+                                    </ROWSET>
+                                 </COMBO>
+                             </td>
+                             <td><IMG src="b.gif" width="25" height="8"/></td>
+                           </tr> 
+                           <tr>
+                             <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                           </tr>
+                        </table>
+                     </td>
+                     <td>
+                        <table border="0" align="left" cellspacing="0" cellpadding="0">
+                            <tr>
+                              <td><IMG src="b.gif" width="8" height="8"/></td>
+                              <td nowrap="nowrap">
+                                    <RADIOB nombre="rbTipoUbic" tipo="H" id="datosTitle">
+                                         <RBINPUT valor="Z" check="N" onfocus="" id="datosCampos" cod="143" onclick="habilitarListaRegionZona()"/>
+                                    </RADIOB>
+                              </td>
+                              <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                            </tr>
+                            <tr>
+                              <td><IMG src="b.gif" width="8" height="8"/></td>
+                              <td nowrap="nowrap">
+                                 <COMBO nombre="cbZona" valorinicial="" req="N" multiple="S" size="5" id="datosCampos" textoinicial="" ontab="setTabFocus('cbZona');" onshtab="setSHTabFocus('cbZona');">
+                                   <ROWSET>
+                                   </ROWSET>
+                                 </COMBO>
+                              </td>
+                              <td width="100%"><IMG src="b.gif" width="8" height="8"/></td> 
+                            </tr> 
+                            <tr>
+                              <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                            </tr>
+                        </table>
+                     </td>
+                   </tr>
+                </table>
+             </td>
+           </tr>
+           <tr>
+              <td>
+                 <table width="597" border="0" align="left" cellspacing="0" cellpadding="0">
+                   <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td><LABELC nombre="lblTipoCliente" alto="13" filas="1" valor="" id="datosTitle" cod="1869"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td><LABELC nombre="lblSubtipoCliente" alto="13" filas="1" valor="" id="datosTitle" cod="595"/></td>
+                     <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                   </tr> 
+                   <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td nowrap="nowrap">                           
+                        <COMBO nombre="cbTipoCliente" valorinicial="" req="S" multiple="N" size="1" id="datosCampos" textoinicial="" onchange="onChangeTipoCliente();" ontab="setTabFocus('cbTipoCliente');" onshtab="setSHTabFocus('cbTipoCliente');"><!--req-->
+                          <ROWSET>
+                          </ROWSET>
+                        </COMBO>
+                     </td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td nowrap="nowrap">                           
+                        <COMBO nombre="cbSubtipoCliente" valorinicial="" req="N" multiple="N" size="1" id="datosCampos" textoinicial="" onchange="onChangeSubtipoCliente();" ontab="setTabFocus('cbSubtipoCliente');" onshtab="setSHTabFocus('cbSubtipoCliente');">
+                          <ROWSET>
+                          </ROWSET>
+                        </COMBO>
+                     </td>
+                     <td width="100%"><IMG src="b.gif" width="8" height="8"/></td> 
+                   </tr> 
+                   <tr>
+                     <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                   </tr>
+                </table>
+             </td>
+           </tr>
+           <tr>
+              <td>
+                 <table width="597" border="0" align="left" cellspacing="0" cellpadding="0">
+                   <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td><LABELC nombre="lblTipoClasificacion" alto="13" filas="1" valor="" id="datosTitle" cod="756"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td><LABELC nombre="lblClasificacion" alto="13" filas="1" valor="" id="datosTitle" cod="550"/></td>
+                     <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                   </tr> 
+                   <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td nowrap="nowrap">                           
+                        <COMBO nombre="cbTipoClasificacion" valorinicial="" req="N" multiple="N" size="1" id="datosCampos" textoinicial="" onchange="onChangeTipoClasificacion();" ontab="setTabFocus('cbTipoClasificacion');" onshtab="setSHTabFocus('cbTipoClasificacion');">
+                          <ROWSET>
+                          </ROWSET>
+                        </COMBO>
+                     </td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td nowrap="nowrap">                           
+                        <COMBO nombre="cbClasificacion" valorinicial="" req="N" multiple="N" size="1" id="datosCampos" textoinicial="" ontab="setTabFocus('cbClasificacion');" onshtab="setSHTabFocus('cbClasificacion');">
+                          <ROWSET>
+                          </ROWSET>
+                        </COMBO>
+                     </td>
+                     <td width="100%"><IMG src="b.gif" width="8" height="8"/></td> 
+                   </tr> 
+                   <tr>
+                     <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                   </tr>
+                </table>
+             </td>
+           </tr>          
+           <tr>
+              <td>
+                 <table width="597" border="0" align="left" cellspacing="0" cellpadding="0">
+                   <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td><LABELC nombre="lblLimiteVenta" alto="13" filas="1" valor="" id="datosTitle" cod="1428"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td><LABELC nombre="lblControlStock" alto="13" filas="1" valor="" id="datosTitle" cod="1451"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td><LABELC nombre="lblControlStockPorcentual" alto="13" filas="1" valor="" id="datosTitle" cod="2338"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td><LABELC nombre="lblControlLiquidacion" alto="13" filas="1" valor="" id="datosTitle" cod="1429"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td><LABELC nombre="lblUltimasNoticias" alto="13" filas="1" valor="" id="datosTitle" cod="1436"/></td>
+                     <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                   </tr> 
+                   <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td nowrap="nowrap"><CTEXTO nombre="txtLimiteVenta" id="datosCampos" max="13" tipo="" onchange="" req="N" size="14" valor="" validacion="" ontab="setTabFocus('txtLimiteVenta');" onshtab="setSHTabFocus('txtLimiteVenta');"/></td>                  
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td nowrap="nowrap"><CTEXTO nombre="txtControlStock" id="datosCampos" max="13" tipo="" onchange="" req="N" size="14" valor="" validacion="" ontab="setTabFocus('txtControlStock');" onshtab="setSHTabFocus('txtControlStock');"/></td>                  
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td nowrap="nowrap" class="datosCampos"><CTEXTO nombre="txtControlStockPorcentual" id="datosCampos" max="7" tipo="" onchange="" req="N" size="8" valor="" validacion="" ontab="setTabFocus('txtControlStockPorcentual');" onshtab="setSHTabFocus('txtControlStockPorcentual');"/>%</td>                  
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td><CHECKBOX check="" id="" msjreq="" nombre="chkControlLiquidacion" onclick="" onfocus="" readonly="" req="" tabindex="1" texto="" validacion="" ontab="setTabFocus('chkControlLiquidacion');" onshtab="setSHTabFocus('chkControlLiquidacion');"/></td> 
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td><CHECKBOX check="" id="" msjreq="" nombre="chkUltimasNoticias" onclick="" onfocus="" readonly="" req="" tabindex="1" texto="" validacion="" ontab="setTabFocus('chkUltimasNoticias');" onshtab="setSHTabFocus('chkUltimasNoticias');"/></td> 
+                     <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                   </tr> 
+                   <tr>
+                     <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                   </tr>
+                </table>
+             </td>
+           </tr>                                                                                                                
+         </table> 
+         </fieldset>
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+         <td><IMG src="b.gif"/></td>
+         <td>
+           <fieldset>
+             <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">         
+                <tr>
+                  <td class="botonera">
+                    <BOTON nombre="btnAnadir" ID="botonContenido" tipo="html" accion="onClickAnyadir();" estado="false" cod="404" ontab="setTabFocus('btnAnadir');" onshtab="setSHTabFocus('btnAnadir');"/>
+                    
+                  </td>
+                </tr>    
+             </table>         
+           </fieldset>
+         </td>
+         <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr> 
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="756" ><IMG src="b.gif"/></td>
+      <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+         <!-- y="507"-->
+    <LISTAEDITABLE nombre="listado1" ancho="600" alto="317" x="12" y="540" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+         <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+         <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+         <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+      <LINEAS>
+         <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="1" horizTitulo="1" horizBase="1"/> 
+         <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00135" ID="datosTitle" />
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+         <COL ancho="100" minimizable="S" minimizada="N" oculta="S"/> <!-- 0 ID-->
+         <COL ancho="150" minimizable="S" minimizada="N" oculta="S"/> <!-- 1 oidcodigoventa -->
+         <COL ancho="80" minimizable="S" minimizada="N" oculta="N"/> <!-- 2 codigoventa -->
+         <COL ancho="200" minimizable="S" minimizada="N"/> <!-- 3 Desc.SAP SiCC20070284 -->
+         <COL ancho="80" minimizable="S" minimizada="N" oculta="N"/> <!-- 4 catalogo -->
+         <COL ancho="80" minimizable="S" minimizada="N" oculta="N"/> <!-- 5 numpag -->
+         <COL ancho="150" minimizable="S" minimizada="N" oculta="S"/> <!-- 6 oidregion -->
+         <COL ancho="150" minimizable="S" minimizada="N" oculta="N"/> <!-- 7 region -->
+         <COL ancho="150" minimizable="S" minimizada="N" oculta="S"/> <!-- 8 oizona -->
+         <COL ancho="150" minimizable="S" minimizada="N" oculta="N"/> <!-- 9 zona -->
+         <COL ancho="150" minimizable="S" minimizada="N" oculta="S"/> <!-- 10 oidtipoclien -->
+         <COL ancho="150" minimizable="S" minimizada="N" oculta="N"/> <!-- 11 tipocliente -->
+         <COL ancho="150" minimizable="S" minimizada="N" oculta="S"/> <!-- 12 oidsubtipoclien -->
+         <COL ancho="120" minimizable="S" minimizada="N" oculta="N"/> <!-- 13 subtipoclien-->
+         <COL ancho="120" minimizable="S" minimizada="N" oculta="S"/> <!-- 14 oidtipoclasificacion -->
+                  <COL ancho="120" minimizable="S" minimizada="N" oculta="N"/> <!-- 15 tipoclasificacion -->
+                  <COL ancho="120" minimizable="S" minimizada="N" oculta="S"/> <!-- 16 oidclasificacion -->
+                  <COL ancho="120" minimizable="S" minimizada="N" oculta="N"/> <!-- 17 clasificacion -->
+                  <COL ancho="120" minimizable="S" minimizada="N" oculta="N"/> <!-- 18 limiteventa -->
+                  <COL ancho="120" minimizable="S" minimizada="N" oculta="N"/> <!-- 19 controlstock -->
+                  <COL ancho="120" minimizable="S" minimizada="N" oculta="N"/> <!-- 20 controlporcentual -->
+                  <COL ancho="120" minimizable="S" minimizada="N" oculta="N"/> <!-- 21 controlliquidacion -->
+                  <COL ancho="120" minimizable="S" minimizada="N" oculta="N"/> <!-- 22 ultimasnoticias -->
+      </COLUMNAS>
+      <CABECERA alto="32" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+                  <COL colFondo="" ID="EstCab" cod="336"/><!-- 0  -->
+                  <COL colFondo="" ID="EstCab" cod="336"/><!-- 1  -->
+         <COL colFondo="" ID="EstCab" cod="336"/><!-- 2 codigoventa -->
+         <COL colFondo="" ID="EstCab" cod="338"/><!-- 3 Desc.SAP SiCC20070284 -->
+         <COL colFondo="" ID="EstCab" cod="452"/><!-- 4 catalogo -->
+         <COL colFondo="" ID="EstCab" cod="606"/><!-- 5 numpag -->
+                  <COL colFondo="" ID="EstCab" cod="109"/><!-- 6  -->
+         <COL colFondo="" ID="EstCab" cod="109"/><!-- 7 region -->
+                  <COL colFondo="" ID="EstCab" cod="143"/><!-- 8  -->
+                  <COL colFondo="" ID="EstCab" cod="143"/><!-- 9 zona -->
+                  <COL colFondo="" ID="EstCab" cod="393"/><!-- 10  -->
+                  <COL colFondo="" ID="EstCab" cod="393"/><!-- 11 tipocliente -->
+                  <COL colFondo="" ID="EstCab" cod="595"/><!-- 12  -->
+                  <COL colFondo="" ID="EstCab" cod="595"/><!-- 13 subtipoclien-->
+                  <COL colFondo="" ID="EstCab" cod="756"/><!-- 14  -->
+         <COL colFondo="" ID="EstCab" cod="756"/><!-- 15 tipoclasificacion -->
+                  <COL colFondo="" ID="EstCab" cod="550"/><!-- 16  -->
+                  <COL colFondo="" ID="EstCab" cod="550"/><!-- 17 clasificacion -->
+                  <COL colFondo="" ID="EstCab" cod="1428"/><!--18 limiteventa -->
+                  <COL colFondo="" ID="EstCab" cod="1451"/><!--19  controlstock -->
+                  <COL colFondo="" ID="EstCab" cod="2338"/><!--20 controlporcentual -->
+         <COL colFondo="" ID="EstCab" cod="1429"/><!--21 controlliquidacion -->
+         <COL colFondo="" ID="EstCab" cod="1436"/><!--22 ultimasnoticias -->
+      </CABECERA> 
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+              coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+              onLoad="" colorSelecc="#D0D9E8">
+                           <COL tipo="texto" ID="EstDat"/> 
+                           <COL tipo="texto" ID="EstDat2"/> 
+                           <COL tipo="texto" ID="EstDat"/> 
+                           <COL tipo="texto" ID="EstDat2"/> 
+                           <COL tipo="texto" ID="EstDat"/>
+                           <COL tipo="texto" ID="EstDat"/> 
+                           <COL tipo="texto" ID="EstDat2"/> 
+                           <COL tipo="texto" ID="EstDat"/> 
+                           <COL tipo="texto" ID="EstDat2"/> 
+                           <COL tipo="texto" ID="EstDat"/> 
+                           <COL tipo="texto" ID="EstDat2"/> 
+                           <COL tipo="texto" ID="EstDat"/> 
+                           <COL tipo="texto" ID="EstDat2"/> 
+                           <COL tipo="texto" ID="EstDat"/> 
+                           <COL tipo="texto" ID="EstDat2"/> 
+                           <COL tipo="texto" ID="EstDat"/> 
+                           <COL tipo="texto" ID="EstDat2"/> 
+                           <COL tipo="texto" ID="EstDat"/> 
+                           <COL tipo="texto" ID="EstDat2"/> 
+                           <COL tipo="texto" ID="EstDat"/> 
+                           <COL tipo="texto" ID="EstDat2"/> 
+                           <COL tipo="texto" ID="EstDat"/> 
+                           <COL tipo="texto" ID="EstDat2"/> 
+      </DATOS>
+      <ROWSET>
+      </ROWSET>
+           <!--y="801"-->
+      <PAGINADO nombre="mipgndo" ancho="600" sep="$" x="12" class="botonera" y="834" control="|" conector="" rowset="" cargainicial="N" onload="procesarPaginado(mipgndo,msgError, ultima, rowset, 'muestraLista(ultima, rowset)')">
+                  <!--y="805"-->
+         <BOTON nombre="ret1" x="37" y="838" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+                  <!--y="805"-->
+         <BOTON nombre="ava1" x="52" y="838" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>         
+      </PAGINADO>
+   </LISTAEDITABLE>
+         <!--y="805"-->
+    <BOTON nombre="primera1" x="20" y="838" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();"/>  
+         <!--y="801"-->
+    <BOTON nombre="separa" x="59" y="834" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />
+         <!--y="802"-->
+    <BOTON nombre="Modificar" x="80" y="835" ID="botonContenido" img="" tipo="html" estado="false" alt="" cod="2" accion="onClickModificar();" ontab="setTabFocus('Modificar');" onshtab="setSHTabFocus('Modificar');"/>        
+         <!--y="802"-->
+    <BOTON nombre="Eliminar" x="146" y="835" ID="botonContenido" img="" tipo="html" estado="false" alt="" cod="1254" accion="onClickEliminar();" ontab="setTabFocus('Eliminar');" onshtab="setSHTabFocus('Eliminar');"/>        
+
+         <!--y="824"-->
+ <CAPA nombre="capaEspacio" alto="12" ancho="50" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="857" zindex=""/>
+           
+ </FORMULARIO>
+
+<FORMULARIO nombre="frmContenidoEnvia" oculto="S">
+         <VAR nombre ="conectorAction" valor=""/>
+    <VAR nombre ="errCodigo" valor=""/>
+    <VAR nombre ="errDescripcion" valor=""/>    
+     <ROWSET>
+    </ROWSET>
+  </FORMULARIO>
+</PAGINA>   
+

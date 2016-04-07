@@ -1,0 +1,84 @@
+<html>
+  <head>
+    <title>SICC Belcorp</title>
+    <SCRIPT LANGUAGE="javascript">
+      window.onload = loadFrames;
+
+      var strPantallaInicio = '';
+
+      function getPantallaInicio() {
+        return strPantallaInicio;
+      }
+
+      function loadFrames() {
+        if (location.href.indexOf('?') > -1) {
+          // si se llamo al frameset con un queryString, 
+          // asumo que se hizo para pasar el destino de 
+          // alguno de los frames. Extraigo el QueryString
+          // y lo laburo para encontrar el destino de los
+          // 3 frames que son suceptibles de ser redirijidos.
+          var inicio = location.href.indexOf('?');
+          var href = location.href;
+          var queryString = href.substr(inicio + 1);
+          // se usa el "doble arroba" en lugar del "?" que pudiese 
+          // indicarse en el queryString de destino,  el
+          // doble "!!" en lugar del "&" 
+          // y el doble "__" como el =,	teniendo en
+          // cuenta que en el queryString de este frameSet, puede
+          // indicarse el queryString de mas de uno de sus frames.
+          // Ejemplo de QueryString:	//../Principal.html?contenido=LPCambiarClave@@idFuncion__F0027&iconos=LPCargarBarra@@xml__barra_perfil_usuarios_copiar##idAyuda__15
+          // donde se indica que el frame contenido debe cargar el href = LPCambiarClave?idFuncion=F0027
+          // y el frame iconos debe cargar el href = LPCargarBarra?xml=barra_perfil_usuarios_copiar&idAyuda=15
+          var arrQuery = queryString.split("&"); // aca separo los destinos de los distintos Frames
+          for (var i =0; i < arrQuery.length; i++) {
+            if (arrQuery[i] != null && arrQuery[i] != '') {
+              arrFrameDest = arrQuery[i].split('=');
+              if (arrFrameDest.length == 2) {
+                switch (arrFrameDest[0].toLowerCase()) {
+                  case 'contenido':
+                    strPantallaInicio = fixLocation(arrFrameDest[1]);
+                    frames.contenido.location.href = fixLocation(arrFrameDest[1]);
+                    break;
+                  case 'menu':
+                    frames.menu.location.href = fixLocation(arrFrameDest[1]);
+                    break;
+                  case 'iconos':
+                    frames.iconos.location.href = fixLocation(arrFrameDest[1]);
+                    break;
+                  case 'cabecera':
+                    frames.cabecera.location.href = fixLocation(arrFrameDest[1]);
+                    break;
+                }
+              }
+            }
+          }
+        }
+				try {
+					contenido.document.body.focus();
+				} catch (e) {}
+				try{
+					contenido.configurarMenu();
+				}catch(e){
+				}
+      }
+
+      function fixLocation(strLocation) {
+        strLocation = strLocation.split("@@").join("?");
+        strLocation = strLocation.split("!!").join("&");
+        strLocation = strLocation.split("__").join("=");
+        return "servlet/sicc0000jg?ON="+strLocation;
+      }
+    </SCRIPT>
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  </head>
+  <frameset rows="53,*" frameborder="NO" border="0" framespacing="0">
+    <frame name="cabecera" scrolling="NO" src="servlet/sicc0000jg?ON=LPActualizarFrame" frameborder="NO" marginwidth="0" marginheight="0" onfocus="try{contenido.document.body.focus();this.blur();}catch(e){;}" noresize/>
+    <frameset cols="155,*" frameborder="YES" border="5" framespacing="2" id="frameMenu">
+      <frame name="menu" scrolling="AUTO" resize src="" frameborder="NO" marginwidth="0" marginheight="0" />
+      <frameset rows="23,*,0" frameborder="NO" border="0" framespacing="0">
+        <frame name="iconos" scrolling="NO" src="servlet/sicc0000jg?ON=LPmenuSecundario" marginwidth="0" marginheight="0" frameborder="NO"  />
+        <frame id="contenido" name="contenido" src="servlet/sicc0000jg?ON=LPInicioBelcorp" frameborder="NO" marginwidth="0" marginheight="0" scrolling="AUTO" />
+      <frame src="" name="dat-caudi" marginwidth="0" marginheight="0" scrolling="no" frameborder="0" framespacing="0"></frameset>
+    </frameset>
+  </frameset><noframes></noframes>
+</html>

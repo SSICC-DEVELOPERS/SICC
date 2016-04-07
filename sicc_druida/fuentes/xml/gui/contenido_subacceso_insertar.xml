@@ -1,0 +1,350 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_subacceso_insertar.xml,v 1.1 2009/12/03 18:46:04 pecbazalar Exp $
+   contenido de SEG
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_subacceso_insertar" cod="020" titulo="" estilos="estilosB3.css" colorf="#F0F0F0" msgle="" onload="onLoadPag()" xml:lang="es">
+
+  <JS src="sicc_util.js"/>
+  <JS src="i18NJS.js"/>
+  <JS src="PaginacionSicc.js"/>
+  <JS src="DruidaTransactionMare.js"/>
+
+<VALIDACION>
+<ELEMENTO name="txtCodigoSubacceso" required="true" cod="31" />
+<ELEMENTO name="txtDescripcionSubacceso" required="true" cod="9"/>
+<ELEMENTO name="cbCodigoCanal" required="true" cod="7"/>
+<ELEMENTO name="cbCodigoAcceso" required="true" cod="10"/>
+</VALIDACION>  
+
+<JAVASCRIPT>        
+<![CDATA[ 
+var varNoLimpiarSICC = true;
+
+  function onLoadPag()   {
+        if (get('frmInsertarSubacceso.hcerrar')=='false'){          
+          configurarMenuSecundario("frmInsertarSubacceso");
+          configurarPagina();
+          mostrarCodigoError();
+        } else {
+          returnValue = 'guardo';
+          window.close();
+        }        
+   }
+   function mostrarCodigoError() {  
+	     
+		  var vErrCodigo = get('frmInsertarSubacceso.errCodigo');
+		  var vErrDescrip = get('frmInsertarSubacceso.errDescripcion');
+
+		  if (get('frmInsertarSubacceso.errDescripcion')!='') {
+      			var wnd = fMostrarMensajeError( vErrCodigo,vErrDescrip);
+            if (get('frmInsertarSubacceso.errCodigo')=='260020002'){
+                  //focaliza('frmInsertarSubacceso.txtCodUbigeo');
+ 
+                   iSeleccionado = new Array();         
+	                 iSeleccionado[0] = get('frmInsertarSubacceso.hidOidCanal');	       
+                   set('frmInsertarSubacceso.cbCodigoCanal',iSeleccionado);
+      
+                   iSeleccionadob = new Array();         
+	                 iSeleccionadob[0] = get('frmInsertarSubacceso.hidOidAcceso');      
+                   set('frmInsertarSubacceso.cbCodigoAcceso',iSeleccionadob);
+            }
+                  
+      }
+      	
+    }   
+   function configurarPagina()   {      
+      iSeleccionado = new Array();         
+	    iSeleccionado[0] = get('frmInsertarSubacceso.hidSelectedCanales');	       
+      set('frmInsertarSubacceso.cbCodigoCanal',iSeleccionado);
+      
+      iSeleccionadob = new Array();         
+	    iSeleccionadob[0] = get('frmInsertarSubacceso.hidSelectedAccesos');      
+      set('frmInsertarSubacceso.cbCodigoAcceso',iSeleccionadob);
+      
+      if (get('frmInsertarSubacceso.hTodosDisabled')=='true'){
+          accion('frmInsertarSubacceso.txtCodigoSubacceso','.disabled=true');
+          accion('frmInsertarSubacceso.txtDescripcionSubacceso','.disabled=true');
+          accion('frmInsertarSubacceso.cbCodigoCanal','.disabled=true');
+          accion('frmInsertarSubacceso.cbCodigoAcceso','.disabled=true');
+      }
+      if (get('frmInsertarSubacceso.hModifDisabled')=='true'){
+          set('frmInsertarSubacceso.casoDeUso','modificar');
+          accion('frmInsertarSubacceso.txtCodigoSubacceso','.disabled=true');          
+          accion('frmInsertarSubacceso.cbCodigoCanal','.disabled=true');
+          accion('frmInsertarSubacceso.cbCodigoAcceso','.disabled=true');          
+      }
+
+      if (get('frmInsertarSubacceso.casoDeUso')=='insertar'){
+          inicializarComboCanal();
+          inicializarComboAcceso();
+      }
+      if (get('frmInsertarSubacceso.casoDeUso')=='insertar') {
+          focaliza('frmInsertarSubacceso.txtCodigoSubacceso');
+      } else if (get('frmInsertarSubacceso.casoDeUso')=='modificar') {
+           focaliza('frmInsertarSubacceso.txtDescripcionSubacceso');
+      } else if (get('frmInsertarSubacceso.casoDeUso')=='detalle') {
+            //alert(get('frmInsertarSubacceso.casoDeUso'));
+            document.body.onkeydown  = inhabilitaTab;      
+            if (get('frmInsertarSubacceso.hCasoDetalle') =="eliminar") {
+                parent.frames["iconos"].txt_to("etiqueta1",GestionarMensaje("1531"));
+            }
+      } else {
+          alert("ninguno");
+      }
+   }
+   
+   function inicializarComboCanal(){
+      //carga de valores por defecto de combos
+      iSeleccionado = new Array();         
+	    iSeleccionado[0] = get('frmInsertarSubacceso.hidCanalPrevio');	       
+      set('frmInsertarSubacceso.cbCodigoCanal',iSeleccionado);      
+   }
+   
+   function inicializarComboAcceso(){
+      if (get('frmInsertarSubacceso.hidAccesoPrevio')!=''){
+        iSeleccionadob = new Array();         
+        iSeleccionadob[0] = get('frmInsertarSubacceso.hidAccesoPrevio');      
+        set('frmInsertarSubacceso.cbCodigoAcceso',iSeleccionadob);
+      }   
+   }   
+   
+   function fVolver(){
+      returnValue = 'cerrar';
+      window.close();      
+   }
+   
+   function canalOnChange(){
+    if (get("frmInsertarSubacceso.cbCodigoCanal")==''){
+        var arr = new Array(new Array("",""));
+        accion('frmInsertarSubacceso.cbCodigoAcceso','.disabled=true');
+        set_combo('frmInsertarSubacceso.cbCodigoAcceso',['','']);
+    } else {
+        accion('frmInsertarSubacceso.cbCodigoAcceso','.disabled=false');
+        var arr = new Array();
+        arr[arr.length]=new Array("oid", get("frmInsertarSubacceso.cbCodigoCanal"));
+        arr[arr.length]=new Array("oidIdioma", get('frmInsertarSubacceso.hidOidIdioma'));   
+        recargaCombo('frmInsertarSubacceso.cbCodigoAcceso', 'SEGObtenerAccesosSinFiltro', 'es.indra.sicc.util.DTOOID', arr );
+        
+    }
+   
+   }
+   
+  function guardar(){
+
+         if (!sicc_validaciones_generales()) {
+         }else{
+
+           set('frmInsertarSubacceso.hidDescripcionSubacceso',get('frmInsertarSubacceso.txtDescripcionSubacceso'));         
+           set('frmInsertarSubacceso.hidOidAcceso',get('frmInsertarSubacceso.cbCodigoAcceso'));         
+           set('frmInsertarSubacceso.hidOidCanal',get('frmInsertarSubacceso.cbCodigoCanal'));
+         
+           set('frmInsertarSubacceso.accion','guardar');         
+           set('frmInsertarSubacceso.conectorAction','LPMantenimientoSubacceso');
+         
+           eval("frmInsertarSubacceso").oculto="S";
+           enviaSICC('frmInsertarSubacceso', '', '', 'N');
+           
+         }
+   }
+   
+   function fGuardar(){
+          guardar();
+   }
+   
+   function fLimpiar(){
+
+        limpiar();
+   
+   }
+   
+   function limpiar(){
+      eval('frmInsertarSubacceso').oculto = 'N' 
+      if (get('frmInsertarSubacceso.casoDeUso')=='insertar'){
+          set('frmInsertarSubacceso.txtCodigoSubacceso','');
+          set('frmInsertarSubacceso.txtDescripcionSubacceso','');
+          inicializarComboCanal();          
+          var arr = new Array();
+          arr[arr.length]=new Array("oid", get("frmInsertarSubacceso.cbCodigoCanal"));
+          arr[arr.length]=new Array("oidIdioma", get('frmInsertarSubacceso.hidOidIdioma'));
+          asignar([['COMBO', 'frmInsertarSubacceso.cbCodigoAcceso', 'ConectorDruidaTransactionQuery', 'dtoSalida.resultado_ROWSET',
+                  formarCadenaDT('SEGObtenerAccesosSinFiltro', 'es.indra.sicc.util.DTOOID', arr), 'setearyposicionarcbacceso(datos);']]);
+          accion('frmInsertarSubacceso.cbCodigoAcceso','.disabled=false');
+          focaliza('frmInsertarSubacceso.txtCodigoSubacceso');
+          
+      } else if (get('frmInsertarSubacceso.casoDeUso')=='modificar'){          
+          set('frmInsertarSubacceso.txtDescripcionSubacceso',get('frmInsertarSubacceso.hidDescripcionSubacceso'));
+          iSeleccionado = new Array();         
+          iSeleccionado[0] = get('frmInsertarSubacceso.hidSelectedCanales');	       
+          set('frmInsertarSubacceso.cbCodigoCanal',iSeleccionado);
+
+          iSeleccionadob = new Array();         
+          iSeleccionadob[0] = get('frmInsertarSubacceso.hidSelectedAccesos');      
+          set('frmInsertarSubacceso.cbCodigoAcceso',iSeleccionadob);
+          focaliza('frmInsertarSubacceso.txtDescripcionSubacceso');
+      }
+      limpiaI18N('frmInsertarSubacceso', 1);
+   }
+   function setearyposicionarcbacceso(datos){
+          //alert(datos);
+          //setea combo acceso
+          set_combo('frmInsertarSubacceso.cbCodigoAcceso',datos, []);
+          if (get('frmInsertarSubacceso.hidAccesoPrevio')!=''){
+            //posiciona combo acceso
+            iSeleccionadob = new Array();         
+            iSeleccionadob[0] = get('frmInsertarSubacceso.hidAccesoPrevio');      
+            set('frmInsertarSubacceso.cbCodigoAcceso',iSeleccionadob);       
+          }
+   }
+
+	function shtabdescripcion(){
+		 if (get('frmInsertarSubacceso.casoDeUso')=='insertar'){
+			  focaliza('frmInsertarSubacceso.txtCodigoSubacceso');
+		 } else if(get('frmInsertarSubacceso.casoDeUso')=='modificar') {
+			  //focaliza('frmInsertarSubacceso.txtCodUbigeo');
+		 }  
+	 }
+
+
+  function persistioOk(p1, p2) {
+     set("frmInsertarSubacceso.hidOidIdioma", p1);
+     set("frmInsertarSubacceso.txtCodigoSubacceso", p2);
+     eval('frmInsertarSubacceso').oculto = 'N';
+     window.returnValue = 'guardo'; 
+     limpiar();
+  } 
+
+  function ejecucionERROR() {
+    eval('frmInsertarSubacceso').oculto = 'N';
+    focaliza('frmInsertarSubacceso.txtCodigoSubacceso');
+  }
+    
+ ]]>       
+</JAVASCRIPT>
+
+<!-- Barra Modificar subacceso cod="038"
+     Barra Consultar subacceso cod="0362"
+     Barra Eliminar subacceso cod="0363"-->
+<FORMULARIO nombre="frmInsertarSubacceso">
+
+      <VAR nombre="accion" valor=""/>
+      <VAR nombre="conectorAction" valor="LPMantenimientoSubacceso"/>
+      <VAR nombre="errCodigo" valor=""/>
+      <VAR nombre="errDescripcion" valor=""/>
+      <VAR nombre="hidOidSubacceso" valor=""/>
+      <VAR nombre="hTodosDisabled" valor="false"/>
+      <VAR nombre="hModifDisabled" valor="false"/>
+      <VAR nombre="hcerrar" valor="false"/>     
+
+      <VAR nombre="hidSelectedCanales" valor=""/>
+      <VAR nombre="hidSelectedAccesos" valor=""/>
+      <VAR nombre="hidCodigoSubacceso" valor=""/>
+      <VAR nombre="hidDescripcionSubacceso" valor=""/>
+<!--       <VAR nombre="hidDescUbigeo" valor=""/> -->
+
+      <VAR nombre="hidOidIdioma" valor=""/>
+      <VAR nombre="hidOidAcceso" valor=""/>
+      <VAR nombre="casoDeUso" valor=""/>
+      <VAR nombre="hidOidCanal" valor=""/>    
+      
+      <VAR nombre="hidCanalPrevio" valor=""/>
+      <VAR nombre="hidAccesoPrevio" valor=""/>      
+      <VAR nombre="hCasoDetalle" valor=""/>
+
+<CAPA nombre="capa1">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblDatosAlta" alto="13" filas="1" valor="" id="legend" cod="00127"/></legend>
+	 <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+          <!---primera fila-->
+              <table width="584" border="0" align="left" cellspacing="0" cellpadding="0">
+                	<tr> 
+		            <td colspan="8"><IMG src="b.gif" width="8" height="8"/></td>
+		          </tr>
+		          <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td><LABELC nombre="lblSubacceso"  alto="13" filas="1" valor="" id="datosTitle" cod="31"/></td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td><LABELC nombre="lblDescripcionSubacceso"  alto="13" filas="1" valor="" id="datosTitle" cod="9"/></td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td><LABELC nombre="lblCanales"  alto="13" filas="1" valor="" id="datosTitle" cod="7"/></td>
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td nowrap="nowrap" ><CTEXTO nombre="txtCodigoSubacceso" id="datosCampos" max="3" tipo="" onchange="" req="S" size="3" valor="" validacion="" onshtab="focaliza('frmInsertarSubacceso.cbCodigoAcceso')" /></td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td nowrap="nowrap"><CTEXTO nombre="txtDescripcionSubacceso" id="datosCampos" max="30" tipo="" onchange="" req="S" size="30" valor="" validacion="" onshtab="shtabdescripcion();"/>
+	                    	<IMG src="b.gif"/>
+                       		<IMG src="iconmultidioma.gif" width="21" height="15" onclick="levantarI18N('frmInsertarSubacceso','1');"/>
+	                    </td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td nowrap="nowrap"><COMBO nombre="cbCodigoCanal" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onchange="canalOnChange();">
+			               <ROWSET>
+			                      		
+			               </ROWSET>
+			         </COMBO> 
+			    </td>
+			    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr> 
+	                    <td colspan="9"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+                
+              </table>
+       <!---fin primera fila-->
+          </td></tr>
+          <tr><td>
+             <table width="584" border="0" align="left" cellspacing="0" cellpadding="0">
+                	<tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td><LABELC nombre="lblAccesos"  alto="13" filas="1" valor="" id="datosTitle" cod="10"/></td>
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td nowrap="nowrap"><COMBO nombre="cbCodigoAcceso" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" ontab="focaliza('frmInsertarSubacceso.txtCodigoSubacceso');">
+			               <ROWSET>
+			                      		
+			               </ROWSET>
+			         </COMBO> 
+			    </td>
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr> 
+	                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+              </table>
+            </td></tr>
+           </table>
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+   
+     <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+</FORMULARIO>
+</PAGINA>

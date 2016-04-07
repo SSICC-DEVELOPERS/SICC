@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_monto_ventas_recomendadas_mantener.xml,v 1.1 2009/12/03 18:46:08 pecbazalar Exp $
+   contenido CCC
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_monto_ventas_recomendadas_mantener" cod="0506" titulo="Mantener Monto ventas recomendadas" estilos="estilosB3.css" colorf="#F0F0F0" msgle="" onload="onLoadPag();" xml:lang="es">
+
+<JAVASCRIPT>
+<![CDATA[ 
+
+	function onLoadPag()   {        
+		DrdEnsanchaConMargenDcho('listado1',12);
+	    document.all["Cplistado1"].style.visibility='';
+		document.all["CpLin1listado1"].style.visibility='';
+        document.all["CpLin2listado1"].style.visibility='';
+        document.all["CpLin3listado1"].style.visibility='';
+        document.all["CpLin4listado1"].style.visibility='';
+        document.all["separaDiv"].style.visibility='hidden';
+        document.all["primera1Div"].style.visibility='hidden';
+        document.all["ret1Div"].style.visibility='hidden';
+        document.all["ava1Div"].style.visibility='hidden';
+               
+        eval (ON_RSZ);  
+        configurarMenuSecundario('formulario');        
+		btnProxy(7, 0);
+		btnProxy(8, 0);
+		btnProxy(9, 0);
+
+        if (get('formulario.opcionMenu') == 'Consultar Concurso') {
+			btnProxy(5, 0);
+            deshabilitar();
+        }
+		else {
+			focalizaBotonHTML('botonContenido','btnAceptar');
+		}        
+   }
+  
+   
+   function accionAceptar()  {
+        listado1.actualizaDat();
+		var datos = listado1.datos;
+		//Cleal - 21045
+		var vacio = "false";
+
+		for(var i=0; i<datos.length && vacio; i++) {
+			//alert(datos[i][4]);
+			if(datos[i][4]!="") {
+				vacio = "false";
+				break;
+			}
+			vacio = "true";
+		}
+
+		if(vacio=="false") {
+			//Se valida el tipo de dato de la columna Cantidad
+			//listado1.actualizaDat();
+
+				var retorno = sicc_valida_numero_LE('txtCantidad', GestionarMensaje("1558", null, null, null), 0, 999999999.99, 'Numerico', 'listado1', 4);
+				if(retorno==true) {
+					var listaMontoVenta = listado1Tostring();        
+					var arr = new Array();
+					arr[0] = listaMontoVenta;
+					var datos = listado1.datos;
+					var lon = listado1.datos.length;
+					returnValue = arr;
+					close();
+				}
+				else {
+					return;
+				}
+		}
+		else {
+			GestionarMensaje("INC-006");
+		}		
+   }
+   
+   function listado1Tostring(){      
+        var codigo = listado1.codigos();
+  	    var total = "";
+		listado1.actualizaDat();
+
+		var datos = listado1.datos;
+        lon = listado1.datos.length;
+
+		  // Modificado por ssantana, 26/5/2005
+		  total = "[";
+		  for (var i = 0; i < lon; i++) {
+				 var fila = datos[i];
+				 if ( i != 0 ) 
+				  	  total = total + "|";
+
+  				 for (var j = 0; j < fila.length; j++) {
+				 	  if ( j != 0)
+						   total = total + "&";
+
+					   var valor = datos[i][j]; 
+					   if ( valor != null && valor != undefined && valor != "")
+						    total = total + valor;
+					   else	 
+						    total = total + " "; 
+
+				  } // Fin for indice "j"
+
+		   } // Fin for indice "i"
+
+			total = total + "]";
+
+ 		  return total;
+	}
+    
+    function focalizaListaShTab(FILAEVENTO) {
+        if (FILAEVENTO == 0)  {
+            focalizaBotonHTML('botonContenido','btnAceptar');
+        }
+    }
+    
+    function deshabilitar() {
+        var lacolumna=3; //Ojo, las ocultas también cuentan
+        var deshabilitado=true;  // =true/false
+        
+        listado1.tiposCol[lacolumna][8]=deshabilitado;         
+        listado1.actualizaDat();
+        listado1.repinta();
+
+		document.getElementById("btnAceptar").disabled = true;
+   	}
+    
+    function fVolver() {
+        window.close();
+    }
+
+
+    function focalizaLista(){
+        if(listado1.datos.length > 0){
+            document.selection.empty();
+            var nombrelistado = "listado1";
+            var nombreTextbox = "txtCantidad";
+            var indiceFila = 0;
+
+            eval(nombrelistado+".preparaCamposDR()");
+            //focaliza('formulario.'+nombrelistado+'.'+nombreTextbox+'_'+indiceFila,'');
+            focaliza('frm'+nombrelistado+'.'+nombreTextbox+'_'+indiceFila,'');
+        }else focalizaBotonHTML('botonContenido','btnAceptar');
+    } 
+
+   
+   
+  ]]> 
+</JAVASCRIPT>
+<JS src="sicc_util.js" />
+<JS src="validaciones_sicc.js" />
+
+<FORMULARIO nombre="formulario">
+    <VAR nombre="accion" valor=""/>
+    <VAR nombre="conectorAction" valor=""/>
+    <VAR nombre="hidLstMVR" valor=""/>
+    <VAR nombre="opcionMenu" valor=""/>
+    
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="100%" ><IMG src="b.gif" width="555" height="8"/></td>
+    
+    </tr>
+ </table>
+
+  <LISTAEDITABLE nombre="listado1" ancho="531" alto="161" x="12" y="12" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+        <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+        <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+        <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+      <LINEAS>
+        <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="0" horizTitulo="1" horizBase="1"/> 
+        <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00314" ID="datosTitle" />
+       <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+        <COL ancho="30" minimizable="S" minimizada="N" oculta="S"/>
+        <COL ancho="30" minimizable="S" minimizada="N" oculta="S"/>
+        <COL ancho="15" minimizable="S" minimizada="N"/>
+        <COL ancho="10" minimizable="S" minimizada="N"/>
+      </COLUMNAS>
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+        <COL colFondo="" ID="EstCab" >oidMontoVenta</COL> 
+        <COL colFondo="" ID="EstCab" >oidTipoMontoVenta</COL>
+        <COL colFondo="" ID="EstCab" cod="9" align="center" >Descripción</COL> 
+        <COL colFondo="" ID="EstCab" cod="1172" >Cantidad</COL> 
+      </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="0" msgErrMaxSel="" 
+             coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+             onLoad="" colorSelecc="#D0D9E8">
+        <COL tipo="texto" ID="EstDat2"/>
+        <COL tipo="texto" ID="EstDat2"/>
+        <COL tipo="texto" ID="EstDat"/> 
+        <COL tipo="cajatexto" nombre="txtCantidad" size="15" max="12" IDOBJ="EstCajaDatForm" 
+        ID="EstDat2"  validacion="ValidaAlfanumerico(valor)" onshtab="focalizaListaShTab(FILAEVENTO)"/> 
+      </DATOS>
+      <ROWSET>
+	
+      </ROWSET>
+      <PAGINADO nombre="mipgndo" ancho="531" sep="$" x="12" class="botonera" y="151" control="|" conector="" rowset="" cargainicial="N">
+        
+        <BOTON nombre="ret1" x="37" y="155" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+        <BOTON nombre="ava1" x="52" y="155" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>
+        
+    </PAGINADO>
+  </LISTAEDITABLE>
+  <BOTON nombre="primera1" x="20" y="155" ID="botonContenido" img="primera_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();" />      
+  <BOTON nombre="separa" x="59" y="151" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />      
+  <BOTON nombre="btnAceptar" x="13" y="152" ID="botonContenido" tipo="html" estado="false" 
+        cod="12" accion="accionAceptar();" ontab="focalizaLista();"/>
+ <CAPA nombre="capaEspacio" alto="12" ancho="100%" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="174" zindex="">
+  </CAPA>  
+</FORMULARIO>
+</PAGINA>  

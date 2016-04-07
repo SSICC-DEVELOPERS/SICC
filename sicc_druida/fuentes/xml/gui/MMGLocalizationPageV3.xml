@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+   INDRA/CAR/mmg
+   $Id: MMGLocalizationPageV3.xml,v 1.1 2009/12/03 18:44:54 pecbazalar Exp $
+   Pagina para la determinación de las descripciones de las localizaciones en version 3
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+
+
+<PAGINA nombre="MMGLocalizationPage" titulo="Descripciones" estilos="estilos.css" colorf="#F0F0F0"
+	msgle="Descripciones" onload="initComponents()" xml:lang="es">
+	
+	<JS src="mmg.js"/>
+	<JS src="sicc_util.js"/>
+	
+	<JAVASCRIPT>
+		<![CDATA[
+		
+		//Almacena los codigos de los idomas que aparecen en la pagina
+		var codsIdiomas = new Vector();
+	
+		//Acciones a realiza cuando al cargar la página
+		function initComponents(){
+			//Ponemos el título a la barra
+			document.title = GestionarMensaje('MMGGlobal.localzation.windowtitle');
+			
+			//Cconstruimos el vector con los codigo de los idiomas 
+			//que aparecen par ir determinando los nombre de los campos
+			codsIdiomas.token('|', get('localizationFrm.languageWidgetsIds'));
+			
+			//Cargamos las descripciones que tiene el atributo
+			loadDescriptions(window.dialogArguments.entrada);
+		}
+		
+		//Nos permite cargar las descripciones del elemento. descriptions debe ser una cadena
+		//donde los elementos vayan separados por | y ,
+		function loadDescriptions(descriptionsVector){
+			for(var i=0; i < descriptionsVector.longitud; i++){
+				var nombreCampo = 'language' + descriptionsVector.ij(i,0) + 'Value';
+				set('localizationFrm.' + nombreCampo, descriptionsVector.ij(i,1));
+			}
+		}
+		
+		//Nos permite asignar al campo que ha abierto la ventana las descripciones
+		//introducidas
+		function bindDescriptions(){
+			//Validamos que se haya dado valor al menos en el idioma por defecto
+			var campoIdiomaDefecto = "language" + get('localizationFrm.defaultLanguageCode') + 'Value';
+			if(fTrim(get('localizationFrm.'+ campoIdiomaDefecto)) == "" ){
+				cdos_mostrarAlert(GestionarMensaje('MMGGlobal.localzation.defalutlanguagevalue.message') +
+					' (' + get('localizationFrm.defaultLanguageDescription') + ')');
+				return;
+			}
+			
+			//Construimos el vector con las descripciones y los idiomas
+			var descriptions = window.dialogArguments.salida;
+			for(var i=0; i < codsIdiomas.longitud; i++){
+				var nombreWidget = "language" + codsIdiomas.ij(i) + "Value";
+				var valor = " ";
+				if(get('localizationFrm.' + nombreWidget) != "") valor = get('localizationFrm.' + nombreWidget);
+				descriptions.agregar([codsIdiomas.ij(i), valor]);
+			}
+		
+			//Cerramos la ventana
+			window.close();
+		}
+		
+		//Acciones a realizar cunado se cancela
+		function cancel(){
+			//Simplemente cerramos la venta
+			window.close();
+		}
+		]]>
+	</JAVASCRIPT>
+
+	<FORMULARIO nombre="localizationFrm" oculto="N">	
+		<VAR nombre="languageWidgetsIds" valor=""/> <!--Cadena con los codigos de los idiomas que hays (separados por |)  -->
+		<VAR nombre="atributteName" valor=""/> <!--El nombre del atributo que se está internacionalizando -->
+		<VAR nombre="defaultLanguageCode" valor=""/> <!--El idioma pro defecto asociado al usuario -->
+		<VAR nombre="defaultLanguageDescription" valor=""/> <!--la descripción del idioma por defecto asociado al usuario -->		
+		<VAR nombre="size" valor=""/> <!--El tamaño máximo de que puede tomar la descripción-->
+		
+		<!--Capa con los elementos de la cabecera-->
+		<CAPA nombre="capaPrototipo">
+			<TABLE width="100%" height="23" bgcolor="#496A9A" cellpadding="0" cellspacing="0" border="0">
+			  <TR>
+				 <TD><IMG src="flechaTitle.jpg" width="38" height="23" /></TD>
+	   		 <TD class="titulos" valign="middle" width="100%">  
+	   		 	<LABELC nombre="lblTitulo" ancho="300" alto="23" filas="1" id="titulos" cod="MMGGlobal.localization.title.label"  />
+					</TD>
+		  	</TR>
+			</TABLE>
+	
+	
+		  <!--Tabla de campos de internacionalización-->
+		  <TABLE width="100%" border="0" cellspacing="0" cellpadding="0">
+		    <TR>
+		       	<TD width="12" align="center"><IMG src="b.gif" width="12" height="12"/></TD>
+			     	<TD width="750" ><IMG src="b.gif"/></TD>
+		      	<TD width="12" ><IMG src="b.gif" width="12" height="1"/></TD>
+		    </TR>
+	
+		    <TR> 
+		      <TD><IMG src="b.gif"/></TD>
+		      <TD>
+						<FIELDSET>
+							<LEGEND class="legend">
+								<LABEL nombre="lblIdiomas" x="24" y="29" cod="MMGGlobal.localization.legend.label" id="legend" />
+							</LEGEND>
+							
+							<TABLE nombre="localizationTable">
+                <TR nombre="localizationTableGapsTrId">
+                   <TD nombre="localizationTableLeftGapTdId" rowspan=""><IMG src="b.gif" width="8" height="8"/></TD>
+                   <TD><IMG src="b.gif" width="8" height="8"/></TD>
+                   <TD nombre="localizationTableRightGapTdId" rowspan=""><IMG src="b.gif" width="8" height="8"/></TD>
+                </TR> 
+                
+                <!--Aqui iran las filas correspomndientes a cada idioma-->
+								
+							</TABLE>
+	
+	        	</FIELDSET>
+	      	</TD>
+	      	<TD><IMG src="b.gif" /></TD>
+	    	</TR> 
+				
+				<!--Botonera-->
+	    	<TR> 
+	        <TD><IMG src="b.gif"/></TD>
+	        <TD>
+				 		<FIELDSET>
+					    <TABLE width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+		      			<TR>
+		        			<TD class="botonera">
+									  <BOTON nombre="btnAceptar" ID="botonContenido" tipo="html" accion="bindDescriptions();" estado="false" cod="MMGGlobal.localization.bindbutton.label"/>
+									  <BOTON nombre="btnCancelar" ID="botonContenido" tipo="html" accion="cancel();" estado="false" cod="MMGGlobal.localization.cancelbutton.label"/>
+					        </TD>
+	    					</TR>    
+		    			</TABLE>        
+				  	</FIELDSET>
+	        </TD>
+	        <TD><IMG src="b.gif" width="8" height="12"/></TD>
+	      </TR>   
+	      
+		    <TR>
+	       	<TD width="12" align="center"><IMG src="b.gif" width="12" height="12"/></TD>
+		     	<TD width="750" ><IMG src="b.gif"/></TD>
+	      	<TD width="12" ><IMG src="b.gif" width="12" height="1"/></TD>
+	    	</TR>
+	  	</TABLE>
+		</CAPA>		
+	</FORMULARIO>
+</PAGINA>
+

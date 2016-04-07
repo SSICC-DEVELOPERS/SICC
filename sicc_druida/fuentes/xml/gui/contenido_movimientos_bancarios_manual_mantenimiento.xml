@@ -1,0 +1,592 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_movimientos_bancarios_manual_mantenimiento.xml,v 1.1 2009/12/03 18:46:00 pecbazalar Exp $
+   contenido CCC
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_movimientos_bancarios_manual_mantenimiento" cod="0356" 
+titulo="Generar Movimientos bancarios Manualmente" estilos="estilosB3.css" colorf="#F0F0F0" 
+msgle="Generar Movimientos bancarios manualmente" onload="onLoadPag();" xml:lang="es">
+
+<JS src="sicc_util.js"/>
+<JS src="PaginacionSicc.js"/>
+<JS src="DruidaTransactionMare.js"/>
+
+<JAVASCRIPT>
+  <![CDATA[ 
+var varNoLimpiarSICC = true;
+
+function onLoadPag(){
+		cargaCombos();
+		configurarMenuSecundario('frmMovimientoBancario'); 
+		//deshabilitarHabilitarBoton('botonContenido','btnProcesar','D');
+		set("frmMovimientoBancario.boton","D");
+		var opcion = get("frmMovimientoBancario.accion");
+		accion("frmMovimientoBancario.cbCCC",".disabled=true");
+		set("frmMovimientoBancario.cuenta", "S");
+
+		focaliza("frmMovimientoBancario.txtFechaMovimiento");
+		
+		if (get('frmMovimientoBancario.errDescripcion')!='') {
+				 var wnd = fMostrarMensajeError(get('frmMovimientoBancario.errCodigo'), get('frmMovimientoBancario.errDescripcion'));
+		}
+}
+
+function cargaCombos(){
+	// Combo Horario 
+	var opcion1 = GestionarMensaje(1132);
+	var opcion2 = GestionarMensaje(1133);
+
+	combo_add('frmMovimientoBancario.cbHorario',"0", opcion2);
+	combo_add('frmMovimientoBancario.cbHorario',"1", opcion1);
+}
+
+function focalizaTab(){
+
+	/* SCS por incidencia nro.: BELC300022313 y segun tony el boton "Procesar Lote", debe desaparecer
+
+	var bt = get("frmMovimientoBancario.boton");
+	if(bt =="D") {
+		focaliza("frmMovimientoBancario.txtFechaMovimiento");
+	  }
+	  else {
+		focalizaBotonHTML('botonContenido','btnProcesar');
+	  }
+	  */
+	  focaliza("frmMovimientoBancario.txtFechaMovimiento");
+}
+
+function focalizaDetalle(){
+	focaliza("frmMovimientoBancario.cbTipoTransaccion");
+}
+
+function cargarLista(){
+	//Invocamos a LPInsertarMovimientos pasándole el array de oids (VAR). 
+	sicc_cambiar_estado("cbTipoTransaccion",false);   
+	sicc_cambiar_estado("txtImportePago",false);   
+	sicc_cambiar_estado("txtCodConsultoraReal",false);   
+	set("frmMovimientoBancario.procesaLote", "SI");
+	var oid = get("frmMovimientoBancario.oids");
+	set("frmMovimientoBancario.conectorAction","LPInsertarMovimientos");
+	set("frmMovimientoBancario.accion","procesarLote");
+	enviaSICC('frmMovimientoBancario');		
+	
+}
+
+function buscarCliente(){	
+    var obj = new Object();
+    var whnd = mostrarModalSICC('LPBusquedaRapidaCliente','',obj);
+
+    if(whnd==null){
+         }else{
+				var oid = whnd[0];
+                var cod = whnd[1];
+                set("frmMovimientoBancario.txtCodConsultoraReal", cod);
+				set("frmMovimientoBancario.oids", oid);
+         }
+}
+
+function focalizaShTab(){
+
+        /* SCS por incidencia nro.: BELC300022313 y segun tony el boton "Procesar Lote", debe desaparecer
+	var bt = get("frmMovimientoBancario.boton");
+	if(bt =="D") {
+		focaliza("frmMovimientoBancario.areatxtObservaciones");
+	  }
+	  else {	
+		focalizaBotonHTML('botonContenido','btnProcesar');
+	  }
+	  */
+	  focaliza("frmMovimientoBancario.areatxtObservaciones");
+}
+
+function fLimpiar(){
+	//-------------------------- Datos Cabecera ------------------------------//
+	set("frmMovimientoBancario.txtFechaMovimiento", "");	
+	set("frmMovimientoBancario.cbEmpresa", "");
+	var aCombo = new Array(new Array("",""));
+    set_combo("frmMovimientoBancario.cbCCC",aCombo, []);
+	//------------------------------------------------------------------------//
+	//set("frmMovimientoBancario.lbldtConsecutivo", "1");
+	set("frmMovimientoBancario.cbTipoTransaccion", "");
+	set("frmMovimientoBancario.txtImportePago", "");
+	set("frmMovimientoBancario.txtCodConsultoraReal", "");
+	set("frmMovimientoBancario.txtNFacturaBoleta", "");
+	set("frmMovimientoBancario.txtDigitoChequeo", ""); 
+	set("frmMovimientoBancario.txtNCupon", "");
+	set("frmMovimientoBancario.txtOficina", "");
+	set("frmMovimientoBancario.txtNombreOficina", "");
+	set("frmMovimientoBancario.cbHorario", "");
+	set("frmMovimientoBancario.areatxtObservaciones", "");
+	set("frmMovimientoBancario.oids","");	
+
+	setMV("frmMovimientoBancario.txtFechaMovimiento", "c");
+	setMV("frmMovimientoBancario.cbEmpresa", "c");
+	setMV("frmMovimientoBancario.cbTipoTransaccion", "c");
+	setMV("frmMovimientoBancario.cbCCC", "c");
+	setMV("frmMovimientoBancario.txtImportePago", "c");
+	setMV("frmMovimientoBancario.txtCodConsultoraReal", "c");
+	set("frmMovimientoBancario.consecutivo", 1);
+	
+	//--- Habilitacion de los campos y deshabilita el btn Procesar Lote -----//
+  
+	accion("frmMovimientoBancario.txtFechaMovimiento",".disabled=false");
+	accion("frmMovimientoBancario.cbEmpresa", ".disabled=false");
+	//deshabilitarHabilitarBoton('botonContenido','btnProcesar','D');	
+	set("frmMovimientoBancario.boton", "D");
+	
+	focaliza("frmMovimientoBancario.txtFechaMovimiento"); 
+	accion("frmMovimientoBancario.cbCCC",".disabled=true");
+	set("frmMovimientoBancario.cuenta", "S");
+
+	set("frmMovimientoBancario.conectorAction","LPInsertarMovimientos");
+	set("frmMovimientoBancario.accion","limpiar");
+	enviaSICC('frmMovimientoBancario');
+}
+
+function fGuardar(){	
+
+ var sepMiles = get("formulario.hSepMiles");
+ var sepDec = get("formulario.hSepDec");
+ 
+ var formatoFecha = get("frmMovimientoBancario.hFormatoFechaPais" );
+ var fec = get("frmMovimientoBancario.txtFechaMovimiento");
+
+	if (!EsFechaValida_SICC(fec , "frmMovimientoBancario") ){
+			GestionarMensaje("1006", formatoFecha, null, null);
+			focaliza("frmMovimientoBancario.txtFechaMovimiento");
+			return false;
+		}else
+				var OK = true;
+	
+	if (sicc_validaciones_generales() && (OK) ){
+		//set("frmMovimientoBancario.oids", oid);
+		set("frmMovimientoBancario.conectorAction","LPInsertarMovimientos");
+		set("frmMovimientoBancario.accion","guardar");
+		enviaSICC('frmMovimientoBancario');		
+	}	
+}
+
+
+
+function empresaOnChange(){ 
+	var arr = new Array();
+	var emp = get('frmMovimientoBancario.cbEmpresa');
+	set('frmMovimientoBancario.oids' + emp);
+    arr[arr.length]=new Array("oid", emp);	
+	accion("frmMovimientoBancario.cbCCC",".disabled=false");
+	set("frmMovimientoBancario.cuenta", "N");
+	recargaCombo('frmMovimientoBancario.cbCCC', 'CCCRecargarCCEmpresa', 'es.indra.sicc.util.DTOOID', arr);	
+} 
+
+function errorAlGuardar(){ 	
+	var ok = cdos_mostrarConfirm(GestionarMensaje("UICCC0037"));
+		if(!ok){
+			set("frmMovimientoBancario.conectorAction","LPInsertarMovimientos");
+		   set("frmMovimientoBancario.accion","");
+			eval('frmMovimientoBancario').oculto="N";
+		   enviaSICC('frmMovimientoBancario');			
+		}else{
+			set("frmMovimientoBancario.flag", "graba");
+			fGuardar();
+		}
+		//focaliza("frmMovimientoBancario.txtCodConsultoraReal"); 	
+
+}
+
+
+
+var oid;
+var i = 0;
+arrAux = new Array();
+
+function modificarOid(){		
+	/*oid = get("frmMovimientoBancario.concatena") + "," ;
+	arrAux[i] = oid;
+	alert('contenido de oid>>> ' + oid);
+	set("frmMovimientoBancario.oids", oid);
+	i = i + 1;*/
+	var cad="";
+	 if(get("frmMovimientoBancario.cad")!="")
+		cad = get("frmMovimientoBancario.cad");
+	//alert('oids: ' + cad);
+	
+}
+
+function seteaValores(valorConse, oidMovimiento){
+		//alert("recibo: "+oidMovimiento);
+		set("frmMovimientoBancario.ventanaOculta", "S");
+		accion('frmMovimientoBancario.cbEmpresa', '.disabled=true'); 
+		accion('frmMovimientoBancario.txtFechaMovimiento','.disabled=true');
+		accion('frmMovimientoBancario.cbCCC','.disabled=true');		
+		set("frmMovimientoBancario.consecutivo" , valorConse);
+		var oid = get("frmMovimientoBancario.procesosOids") + "," ;
+
+		//alert(' oids >>>> ' + get("frmMovimientoBancario.oids"));
+		set("frmMovimientoBancario.concatena" , oidMovimiento);
+		set("frmMovimientoBancario.cad" , oidMovimiento);
+		set("frmMovimientoBancario.boton", "A");
+		txt_to('lbldtConsecutivo', valorConse);
+		set("frmMovimientoBancario.cbTipoTransaccion", "");
+		set("frmMovimientoBancario.txtImportePago", "");
+		set("frmMovimientoBancario.txtCodConsultoraReal", "");
+		set("frmMovimientoBancario.txtNFacturaBoleta", "");
+		set("frmMovimientoBancario.txtDigitoChequeo", ""); 
+		set("frmMovimientoBancario.txtNCupon", "");
+		set("frmMovimientoBancario.txtOficina", "");
+		set("frmMovimientoBancario.txtNombreOficina", "");
+		set("frmMovimientoBancario.cbHorario", "");
+		set("frmMovimientoBancario.areatxtObservaciones", "");
+		set("frmMovimientoBancario.flag", "");
+		focaliza("frmMovimientoBancario.cbTipoTransaccion");
+		//deshabilitarHabilitarBoton('botonContenido','btnProcesar','A');	 		
+		modificarOid();
+}
+
+
+function shTabBtn(){
+        /* SCS por incidencia nro.: BELC300022313 y segun tony el boton "Procesar Lote", debe desaparecer 
+	var bt = get("frmMovimientoBancario.boton");
+	var cta = get("frmMovimientoBancario.cuenta");
+	
+	if(bt =="D") {
+		if (cta == "S"){
+			focaliza("frmMovimientoBancario.cbEmpresa");
+		}else{
+			focaliza("frmMovimientoBancario.cbCCC");
+		}
+	}
+	else {	
+		focalizaBotonHTML('botonContenido','btnProcesar');
+	}
+	*/
+	var cta = get("frmMovimientoBancario.cuenta");
+	
+	if (cta == "S"){
+		focaliza("frmMovimientoBancario.cbEmpresa");
+	}else{
+		focaliza("frmMovimientoBancario.cbCCC");
+	}
+
+}
+
+function procesoLote(){
+}
+
+
+
+function seteaValoresLimpiar(lote){
+	txt_to('lbldtNLote', lote);
+	set("frmMovimientoBancario.lote", lote);
+	txt_to('lbldtConsecutivo', 1);
+	set("frmMovimientoBancario.procesaLote", T);
+	//set("frmMovimientoBancario.consecutivo" , 1);	
+	
+}
+
+]]> 
+
+<VALIDACION>
+	<ELEMENTO name="txtFechaMovimiento" required="true" cod="651"/>
+	<ELEMENTO name="cbEmpresa" required="true" cod="57"/>
+	<ELEMENTO name="cbCCC" required="true" cod="637"/>
+	<ELEMENTO name="cbTipoTransaccion" required="true" cod="702"/> 
+	<ELEMENTO name="txtImportePago" required="true" cod="670"  min="-9999999999.99" max="9999999999.99" format="n"/>	
+	<ELEMENTO name="txtCodConsultoraReal" required="true" cod="629"/>
+	<ELEMENTO name="txtNFacturaBoleta" required="false" cod="678" format="n" min="0" max ="9999999999"/>
+	<ELEMENTO name="txtDigitoChequeo" required="false" cod="1193" format="n" min="0" max ="99"/>
+	<ELEMENTO name="txtNCupon" required="false" cod="675" format="n" min="0" max ="999999999999"/>
+	<ELEMENTO name="txtOficina" required="false" cod="688" format="n" min="0" max ="99999"/>
+	<ELEMENTO name="txtNombreOficina" required="false" cod="687"/>		
+</VALIDACION>
+
+</JAVASCRIPT>
+
+
+<FORMULARIO nombre="frmMovimientoBancario" oculto="S">
+
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="accion" valor=""/>
+<VAR nombre="errCodigo" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>
+
+<VAR nombre="ventanaOculta" valor=""/>
+
+<VAR nombre="hidConsultora" valor=""/>
+<VAR nombre="oids" valor=""/>
+<VAR nombre="hcbEmpresa" valor=""/>
+<VAR nombre="boton" valor=""/>
+<VAR nombre="hcbCCC" valor=""/>
+<VAR nombre="hcbTipoTransaccion" valor=""/>
+<VAR nombre="hcbHorario" valor=""/>
+<VAR nombre="hcbEstatus" valor=""/>
+<VAR nombre="htxtIDProceso" valor=""/>
+<VAR nombre="hFormatoFechaPais" valor=""/>
+<VAR nombre="consecutivo" valor="" />
+<VAR nombre="procesaLote" valor=""/>
+<VAR nombre="cuenta" valor="" />
+<VAR nombre="lote" valor="" />
+<VAR nombre="procesosOids" valor=""/>
+<VAR nombre="concatena" valor=""/>
+<VAR nombre="cad" valor=""/>
+<VAR nombre="flag" valor=""/>
+
+<VAR nombre="hSepMiles" valor=""/>
+<VAR nombre="hSepDec" valor=""/>
+
+<CAPA nombre="capaPrototipo">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+<!--**************************-->
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblDatosPrincipales"  alto="13" filas="1" cod="00156" id="legend" /></legend>
+	  <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+
+          <!---primera fila-->
+               <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                  <td><IMG src="b.gif" width="8" height="8"/></td>
+                  <td><LABELC nombre="lblNLote"  alto="13" filas="1" valor="" id="datosTitle" cod="680"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblFechaMovimiento" alto="13" filas="1" valor="" id="datosTitle" cod="651"/></td>
+                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblEmpresa"  alto="13" filas="1" valor="" id="datosTitle" cod="57"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lbldtNLote"  alto="13" filas="1" valor="" id="datosCampos" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap">
+					<CTEXTO nombre="txtFechaMovimiento" id="datosCampos" max="10" tipo="" onchange="" req="S" size="12" valor="" validacion="" onshtab="focalizaShTab();"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap">
+						<COMBO nombre="cbEmpresa" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onchange="empresaOnChange();" >
+                      <ROWSET>
+                      	
+                      </ROWSET>
+                    </COMBO> </td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+       <!---fin primera fila-->
+      </td></tr>
+      <tr><td>
+          <!---primera fila-->
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                
+                <tr>
+                  <td><IMG src="b.gif" width="8" height="8"/></td>
+                  <td><LABELC nombre="lblCCC"  alto="13" filas="1" valor="" id="datosTitle" cod="637"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"> 
+					<COMBO nombre="cbCCC" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="">
+                      <ROWSET>
+                      	
+                      </ROWSET>
+                    </COMBO> </td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+       <!---fin primera fila-->
+      </td></tr>
+      </table>
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr>
+    	<td colspan="4"><IMG src="b.gif" width="8" height="15"/></td>
+    </tr>
+        <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblDatosPrincipales1" alto="13" filas="1" cod="00133" id="legend" /></legend>
+	 <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+          <!---primera fila-->
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                  <td><IMG src="b.gif" width="8" height="8"/></td>
+                  <td><LABELC nombre="lblConsecutivo" alto="13" filas="1" valor="" id="datosTitle" cod="634"/></td>
+                  <td><IMG src="b.gif" width="25" height="8"/></td>
+                  <td><LABELC nombre="lblTipoTransaccion" alto="13" filas="1" valor="" id="datosTitle" cod="702"/></td>
+                  <td><IMG src="b.gif" width="25" height="8"/></td>
+                  <td><LABELC nombre="lblImportePago"  alto="13" filas="1" valor="" id="datosTitle" cod="670"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lbldtConsecutivo" alto="13" filas="1" valor="" id="datosCampos" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap"> 
+					<!-- Se modifica por la incidencia 9592-->
+						<COMBO nombre="cbTipoTransaccion" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onshtab="shTabBtn();">
+                      <ROWSET>
+                      	
+                      </ROWSET>
+                    </COMBO> </td>
+                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap"><CTEXTO nombre="txtImportePago" id="datosCampos" max="13" tipo="" onchange="" req="S" size="17" valor="" validacion="" /></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+       <!---fin primera fila-->
+       </td></tr>
+       <tr><td>
+      <!---segunda fila-->
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+             
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td colspan="3"><LABELC nombre="lblCodConsultoraReal" alto="13" filas="1" valor="" id="datosTitle" cod="629"/></td>
+                   <td><IMG src="b.gif" /></td>
+                  <td><LABELC nombre="lblNFacturaBoleta" alto="13" filas="1" valor="" id="datosTitle" cod="678"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblDigitoChequeo"  alto="13" filas="1" valor="" id="datosTitle" cod="1193"/></td>
+                  <td><IMG src="b.gif" width="25" height="8"/></td>
+                  <td><LABELC nombre="lblNCupon" alto="13" filas="1" valor="" id="datosTitle" cod="675"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"><CTEXTO nombre="txtCodConsultoraReal" id="datosCampos" max="15" tipo="" onchange="" req="S" size="20" valor="" validacion="" /></td>
+                   <td>	<IMG src="b.gif" width="8" height="8" /></td>
+                   <td><IMG src="iconBuscar.gif" onclick="buscarCliente();"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><CTEXTO nombre="txtNFacturaBoleta" id="datosCampos" max="10" tipo="" onchange="" req="N" size="13" valor="" validacion="" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><CTEXTO nombre="txtDigitoChequeo" id="datosCampos" max="2" tipo="" onchange="" req="N" size="2" valor="" validacion="" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><CTEXTO nombre="txtNCupon" id="datosCampos" max="12" tipo="" onchange="" req="N" size="16" valor="" validacion="" /></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+	        <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+              </table>
+        <!---segunda fila-->
+        </td></tr>
+       <tr><td>
+      <!---segunda fila-->
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+             
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblOficina"  alto="13" filas="1" valor="" id="datosTitle" cod="688"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblNombreOficina" alto="13" filas="1" valor="" id="datosTitle" cod="687"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblHorario" alto="13" filas="1" valor="" id="datosTitle" cod="662"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><CTEXTO nombre="txtOficina" id="datosCampos" max="5" tipo="" onchange="" req="N" size="6" valor="" validacion="" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><CTEXTO nombre="txtNombreOficina" id="datosCampos" max="30" tipo="" onchange="" req="N" size="31" valor="" validacion="" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap"> 
+				    <COMBO nombre="cbHorario" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                      <ROWSET>
+                     
+                      </ROWSET>
+                    </COMBO></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+	        <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+              </table>
+        <!---segunda fila-->
+        </td></tr>
+      
+       <tr><td>
+         <!--sexta fila-->
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblObservaciones"  alto="13" filas="1" valor="" id="datosTitle" cod="169"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap">
+                   	 <AREATEXTO cols="50" id="datosCampos" msjreq="" nombre="areatxtObservaciones" readonly="N"
+                       req="N" rows="3" tabindex="2" valor="" max="100" ontab="focalizaTab();"/>
+                   </td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+          <!---fin sexta fila-->   
+          </td></tr>
+         </table>  
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <!--<fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnProcesar" ID="botonContenido" tipo="html" accion="cargarLista();" estado="false" cod="1317" ontab="focalizaDetalle();"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>-->
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr> 
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+ </CAPA>
+ </FORMULARIO>
+</PAGINA>  

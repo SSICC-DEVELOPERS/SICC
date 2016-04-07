@@ -1,0 +1,545 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_periodos_crear_peru.xml,v 1.1 2009/12/03 18:44:52 pecbazalar Exp $
+   contenido CRA
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_periodos_crear_peru" estilos="estilosB3.css" colorf="#F0F0F0" msgle="Crear Períodos" onload="onLoadPag();" xml:lang="es" cod="095">
+
+<!--Modificar período cod="096"-->
+<!--Eliminar período cod="097"-->
+
+        		
+ <JS src="sicc_util.js"/>   
+ <JS src="PaginacionSicc.js"/>   
+ <JS src="DruidaTransactionMare.js"/>    
+                                                          
+  <JAVASCRIPT>  
+  <![CDATA[
+
+		   function onLoadPag()   {        
+					// maneja la visibilidad de la lista de periodos
+alert("X 1 ");
+				   DrdEnsanchaConMargenDcho('listado1',12);                    
+                   if (get('frmCrearPeriodo.hListadoDisponible') == "SI") {   
+                            mostrarListaEditable();   
+                   } else {    
+                            ocultarListaEditable();   
+                   }   
+                   eval (ON_RSZ);     
+alert("X 2 ");
+
+				   configurarMenuSecundario("frmCrearPeriodo");   
+alert("X 3 ");
+                   if(get('frmCrearPeriodo.hCasoDeUso') == 'modificar'){    
+                            if(get('frmCrearPeriodo.errCodigo')!='') {    
+                                     GestionarMensaje(get('frmCrearPeriodo.errCodigo'), 'frmConsultarPeriodos.txtDescripcion');    
+                            }   
+                   }    
+alert("X 4 ");
+
+                   txt_to('lblValorPais', get('frmCrearPeriodo.hPaisDescripcion'));    
+                   posicionarCombo();    
+                   set('frmCrearPeriodo.Anio', get('frmCrearPeriodo.hAnio'));    
+                   if (get('frmCrearPeriodo.errDescripcion')!='') {    
+                            var wnd = fMostrarMensajeError(get('frmCrearPeriodo.errCodigo'), get('frmCrearPeriodo.errDescripcion'));   
+                   }   
+                   focaliza('frmCrearPeriodo.comboMarca','');   
+alert("X 5 ");    
+                   //actualizo el listado de periodos.   
+                   listado1.save();   
+                   listado1.repintaDat();   
+    
+                   //transforma datos de periodos antes de ser mostrado   
+                   listado1.datos = adecuarListaVisible(listado1.datos);   
+alert("X 5A ");    
+                   //se verifican cruces, es necesario si se recalculo   
+                   //compruebaCruces();   
+    
+                   //actualizo el listado de periodos.   
+                   listado1.save();   
+                   listado1.repintaDat();   
+  alert("X 6 ");  
+                   set('frmCrearPeriodo.hListaPeriodos', listado1.datos);    
+    
+                   //por defecto si no hay ninguno ponemos el primero de la lista de periodos.   
+                   if ( get('frmCrearPeriodo.hIndicePeriodoModificado') == "") {   
+                            set('frmCrearPeriodo.hIndicePeriodoModificado', '0');
+                   }   
+    alert("X 7 ");
+                   //alert("accion: " + get('frmCrearPeriodo.accion'));    
+                   //alert('datos:' + listado1.datos );   
+		  }   
+
+          function posicionarCombo() {    
+                   var iSeleccionadoM = new Array();    
+                   iSeleccionadoM[0] = get('frmCrearPeriodo.hMarca');    
+                   set('frmCrearPeriodo.comboMarca',iSeleccionadoM);    
+    
+                   var iSeleccionado = new Array();    
+                   iSeleccionado[0] = get('frmCrearPeriodo.hCanal');    
+                   set('frmCrearPeriodo.comboCanal',iSeleccionado);    
+          }    
+
+          // transforma el indicador de cruce (para mnstrar)   
+          // el indicador de periodo corto se debe transformar en la LP   
+          function adecuarListaVisible(rowset) {   
+                   var i;   
+                   var indexCorto = 8;   
+                   var indexCruce = 9;   
+                   var si = GestionarMensaje(84);   
+                   var no = GestionarMensaje(86);   
+                   for( i = 0; i < rowset.length; i++ ){   
+                            //reemplazar los valores en indicador periodo cruce (i18n)   
+                            if( rowset[i][indexCruce] == 'false')   
+                                     rowset[i][indexCruce] = no;   
+                            else   
+                                     rowset[i][indexCruce] = si;   
+                   }   
+                   return rowset;   
+          }   
+    
+    
+          //funcion llamada al cargar el paginado para actulizar la lista editable   
+          function prueba(ultima, rowset){   
+                   var i;   
+                   var indexCorto = 8;   
+                   var indexCruce = 9;   
+                   var si = GestionarMensaje(84);   
+                   var no = GestionarMensaje(86);   
+                   var tamano = rowset.length;   
+                   if (tamano > 0) {   
+                      mostrarListaEditable();   
+                      eval (ON_RSZ);                        
+                   } else {   
+                       ocultarListaEditable();   
+                       focaliza("frmCrearPeriodo.comboMarca");    
+                       return false;   
+                   }   
+                   for( i = 0; i < rowset.length; i++ ){   
+                            //reemplazar los valores en indicador periodo corto (checkbox)   
+                            if( rowset[i][indexCorto] == 'false')   
+                                     rowset[i][indexCorto] = 'N';   
+                            else   
+                                     rowset[i][indexCorto] = 'S';   
+                            //reemplazar los valores en indicador periodo cruce (i18n)   
+                            if( rowset[i][indexCruce] == 'false')   
+                                     rowset[i][indexCruce] = no;   
+                            else   
+                                     rowset[i][indexCruce] = si;   
+                   }                     
+                   focaliza("frmCrearPeriodo.comboMarca");   
+                   return true;   
+          }   
+
+
+          // Se pulso el boton buscar                              
+          function fBuscar() {    
+                   if(!sicc_validaciones_generales()){   
+                            return false;   
+                   }     
+                   if (fValidarCOMBO('frmCrearPeriodo.comboMarca') &&    
+                                     fValidarCOMBO('frmCrearPeriodo.comboCanal') &&   
+                                     fValidarCTEXT('frmCrearPeriodo.Anio')) {    
+                            obtenerPaisMarcaCanalAnio();    
+    
+                            var casoUso = get('frmCrearPeriodo.hCasoDeUso');   
+                            //alert('CU ' + casoUso);   
+    
+                            // if (get('frmCrearPeriodo.hCasoDeUso') == 'modificar') { //Sin Paginado   
+                            //  set('frmCrearPeriodo.conectorAction', 'LPModificaPeriodo'); //Sin Paginado   
+                            // }   
+                            // set('frmCrearPeriodo.accion', 'buscar'); //Sin Paginado   
+                            // enviaSICC('frmCrearPeriodo'); //Sin Paginado   
+    
+                            mostrarListaEditable();   
+    
+                            if (casoUso == 'modificar') {   
+                                     configurarPaginado(mipgndo, 'CRAConsultarPeriodos', 'ConectorObtenerTodosPeriodosConsultaPeru',   
+                                                                                   'es.indra.sicc.dtos.cra.DTOCriteriosPeriodo', armarArrayParametrosDTO());   
+                            } else {   
+                                     //cu insertar   
+                                     configurarPaginado(mipgndo, 'CRAObtienePeriodosInsertar', 'ConectorObtienePeriodosInsertarPeru',   
+                                                                          'es.indra.sicc.dtos.cra.DTOAsociadosAPeriodo', armarArrayParametrosDTO());   
+                            }   
+    
+                            //habilita el boton de guardar en menu secundario   
+                            btnProxy(1, '1');   
+                   }    
+          }    
+
+          // Levanta los valores seleccionados para pais marca y canal    
+          function obtenerPaisMarcaCanalAnio(){    
+                   set('frmCrearPeriodo.hCanal', get('frmCrearPeriodo.comboCanal'));    
+                   set('frmCrearPeriodo.hMarca', get('frmCrearPeriodo.comboMarca'));    
+                   set('frmCrearPeriodo.hAnio', get('frmCrearPeriodo.Anio'));    
+          }    
+
+
+          function mostrarListaEditable() {   
+                   document.all["Cplistado1"].style.visibility='visible';   
+                   document.all["CpLin1listado1"].style.visibility='visible';   
+                   document.all["CpLin2listado1"].style.visibility='visible';   
+                   document.all["CpLin3listado1"].style.visibility='visible';   
+                   document.all["CpLin4listado1"].style.visibility='visible';   
+                   //document.all["prim1Div"].style.visibility='visible';   
+                   document.all["ret1Div"].style.visibility='visible';   
+                   document.all["ava1Div"].style.visibility='visible';   
+                   //document.all["separaDiv"].style.visibility='visible';   
+                   document.all["RecalcularDiv"].style.visibility='visible';   
+          }   
+    
+          function ocultarListaEditable() {   
+                   document.all["Cplistado1"].style.visibility='hidden';   
+                   document.all["CpLin1listado1"].style.visibility='hidden';   
+                   document.all["CpLin2listado1"].style.visibility='hidden';   
+                   document.all["CpLin3listado1"].style.visibility='hidden';   
+                   document.all["CpLin4listado1"].style.visibility='hidden';   
+                   //document.all["prim1Div"].style.visibility='hidden';   
+                   document.all["ret1Div"].style.visibility='hidden';   
+                   document.all["ava1Div"].style.visibility='hidden';   
+                   //document.all["separaDiv"].style.visibility='hidden';   
+                   document.all["RecalcularDiv"].style.visibility='hidden';   
+          }   
+
+
+          function armarArrayParametrosDTO()  {   
+                   var array = new Array();   
+                   var i = 0;   
+                   array[i] = new Array('oidIdioma',get('frmCrearPeriodo.hIdioma'));   
+    
+                   if (get('frmCrearPeriodo.hPais') != '')  {   
+                            i++;   
+                            array[i] = new Array('pais',get('frmCrearPeriodo.hPais'));   
+                   }   
+                   if (get('frmCrearPeriodo.comboMarca') != '')  {   
+                            i++;   
+                            array[i] = new Array('marca',get('frmCrearPeriodo.comboMarca'));   
+                   }   
+                   if (get('frmCrearPeriodo.comboCanal') != '')  {   
+                            i++;   
+                            array[i] = new Array('canal',get('frmCrearPeriodo.comboCanal'));   
+                   }   
+                   if (get('frmCrearPeriodo.Anio') != '')  {   
+                            i++;   
+                            array[i] = new Array('anio',get('frmCrearPeriodo.Anio'));   
+                   }   
+    
+                   //alert(array);   
+                   return array;   
+          }   
+
+
+          // Recalculo de Periodos    
+          function recalcularPeriodosPosteriores() {    
+                   obtenerPaisMarcaCanalAnio();   
+
+                   if (get('frmCrearPeriodo.hCasoDeUso') == 'modificar') {   
+                            set('frmCrearPeriodo.conectorAction', 'LPModificaPeriodo');   
+                   }   
+
+                   //actualizo el listado de periodos para tomar los cambios   
+                   listado1.save();   
+                   listado1.repintaDat();   
+
+                   //seteamos la lista de periodos   
+                   set('frmCrearPeriodo.hListaPeriodos', listado1.datos);    
+
+                   //seteamos el periodoModificado   
+                   var indicePeriodoCambio = get('frmCrearPeriodo.hIndicePeriodoModificado');
+                   var periodoCambio = listado1.datos[indicePeriodoCambio];   
+                   periodoCambio = adecuarPeriodoOculto(periodoCambio);   
+                   set('frmCrearPeriodo.hPeriodoModificado', periodoCambio);   
+                      
+                   //transforma datos sobre hListaPeriodos antes de ser enviados   
+                   adecuarListaOculta();   
+    
+                   //recalcular periodods   
+                   set('frmCrearPeriodo.accion', 'recalculaPeriodos');    
+                   enviaSICC('frmCrearPeriodo');    
+		  }
+
+          // Permite guardar los periodos para un anio    
+          function fGuardar() {   
+                   setTimeout("guardarDos()",100);   
+          }   
+    
+    
+          function guardarDos() {    
+
+				   //alert("Elemetos lista: " + listado1.datos);   
+                   set('frmCrearPeriodo.hListaPeriodos', listado1.datos);    
+    
+                   //aplica validaciones   
+                   if ( ! aplicarCambios() ) {
+						return false;
+				   }
+        
+                   //aplica validaciones generales
+                   if(!sicc_validaciones_generales()){   
+                            return false;   
+                   }   
+    
+                   if ( fValidarCOMBO('frmCrearPeriodo.comboMarca') &&    
+                                     fValidarCOMBO('frmCrearPeriodo.comboCanal') &&    
+                                     fValidarCTEXT('frmCrearPeriodo.Anio')) {   
+                            obtenerPaisMarcaCanalAnio();    
+    
+                            if(get('frmCrearPeriodo.hCasoDeUso')=='modificar'){   
+                                     set('frmCrearPeriodo.conectorAction', 'LPModificaPeriodo');   
+                            }   
+    
+                            //transforma datos sobre hListaPeriodos antes de ser enviados   
+                            adecuarListaOculta();   
+    
+                            set('frmCrearPeriodo.accion', 'grabar');   
+                            enviaSICC('frmCrearPeriodo');    
+                   }    
+          }    
+     
+    
+          //Chequea quedo alguna validacion a informar   
+          function aplicarCambios() {   
+                   var msgValida = get('frmCrearPeriodo.msgValidaDatos');   
+                   if ( msgValida != '') {   
+                            cdos_mostrarAlert(msgValida);
+							set('frmCrearPeriodo.msgValidaDatos','');
+							return false;
+                   }
+				return true;
+          }  
+
+
+     ]]>   
+   </JAVASCRIPT>  
+
+
+  <VALIDACION>
+      <ELEMENTO name="comboMarca" required="true" cod="6" />
+      <ELEMENTO name="comboCanal" required="true" cod="7" />
+      <ELEMENTO name="Anio" required="true" cod="171" format="t" chars="0-9" />
+	</VALIDACION> 
+<FORMULARIO nombre="frmCrearPeriodo">
+	<VAR nombre="accion" valor=""/>
+	<VAR nombre="hCasoDeUso" valor=""/>
+	<VAR nombre="conectorAction" valor="LPInsertaPeriodoPeru"/>
+	<VAR nombre="errCodigo" valor=""/>
+	<VAR nombre="errDescripcion" valor=""/>
+	<VAR nombre="hFormatoFechaPais" valor=""/>
+	<VAR nombre="hIdioma" valor=""/>
+	<VAR nombre="hPais" valor=""/>
+	<VAR nombre="hPaisDescripcion" valor=""/> 
+	<VAR nombre="hMarca" valor=""/>
+	<VAR nombre="hCanal" valor=""/>
+	<VAR nombre="hAnio" valor=""/> 
+	<VAR nombre="hTipoPeriodo" valor=""/>
+	<VAR nombre="hNombrePeriodo" valor=""/>
+	<VAR nombre="hDuracionPeriodo" valor=""/>
+	<VAR nombre="hfInicio" valor=""/>
+	<VAR nombre="hfFin" valor=""/>
+	<VAR nombre="msgValidaDatos" valor=""/>
+	<VAR nombre="errorValidaDatos" valor=""/>
+	<VAR nombre="hPeriodoSeleccionado" valor=""/> 
+	<VAR nombre="hListadoDisponible" valor=""/>
+	<VAR nombre="hEnableSave" valor=""/>		
+	<VAR nombre="hListaPeriodos" valor=""/>		
+	<VAR nombre="hPeriodoModificado" valor=""/> 
+	<VAR nombre="hIndicePeriodoModificado" valor=""/> 
+
+
+
+<CAPA nombre="capaBuscar">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    
+    
+     <tr> 
+      <td><IMG src="b.gif"/></td>
+      
+      <td>
+	<fieldset><legend class="legend"><LABELC nombre="lblCriterios" alto="13" filas="1" valor="Datos Búsqueda" id="legend" cod="0075"/></legend> 
+          <!---primera fila-->
+          <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+              <table width="460" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td><LABELC nombre="lblPais" alto="13" filas="1" valor="" id="datosTitle" cod="5"/></td>                   
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lblMarca" alto="13" filas="1" valor="" id="datosTitle" cod="6"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+
+				   <td  nowrap="nowrap">
+                    <LABELC nombre="lblValorPais" alto="13" filas="1" valor="" id="datosCampos" codi="5"/>  
+                   </td>  
+				   <td><IMG src="b.gif" width="25" height="8"/></td>  
+
+				   <td  nowrap="nowrap">
+					<COMBO nombre="comboMarca" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onshtab="focaliza('frmCrearPeriodo.Anio');">
+                      	<ROWSET>
+                      	</ROWSET>
+                    </COMBO>
+                   </td> 
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+
+				</tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+       <!---fin primera fila-->
+	   </td></tr>
+	   <tr><td>
+              <table width="460" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td><LABELC nombre="lblCanal" alto="13" filas="1" valor="" id="datosTitle" cod="7"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lblAnio" alto="13" filas="1" valor="" id="datosTitle" cod="171"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+		   <td  nowrap="nowrap">
+					<COMBO nombre="comboCanal" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="">
+                      	<ROWSET>
+                      	</ROWSET>
+                    </COMBO> 
+                   </td>      
+                   <td><IMG src="b.gif" width="25" height="8"/></td>  
+
+				   <td  nowrap="nowrap">
+                    <CTEXTO nombre="Anio" id="datosCampos" max="4" tipo="" onchange="" req="S" size="4" valor="" ontab="focaliza('frmCrearPeriodo.comboMarca');" validacion="fValidarNumero(valor,4,0,9999);"/>
+                   </td>                      
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+
+				</tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+       <!---fin primera fila-->
+	   </td></tr></table>
+
+        </fieldset>        
+      </td>
+      
+      <td><IMG src="b.gif" /></td>
+      
+    </tr>     
+
+
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnCrear" ID="botonContenido" tipo="html" accion="fBuscar();" estado="false" cod="1"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+    </tr>  
+    
+    
+    
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+ </CAPA> 
+  
+    <LISTAEDITABLE nombre="listado1" ancho="463" alto="317" x="12" y="169" colorFondo="#CECFCE" msgDebugJS="S">
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00135" ID="datosTitle"/>
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+      <IMGBOTONES precarga="S" conROver="S">
+        <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+        <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+        <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>
+      </IMGBOTONES>
+      <LINEAS>
+	<GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="1" horizTitulo="1" horizBase="1"/> 
+	<COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+        <COL ancho="100" minimizable="S" minimizada="N"/>
+        <COL ancho="100" minimizable="S" minimizada="N" orden="alfanumerico"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="120" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N" orden="numerico"/>
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N" oculta="S"/>        
+	<COL ancho="100" minimizable="S" minimizada="N"/>    
+        <COL ancho="120" minimizable="S" minimizada="N"/>
+	  </COLUMNAS>
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+		<COL colFondo="" ID="EstCab" align="center" cod="132">Identificador</COL> 
+		<COL colFondo="" ID="EstCab" cod="30">Nombre 1</COL> 
+		<COL colFondo="" ID="EstCab" cod="247">Apellido 1</COL> 
+		<COL colFondo="" ID="EstCab" cod="248">Tipo usuario</COL> 
+        <COL colFondo="" ID="EstCab" cod="274">Perfil</COL> 
+        <COL colFondo="" ID="EstCab" cod="251">Tipo usuario</COL> 
+		<COL colFondo="" ID="EstCab">oidTipoPeriodo</COL>
+		<COL colFondo="" ID="EstCab" cod="2280"></COL> 
+        <COL colFondo="" ID="EstCab" cod="2281"></COL> 
+	  </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="1" msgErrMaxSel="" 
+             coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+             onLoad="" colorSelecc="#D0D9E8">
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="cajatexto" nombre="txtNombrePeriodo" size="26" max="20" ID="EstDat" IDOBJ="EstCajaDatForm" validacion="" req="S" onchange="cambioNombrePeriodo();"/> 
+       <COL tipo="cajatexto" nombre="txtDuracionPeriodo" size="4" max="4" ID="EstDat2" IDOBJ="EstCajaDatForm" req="S" onchange="cambioDuracion();" /> 
+       <COL tipo="cajatexto" nombre="txtFinicio" size="12" max="10" ID="EstDat" IDOBJ="EstCajaDatForm" validacion="" req="S" onchange="cambioFechaInicio();"/>
+       <COL tipo="cajatexto" nombre="txtFfin" size="12" max="10" ID="EstDat2" IDOBJ="EstCajaDatForm" validacion="" req="S" onchange="cambioFechaFin();"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+	   <COL tipo="checkbox" nombre="ck1" ID="EstDat"/>
+       <COL tipo="texto" ID="EstDat2"/>  
+	  </DATOS>
+      <ROWSET>
+	
+      </ROWSET>
+      <PAGINADO nombre="mipgndo" ancho="463" sep="$" x="12" class="botonera" y="463" control="|" conector="conector_prototipo_2" rowset="" cargainicial="N" 
+      onload="procesarPaginado(mipgndo,msgError, ultima, rowset, 'prueba(ultima, rowset);')">        
+        <BOTON nombre="ret1" x="37" y="463" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+        <BOTON nombre="ava1" x="52" y="463" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();" /> 
+        
+    </PAGINADO>
+    	 
+    
+    </LISTAEDITABLE>
+
+		<BOTON nombre="Recalcular" x="13" y="464" ID="botonContenido" tipo="html" estado="false" cod="249" accion="recalcularPeriodosPosteriores();" />
+		<!--
+		<BOTON nombre="prim1" x="20" y="463" ID="botonContenido" img="primera_on" tipo="1" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();" /> 
+		-->
+		<!--
+		<BOTON nombre="separa" x="59" y="463" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" /> 
+		-->
+
+<CAPA nombre="capaEspacio" alto="12" ancho="50" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="486" zindex=""/>
+
+ </FORMULARIO>
+</PAGINA>    

@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_informe_resumen_CCC_generar.xml,v 1.1 2009/12/03 18:44:42 pecbazalar Exp $
+   contenido CCC
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_informe_resumen_CCC_generar" cod="0842" titulo="Generar informe resumen de cuenta corriente" estilos="estilosB3.css" colorf="#F0F0F0" 
+	msgle="" onload="onLoad();" xml:lang="es">
+  <JS src="sicc_util.js"/>   
+  
+<JAVASCRIPT>
+  <![CDATA[ 
+   
+   function onLoad(){
+      configurarMenuSecundario('Formulario');
+      fMostrarMensajeError();
+      setearFechas();
+      focaliza('Formulario.txtFechaCorteDesde');
+      
+   }
+//------------------------------------------------------------------------------   
+   function generar(){
+      if(sicc_validaciones_generales()){
+        if(validarFechas()){
+            /*recolectarParametros();
+            set('Formulario.conectorAction', 'CCCResumenCC');           
+            set('Formulario.accion', 'generar');
+            enviaSICC('Formulario');*/
+            var a = new Object();
+            a.accion = 'generar';
+            a.fechaDesde = get('Formulario.txtFechaCorteDesde');  
+            a.fechaHasta = get('Formulario.txtFechaCorteHasta');           
+            mostrarModalSICC('CCCResumenCC','generar', a);  
+        }
+      }
+   }
+
+//------------------------------------------------------------------------------   
+   function recolectarParametros(){
+           
+      set('Formulario.fechaDesde', get('Formulario.txtFechaCorteDesde'));  
+      set('Formulario.fechaHasta', get('Formulario.txtFechaCorteHasta'));
+    
+   }
+   
+//------------------------------------------------------------------------------      
+
+   function fLimpiar(){
+     focaliza('Formulario.txtFechaCorteDesde');
+   }
+//------------------------------------------------------------------------------      
+
+   function validarFechas(){
+      
+      var fechaDesde = get('Formulario.txtFechaCorteDesde');
+      var fechaHasta = get('Formulario.txtFechaCorteHasta');
+      var formatoFecha = get('Formulario.hFormatoFechaPais');
+            
+     
+      if (! EsFechaValida_SICC(fechaDesde, "Formulario")){
+          GestionarMensaje("1006", formatoFecha, null, null);
+          focaliza("Formulario.txtFechaCorteDesde");
+          return false;
+      }
+     
+      if(! EsFechaValida_SICC(fechaHasta, "Formulario")){
+          GestionarMensaje("1006", formatoFecha, null, null);
+          focaliza("Formulario.txtFechaCorteHasta");
+          return false;
+      }
+                 
+      var errorLevel = EsFechaValida( fechaDesde, fechaHasta, "Formulario", "S");
+      if ( errorLevel == 3){
+          GestionarMensaje("1191");
+          focaliza('Formulario.txtFechaCorteDesde');
+          return false;
+      }
+     
+      return true;   
+   
+   }
+
+
+//------------------------------------------------------------------------------      
+   function setearFechas(){
+      var fechaActual = get('Formulario.fechaActual');
+      
+      var fechaDesde = fechaActual.split("/");
+  
+      fechaDesde = '01/' + fechaDesde[1] + '/' + fechaDesde[2];
+      set('Formulario.txtFechaCorteDesde', fechaDesde);
+      set('Formulario.txtFechaCorteHasta', '31/05/2005');
+      //var fecha = new Date();
+     // fecha = calcula();
+     // alert('fecha ' + fecha);
+      
+      
+      
+      
+      
+      
+     
+     
+
+        
+      
+   
+   }
+
+//------------------------------------------------------------------------------      
+   function cerosIzq(sVal, nPos){ 
+      var sRes = sVal; 
+      for (var i = sVal.length; i < nPos; i++){ 
+         sRes = "0" + sRes; 
+      }
+      return sRes; 
+   } 
+//------------------------------------------------------------------------------      
+   function armaFecha(nDia, nMes, nAno){ 
+      var sRes = cerosIzq(String(nDia), 2); 
+      sRes = sRes + "/" + cerosIzq(String(nMes), 2); 
+      sRes = sRes + "/" + cerosIzq(String(nAno), 4); 
+      return sRes; 
+   } 
+//------------------------------------------------------------------------------      
+   function sumaMes(nDia, nMes, nAno, nSum){ 
+      if (nSum >= 0){ 
+         for (var i = 0; i < Math.abs(nSum); i++){ 
+            if (nMes == 12){ 
+               nMes = 1; 
+               nAno += 1; 
+            }else{
+               nMes += 1; 
+            }
+         } 
+      }
+    return armaFecha(nDia, nMes, nAno); 
+   } 
+//------------------------------------------------------------------------------      
+   
+   function calcula(){ 
+      var sFc0 = get('Formulario.txtFechaCorteDesde')
+      alert('sFc0 ' + sFc0);
+      var nSum = parseInt(1); 
+      var sFc1 = sFc0; 
+      if (!isNaN(nSum)){ 
+         var nDia = parseInt(sFc0.substr(0, 2)); 
+         var nMes = parseInt(sFc0.substr(3, 2)); 
+         var nAno = parseInt(sFc0.substr(6, 4)); 
+         sFc1 = sumaMes(nDia, nMes, nAno, nSum); 
+      } 
+      return sFc1;
+   } 
+//------------------------------------------------------------------------------      
+
+
+  ]]> 
+  
+  <VALIDACION>
+    
+    <ELEMENTO name="txtFechaCorteDesde" required="true" cod="2664"/>
+    <ELEMENTO name="txtFechaCorteHasta" required="true" cod="2665"/>
+    
+   
+</VALIDACION>
+</JAVASCRIPT>
+
+
+
+
+<FORMULARIO nombre="Formulario">
+<VAR nombre="accion" valor="" />
+<VAR nombre="conectorAction" valor="" />
+<VAR nombre="casoDeUso" valor=""/>
+<VAR nombre="errCodigo" valor="" />
+<VAR nombre="errDescripcion" valor="" />
+
+
+<VAR nombre="pais" valor="" />
+<VAR nombre="fechaDesde" valor="" />
+<VAR nombre="fechaHasta" valor="" />
+<VAR nombre="fechaActual" valor="" />
+
+
+<CAPA nombre="capa1">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblCriteriosSeleccion"  alto="13" filas="1" valor="" id="legend" cod="00275"/></legend>
+          <!---primera fila-->
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblFechaCorteDesde"  alto="13" filas="1" id="datosTitle" cod="2664" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblFechaCorteHasta"  alto="13" filas="1" id="datosTitle" cod="2665" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap" ><CTEXTO nombre="txtFechaCorteDesde" id="datosCampos" max="10" tipo="" onchange="" req="S" size="12" valor="" validacion="" onshtab="focalizaBotonHTML('botonContenido','btnGenerarInforme');"/></td>                
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" ><CTEXTO nombre="txtFechaCorteHasta" id="datosCampos" max="10" tipo="" onchange="" req="S" size="12" valor="" validacion=""/></td>                
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>
+           
+           </table>
+       <!---fin primera fila-->
+         
+        
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnGenerarInforme" ID="botonContenido" tipo="html" accion="generar();" estado="false" cod="2495" ontab="focaliza('Formulario.txtFechaCorteDesde')"/>
+		 
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>       
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+ </CAPA>                                                                                                                                                           
+</FORMULARIO>
+</PAGINA>  

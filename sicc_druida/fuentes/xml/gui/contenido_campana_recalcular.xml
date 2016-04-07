@@ -1,0 +1,695 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_campana_recalcular.xml,v 1.1 2009/12/03 18:44:09 pecbazalar Exp $
+   contenido CCC
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_campana_recalcular" cod="0303" titulo="Simular Estimados Business Planning" estilos="estilosB3.css" colorf="#F0F0F0" 
+	msgle="" onload="loadpag();" xml:lang="es">
+
+<JS src="sicc_util.js"/>            
+<JS src="PaginacionSicc.js"/>
+<JS src="DruidaTransactionMare.js"/>
+
+<VALIDACION>
+		<ELEMENTO name="cbSubtipoCliente" required="false" cod="595" group="grupo1"/>
+		<ELEMENTO name="cbTipoClasificacion" required="false" cod="756" group="grupo1"/>
+		<ELEMENTO name="cbClasificacion" required="false" cod="550" group="grupo1"/>    
+      <ELEMENTO name="txtUnidadesPromedio" required="true" cod="1017" format="e" min="0" max="9999999999" group="txtUnidadesPromedio"/>
+      <ELEMENTO name="txtUnidadesTotales" required="true" cod="1015" format="e" min="0" max="9999999999" group="txtUnidadesTotales"/>    
+		<!-- <ELEMENTO name="txtUnidadesPromedio" required="true" cod="1017" format="e" min="0" max="9999999999" group="grupo1"/>
+      <ELEMENTO name="txtUnidadesTotales" required="true" cod="1015" format="e" min="0" max="9999999999" group="grupo1"/>  -->
+</VALIDACION>
+
+<JAVASCRIPT>
+  <![CDATA[ 
+
+  var varNoLimpiarSICC = true;
+
+  function loadpag(){
+    configurarMenuSecundario("formulario");
+    poneSeleccionados();
+    subtipoClienteOnChange();
+    poneSeleccionados();
+    tipoClasificacionOnChange();
+    poneSeleccionados();
+    focoSubtipoCliente();
+
+	
+	 // Agregado por ssantana, inc. BELC300018074
+	 var campoDeshabilitar = get("formulario.campoDeshabilitar");
+	 //alert("Campo a Deshabilitar: " + campoDeshabilitar);
+
+	 eval("accion('formulario." + campoDeshabilitar + "', '.disabled=true');");
+
+	 fMostrarMensajeError();
+
+
+  }
+
+  function poneSeleccionados() {
+    var subtipos = get ('formulario.codigos1');
+    var subtipo = new Array();
+    subtipo = subtipos.split("/");
+
+    var tipoClasificacion = get ('formulario.codigos2');
+    var clasificacion = get ('formulario.codigos3');    
+
+    set('formulario.cbTipoClasificacion', new Array(tipoClasificacion));
+    set('formulario.cbClasificacion', new Array(clasificacion));
+    set('formulario.cbSubtipoCliente', subtipo);  
+  }
+
+  function fVolver() {    
+    window.close();
+  }  
+
+  function focoSubtipoCliente() {
+    focaliza("formulario.cbSubtipoCliente");
+  }
+
+  function focoBotonRecalcular() {
+    focalizaBotonHTML('botonContenido','btnRecalcular');         
+  }
+
+  function accionRecalcular() {
+
+ 	 // Agregado por ssantana, inc. 18074, 15/6/2005
+	 var campoDeshabilitado = get("formulario.campoDeshabilitar");
+	 var campoAValidar = "";
+	 if ( campoDeshabilitado == "txtUnidadesPromedio")
+		 campoAValidar = "txtUnidadesTotales";
+	 
+	 if ( campoDeshabilitado == "txtUnidadesTotales")
+ 		 campoAValidar = "txtUnidadesPromedio";
+
+	 // Fin Agregado por ssantana, inc. 18074, 15/6/2004
+
+	 if ( sicc_validaciones_generales("grupo1") && sicc_validaciones_generales(campoAValidar) )
+	 {
+      var codVenta = get('formulario.codVenta');
+      var idsSubtiposCliente = get('formulario.cbSubtipoCliente');
+      var idTipoClasificacion = get('formulario.cbTipoClasificacion');
+      var idClasificacion = get('formulario.cbClasificacion');
+      var valUnidadesPromedio = get('formulario.txtUnidadesPromedio');
+      var valUnidadesTotales = get('formulario.txtUnidadesTotales');
+      var oidDetalleMAV = get('formulario.oidDetalleMAV');      
+
+      set('formulario.codVenta',codVenta);
+      set('formulario.idsSubtiposCliente',idsSubtiposCliente);
+      set('formulario.idTipoClasificacion',idTipoClasificacion);
+      set('formulario.idClasificacion',idClasificacion);
+      set('formulario.valUnidadesPromedio',valUnidadesPromedio);
+      set('formulario.valUnidadesTotales',valUnidadesTotales);      
+      set('formulario.oidDetalleMAV',oidDetalleMAV);
+    
+      set('formulario.conectorAction', 'LPSimularEstimadosBP');
+      eval('formulario').oculto='S';
+      set('formulario.accion', 'recalcular');                
+      enviaSICC('formulario', null,  null, 'N');     
+    }   
+  }
+
+  function accionAceptar() {
+
+	 var campoDeshabilitado = get("formulario.campoDeshabilitar");
+	 var campoAValidar = "";
+	 if ( campoDeshabilitado == "txtUnidadesPromedio")
+		 campoAValidar = "txtUnidadesTotales";
+	 
+	 if ( campoDeshabilitado == "txtUnidadesTotales")
+ 		 campoAValidar = "txtUnidadesPromedio";
+
+	 if ( sicc_validaciones_generales("grupo1") && sicc_validaciones_generales(campoAValidar) )
+	 {
+      var codVenta = get('formulario.codVenta');
+      var idsSubtiposCliente = get('formulario.cbSubtipoCliente');
+      var idTipoClasificacion = get('formulario.cbTipoClasificacion');
+      var idClasificacion = get('formulario.cbClasificacion');
+      var valUnidadesPromedio = get('formulario.txtUnidadesPromedio');
+      var valUnidadesTotales = get('formulario.txtUnidadesTotales');
+      var oidDetalleMAV = get('formulario.oidDetalleMAV');      
+
+      set('formulario.codVenta',codVenta);
+      set('formulario.idsSubtiposCliente',idsSubtiposCliente);
+      set('formulario.idTipoClasificacion',idTipoClasificacion);
+      set('formulario.idClasificacion',idClasificacion);
+      set('formulario.valUnidadesPromedio',valUnidadesPromedio);
+      set('formulario.valUnidadesTotales',valUnidadesTotales);      
+      set('formulario.oidDetalleMAV',oidDetalleMAV);
+    
+      set('formulario.conectorAction', 'LPSimularEstimadosBP');
+      eval('formulario').oculto='S';
+      set('formulario.accion', 'actualizar');                
+      enviaSICC('formulario', null,  null, 'N');     
+      
+    }   
+  }
+
+  function despuesAceptar(nuevosValores) {
+      window.close();  
+  }
+  
+  function accionAceptarOld() {
+    var array = new Array();
+    
+    var oiddetamav = get('formulario.tempoidDetaMAV');
+    var codsap = get('formulario.templbldtCodProducto');
+    var valcodivent = get('formulario.templbldtCodVenta');
+    var desproducto = get('formulario.templbldtDescripcionProducto');
+    var dessubtipocliente = get('formulario.tempcbSubtipoCliente');
+    var tipoclasificacion = get('formulario.tempcbTipoClasificacion');
+    var clasificacion = get('formulario.tempcbClasificacion');
+    var clientesestimados = get('formulario.templbldtNumClientesEstimados');
+    var promedio = get('formulario.temptxtUnidadesPromedio');
+    var totales = get('formulario.temptxtUnidadesTotales');
+    var disponibles = get('formulario.templbldtUnidadesDisponibles');
+    var dessubc = get('formulario.templbldtCondicion');
+    var valcond = get('formulario.templbldtValorCondicion');
+    var oidtipoclasificacion = get('formulario.tempoidTipoClasificacion');
+    var oidclasificacion = get('formulario.tempoidClasificacion');
+    var oidsubtipos = get('formulario.tempoidSubtipos');    
+
+    array[0]= oiddetamav;
+    array[1]= codsap;
+    array[2]= valcodivent;
+    array[3]= desproducto;
+    array[4]= dessubtipocliente;
+    array[5]= tipoclasificacion;
+    array[6]= clasificacion;
+    array[7]= clientesestimados;
+    array[8]= promedio;
+    array[9]= totales;
+    array[10]= disponibles;
+    array[11]= dessubc;
+    array[12]= valcond;
+    array[13]= oidtipoclasificacion;
+    array[14]= oidclasificacion;
+    array[15]= oidsubtipos;
+    array[16]= "true";
+
+    if(array[0]=="") {      
+      returnValue = null;  
+    }
+    else {
+      returnValue = array;  
+    }
+    window.close();
+  }
+
+  function subtipoClienteOnChange() {
+    var idSubtipo = get('formulario.cbSubtipoCliente');    
+    var nuevosValores = new Array();
+    var longTipoCla = listaTipoClasificacion.datos.longitud;
+    var i=0;
+	      
+    for (var j = 0; j < longTipoCla; j++)		{
+      for(var h = 0; h < idSubtipo.length; h++) {
+        if(listaTipoClasificacion.datos.ij(j, 1)==idSubtipo[h]) {
+          if(i==0) {
+            var nuevoRegistro = new Array();
+            nuevoRegistro[0] = ""; 
+            nuevoRegistro[1] = "";
+            nuevosValores[i] = nuevoRegistro;
+            i++;
+          }
+          var oid = listaTipoClasificacion.datos.ij(j, 0);
+          var des = listaTipoClasificacion.datos.ij(j, 2);
+          var nuevoRegistro = new Array();
+          nuevoRegistro[0] = oid; 
+          nuevoRegistro[1] = des;
+          nuevosValores[i] = nuevoRegistro;         
+          i++;
+        }    
+      }
+    }
+    
+    set_combo("formulario.cbTipoClasificacion",nuevosValores);
+    var arrayVacio = new Array();
+    set_combo("formulario.cbClasificacion",arrayVacio);
+  }
+
+  function tipoClasificacionOnChange() {
+    var idTipoClasificacion = get('formulario.cbTipoClasificacion');
+    var nuevosValores = new Array();
+    var longCla = listaClasificacion.datos.longitud;
+    var i=0;
+	      
+    for (var j = 0; j < longCla; j++)		{
+      if(listaClasificacion.datos.ij(j, 1)==idTipoClasificacion) {
+        if(i==0) {
+          var nuevoRegistro = new Array();
+          nuevoRegistro[0] = ""; 
+          nuevoRegistro[1] = "";
+          nuevosValores[i] = nuevoRegistro;
+          i++;
+        }
+        var oid = listaClasificacion.datos.ij(j, 0);
+        var des = listaClasificacion.datos.ij(j, 2);
+        var nuevoRegistro = new Array();
+        nuevoRegistro[0] = oid; 
+        nuevoRegistro[1] = des;
+        nuevosValores[i] = nuevoRegistro;         
+        i++;
+      }
+	  }  
+    set_combo("formulario.cbClasificacion",nuevosValores);
+  }
+
+  function despuesRecalcular(nuevosValores) {
+    var valores = nuevosValores.split(",");
+
+    var valorCondicion = valores[0];    
+    var condicion = valores[1];
+    var unidadesTotales = valores[2];
+    var unidadesDisponibles = valores[3];
+    var unidadesPromedio = valores[4];
+    var clientesEstimados = valores[5];
+    var clasificacion = valores[6];
+    var tipoClasificacion = valores[7];
+    var idsSub = valores[8];
+    var descripcionProducto = valores[9];
+    var codigoVenta = valores[10];
+    var codigoSAP = valores[11];
+    var oidDetalleMAV = valores[12];
+ 
+    var cadaIDSubtipo = idsSub.split("/");
+
+    if(valorCondicion=="null") valorCondicion="";
+    if(condicion=="null") condicion="";
+    if(unidadesTotales=="null") unidadesTotales="";
+    if(unidadesDisponibles=="null") unidadesDisponibles="";
+    if(unidadesPromedio=="null") unidadesPromedio="";
+    if(clientesEstimados=="null") clientesEstimados="";
+    if(clasificacion=="null") clasificacion="";
+    if(tipoClasificacion=="null") tipoClasificacion="";
+    if(idsSub=="null") idsSub="";
+    if(descripcionProducto=="null") descripcionProducto="";
+    if(codigoVenta=="null") codigoVenta="";
+    if(codigoSAP=="null") codigoSAP="";
+    if(oidDetalleMAV=="null") oidDetalleMAV="";
+
+    //Descripcion de tipo de clasificacion
+
+    var longitud = combo_get('formulario.cbTipoClasificacion','L');
+    var seluno = get('formulario.cbTipoClasificacion');
+    var textCbTipo = "";
+
+    for(var i=0; i<longitud; i++) {      
+      var seldos = combo_get('formulario.cbTipoClasificacion','V', i);
+
+      if(seluno==seldos) {
+        textCbTipo = combo_get('formulario.cbTipoClasificacion','T', i);      
+      }
+    }
+
+    //Descripcion de clasificacion
+
+    var longitud = combo_get('formulario.cbClasificacion','L');
+    var seluno = get('formulario.cbClasificacion');
+    var textCbClasi = "";
+
+    for(var i=0; i<longitud; i++) {      
+      var seldos = combo_get('formulario.cbClasificacion','V', i);
+
+      if(seluno==seldos) {
+        textCbClasi = combo_get('formulario.cbClasificacion','T', i);      
+      }
+    }
+
+    //Descripciones de subtipos de clientes
+    
+    var longitud = combo_get('formulario.cbSubtipoCliente','L');
+    var seluno = get('formulario.cbSubtipoCliente');
+    var textSubtipo = "";
+
+    for(var j=0; j<seluno.length; j++) {
+      for(var i=0; i<longitud; i++) {
+        var seldos = combo_get('formulario.cbSubtipoCliente','V', i);
+        if(seluno[j]==seldos) {
+          if(textSubtipo=="") {
+            textSubtipo = combo_get('formulario.cbSubtipoCliente','T', i);
+          }
+          else {
+            textSubtipo = textSubtipo + " / "  + combo_get('formulario.cbSubtipoCliente','T', i);
+          }              
+        }
+      }   
+    }    
+
+    set("formulario.tempoidDetaMAV", oidDetalleMAV);
+    set("formulario.templbldtCodProducto", codigoSAP);
+    set("formulario.templbldtCodVenta", codigoVenta);
+    set("formulario.templbldtDescripcionProducto", descripcionProducto);
+    set("formulario.tempcbSubtipoCliente", textSubtipo);
+    set("formulario.tempcbTipoClasificacion", textCbTipo);
+    set("formulario.tempcbClasificacion", textCbClasi);
+    set("formulario.templbldtNumClientesEstimados", clientesEstimados);
+    set("formulario.temptxtUnidadesPromedio", unidadesPromedio);
+    set("formulario.temptxtUnidadesTotales", unidadesTotales);
+    set("formulario.templbldtUnidadesDisponibles", unidadesDisponibles);
+    set("formulario.templbldtCondicion", condicion);
+    set("formulario.templbldtValorCondicion", valorCondicion);
+    set("formulario.tempoidTipoClasificacion", tipoClasificacion);
+    set("formulario.tempoidClasificacion", clasificacion);
+    set("formulario.tempoidSubtipos", idsSub);    
+
+    txt_to("lbldtCodProducto", codigoSAP);
+    txt_to("lbldtCodVenta", codigoVenta);
+    txt_to("lbldtDescripcionProducto", descripcionProducto);
+    txt_to("lbldtNumClientesEstimados", clientesEstimados);
+    txt_to("lbldtUnidadesDisponibles", unidadesDisponibles);
+    txt_to("lbldtCondicion", condicion);
+    txt_to("lbldtValorCondicion", valorCondicion);   
+
+ 	 // Agregado por ssantana, inc. 18074, 15/6/2005
+	 var campoDeshabilitado = get("formulario.campoDeshabilitar");
+	 var campoAValidar = "";
+	 if ( campoDeshabilitado == "txtUnidadesPromedio")
+		 set("formulario.txtUnidadesPromedio", unidadesPromedio);
+	 
+	 if ( campoDeshabilitado == "txtUnidadesTotales")
+ 		 set("formulario.txtUnidadesTotales", unidadesTotales);
+
+	 // Fin Agregado por ssantana, inc. 18074, 15/6/2004
+
+/*    set("formulario.txtUnidadesPromedio", unidadesPromedio);
+    set("formulario.txtUnidadesTotales", unidadesTotales);*/
+
+    set('formulario.cbSubtipoCliente', cadaIDSubtipo);
+    set('formulario.cbTipoClasificacion', new Array(tipoClasificacion));
+    set('formulario.cbClasificacion', new Array(clasificacion));         
+
+    eval("formulario").oculto= 'N';
+    focoSubtipoCliente();
+  }
+
+  function fLimpiar() {  
+    poneSeleccionados();
+    subtipoClienteOnChange();
+    poneSeleccionados();
+    tipoClasificacionOnChange();
+    poneSeleccionados();
+
+    var cliEsti = get('formulario.cliEsti');
+    var uniPro = get('formulario.uniPro');
+    var uniTot = get('formulario.uniTot');
+    var uniDis = get('formulario.uniDis');    
+    var condi = get('formulario.condi');    
+    var valCondi = get('formulario.valCondi');    
+
+    txt_to("lbldtNumClientesEstimados", cliEsti);
+    txt_to("lbldtUnidadesDisponibles", uniDis);
+    txt_to("lbldtCondicion", condi);
+    txt_to("lbldtValorCondicion", valCondi);
+    
+    set("formulario.txtUnidadesPromedio", uniPro);
+    set("formulario.txtUnidadesTotales", uniTot);
+
+    focoSubtipoCliente();
+  }
+   
+  ]]> 
+</JAVASCRIPT>
+
+<FORMULARIO nombre="formulario">
+<VAR nombre="accion" valor=""/>
+<VAR nombre="casoDeUso" valor=""/>
+<VAR nombre="errCodigo" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="conectorAction" valor=""/>
+
+<VAR nombre="idioma" valor=""/>
+<VAR nombre="pais" valor=""/>
+
+<VAR nombre="marca" valor=""/>
+<VAR nombre="tip_cli" valor=""/>
+<VAR nombre="actividad" valor=""/>
+<VAR nombre="campana" valor=""/>
+<VAR nombre="seleccion" valor=""/>
+<VAR nombre="codigos1" valor=""/>
+<VAR nombre="codigos2" valor=""/>
+<VAR nombre="codigos3" valor=""/>
+<VAR nombre="oid_det" valor=""/>
+
+<VAR nombre="idsSubtiposCliente" valor=""/>
+<VAR nombre="idTipoClasificacion" valor=""/>
+<VAR nombre="idClasificacion" valor=""/>
+<VAR nombre="valUnidadesPromedio" valor=""/>
+<VAR nombre="valUnidadesTotales" valor=""/>
+
+<VAR nombre="oidDetalleMAV" valor=""/>
+
+<VAR nombre="codVenta" valor=""/>
+
+<VAR nombre="valorCondicion" valor=""/>
+<VAR nombre="condicion" valor=""/>
+<VAR nombre="unidadesTotales" valor=""/>
+<VAR nombre="unidadesDisponibles" valor=""/>
+<VAR nombre="unidadesPromedio" valor=""/>
+<VAR nombre="clientesEstimados" valor=""/>
+<VAR nombre="clasificacion" valor=""/>
+<VAR nombre="tipoClasificacion" valor=""/>
+
+<VAR nombre="descripcionProducto" valor=""/>
+<VAR nombre="codigoVenta" valor=""/>
+<VAR nombre="codigoSAP" valor=""/>
+<VAR nombre="oidDetalleMAV" valor=""/>
+
+<VAR nombre="tempoidDetaMAV" valor=""/>
+<VAR nombre="templbldtCodProducto" valor=""/>
+<VAR nombre="templbldtCodVenta" valor=""/>
+<VAR nombre="templbldtDescripcionProducto" valor=""/>
+<VAR nombre="tempcbSubtipoCliente" valor=""/>
+<VAR nombre="tempcbTipoClasificacion" valor=""/>
+<VAR nombre="tempcbClasificacion" valor=""/>
+<VAR nombre="templbldtNumClientesEstimados" valor=""/>
+<VAR nombre="temptxtUnidadesPromedio" valor=""/>
+<VAR nombre="temptxtUnidadesTotales" valor=""/>
+<VAR nombre="templbldtUnidadesDisponibles" valor=""/>
+<VAR nombre="templbldtCondicion" valor=""/>
+<VAR nombre="templbldtValorCondicion" valor=""/>
+<VAR nombre="tempoidTipoClasificacion" valor=""/>
+<VAR nombre="tempoidClasificacion" valor=""/>
+<VAR nombre="tempoidSubtipos" valor=""/>
+
+<VAR nombre="cliEsti" valor=""/>
+<VAR nombre="uniPro" valor=""/>
+<VAR nombre="uniTot" valor=""/>
+<VAR nombre="uniDis" valor=""/>
+<VAR nombre="condi" valor=""/>
+<VAR nombre="valCondi" valor=""/>
+
+<VAR nombre="campoDeshabilitar" valor=""/>
+
+<CAPA nombre="capa1">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblDetalleCampana"  alto="13" filas="1" id="legend" cod="00169"/></legend>
+	<table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+              <table width="455" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblCodProducto"  alto="13" filas="1" id="datosTitle" cod="337" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td ><LABELC nombre="lblCodVenta"  alto="13" filas="1" id="datosTitle" cod="336" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td ><LABELC nombre="lblDescripcionProducto"  alto="13" filas="1" id="datosTitle" cod="338" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                  <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lbldtCodProducto"  alto="13" filas="1" id="datosCampos" valor="" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td ><LABELC nombre="lbldtCodVenta"  alto="13" filas="1" id="datosCampos" valor="" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td ><LABELC nombre="lbldtDescripcionProducto"  alto="13" filas="1" id="datosCampos" valor="" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+         </td></tr> 
+         
+        <tr><td>
+              <table width="455" border="0" align="left" cellspacing="0" cellpadding="0">
+                
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblSubtipoCliente"  alto="13" filas="1" id="datosTitle" cod="595" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td ><LABELC nombre="lblTipoClasificacion"  alto="13" filas="1" id="datosTitle" cod="756" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbSubtipoCliente" size="5" multiple="S" valorinicial="" textoinicial="" id="datosCampos" req="N" onshtab="focoBotonRecalcular();" onchange="subtipoClienteOnChange();">
+                		<ROWSET>
+                  	 	</ROWSET>	
+	                </COMBO> 
+	           </td>
+	           <td><IMG src="b.gif" width="25" height="8"/></td>
+                    <td  nowrap="nowrap" valign="top">
+                      <COMBO nombre="cbTipoClasificacion" size="1" multiple="N" valorinicial="" textoinicial="" id="datosCampos" req="N" onchange="tipoClasificacionOnChange();">
+                		<ROWSET>
+                  								
+                  	 	</ROWSET>	
+	                </COMBO> 
+                    </td>
+	           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+         </td></tr>
+           <tr><td>
+             <table width="455" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblClasificacion"  alto="13" filas="1" id="datosTitle" cod="550" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblNumClientesEstimados"  alto="13" filas="1" id="datosTitle" cod="931" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblUnidadesPromedio"  alto="13" filas="1" id="datosTitle" cod="1017" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblUnidadesTotales"  alto="13" filas="1" id="datosTitle" cod="1015" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"> <COMBO nombre="cbClasificacion" size="1" multiple="N" valorinicial="" textoinicial="" id="datosCampos" req="N">
+                		<ROWSET>
+                  								
+                  	 	</ROWSET>	
+	                </COMBO> 
+	           </td>
+	           <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td ><LABELC nombre="lbldtNumClientesEstimados"  alto="13" filas="1" id="datosCampos" valor="" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap"><CTEXTO nombre="txtUnidadesPromedio" id="datosCampos" max="10" tipo="" onchange="" req="N" size="10" valor="" validacion=""/> </td>
+	           <td><IMG src="b.gif" width="25" height="8"/></td>
+                    <td nowrap="nowrap"><CTEXTO nombre="txtUnidadesTotales" id="datosCampos" max="10" tipo="" onchange="" req="N" size="10" valor="" validacion=""/></td>
+                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+              </td></tr>
+              <tr><td>
+              <table width="455" border="0" align="left" cellspacing="0" cellpadding="0">
+                
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblUnidadesDisponibles"  alto="13" filas="1" id="datosTitle" cod="1011" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td ><LABELC nombre="lblCondicion"  alto="13" filas="1" id="datosTitle" cod="1376" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td ><LABELC nombre="lblValorCondicion"  alto="13" filas="1" id="datosTitle" cod="1377" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                  <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lbldtUnidadesDisponibles"  alto="13" filas="1" id="datosCampos" valor="" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td ><LABELC nombre="lbldtCondicion"  alto="13" filas="1" id="datosCampos" valor="" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td ><LABELC nombre="lbldtValorCondicion"  alto="13" filas="1" id="datosCampos" valor="" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+         </td></tr> 
+           </table>
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnAceptar" ID="botonContenido" tipo="html" accion="accionAceptar();" estado="false" cod="12"/>
+		  <BOTON nombre="btnRecalcular" ID="botonContenido" tipo="html" accion="accionRecalcular();" estado="false" cod="978" ontab="focoSubtipoCliente();"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>       
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>  
+ </CAPA>  
+
+<CAPA nombre="capaTipoClasificacion" alto="10" ancho="10" colorf="" borde="1" imagenf="" repeat="" padding="" visibilidad="hidden" contravsb="" zindex="" x="10" y="10">      
+		<LISTA  seleccion="boton" nombre="listaTipoClasificacion" ancho="582" alto="150" multisel="-1" incy="1" incx="10" 
+    colorf="#EFEFEF" imagenoff="close_no.gif" imagenon="close_up.gif" accion="" sep="|" pixelsborde="3" colorborde="#CCCCCC">	
+		        <CABECERA nombre="cabecera" height="20">
+		            <COL id="fondoCabecera" ancho="13"></COL>
+		      	    <COL id="fondoCabecera" ancho="300"><LABELC nombre="lb1" ancho="300" alto="20" filas="1" id="datosCamposCabecera"	valor="Divisiones Políticas" enviaroculto="N"/></COL>
+		      	    <COL id="fondoCabecera" ancho="150"><LABELC nombre="lb2" ancho="150" alto="20" filas="1" id="datosCamposCabecera"	valor="País 01" enviaroculto="N"/></COL>
+		        </CABECERA>
+		        <PRESENTACION ancho="10" filas="1" bloquesid="['datosCamposCenterImpar', 'datosCamposCenterPar']">
+		            <COL ancho="13"/>            
+		            <COL ancho="300" caracteres="100"/>
+		            <COL ancho="150" caracteres="30"/>            
+		        </PRESENTACION>
+		        <ROWSET>
+		        </ROWSET>
+		</LISTA>
+</CAPA> 
+
+<CAPA nombre="capaClasificacion" alto="10" ancho="10" colorf="" borde="1" imagenf="" repeat="" padding="" visibilidad="hidden" contravsb="" zindex="" x="10" y="10">      
+		<LISTA  seleccion="boton" nombre="listaClasificacion" ancho="582" alto="150" multisel="-1" incy="1" incx="10" 
+    colorf="#EFEFEF" imagenoff="close_no.gif" imagenon="close_up.gif" accion="" sep="|" pixelsborde="3" colorborde="#CCCCCC">	
+		        <CABECERA nombre="cabecera" height="20">
+		            <COL id="fondoCabecera" ancho="13"></COL>
+		      	    <COL id="fondoCabecera" ancho="300"><LABELC nombre="lb1" ancho="300" alto="20" filas="1" id="datosCamposCabecera"	valor="Divisiones Políticas" enviaroculto="N"/></COL>
+		      	    <COL id="fondoCabecera" ancho="150"><LABELC nombre="lb2" ancho="150" alto="20" filas="1" id="datosCamposCabecera"	valor="País 01" enviaroculto="N"/></COL>
+		        </CABECERA>
+		        <PRESENTACION ancho="10" filas="1" bloquesid="['datosCamposCenterImpar', 'datosCamposCenterPar']">
+		            <COL ancho="13"/>            
+		            <COL ancho="300" caracteres="100"/>
+		            <COL ancho="150" caracteres="30"/>            
+		        </PRESENTACION>
+		        <ROWSET>
+		        </ROWSET>
+		</LISTA>
+</CAPA> 
+ 
+</FORMULARIO>
+</PAGINA>

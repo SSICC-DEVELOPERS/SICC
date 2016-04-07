@@ -1,0 +1,485 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+/**
+ * Copyright 2003 © por Indra Sistemas,S.A.. Todos los derechos reservados.
+ * Avda. de Bruselas, 35
+ * Parque Empresarial Arroyo de la Vega
+ * 28108 Alcobendas, Madrid
+ * España
+ *
+ * Privado y Confidencial.
+ * La información contenida en este documento es propiedad de Indra sistemas.
+ * Para uso exclusivo de empleados autorizados no permitiéndose
+ * la distribución de este código sin permiso expreso.
+ */
+-->
+<!--
+   INDRA/CDOS/SICC
+   $Id: calendario_insertar.xml,v 1.1 2009/12/03 18:46:15 pecbazalar Exp $
+   DESC
+   DRUIDATARGET=/../../config/scripts/iniciales
+-->
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+<PAGINA nombre="calendario_insertar" titulo="Insertar Calendario"
+        estilos="estilos.css" colorf="#F0F0F0" msgle="Insertar Calendario"
+        onload="onLoadCargarBarra(); " xml:lang="es" cod="086">
+  <ESTILO>#estcomboF {width:355px}</ESTILO>
+  <JS src="sicc_util.js"/>
+  <JAVASCRIPT>
+
+    <![CDATA[
+    							 
+      function fLimpiar() {
+        setTimeout("fLimpiar2()",100);
+      }
+      function fLimpiar2() {
+        set('frmInsertarCalendario.txtAnio','');
+        set('frmInsertarCalendario.txtSabados','S');
+        set('frmInsertarCalendario.txtDomingos','S');
+        set('frmInsertarCalendario.cboMarcas','');
+        set('frmInsertarCalendario.cboCanales','');
+        set_combo('frmInsertarCalendario.cboGruposZonas',[]);
+        foco('frmInsertarCalendario.cboCanales');
+        foco('frmInsertarCalendario.cboCanales');
+        foco('frmInsertarCalendario.cboMarcas');
+        foco('frmInsertarCalendario.cboMarcas');
+        focaliza('frmInsertarCalendario.txtAnio');
+      }
+                    	
+    	function onLoadCargarBarra() {
+        posicionarCombo();
+        configurarMenuSecundario("frmInsertarCalendario");
+        focaliza('frmInsertarCalendario.txtAnio','');
+        ShowError();	
+      }
+    
+      function fModificar() {
+        setTimeout("fModificar2()",100);
+      }
+                     
+      function fModificar2(){
+        if (
+          fValidarCTEXT('frmInsertarCalendario.txtAnio') &&
+          validarDiasNoLaborables() &&
+          validarAnioNumerico() &&
+          fValidarCOMBO('frmInsertarCalendario.cboMarcas') &&
+          fValidarCOMBO('frmInsertarCalendario.cboCanales') &&
+          fValidarCOMBO('frmInsertarCalendario.cboGruposZonas')) {
+                    		
+          calendarioDate();
+        }
+      }
+                
+      function validarAnioNumerico() {
+        if(fValidarNumero(get('frmInsertarCalendario.txtAnio'), 4, 0, 9999) != 'OK'){
+          GestionarMensaje('405',null,null,null);
+          focaliza('frmInsertarCalendario.txtAnio');
+          return false;   
+        } 
+        else
+          return true;
+      }
+                
+      function calendarioDate() {
+        //alert("calendarioDate");
+        var my_date=new Date()
+        my_date = my_date.getFullYear()
+        //alert(my_date);
+                    
+        if (get('frmInsertarCalendario.txtAnio')< my_date){
+          GestionarMensaje('206',null,null,null);
+          //return;
+          focaliza('frmInsertarCalendario.txtAnio','');
+        } 
+        else {
+          set('frmInsertarCalendario.accion','grabar');   
+          enviaSICC('frmInsertarCalendario');
+    		}
+      }
+
+//yyy
+      
+      function ShowError(){ 
+          if (get('frmInsertarCalendario.errDescripcion')!=''){ 
+              fMostrarMensajeError(get('frmInsertarCalendario.errCodigo'), get('frmInsertarCalendario.errDescripcion'));
+              cancelar();
+              focaliza('frmInsertarCalendario.txtAnio','');
+
+          }	
+    	} 
+    
+      function reintentar(){
+          set('frmInsertarCalendario.conectorAction','LPCreaCalendario');
+          enviaSICC('frmBuscarGP');
+      }
+    
+      function cancelar(){
+          set('frmInsertarCalendario.accion','');
+          set('frmInsertarCalendario.conectorAction','LPCreaCalendario');
+          //fLimpiar();
+      }
+
+      // Asigna el valor de los CHECKBOXes txtTodas y txtTodas2 a variables hidden
+      function leerCheckboxes(){
+        /*
+        if( get('frmInsertarCalendario.txtTodas') == 'S' ){
+          set('frmInsertarCalendario.hTodasLasMarcas', 'S');
+        }
+        else{
+          set('frmInsertarCalendario.hTodasLasMarcas', '');
+        }
+        */
+
+        if( get('frmInsertarCalendario.txtTodas2')=='S' ){
+          set('frmInsertarCalendario.hTodosLosGruposZonas', 'S');
+        }
+        else{
+          set('frmInsertarCalendario.hTodosLosGruposZonas', '');
+        }
+      }
+
+      function consultarGruposZonas() {
+        //(get('frmInsertarCalendario.cbPais')!='')&&
+        if (
+          (get('frmInsertarCalendario.cboMarcas')!='')&&
+          (get('frmInsertarCalendario.cboCanales')!='')){
+          set('frmInsertarCalendario.accion','seleccionPaisMarcaCanal');   
+
+          //leerCheckboxes();
+
+          enviaSICC('frmInsertarCalendario');
+        }
+      }
+
+      /*function validarDiasNoLaborables() {
+      if ((get('frmInsertarCalendario.txtSabados')=='N')&& 
+                              (get('frmInsertarCalendario.txtDomingos')=='N')){
+        alert("Debe seleccionar un valor para Días no Laborables");
+        GestionarMensaje('208',null,null,null);
+        return;
+        focaliza('frmInsertarCalendario.txtSabados','');
+      } 
+      else  
+        enviaSICC('frmInsertarCalendario');
+      } */
+                    
+      function validarDiasNoLaborables() {
+        if ((get('frmInsertarCalendario.txtSabados')=='N')&& 
+          (get('frmInsertarCalendario.txtDomingos')=='N')){
+          GestionarMensaje('2464',null,null,null);
+          focaliza('frmInsertarCalendario.txtSabados','');
+          return false;
+        } 
+        else
+          return true;
+      }
+                    
+      function posicionarCombo() {
+        //alert ("posicionarCombo");
+        var iSeleccionado = new Array();
+        iSeleccionado[0] = get('frmInsertarCalendario.hCanales')
+        set('frmInsertarCalendario.cboCanales',iSeleccionado);
+
+        /*
+        var iSeleccionadoP = new Array();
+        iSeleccionadoP[0] = get('frmInsertarCalendario.hPais')
+        set('frmInsertarCalendario.cbPais',iSeleccionadoP);
+        */
+            
+        var iSeleccionadoM = new Array();
+        iSeleccionadoM[0] = get('frmInsertarCalendario.hMarcas')
+        set('frmInsertarCalendario.cboMarcas',iSeleccionadoM);
+            
+        var iSeleccionadoGZ = new Array();
+        iSeleccionadoGZ[0] = get('frmInsertarCalendario.hGruposZonas')
+        set('frmInsertarCalendario.cboGruposZonas',iSeleccionadoGZ);
+
+        //CHECKBOXES
+        /*
+        if( get('frmInsertarCalendario.hTodasLasMarcas')=='S' ){
+          set('frmInsertarCalendario.txtTodas', 'S');
+        }
+        */
+        /*
+        if( get('frmInsertarCalendario.hTodosLosGruposZonas')=='S' ){
+          set('frmInsertarCalendario.txtTodas2', 'S');
+        }
+        */
+      }
+            
+      function focalizaPrimero(){
+        focaliza('frmInsertarCalendario.txtAnio');
+      }
+
+      //------------------------------------------------------
+
+      
+
+      //Esta funcion se invoca al presionar el boton 'Grabar' en al barra
+      function fGuardar(){
+        if (fValidarCTEXT('frmInsertarCalendario.txtAnio') &&
+            validarDiasNoLaborables() &&
+            validarAnioNumerico() &&
+            fValidarCOMBO('frmInsertarCalendario.cboMarcas') &&
+            fValidarCOMBO('frmInsertarCalendario.cboCanales') &&
+            fValidarCOMBO('frmInsertarCalendario.cboGruposZonas')) {
+
+                  /*
+                  if( get( 'frmInsertarCalendario.txtTodas2' ) == 'S' )
+                      set('frmInsertarCalendario.hTodosLosGruposZonas', 'S');
+                  else
+                      set('frmInsertarCalendario.hTodosLosGruposZonas', '');
+                  */
+
+                  set('frmInsertarCalendario.accion', 'grabar');
+                  calendarioDate();
+            }
+       }
+    ]]>
+    
+  </JAVASCRIPT>
+  <FORMULARIO nombre="frmInsertarCalendario">
+    <VAR nombre="accion" valor=""/>
+    <!-- graba -->
+    <VAR nombre="conectorAction" valor="LPCreaCalendario"/>
+    <VAR nombre="errCodigo" valor=""/>
+    <VAR nombre="errDescripcion" valor=""/>
+    <VAR nombre="elementosSeleccionados" valor=""/>
+    <VAR nombre="hCodigoCanal" valor=""/>
+    <VAR nombre="hCanales" valor=""/>
+    <VAR nombre="hPais" valor=""/>
+    <VAR nombre="hDescPais" valor=""/>
+    <VAR nombre="hPaisOrigen" valor=""/>
+    <VAR nombre="hMarcas" valor=""/>
+    <VAR nombre="hGruposZonas" valor=""/>
+    <VAR nombre="hSabados" valor=""/>
+    <VAR nombre="hDomingos" valor=""/>
+
+    <!--
+    A estas variables hidden se les asigna su valor en la funcion fGrabar().
+    Reciben el valor 'S' si se chequeo el CHECKBOX 'Todas' correspondiente a
+    'Marcas' o 'Grupos Zonas'.
+    Si el valor es vacio, la LP, en la accion 'grabar' pasara el codigo de Marca
+    o Grupo de Zona seleccionado en la lista.
+    Si el valor es 'SI', la LP, en la accion 'grabar' pasara el valor 0.
+    -->
+    <VAR nombre="hTodasLasMarcas" valor=""/>
+    <VAR nombre="hTodosLosGruposZonas" valor=""/>
+
+    
+    <CAPA nombre="capaBusqueda" alto="320" ancho="600" colorf="" borde="0"
+          imagenf="" repeat="" padding="" visibilidad="visible" contravsb=""
+          x="12" y="12" zindex="">
+      <TABLE width="100%" border="1" cellspacing="1" cellpadding="0"
+             height="100%" bordercolor="#CCCCCC" bgcolor="">
+        <TR>
+          <TD>
+            <!-- border = 0 -->
+            <TABLE width="87%" border="0" cellspacing="0" cellpadding="0"
+                   align="left" height="95%" bgcolor="">
+              <TR>
+                <TD colspan="6" align="right">
+                  <IMG src="b.gif" witdh="8" height="8"/>
+                </TD>
+              </TR>
+              <TR>
+                <TD>
+                  <LABELC nombre="etiqueta1" ancho="130" alto="27" filas="1"
+                          id="datosTitleRight" cod="5" valor=""
+                          enviaroculto="N"/>
+                </TD>
+                <TD>
+                  <IMG src="b.gif" witdh="8" height="8"/>
+                </TD>
+                <TD colspan="8">
+
+                  <LABELC nombre="lblContenidoPais" ancho="130" alto="27" filas="1"
+                          id="datosCamposLeft" valor=""
+                          enviaroculto="N"/>
+                
+                </TD>
+              </TR>
+              <TR>
+                <TD>
+                  <LABELC nombre="etiqueta2" ancho="130" alto="27" filas="1"
+                          id="datosTitleRight" cod="171" valor=""
+                          enviaroculto="N"/>
+                </TD>
+                <TD>
+                  <IMG src="b.gif" witdh="8" height="8"/>
+                </TD>
+                <TD colspan="6">
+                  <CTEXTO nombre="txtAnio" class="datosCampos" id="txtAnio"
+                          max="4" tipo="" onchange="" size="5" valor="" req="N" onshtab="focaliza('frmInsertarCalendario.cboGruposZonas');"
+                          validacion=""/>
+                </TD>
+              </TR>
+              <TR>
+                <TD width="130">
+                  <LABELC nombre="etiqueta3" ancho="130" alto="27" filas="1"
+                          id="datosTitleRight" cod="177" valor=""
+                          enviaroculto="N"/>
+                </TD>
+                <TD>
+                  <IMG src="b.gif" witdh="8" height="8"/>
+                </TD>
+                <TD width="10">
+                  <CHECKBOX nombre="txtSabados" class="" id="txtSabados" max="1"
+                            tipo="" onchange="" req="N" size="1" check="S"
+                            valor="" validacion=""/>
+                </TD>
+                <TD width="50">
+                  <LABELC nombre="etiqueta33" ancho="50" alto="27" filas="1"
+                          id="datosTitleLeft" cod="178" valor=""
+                          enviaroculto="N"/>
+                </TD>
+                <TD width="10">
+                  <CHECKBOX nombre="txtDomingos" class="datosCampos"
+                            id="txtDomingos" max="1" tipo="" onchange="" req="N"
+                            size="1" check="S" valor="" validacion=""/>
+                </TD>
+                <TD width="50">
+                  <LABELC nombre="etiqueta32" ancho="50" alto="27" filas="1"
+                          id="datosTitleRight" cod="179" valor=""
+                          enviaroculto="N"/>
+                </TD>
+                <TD>
+                  <IMG src="b.gif" witdh="8" height="8"/>
+                </TD>
+                <TD>
+                  <IMG src="b.gif" witdh="8" height="8"/>
+                </TD>
+                <TD>
+                  <IMG src="b.gif" witdh="8" height="8"/>
+                </TD>
+                <TD>
+                  <IMG src="b.gif" witdh="8" height="8"/>
+                </TD>
+                <TD>
+                  <IMG src="b.gif" witdh="8" height="8"/>
+                </TD>
+              </TR>
+              
+              <TR>
+                <TD valign="top" width="130">
+                  <LABELC id="datosTitleRight" nombre="lblMarca" ancho="130"
+                          alto="27" filas="1" cod="6"/>
+                </TD>
+                <TD>
+                  <IMG src="b.gif" witdh="8" height="8"/>
+                </TD>
+                <TD colspan="6">
+                  <COMBO nombre="cboMarcas" id="estcombo" size="1" multiple="N"
+                         req="N" valorinicial="" textoinicial=""
+                         onchange="consultarGruposZonas();">
+                    <ROWSET>
+                      <ROW ID="1">
+                        <CAMPO NOMBRE="CODIGOTP" TIPO="STRING" VALOR="00"/>
+                        <CAMPO NOMBRE="DESCRIPCIOTP" TIPO="STRING"
+                               VALOR="Abierto"/>
+                      </ROW>
+                    </ROWSET>
+                  </COMBO>
+                </TD>
+              </TR>
+
+
+              <!-- checkbox eliminado
+              <TR>
+                <TD width="8">
+                  <IMG src="b.gif" witdh="8" height="8"/>
+                </TD>
+                <TD width="8">
+                  <IMG src="b.gif" witdh="8" height="8"/>
+                </TD>
+                <TD>
+                  <CHECKBOX nombre="txtTodas" class="" id="txtTodas" max="1"
+                            tipo="" onchange="" req="N" size="1" valor=""
+                            validacion=""/>
+                </TD>
+                <TD width="200">
+                  <LABELC nombre="etiqueta13" ancho="55" alto="27" filas="1"
+                          id="datosTitleLeft" cod="176" valor=""
+                          enviaroculto="N"/>
+                </TD>
+              </TR>
+              -->
+
+              
+              <TR>
+                <TD width="140" valign="center">
+                  <LABELC id="datosTitleRight" nombre="lblCanales" ancho="130"
+                          alto="27" filas="1" cod="7"/>
+                </TD>
+                <TD>
+                  <IMG src="b.gif" witdh="8" height="8"/>
+                </TD>
+                <TD colspan="6" valign="center">
+                  <COMBO nombre="cboCanales" id="estcombo" size="1" multiple="N"
+                         req="N" valorinicial="" textoinicial=""
+                         onchange="consultarGruposZonas();">
+                    <ROWSET>
+                      <ROW ID="1">
+                        <CAMPO NOMBRE="CODIGOTP" TIPO="STRING" VALOR="00"/>
+                        <CAMPO NOMBRE="DESCRIPCIOTP" TIPO="STRING"
+                               VALOR="Abierto"/>
+                      </ROW>
+                    </ROWSET>
+                  </COMBO>
+                </TD>
+              </TR>
+              
+              <TR>
+                <TD valign="top" width="130">
+                  <LABELC nombre="lblGrupoZonas" id="datosTitleRight"
+                          ancho="130" alto="27" filas="1" cod="180"/>
+                </TD>
+                <TD width="8">
+                  <IMG src="b.gif" width="8" height="8"/>
+                </TD>
+                <TD colspan="6">
+                  <COMBO nombre="cboGruposZonas" id="estcombo" size="5"
+                         multiple="S" req="N" 
+                         onchange="">
+                    <ROWSET>
+                      <ROW ID="1">
+                        <CAMPO NOMBRE="CODIGOTP" TIPO="STRING" VALOR="00"/>
+                        <CAMPO NOMBRE="DESCRIPCIOTP" TIPO="STRING" VALOR=""/>
+                      </ROW>
+                    </ROWSET>
+                  </COMBO>
+                </TD>
+              </TR>
+
+              <!--
+              <TR>
+                <TD width="130">
+                  <IMG src="b.gif" witdh="8" height="8"/>
+                </TD>
+                <TD width="8">
+                  <IMG src="b.gif" witdh="8" height="8"/>
+                </TD>
+                <TD width="8">
+                  <CHECKBOX nombre="txtTodas2" class="" id="txtTodas2" max="1"
+                            tipo="" onchange="" req="N" size="1" valor="" ontab="focalizaPrimero();"
+                            validacion=""/>
+                </TD>
+                <TD colspan="2" width="70">
+                  <LABELC nombre="etiqueta14" ancho="55" alto="27" filas="1"
+                          id="datosTitleLeft" cod="176" valor=""
+                          enviaroculto="N"/>
+                </TD>
+              </TR>
+              -->
+              
+              <TD align="left">
+                <IMG src="b.gif" witdh="8" height="8"/>
+              </TD>
+            </TABLE>
+          </TD>
+        </TR>
+      </TABLE>
+    </CAPA>
+    <!--**************************** FIN CODIGO HTML ORIGINAL ****************************-->
+  </FORMULARIO>
+</PAGINA>

@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/MEN/SICC
+   $Id: validacionPrueba.xml,v 1.1 2009/12/03 18:45:46 pecbazalar Exp $
+   Pagina Inicial del sistema
+
+   DRUIDATARGET=/../../config/scripts/iniciales
+-->
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="" titulo="" estilos="estilos.css" colorf="white" onload="nombrar(); setHook(); fnErrores();" xml:lang="es">
+  <JS src="sicc_util.js"/>
+  <JAVASCRIPT><![CDATA[
+    function nombrar() {
+      top.window.name = 'Belcorp';
+		document.onkeydown=null;
+		document.onhelp=null;
+    }
+
+    function postForm() {
+    	envia('frmInicio');
+    }
+
+    function setHook() {
+      var obj = document.all('contrasenia');
+      var pass;
+      if (obj.length) {
+        for (var i = 0; i < obj.length; i++) {
+          if (obj[i].type && obj[i].type.toUpperCase() == 'PASSWORD') {
+            pass = obj[i];
+            break;
+          }
+        }
+      }
+      else pass = obj;
+      if (pass) {
+        try { pass.onfocus = selectedText; }
+        catch(ex) {}
+      }
+    }
+
+    function selectedText() {
+      event.srcElement.select();
+      event.returnValue = true;
+      return true;
+    }
+
+    function isValid() {
+      var TipoSalida = get('frmInicio.validado');
+      //alert('TipoSalida: ' + TipoSalida);
+		var salida = true;
+		switch(TipoSalida.toUpperCase()){
+			case "S":
+			  // El usuario fue validado, le presento el menu
+			  window.focus();
+			  var strQueryString = '';
+			  if (get('frmInicio.pantallaInicio') != '') {
+				 strQueryString = get('frmInicio.pantallaInicio');
+				 strQueryString = strQueryString.split('?').join('@@');
+				 strQueryString = strQueryString.split('&').join('!!');
+				 strQueryString = strQueryString.split('=').join('__');
+				 strQueryString = '?contenido=' + strQueryString;
+			  }
+			  strQueryString += ((strQueryString == '') ? '?' : '&') + 'menu=LPPresentarMenuPrincipal' + '!' + '!'+ 'cdosIdioma__' + DrdIdioma();
+			  if (opener) {
+					opener.location.href = '../principal.html' + strQueryString;
+				} else {
+					location.href = '../principal.html' + strQueryString;
+				}
+			  salida = false;			
+			  break;
+		  case "U":
+				if(opener){	
+					opener.location.replace("../index_sustitucion_usuario.html");
+				}else{
+					window.location.replace("../index_sustitucion_usuario.html");
+				}
+				salida = false;
+				break;
+		  case "C":		  
+				if(opener){	
+					opener.location.replace("../index_clave_acceso_cambiar.html");
+				}else{
+					window.location.replace("../index_clave_acceso_cambiar.html");
+				}
+				salida = false;
+				break;
+			case "E":
+			  // Las credenciales del usuario expiraron, lo mando a cambio de clave
+			  //fMostrarMensajeError();
+			  if (opener) {
+				 opener.location.href = '../index_clave_acceso_cambiar.html';
+				 window.close();
+			  } else {
+				location.href = '../index_clave_acceso_cambiar.html';
+			  }
+			  salida = false;
+		}
+      return salida;
+    }
+
+    function fnErrores() {
+      if (isValid()) {
+        window.focus();
+        var codigo = get('frmInicio.errCodigo');
+        var descripcion = get('frmInicio.errDescripcion');
+        var nombreD = get('frmInicio.nombreDevuelto');
+        if (nombreD != '') {
+			set('frmInicio.usuario', nombreD);
+			}
+		  if (descripcion != null && descripcion != '') {
+			 if (descripcion.substr(0,4) == 'ERR_') 
+				descripcion = GestionarMensaje(descripcion.split('_')[1]);
+			 if (fMostrarMensajeError(codigo, descripcion) == 0) 
+				postForm();
+		  } else {
+			focaliza('frmInicio.usuario', '');
+		  }
+      }
+      if (opener) {
+        try { opener.focaliza('frmInicio.usuario', ''); }
+        catch (ex) {}
+        window.close();
+      }
+    }
+  ]]></JAVASCRIPT>
+  <FORMULARIO nombre="frmInicio" oculto="S">
+    <VAR nombre="accion" valor="validar"/>
+    <VAR nombre="conectorAction" valor="LPIdentificarUsuarioPrueba"/>
+    <VAR nombre="errCodigo" valor=""/>
+    <VAR nombre="errDescripcion" valor=""/>
+    <VAR nombre="nombreDevuelto" valor=""/>
+    <VAR nombre="validado" valor="N"/>
+    <VAR nombre="pantallaInicio" valor=""/>
+
+    <table width="100%" cellspacing="0" height="58.8%" cellpadding="0" border="0">
+      <tr>
+        <td width="301" height="58.8%" rowspan="3">
+		<IMG src="cara.jpg"/>
+		</td>
+        <td rowspan="3" width="114" >
+			<IMG src="b.gif"/></td>
+        <td colspan="5" align="right" valign="top" height="7.8%">
+      		<IMG src="logoBelcorp.gif" width="229" height="33"/>
+        </td>
+      </tr>
+      <tr> 
+        <td width="55" height="45%" align="center" valign="bottom"><IMG src="foto1.jpg" width="45" height="45"/></td>
+        <td width="55" height="45%" align="center" valign="bottom"><IMG src="foto2.jpg" width="45" height="45"/></td>
+        <td width="55" height="45%" align="center" valign="bottom"><IMG src="foto3.jpg" width="45" height="45"/></td>
+        <td width="55" height="45%" align="center" valign="bottom"><IMG src="foto4.jpg" width="45" height="45"/></td>
+        <td width="55" height="45%" align="center" valign="bottom"><IMG src="foto5.jpg" width="45" height="45"/></td>
+      </tr>
+      <tr> 
+        <td width="55" height="6%"><IMG src="/sicc/es/img/b.gifb.gif" width="8" height="8"/></td>
+        <td width="55" height="6%"><IMG src="/sicc/es/img/b.gifb.gif" width="8" height="8"/></td>
+        <td width="55" height="6%"><IMG src="/sicc/es/img/b.gifb.gif" width="8" height="8"/></td>
+        <td width="55" height="6%"><IMG src="/sicc/es/img/b.gifb.gif" width="8" height="8"/></td>
+        <td width="55" height="6%"><IMG src="/sicc/es/img/b.gifb.gif" width="8" height="8"/></td>
+      </tr>
+    </table>
+    <table width="100%" border="0" height="33.7%" cellspacing="0" cellpadding="0">
+      <tr> 
+        <td width="320" height="7.1%" background="../es/img/lineasHoriz.gif" valign="top">
+          <IMG src="lineasSicc.gif" width="142" height="30"/>
+        </td>
+        <td width="50" background="../es/img/lineasHoriz.gif" valign="middle" align="left">
+          <LABELC nombre="txtusuario" alto="30" ancho="100%" id="password" texto="" filas="" cod="136"/>
+        </td>
+        <td background="../es/img/lineasHoriz.gif" valign="middle" align="left" width="150"> 
+          <CTEXTO nombre="usuario" id="datosCampos" max="20" tipo="text" onchange="" req="N" size="15" />
+        </td>
+        <td width="80" background="../es/img/lineasHoriz.gif" valign="middle" align="left">
+          <LABELC nombre="txtcontra" alto="30" ancho="100%" id="password" texto="" filas="" cod="1218" />
+        </td>
+        <td background="../es/img/lineasHoriz.gif" class="" valign="middle" align="left" width="130">
+          <CTEXTO nombre="contrasenia" id="datosCampos" max="15" tipo="password" onchange="" req="N" size="10"/>
+        </td>
+        <td background="../es/img/lineasHoriz.gif" valign="middle" align="center" width="50">
+          <a href="javascript:postForm();"><IMG src="flechaOk.gif" alt="aceptar" border="0" /></a>
+        </td>
+      </tr>
+      <tr bgcolor="F0F0F0">
+        <td colspan="6" height="27%"><IMG src="/sicc/es/img/b.gifb.gif" width="8" height="8"/></td>
+      </tr>
+    </table>
+    <table width="100%" border="0" height="6.3%" cellspacing="0" cellpadding="0">
+      <tr>
+        <td align="right" bgcolor="9C9C9C" height="5.6%" class="creditos" nowrap="nowrap" width="466" valign="middle">Resolución mínima 800x600</td>
+        <td bgcolor="9C9C9C" height="24" class="creditos" nowrap="nowrap" align="center" valign="middle" width="26">
+          <IMG src="separaCreditos.gif" width="13" height="21"/>
+        </td>
+        <td bgcolor="9C9C9C" height="5.6%" class="creditos" nowrap="nowrap" width="194" valign="middle">Copyright Corporación Belcorp 2002</td>
+        <td bgcolor="9C9C9C" height="5.6%" class="creditos" align="center" valign="middle" width="22">
+          <IMG src="separaCreditos.gif" width="13" height="21"/>
+        </td>
+        <td bgcolor="9C9C9C" height="5.6%" class="creditos" nowrap="nowrap" width="72" valign="middle">Créditos</td>
+      </tr>
+    </table>
+  </FORMULARIO>
+</PAGINA>

@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_caja_cerrar.xml,v 1.1 2009/12/03 18:45:07 pecbazalar Exp $
+   contenido CCC
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_caja_cerrar" cod="0474" titulo="Cerrar una caja" estilos="estilosB3.css" colorf="#F0F0F0" 
+	msgle="" onload="onLoadPag();" xml:lang="es">
+
+
+<JS src="sicc_util.js"/>
+
+
+<JAVASCRIPT>
+  <![CDATA[ 
+
+	function onLoadPag()   {
+		configurarMenuSecundario('frmFormulario');
+		DrdEnsanchaConMargenDcho('listado1',12);
+		document.all["Cplistado1"].style.visibility='';
+		document.all["CpLin1listado1"].style.visibility='';
+		document.all["CpLin2listado1"].style.visibility='';
+		document.all["CpLin3listado1"].style.visibility='';
+		document.all["CpLin4listado1"].style.visibility='';
+
+		document.all["primera1Div"].style.visibility='hidden';
+		document.all["ret1Div"].style.visibility='hidden';
+		document.all["ava1Div"].style.visibility='hidden'; 
+		document.all["separaDiv"].style.visibility='hidden';
+		document.all["btnAnadirDiv"].style.visibility='';
+		document.all["btnModificarDiv"].style.visibility='';
+		eval (ON_RSZ);  
+
+		configurarMenuSecundario("formulario");
+		fMostrarMensajeError();
+
+		if((get("frmFormulario.errCodigo")=='30108') || (get("frmFormulario.errCodigo")=='30109') ){
+
+			eval("frmFormulario").oculto = "N";
+			set('frmFormulario.conectorAction', 'LPCerrarUnaCaja');
+			set('frmFormulario.accion', '');
+			/*enviaSICC('frmFormulario');*/
+
+		} else if(get("frmFormulario.errCodigo")!=null){
+			redireccionar();	
+
+		} else {
+			focalizaBotonHTML_XY("btnAnadir");
+		}     
+
+	}
+
+	function reiniciar()  {
+		 GestionarMensaje('1583');   
+		 set('frmFormulario.conectorAction', 'LPCerrarUnaCaja');
+		 eval("frmFormulario").oculto = "N";
+		 set('frmFormulario.accion', '');
+         enviaSICC('frmFormulario');
+	}
+
+//------------------------------------------------------------------------------
+
+   function redireccionar(){
+
+      var error = get('frmFormulario.errCodigo');
+
+	  if(error == '30107' || error == '30103' || error == '30109'){
+
+		deshabilitarHabilitarBoton('botonContenido','btnAnadir','D')
+		deshabilitarHabilitarBoton('botonContenido','btnModificar','D')
+		deshabilitarHabilitarBoton('botonContenido','btnEliminar','D')
+
+      /*} else if(error == '30108'|| error == '30109' ){*/
+      } else if(error == '30108' ){
+		 eval("frmFormulario").oculto = "N";
+         set('frmFormulario.conectorAction', 'LPCerrarUnaCaja');
+		 set('frmFormulario.accion', '');
+         enviaSICC('frmFormulario');
+
+      }
+
+   }
+//------------------------------------------------------------------------------ 
+
+   function accionModificar(){
+
+      if (listado1.codSeleccionados().length == 1){
+         var a = new Object();
+         a.accion = 'modificar';
+         a.hSubacceso = get('frmFormulario.hSubacceso');
+         a.hMedioPago     = listado1.extraeDato(listado1.codSeleccionados(), 4);
+         a.hMoneda        = listado1.extraeDato(listado1.codSeleccionados(), 5);
+         a.hImporte       = listado1.extraeDato(listado1.codSeleccionados(), 2);
+         a.hImporteDivisa = listado1.extraeDato(listado1.codSeleccionados(), 3);
+         
+		 var codigoSeleccionado = listado1.codSeleccionados();
+		 var filaSeleccion =  DrIndiceEnArray(listado1.datos, codigoSeleccionado, 0) ;
+         
+         var vWnd = mostrarModalSICC('LPCerrarUnaCaja','modificar', a);
+
+         if(vWnd != null){
+			// actualizamos los datos modificados
+			var arrListado = listado1.datos;   
+			var medioPago = new String(vWnd[0]);
+			var moneda 	=  new String(vWnd[1]);
+ 			var importe =  new String(vWnd[2]);
+			var importeDivisa =  new String(vWnd[3]);
+			arrListado[filaSeleccion][1] = medioPago;
+			arrListado[filaSeleccion][2] = moneda;
+			arrListado[filaSeleccion][3] = importe;
+			arrListado[filaSeleccion][4] = importeDivisa;
+			// setamos la lista actualizada   
+			listado1.datos = arrListado;   
+			// refrescamos la lista editable   
+			listado1.save();   
+			listado1.repintaDat();   
+         }
+      }else {   
+           GestionarMensaje('4');   
+      }
+   }
+
+
+//------------------------------------------------------------------------------
+
+   function accionAniadir(){
+      var a = new Object();
+      a.accion = 'modificar';
+      a.hSubacceso = get('frmFormulario.hSubacceso');
+      var vWnd = mostrarModalSICC('LPCerrarUnaCaja','anyadir', a);
+      if(vWnd != null){
+          var arr = new Array();
+          
+          arr[arr.length] = listado1.generaCodigo();
+          arr[arr.length] = vWnd[0]; 
+          arr[arr.length] = vWnd[1]; 
+          arr[arr.length] = vWnd[2]; 
+          arr[arr.length] = vWnd[3];
+          arr[arr.length] = vWnd[4];
+          arr[arr.length] = vWnd[5];
+          
+          listado1.insertar(arr);
+          listado1.repinta();
+      }
+   }
+//------------------------------------------------------------------------------
+
+   function accionEliminar(){
+      fBorrar();
+   }
+//------------------------------------------------------------------------------
+
+   function fBorrar(){
+      if(listado1.codSeleccionados().length > 0){
+         listado1.eliminarSelecc();
+      }else{
+         GestionarMensaje('4');
+      }
+   }
+
+//------------------------------------------------------------------------------
+
+   function fGuardar(){
+
+      if(listado1.datos.length > 0){
+		 var nro = get('frmFormulario.hIdOportunidad');
+		 if(get('frmFormulario.hIdOportunidad')=="1"){
+			nro=2;
+			eval("frmFormulario").oculto = "N";
+		 }else{
+			eval("frmFormulario").oculto = "S";
+			nro='1';
+		 }
+		 set('frmFormulario.hIdOportunidad', nro);		 
+         set('frmFormulario.accion', 'guardar');
+         set('frmFormulario.conectorAction', 'LPCerrarUnaCaja');
+         recolectarListado();
+         enviaSICC('frmFormulario');    
+      }
+   }
+
+//------------------------------------------------------------------------------
+
+   function recolectarListado(){
+      var datos = new String();
+
+      for(var i=0; i < listado1.datos.length;i++) {
+       
+
+          if(listado1.datos[i][3] == ''){
+             datos = datos + ' ;';
+          }else{
+             datos = datos + listado1.datos[i][3] + ';';
+          }
+
+          if(listado1.datos[i][4] == ''){
+             datos = datos + ' ;';
+          }else{
+             datos = datos + listado1.datos[i][4] + ';';
+          }
+
+          if(listado1.datos[i][5] == ''){
+             datos = datos + ' ;';
+          }else{
+             datos = datos + listado1.datos[i][5] + ';';
+          }
+
+          if(listado1.datos[i][6] == ''){
+             datos = datos + ' |';
+          }else{
+             datos = datos + listado1.datos[i][6] + '|';
+          }
+              
+
+      }
+      set('frmFormulario.hListado', datos);
+      
+   }
+
+//------------------------------------------------------------------------------
+
+
+	 
+   
+  ]]> 
+</JAVASCRIPT>
+
+
+<FORMULARIO nombre="frmFormulario" oculto="S">
+
+	<VAR nombre="accion" valor=""/>
+	<VAR nombre="conectorAction" valor=""/>
+	<VAR nombre="errCodigo" valor=""/>
+	<VAR nombre="errDescripcion" valor=""/>
+	<VAR nombre="hIdioma" valor=""/>
+	<VAR nombre="hPais" valor=""/>
+	<VAR nombre="hPaisDescripcion" valor=""/> 
+
+    <VAR nombre="hSubacceso" valor=""/>
+    <VAR nombre="hCaja" valor=""/>
+    <VAR nombre="hMedioPago" valor=""/>
+    <VAR nombre="hMoneda" valor=""/>
+    <VAR nombre="hImporte" valor=""/>
+    <VAR nombre="hImporteDivisa" valor=""/>
+    <VAR nombre="hListado" valor=""/>
+
+	<VAR nombre="hIdOportunidad" valor=""/>
+  
+
+
+
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="100%" ><IMG src="b.gif" width="674" height="8"/></td>
+    
+    </tr>
+ </table>
+ <LISTAEDITABLE nombre="listado1" ancho="650" alto="301" x="12" y="12" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+        <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+        <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+        <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+     
+      <LINEAS>
+        <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="1" horizTitulo="1" horizBase="1"/> 
+        <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+     <TITULO colFondo="#CECFCE" alto="22" imgFondo="" ID="datosTitle" cod="00271"/>
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+       <COL ancho="100" minimizable="S" minimizada="N"/>
+        <COL ancho="80" minimizable="S" minimizada="N"/>
+        <COL ancho="60" minimizable="S" minimizada="N"/>        
+        <COL ancho="60" minimizable="S" minimizada="N"/> 
+        <COL ancho="60" minimizable="S" minimizada="N" oculta="S"/>        
+        <COL ancho="60" minimizable="S" minimizada="N" oculta="S"/>
+     
+      </COLUMNAS>
+     
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC" >
+        <COL colFondo="" ID="EstCab" cod="673"/>
+	      <COL colFondo="" ID="EstCab" cod="1216"/>
+	      <COL colFondo="" ID="EstCab" cod="573"/>
+	      <COL colFondo="" ID="EstCab" cod="668"/>
+        <COL colFondo="" ID="EstCab" align="center">oidMedioPago</COL>
+        <COL colFondo="" ID="EstCab" align="center">oidMoneda</COL>
+	
+      </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+             coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+             onLoad="" colorSelecc="#D0D9E8">
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+      </DATOS>
+      <ROWSET>
+	
+      </ROWSET>
+      <PAGINADO nombre="mipgndo" ancho="650" sep="$" x="12" class="botonera" y="290" control="|" conector="conectorSandra" rowset="" cargainicial="N">
+        <BOTON nombre="ret1" x="37" y="294" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+        <BOTON nombre="ava1" x="52" y="294" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>
+                
+    </PAGINADO>
+  </LISTAEDITABLE>
+  <BOTON nombre="primera1" x="20" y="294" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();"/>  
+  <BOTON nombre="separa" x="59" y="290" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />     
+  <BOTON nombre="btnAnadir" x="13" y="291" ID="botonContenido" img="" tipo="html" estado="false" cod="404" accion="accionAniadir();" onshtab="focalizaBotonHTML_XY('btnEliminar');"/>   
+    <BOTON nombre="btnModificar" x="61" y="291" ID="botonContenido" img="" tipo="html" estado="false" cod="2" accion="accionModificar();" />       
+    <BOTON nombre="btnEliminar" x="127" y="291" ID="botonContenido" img="" tipo="html" estado="false" cod="1254" accion="accionEliminar();" ontab="focalizaBotonHTML_XY('btnAnadir');"/>     
+   <CAPA nombre="capaEspacio" alto="12" ancho="100%" colorf="" borde="0" imagenf="" repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="313" zindex="">
+  </CAPA>     
+                                                                                                                                                   
+</FORMULARIO>
+</PAGINA>  

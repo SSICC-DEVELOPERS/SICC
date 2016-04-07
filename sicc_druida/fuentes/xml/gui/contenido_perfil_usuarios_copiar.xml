@@ -1,0 +1,458 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sicc
+   $Id: contenido_perfil_usuarios_copiar.xml,v 1.1 2009/12/03 18:46:01 pecbazalar Exp $
+   Contenido de la copia de perfiles de usuario
+
+   DRUIDATARGET=/../../config/scripts/iniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="paginaCopiar" titulo="paginaCopiar" estilos="estilos.css" colorf="#f0f0f0"
+        msgle="paginaCopiar" onload="fnInicio()" xml:lang="es" cod="045">
+<JS src="sicc_util.js"/>
+<JAVASCRIPT>
+<![CDATA[
+	var arrSelected = new Array();
+	var strInicio = "";
+
+	function fVolver(){
+		set('frmCopia.accion','');
+		set('frmCopia.conectorAction','LPCopiarPerfil');	
+		postForm();
+	}	
+	
+	function fnInicio(){
+
+		set("frmCopia.seleccionListaUndo",get("frmCopia.seleccionLista"));
+		set("frmCopia.seleccionInicioUndo",get("frmCopia.seleccionInicio"));
+		set("frmCopia.txtNombrePerfilUndo",get("frmCopia.txtNombrePerfil"));
+
+		focaliza('frmCopia.txtNombrePerfil');
+		configurarMenuSecundario("frmCopia");	//cargarBarra("barra_perfil_usuarios_copiar");
+		var codigo= get('frmCopia.errCodigo');
+		var descripcion= get('frmCopia.errDescripcion');
+
+		var to_focalizar=get('frmCopia.campoFocaliza');
+
+		if ( to_focalizar!='' ){			
+			focaliza('frmCopia.'+to_focalizar);
+		}
+
+		txt_to("lblTituloFuncion",GestionarMensaje('122'));
+		txt_to("lblTituloAsignada",GestionarMensaje('123'));
+		txt_to("lblTituloInicial",GestionarMensaje('124'));
+
+		var strSel = get("frmCopia.seleccionLista");
+
+	   if(strSel.length > 0){
+			var arrSel = strSel.split("|");
+			for(var i=0;i < arrSel.length;i++){
+				if(arrSel[i]!=null && arrSel[i]!=''){
+					arrSelected[arrSelected.length]=arrSel[i];
+						document.getElementById(arrSel[i]).checked = true;
+				}
+			}
+			arrSel=null;
+		}
+
+		if(get("frmCopia.seleccionInicio")!=''){
+			strInicio = get("frmCopia.seleccionInicio");
+			if (strInicio.substring(0,1)!='_'){
+				strInicio = '_' + strInicio;
+			}
+			set('frmCopia.nombrePantalla',strInicio);			
+			document.getElementById(strInicio + "_sel").checked = true;
+
+		}
+	
+		//Manejo de Errores.
+		if( descripcion!=null && descripcion!='' && codigo!=null && codigo!='')
+		{
+				if(fMostrarMensajeError(codigo,descripcion)==0)	{
+						set('frmCopia.accion',''); //set('frmCopia.accion','ejecuta');
+						set('frmCopia.conectorAction','LPCopiarPerfil');	
+						postForm();
+						return;
+				}
+				//else{ cancelar(); return; }
+		}
+		else if (codigo!=null && descripcion!=null 	&& codigo=='' 
+					&& descripcion!='')
+		{
+				if( descripcion.substr(0,4)=="ERR_")
+				{
+					var errNums=descripcion.split("_");
+					var txtDescrip=null; 					
+					txtDescrip=GestionarMensaje(errNums[1],"",null,null);
+					configurarMenuSecundario("frmCopia"); //cargarBarra("barra_perfil_usuarios_copiar");
+					descripcion=txtDescrip;
+					if(fMostrarMensajeError(codigo,descripcion)==0)
+					{
+						set('frmCopia.accion',''); //set('frmCopia.accion','ejecuta');
+						set('frmCopia.conectorAction','LPCopiarPerfil');
+						//set("frmCopia.nombrePerfil",get('frmCopia.txtNombrePerfil'));
+						//set("frmCopia.seleccionLista",strSel);
+						//set("frmCopia.seleccionInicio",strInicio);
+						postForm();
+						return;
+					}
+					else{
+						cancelar();
+						return;
+					}
+				}
+				else 
+				{
+					if(fMostrarMensajeError(" ",descripcion)==0)
+					{
+							set('frmCopia.accion',''); //set('frmCopia.accion','ejecuta');
+							set('frmCopia.conectorAction','LPCopiarPerfil');
+							//set("frmCopia.nombrePerfil",get('frmCopia.txtNombrePerfil'));
+							//set("frmCopia.seleccionLista",strSel);
+							//set("frmCopia.seleccionInicio",strInicio);	
+							postForm();
+							return;
+					}
+					else{					
+						cancelar();
+						return;
+					}
+				}
+		}
+	}
+
+function cancelar()
+{	     
+		 set('frmCopia.accion',''); //set('frmCopia.accion','busca');		 
+		 set('frmCopia.conectorAction','LPCopiarPerfil');
+		 postForm();
+		 return;
+}
+
+//***************************************************************
+// Limpia los valores de campos margados.
+//***************************************************************
+function fLimpiar()
+{				
+		setTimeout("clean2()",100);
+}
+
+function clean2()
+{	
+		var clean='';
+		set('frmCopia.txtNombrePerfil',clean);
+		var element='';			
+			for(var j=0; j < arrSelected.length;j++){
+			
+				if ( arrSelected[j]!=null && arrSelected[j]!='' ){
+					
+					element=arrSelected[j];					
+					if ( get('frmCopia.'+element)=='S' ){
+						set('frmCopia.'+element,'N');	
+						if ( get('frmCopia.'+element+'_sel')=='S' ){
+							set('frmCopia.'+element+'_sel','N');
+						} 					
+					}					
+				}			
+			}
+
+			set('frmCopia.nombrePerfil',clean);
+			set('frmCopia.seleccionLista',clean);
+			set('frmCopia.txtNombrePerfil',clean);
+			set('frmCopia.seleccionInicio',clean);			
+	    	recuperarValores();
+			focaliza('frmCopia.txtNombrePerfil');
+
+	}
+
+function recuperarValores()
+{
+	var funcionesArray = (get('frmCopia.seleccionListaUndo').split("|"));
+	var funcionIArray  = (get('frmCopia.seleccionInicioUndo').split("|"));
+
+	if ( funcionesArray != null && funcionesArray.length > 0 ) {
+		for( var j=0; j<funcionesArray.length;j++)
+			set('frmCopia.'+funcionesArray[j],"S");			
+	}
+	
+	if ( funcionIArray != null && funcionIArray.length > 0 ){
+		set('frmCopia.'+funcionIArray[0] + "_sel" , "S");
+	}
+
+	if ( get('frmCopia.txtNombrePerfilUndo') != '' ){
+		set('frmCopia.txtNombrePerfil',get('frmCopia.txtNombrePerfilUndo'));
+	}
+
+	var strSel = get("frmCopia.seleccionListaUndo");
+	if(strSel.length > 0){
+		var arrSel = strSel.split("|");
+		for(var i=0;i < arrSel.length;i++){
+			if(arrSel[i]!=null && arrSel[i]!=''){
+				arrSelected[arrSelected.length]=arrSel[i];
+			}
+		}
+			arrSel=null;
+	}
+
+	if(get("frmCopia.seleccionInicio")!=''){
+		strInicio = get("frmCopia.seleccionInicio");
+	}
+}
+
+	function checkAsignar(nombre){
+		var obj = document.getElementById(nombre);
+		if(obj.checked){
+			arrSelected[arrSelected.length] = nombre;
+		}else{
+			for(var i=0;i < arrSelected.length;i++){
+				if(arrSelected[i]==nombre){
+					arrSelected[i]=null;
+				}
+			}
+			if(nombre == strInicio){
+				document.getElementById(nombre+"_sel").checked = false;
+				strInicio="";
+				set('frmCopia.nombrePantalla',strInicio);
+			}
+		}
+	}
+
+	function checkInicio(nombre){
+		var objInicio = document.getElementById(nombre+"_sel");
+		var objFuncion = document.getElementById(nombre);
+		if(objInicio.checked){
+			if(!objFuncion.checked){
+				objInicio.checked = false;
+				return;
+			}else{
+				if(strInicio !=''){
+					document.getElementById(strInicio+"_sel").checked = false;
+				}
+				strInicio = nombre;
+				set('frmCopia.nombrePantalla',strInicio);
+			}
+		}else{
+			strInicio ='';
+			set('frmCopia.nombrePantalla',strInicio);		
+		}
+	}
+
+	 function validaChars(str)
+	{
+		var c;
+		permitidos="abcdefghijklmnñopqrstuvwxyz ABCDEFGHIJKLMNÑOPQRSTUVWXYZ_-0123456789.";
+	    for(var i=0;i<str.length;i++)
+		{
+		   c=str.charAt(i);
+		   if (permitidos.indexOf(c)==-1) {
+		      return false;
+		   }
+		   else if ( c==' ' && i==0 ){
+			  return false;
+		   }
+		   else if ( c==' ' && i==(str.length-1)){
+			  return false;				
+		   }
+	    }
+	    return true;     
+	}
+	
+	function focaliza2(nombre)
+	{
+		focaliza(nombre);
+		return;
+	}
+
+	function checkName()
+	{
+		var cpName=get('frmCopia.txtNombrePerfil');
+		var selectName=get('frmCopia.seleccion');
+		
+		if ( cpName == null || cpName.length=='' )
+		{
+			cdos_mostrarAlert(GestionarMensaje('116'));
+			setTimeout("focaliza2('frmCopia.txtNombrePerfil')",100);
+			return false;
+		}
+		else if (!validaChars(cpName)){
+			cdos_mostrarAlert(GestionarMensaje('121'));
+			setTimeout("focaliza2('frmCopia.txtNombrePerfil')",100);
+			return false;
+		}		
+
+		if ( selectName == cpName ){
+			cdos_mostrarAlert(GestionarMensaje('117'));
+			setTimeout("focaliza2('frmCopia.txtNombrePerfil')",100);
+			return false;
+		}
+		return true;
+	}
+
+	function checkView()
+	{		
+		return true;
+
+		/*
+  		    //Se cambio funcionalidad, ahora el campo pantalla es opcional.
+			var pantallaInicio = get('frmCopia.nombrePantalla');
+			if ( pantallaInicio==null || pantallaInicio.length=='' )
+			{
+				GestionarMensaje('102');
+				return false;
+			}
+			return true;
+		*/
+	}
+
+	function fGuardar()
+	{
+		if(!checkName() || !checkView())
+			return;
+
+		var strSel="";
+		for(var i =0;i<arrSelected.length;i++){
+			if (arrSelected[i]!=null && arrSelected[i]!=''){
+				strSel+=arrSelected[i]+"|";
+			}
+		}
+
+		set('frmCopia.nombrePerfil',get('frmCopia.txtNombrePerfil'));
+		set('frmCopia.seleccionLista',strSel);
+		set('frmCopia.seleccionInicio',strInicio);
+		set('frmCopia.conectorAction','LPCopiarPerfil');
+		postForm();
+		return;
+	}
+
+	function postForm()
+	{
+		enviaSICC('frmCopia');
+	}
+
+
+]]>
+</JAVASCRIPT>
+
+<FORMULARIO nombre="frmCopia">
+	<VAR nombre="accion" valor="ejecuta"/>
+	<VAR nombre="conectorAction" valor="LPModificarPerfil"/>
+	<VAR nombre="errCodigo" valor=""/>
+	<VAR nombre="errDescripcion" valor=""/>
+	
+	<VAR nombre="seleccionLista" valor=""/>
+	<VAR nombre="seleccionInicio" valor=""/>
+	<VAR nombre="seleccionListaUndo" valor=""/>
+	<VAR nombre="seleccionInicioUndo" valor=""/>
+	<VAR nombre="txtNombrePerfilUndo" valor=""/>
+	<VAR nombre="seleccion" valor=""/>
+	<VAR nombre="nombrePerfil" valor=""/>
+	<VAR nombre="nombrePantalla" valor=""/>
+	<VAR nombre="patronBusqueda" valor=""/>
+    <VAR nombre="campoFocaliza" valor="" />
+
+
+
+
+	
+	<table width="624" border="0" cellspacing="0" cellpadding="0" align="left">
+     <tr> 
+      <td align="center" width="12">&nbsp;</td>
+      <td align="center" >&nbsp;</td>
+      <td align="center" width="12">&nbsp;</td>
+    </tr>
+	<tr>
+		<td width="12">
+			<IMG src="/b.gif" width="12" height="1" />
+	    </td>      
+	      <td align="center">
+			<table width="100%" border="1" cellspacing="1" cellpadding="0" bordercolor="#CCCCCC">
+          <tr> 
+            <td>
+				<table width="100%" border="0" align="center" cellpadding="0" cellspacing="0">
+                <tr> 
+                  <td colspan="3" class="datosCampos">&nbsp;</td>
+                </tr>
+                <tr> 
+                  <td width="13%" >
+					<LABELC nombre="lblPerfil1" alto="30" ancho="130" id="datosTitleRight"  valor="" texto="" filas="1" cod="146"/>
+				  </td>
+                  <td class="datosCampos">
+						<IMG src="/b.gif" width="8" height="1" />
+  				  </td>
+                  <td width="86%" class="datosCampos" style="text-align:left;align:left">
+						<CTEXTO nombre="txtNombrePerfil" class="datosCamposLeft" 
+						id="datosTitle" max="25" onchange="" req="N" size="25" alto="20" ancho="150"
+						valor="" validacion=""/>
+				  </td>
+                </tr>
+                <tr> 
+                  <td colspan="3" class="datosCampos">&nbsp;</td>
+                </tr>
+              </table>
+				</td>
+          </tr>
+        </table>
+		 </td>
+      <td align="center"  width="12" >	
+	  </td>
+    </tr>
+    <tr>
+      <td align="center">&nbsp;</td>
+      <td align="left" class="datosCampos" >&nbsp;</td>
+      <td align="left">&nbsp;</td>
+    </tr>
+</table>
+
+<!-- 
+	TITULOS.
+-->
+<CAPA nombre="capaTitulo" alto="30" ancho="845" visibilidad="" x="12" y="95" colorf="" borde="" imagenf=""  repeat="" padding="" contravsb="" zindex="" >
+	<TABLA nombre="tblHeader" border="0" cellpadding="0" cellspacing="0" align="center" height="" width="600">
+		 <TR id="tablaTitle"  height="30">	
+			  <TD class="fondoCabecera" width="567">
+				<LABELC nombre="lblTituloFuncion" alto="30" ancho="567" id="datosTitleCenter"  valor="" texto="" filas="1" cod="67" />
+			  </TD>
+			  <TD class="fondoCabecera" width="155">
+				<LABELC nombre="lblTituloAsignada" alto="30" ancho="155" id="datosTitleCenter"  valor="" texto="" filas="1" cod="148"/>
+			  </TD>
+			  <TD class="fondoCabecera" width="105">
+				<LABELC nombre="lblTituloInicial" alto="30" ancho="105" id="datosTitleCenter"  valor="" 
+					texto="" filas="1"  cod="149"/>
+			  </TD>
+			  <TD class="fondoCabecera" width="30">
+				<IMG src="/b.gif" width="30" height="1" />
+			  </TD>
+		 </TR>	
+	</TABLA>
+</CAPA>
+
+ <SCROLL nombre="miscroll" x="12" y="126" ancho="828" alto="180"  colorf="" visible="visible" incx="0" 
+	incy="10" > 
+	<REJILLA nombre="contenidoDinamico" />
+<!--
+   	<table width="100%" border="0" cellspacing="0" cellpadding="0" align="left" >
+		<TR>
+			<TD>
+				<TABLA nombre="tblFunciones" width="583" cellpadding="0" cellspacing="0" align="right" border="0"/>
+			</TD>
+		</TR>
+	</table>
+-->
+</SCROLL>
+
+<CAPA nombre="capaFin" alto="2" ancho="840" visibilidad="" x="12" y="321" colorf="#CCCCCC" 
+		borde="" imagenf="" repeat="" padding="" contravsb="" zindex="" >
+</CAPA>
+
+<CAPA nombre="capaDerecha" alto="198" ancho="2" visibilidad="" x="855" y="125" colorf="#CCCCCC" 
+		borde="" imagenf="" repeat="" padding="" contravsb="" zindex="" >
+</CAPA>
+
+<CAPA nombre="capaIzquierda" alto="198" ancho="2" visibilidad="" x="12" y="125" colorf="#CCCCCC" 
+		borde="" imagenf="" repeat="" padding="" contravsb="" zindex="" >
+</CAPA>
+
+</FORMULARIO>
+</PAGINA>

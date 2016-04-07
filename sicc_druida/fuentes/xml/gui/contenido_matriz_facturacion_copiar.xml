@@ -1,0 +1,382 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_matriz_facturacion_copiar.xml,v 1.1 2009/12/03 18:44:58 pecbazalar Exp $
+   PRE
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_matriz_facturacion_copiar" cod="0153" titulo="Copiar Matriz de Facturación" estilos="estilosB3.css" colorf="#F0F0F0"
+        msgle="Copiar Matriz de Facturación" onload="onLoad();" xml:lang="es">
+<JS src="sicc_util.js"/>
+<JS src="PaginacionSicc.js"/>
+<JAVASCRIPT>
+<![CDATA[ 
+    function onLoad(){
+        if( !fMostrarMensajeError() ){
+            configurarMenuSecundario("frmFormulario");
+            btnProxy(1,0);
+            btnProxy(2,0);
+
+			// vbongiov -- Cambio 20080746 -- 29/10/2008
+			accion('frmFormulario.ckOrdenarCodVenta', '.disabled=true'); 
+
+			posicionaCombos();
+
+            if (get('frmFormulario.bandera')=="OK"){
+                GestionarMensaje("804");
+            }
+        }
+        
+    }
+
+    function posicionaCombos(){
+		var array = new Array();
+		array[0]=get("frmFormulario.hoidProgramaFidelizacion");
+		set('frmFormulario.cbProgramaFidelizacion',array);
+
+		array = new Array();
+		array[0]=get("frmFormulario.hoidVariante");
+		set('frmFormulario.cbVariante',array);	
+
+		// vbongiov -- Cambio 20080746 -- 29/10/2008
+		array = new Array();
+		array[0]=get("frmFormulario.hoidTipoOferta");
+		set('frmFormulario.cbTipoOferta',array);	
+
+		set('frmFormulario.ckOrdenarCodVenta', get("frmFormulario.hIndOrdenarCodVenta")); 
+
+		if(get("frmFormulario.cbTipoOferta") == "") {
+			if(get("frmFormulario.cbProgramaFidelizacion") != "") {
+				accion('frmFormulario.ckOrdenarCodVenta', '.disabled=false'); 
+			} else {
+				accion('frmFormulario.ckOrdenarCodVenta', '.disabled=true'); 
+			}
+		} else {
+			accion('frmFormulario.ckOrdenarCodVenta', '.disabled=true'); 
+		}
+    }
+
+    // vbongiov -- Cambio 20080746 -- 29/10/2008
+	// vbongiov -- Cambio 20080794 -- 16/12/2008
+	function onChangeProgramaFidelizacion(){
+		if(get("frmFormulario.cbProgramaFidelizacion") == "") {
+			set('frmFormulario.ckOrdenarCodVenta','N');
+			accion('frmFormulario.ckOrdenarCodVenta', '.disabled=true'); 
+			accion('frmFormulario.cbTipoOferta', '.disabled=false'); 
+		} else {
+			if(get("frmFormulario.cbTipoOferta") == "") {
+				accion('frmFormulario.ckOrdenarCodVenta', '.disabled=false'); 
+				accion('frmFormulario.cbTipoOferta', '.disabled=true'); 
+			} else {
+				set('frmFormulario.cbTipoOferta','');
+				accion('frmFormulario.cbTipoOferta', '.disabled=true'); 
+			}
+		}
+    }
+
+	 // vbongiov -- Cambio 20080746 -- 29/10/2008
+	 // vbongiov -- Cambio 20080794 -- 16/12/2008
+	function onChangeTipoOferta(){
+		if(get("frmFormulario.cbTipoOferta") == "") {
+			if(get("frmFormulario.cbProgramaFidelizacion") != "") {
+				accion('frmFormulario.ckOrdenarCodVenta', '.disabled=false'); 
+				set('frmFormulario.cbProgramaFidelizacion','');
+				accion('frmFormulario.cbProgramaFidelizacion', '.disabled=false'); 
+			} else {
+				accion('frmFormulario.cbProgramaFidelizacion', '.disabled=false'); 
+			}
+		} else {
+			set('frmFormulario.ckOrdenarCodVenta','N');
+			accion('frmFormulario.ckOrdenarCodVenta', '.disabled=true'); 
+			set('frmFormulario.cbProgramaFidelizacion','');
+			accion('frmFormulario.cbProgramaFidelizacion', '.disabled=true'); 
+		}
+    }
+
+    function llamarAccion(accion){
+        set('frmFormulario.accion', accion);
+        set('frmFormulario.conectorAction', 'LPCopiarMF');
+        enviaSICC('frmFormulario');
+    }
+    
+    function copiar(){
+        if(!validar()){
+        }else{
+            set('frmFormulario.accion', 'Copiar');
+            set('frmFormulario.conectorAction', 'LPCopiarMF');
+            eval('frmFormulario').oculto='S';
+            enviaSICC('frmFormulario');
+        }
+    }
+
+    function fGuardar(){
+        if (validar()){
+            set( 'frmFormulario.accion', 'Copiar' );
+        }
+    }
+
+    function validar(){
+        if (get('frmFormulario.marcaOriginal')=="" &&   get('frmFormulario.marcaNueva')==""){
+            GestionarMensaje("PRE0043");
+            return false;
+        }
+        if (get('frmFormulario.marcaOriginal')==""){
+            GestionarMensaje("1246");
+		        return false;
+        }	
+        if (  get('frmFormulario.marcaNueva')==""){
+            GestionarMensaje("1247");
+            return false;
+        }
+        return true;
+    }
+
+    function fLimpiar(){
+        txt_to('lblMarca1XX',''); 
+        txt_to('lblCanal1XX',''); 
+        txt_to('lblPeriodo1XX',''); 
+        txt_to('lblMarca2XX',''); 
+        txt_to('lblCanal2XX',''); 
+        txt_to('lblPeriodo2XX',''); 
+        set( 'frmFormulario.hidLimpia', 'SI' );
+    }
+
+    function despuesDeCopiar(){
+        eval('frmFormulario').oculto='N';
+        fLimpiar();
+    }
+]]> 
+
+</JAVASCRIPT>
+
+<FORMULARIO nombre="frmFormulario" oculto="N">
+
+<VAR nombre="accion" valor=""/>
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="errCodigo" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>
+
+<VAR nombre="marcaOriginal" valor=""/>
+<VAR nombre="canalOriginal" valor=""/>
+<VAR nombre="periodoOriginal" valor=""/>
+
+<VAR nombre="marcaNueva" valor=""/>
+<VAR nombre="canalNueva" valor=""/>
+<VAR nombre="periodoNueva" valor=""/>
+
+<VAR nombre="bandera" valor=""/>
+
+<VAR nombre="hidLimpia" valor=""/>
+<!--enozigli 13/10/2005-->
+<VAR nombre="hoidProgramaFidelizacion" valor=""/>
+<VAR nombre="hoidVariante" valor=""/>
+<!--enozigli 13/10/2005-->
+
+<VAR nombre="hIndOrdenarCodVenta" valor=""/>
+<VAR nombre="hoidTipoOferta" valor=""/>
+
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblMatrizOriginal" alto="13" filas="1" valor="" id="legend" cod="0061"/></legend>
+          <!---primera fila-->
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblMarca1" alto="13" filas="1" valor="" id="datosTitle" cod="6"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblCanal1" alto="13" filas="1" valor="" id="datosTitle" cod="7"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblPeriodo1" alto="13" filas="1" valor="" id="datosTitle" cod="276"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                    <td><IMG src="b.gif" width="8" height="8"/></td>
+                    <td>
+                      <LABELC nombre="lblMarca1XX" alto="13" filas="1" valor="" id="datosCampos" codigo=""/>	<!--valor="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"-->
+                    </td>
+                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                    <td>
+                      <LABELC nombre="lblCanal1XX" alto="13" filas="1" valor="" id="datosCampos" codigo=""/><!--valor="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"-->
+                    </td>
+                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                    <td>
+                      <LABELC nombre="lblPeriodo1XX" alto="13" filas="1" valor="" id="datosCampos" codigo=""/><!--valor="xx-xx-xxxx" -->
+                    </td>
+                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                 </tr>
+                 <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                 </tr>
+                
+              </table>
+       <!---fin primera fila-->
+       <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+		
+		<tr>
+		 <td><IMG src="b.gif" width="8" height="8"/></td>
+		 <td><LABELC nombre="lblProgramaFidelizacion"  alto="13" filas="1" valor="" id="datosTitle" cod="3052"/></td>
+		 <td><IMG src="b.gif" width="25" height="8"/></td>
+		 <td><LABELC nombre="lblVariante" alto="13" filas="1" valor="" id="datosTitle" cod="3053"/></td>
+		 <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+		</tr>
+		<tr>
+		 <td><IMG src="b.gif" width="8" height="8"/></td>
+		 <td nowrap="nowrap" >
+		   <COMBO nombre="cbProgramaFidelizacion" id="datosCampos" onchange="onChangeProgramaFidelizacion();" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+		    <ROWSET>
+								                    
+		    </ROWSET>
+		  </COMBO> 
+		 </td>
+		 <td><IMG src="b.gif" width="25" height="8"/></td>
+		 <td nowrap="nowrap" >
+		    <COMBO nombre="cbVariante" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+			  <ROWSET>
+								                    
+			  </ROWSET>
+		   </COMBO> 
+		 </td>
+		 <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+		</tr>
+		<tr> 
+		   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+		 </tr>
+
+
+<tr>
+		 <td><IMG src="b.gif" width="8" height="8"/></td>
+		 <td><LABELC nombre="lblOrdenarCodVenta"  alto="13" filas="1" valor="" id="datosTitle" cod="3387"/></td>
+		 <td><IMG src="b.gif" width="25" height="8"/></td>
+		 <td><LABELC nombre="lblTipoOferta" alto="13" filas="1" valor="" id="datosTitle" cod="608"/></td>
+		 <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+		</tr>
+		<tr>
+		 <td><IMG src="b.gif" width="8" height="8"/></td>
+		 <td nowrap="nowrap" >
+		  <CHECKBOX nombre="ckOrdenarCodVenta" id="datosCampos" onclick="" check="N"/>
+		 </td>
+		 <td><IMG src="b.gif" width="25" height="8"/></td>
+		 <td nowrap="nowrap" >
+		    <COMBO nombre="cbTipoOferta" id="datosCampos" onchange="onChangeTipoOferta();" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+			  <ROWSET>								                    
+			  </ROWSET>
+		   </COMBO> 
+		 </td>
+		 <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+		</tr>
+		<tr> 
+		   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+		 </tr>
+
+	    </table>
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnSeleccionarMatrizOrigen" ID="botonContenido" tipo="html" accion="llamarAccion('Seleccionar matriz origen');" estado="false" cod="1121"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+    </tr>       
+    <tr>
+      <td width="15" align="center"><IMG src="b.gif" width="15" height="15"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="15"><IMG src="b.gif" width="15" height="15"/></td>
+    </tr> 
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--segundo formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblMatrizNueva" alto="13" filas="1" valor="" id="legend" cod="0062"/></legend>
+          <!---primera fila-->
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblMarca2" alto="13" filas="1" valor="" id="datosTitle" cod="6"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblCanal2" alto="13" filas="1" valor="" id="datosTitle" cod="7"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblPeriodo2" alto="13" filas="1" valor="" id="datosTitle" cod="276"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                    <td><IMG src="b.gif" width="8" height="8"/></td>
+                    <td>
+                      <LABELC nombre="lblMarca2XX" alto="13" filas="1" valor="" id="datosCampos" codigo=""/><!--valor="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"-->
+                    </td>
+                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                    <td>
+                      <LABELC nombre="lblCanal2XX" alto="13" filas="1" valor="" id="datosCampos" codigo=""/><!--valor="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"-->
+                    </td>
+                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                    <td>
+                      <LABELC nombre="lblPeriodo2XX" alto="13" filas="1" valor="" id="datosCampos" codigo=""/><!--valor="xx-xx-xxxx"-->
+                    </td>
+                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                 </tr>
+                 <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                 </tr>
+                
+              </table>
+       <!---fin primera fila-->
+        </fieldset>
+<!--fin segundo formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnSeleccionarMatrizNueva" ID="botonContenido" tipo="html" accion="llamarAccion('Seleccionar matriz nueva');" estado="false" cod="1120"/>
+		  <BOTON nombre="btnCopiar" ID="botonContenido" tipo="html" accion="copiar();" estado="false" cod="721"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+    </tr>        
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+
+</FORMULARIO>
+</PAGINA>                                                                           
+                                                             

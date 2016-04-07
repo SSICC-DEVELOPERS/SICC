@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+/**
+ * Copyright 2003 © por Indra Sistemas,S.A.. Todos los derechos reservados.
+ * Avda. de Bruselas, 35
+ * Parque Empresarial Arroyo de la Vega
+ * 28108 Alcobendas, Madrid
+ * España
+ *
+ * Privado y Confidencial.
+ * La información contenida en este documento es propiedad de Indra sistemas.
+ * Para uso exclusivo de empleados autorizados no permitiéndose
+ * la distribución de este código sin permiso expreso.
+ *
+ * Sistema:       Belcorp
+ * Componente:    contenido_cronograma_facturacion.xml
+ * Fecha:         22/08/2003
+ * Observaciones:
+ *
+ */
+-->
+<!--
+   INDRA/CAR/PROY
+   $Id: contenido_cronograma_facturacion.xml,v 1.1 2009/12/03 18:45:26 pecbazalar Exp $
+   DESC
+
+   DRUIDATARGET=/../../config/scripts/iniciales
+-->
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+<!--PAGINA nombre="contenido_cronograma_facturacion"
+        titulo="Fin de Facturación" estilos="estilos.css"
+        colorf="#F0F0F0" msgle=""
+        onload="inicForm()" xml:lang="es"-->
+<PAGINA nombre="contenido_cronograma_facturacion" titulo="" estilos="estilosB3.css" colorf="#F0F0F0" msgle="" 
+        onload="onLoadPag();" xml:lang="es" cod="083">
+    <JS src="sicc_util.js"/>
+
+    <JAVASCRIPT>
+    <![CDATA[
+
+	var aTipos = new Array();
+
+	function onLoadPag() {
+		configurarMenuSecundario("frmCronogramaFacturacion");
+		set('frmCronogramaFacturacion.hlblActiFija',GestionarMensaje('1002'));
+		set('frmCronogramaFacturacion.hlblActiRefe',GestionarMensaje('1003'));
+    btnProxy(2, '0'); 
+		focaliza('frmCronogramaFacturacion.txtNumeroDiasFinFacturacion');
+		generaArrayTipos();
+		if (aTipos.length > 0)
+			txt_to("lblGrupoDeZonasX",aTipos[0][1]);
+	}
+
+	function generaArrayTipos() {
+		var tipos;
+		tipos = get('frmCronogramaFacturacion.hTipos');
+		longTipos =  get('frmCronogramaFacturacion.hLongTipos');
+		aTipos = new Array();
+		var i;
+		var pos;
+		var grupo;
+		var aGrupo;
+		for (i = 0; i < longTipos; i++) {
+			pos = tipos.indexOf('||');
+			if (pos > -1) {
+				grupo = tipos.substring(0, pos);
+				aGrupo = grupo.split("|");
+				//alert("aGrupo: "+aGrupo);
+				aTipos[i] = aGrupo;
+				tipos = tipos.substr(pos+2,tipos.length-pos);
+			} else {
+				grupo = tipos.substr(0, tipos.length);
+				aGrupo = grupo.split("|");
+				aTipos[i] = aGrupo;
+			}
+			//alert(i+":  "+aTipos[i]);
+		}
+	}
+
+	function fGuardar() {
+		//alert("Gruardar");
+    if (get('frmCronogramaFacturacion.txtNumeroDiasFinFacturacion') != "" &&
+        fValidarNumero(get('frmCronogramaFacturacion.txtNumeroDiasFinFacturacion'), 3, -999, 999) != 'OK') {
+        
+        GestionarMensaje('1297', sicc_obtenerDescripcion('txtNumeroDiasFinFacturacion'));
+        focaliza('frmCronogramaFacturacion.txtNumeroDiasFinFacturacion');
+        return;
+    }
+    if (get('frmCronogramaFacturacion.txtNumeroDiasIntervalo') != "" &&
+        fValidarNumero(get('frmCronogramaFacturacion.txtNumeroDiasIntervalo'), 3, -999, 999) != 'OK') {
+        
+        GestionarMensaje('1297', sicc_obtenerDescripcion('txtNumeroDiasIntervalo'));
+        focaliza('frmCronogramaFacturacion.txtNumeroDiasIntervalo');
+        return;
+    }
+    
+		var indice = parseInt(get('frmCronogramaFacturacion.hIndGrupo'),10);
+		if (indice == aTipos.length-1) {
+			aTipos[indice][3] = "$"+get('frmCronogramaFacturacion.txtNumeroDiasFinFacturacion'); //ndff
+			aTipos[indice][4] = "$"+get('frmCronogramaFacturacion.txtNumeroDiasIntervalo'); //ndm
+			//rellena varGrupos con el contenido del array javascript tipos. 
+			generarArrayLP();
+			//alert(get('frmCronogramaFacturacion.hVarGrupos'));
+			set('frmCronogramaFacturacion.hLblGrupoZona', GestionarMensaje('1244'));
+			set('frmCronogramaFacturacion.hLblZona', GestionarMensaje('1245'));
+			set('frmCronogramaFacturacion.accion', 'generaFase1');
+			set('frmCronogramaFacturacion.conectorAction', 'LPMantieneCronograma');
+			enviaSICC('frmCronogramaFacturacion');
+		} else {
+			aTipos[indice][3] = "$"+get('frmCronogramaFacturacion.txtNumeroDiasFinFacturacion'); //ndff
+			aTipos[indice][4] = "$"+get('frmCronogramaFacturacion.txtNumeroDiasIntervalo'); //ndm
+			set('frmCronogramaFacturacion.hIndGrupo',(indice+1)+"");
+			txt_to("lblGrupoDeZonasX",aTipos[indice+1][1]); //txtGrupo
+			set('frmCronogramaFacturacion.txtNumeroDiasFinFacturacion',"");
+			set('frmCronogramaFacturacion.txtNumeroDiasIntervalo',"");
+			focaliza('frmCronogramaFacturacion.txtNumeroDiasFinFacturacion')
+		}
+
+	}
+
+	function generarArrayLP() {
+		//alert("Genera array");
+		var cad = "";
+		for (i = 0; i < aTipos.length; i++) {
+			for (j = 0; j < 5; j++) {
+				cad = cad + aTipos[i][j];
+				cad = cad + "|";
+				//alert(cad);
+			}
+			cad = cad + "#|";
+		}
+
+		set('frmCronogramaFacturacion.hVarGrupos',cad);
+	}
+
+	function fLimpiar() {
+    //El Limpiar me restaura todo al inicio del CU entonces el hIndGrupo va a estar en 0
+		if (aTipos.length > 0) {
+  		txt_to("lblGrupoDeZonasX",aTipos[0][1]);
+			//var indice = parseInt(get('frmCronogramaFacturacion.hIndGrupo'),10);
+			//alert(indice);
+			//txt_to("lblGrupoDeZonasX",aTipos[indice][1]);
+		}
+	}
+
+
+
+
+    ]]>
+    </JAVASCRIPT>
+
+ <VALIDACION>
+  	<ELEMENTO name="txtNumeroDiasFinFacturacion" required="false" cod="182" group="grupo1"/>
+  	<ELEMENTO name="txtNumeroDiasIntervalo" required="false" cod="2213" group="grupo1"/>
+</VALIDACION>
+
+
+<FORMULARIO nombre="frmCronogramaFacturacion">
+    <VAR nombre="accion" valor=""/>
+    <VAR nombre="casoDeUso" valor=""/>
+    <VAR nombre="conectorAction" valor=""/>
+    <VAR nombre="errCodigo" valor=""/>
+    <VAR nombre="errDescripcion" valor=""/>
+    <VAR nombre="hTipos" valor=""/>
+    <VAR nombre="hIndGrupo" valor=""/>
+    <VAR nombre="hLongTipos" valor=""/>
+    <VAR nombre="hVecDiasSemana" valor=""/>
+    <VAR nombre="hVecMeses" valor=""/>
+    <VAR nombre="hLblGrupoZona" valor=""/>
+    <VAR nombre="hLblZona" valor=""/>
+    <VAR nombre="hMarca" valor=""/>
+    <VAR nombre="hCanal" valor=""/>
+    <VAR nombre="hCodPeriodo" valor=""/>
+    <VAR nombre="hVarGrupos" valor=""/>
+    <VAR nombre="hlblActiFija" valor=""/>
+    <VAR nombre="hlblActiRefe" valor=""/>
+
+
+<CAPA nombre="capaBusqueda" x="0" y="0">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primero formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblDatosDeFacturacion" alto="13" filas="1" valor="" id="legend" cod="0084"/></legend>
+          <!---primera fila-->
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblGrupoDeZonas" alto="13" filas="1" valor="" id="datosTitle" cod="180"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblNumeroDiasFinFacturacion" alto="13" filas="1" valor="" id="datosTitle" cod="182"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblNumeroDiasIntervalo" alto="13" filas="1" valor="" id="datosTitle" cod="2213"/></td> 
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblGrupoDeZonasX" alto="13" filas="1" valor="" id="datosCampos"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><CTEXTO nombre="txtNumeroDiasFinFacturacion" id="datosCampos" max="3" tipo="" onchange="" req="N" size="3" valor="" validacion="" onshtab="focaliza('frmCronogramaFacturacion.txtNumeroDiasIntervalo');"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><CTEXTO nombre="txtNumeroDiasIntervalo" id="datosCampos" max="3" tipo="" onchange="" req="N" size="3" valor="" validacion="" ontab="focaliza('frmCronogramaFacturacion.txtNumeroDiasFinFacturacion');"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr> 
+                  <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+              </table>
+       <!---fin primera fila-->
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr>
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+</FORMULARIO>
+
+	 <!--FORMULARIO nombre="frmCronogramaFacturacion">
+        <VAR nombre="accion" valor=""/>
+        <VAR nombre="hidGrpAct" valor=""/>
+        <VAR nombre="hidGrpActNDM" valor=""/>
+        <VAR nombre="conectorAction" valor="LPCronogramaFacturacion"/>
+        <VAR nombre="errDescripcion" valor=""/>
+        <VAR nombre="errCodigo" valor=""/>
+        <VAR nombre="hidCasoDeUso" valor="Facturacion"/>
+        <VAR nombre="hidCambios" valor=""/>
+        <table width="100%" border="0" cellspacing="0" cellpadding="0" align="left">
+            <tr>
+                <td width="12"><IMG src="b.gif" width="12" height="12"/></td>
+                <td width="600px" align="center"><IMG src="b.gif" width="600" height="12"/></td>
+                <td width="12"><IMG src="b.gif" width="12" height="12"/></td>
+            </tr>
+            <tr>
+                <td width="12"><IMG src="b.gif" width="12" height="12"/></td>
+                <td width="600px" align="center">
+                    <REJILLA nombre="rejilla"/>
+                </td>
+                <td width="12"><IMG src="b.gif" width="12" height="12"/></td>
+            </tr>
+        </table>
+    </FORMULARIO-->
+</PAGINA>

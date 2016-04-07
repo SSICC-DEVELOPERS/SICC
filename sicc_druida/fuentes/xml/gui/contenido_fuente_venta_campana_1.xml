@@ -1,0 +1,417 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_fuente_venta_campana_1.xml,v 1.1 2009/12/03 18:44:33 pecbazalar Exp $
+   contenido CCC
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_venta_campana_1" cod="" titulo="" estilos="estilosB3.css" colorf="#F0F0F0" 
+msgle="" onload="onLoad()" xml:lang="es">
+
+<!-- Resultado Variables de Fuente de Venta por Campaña II              cod="0807" 
+     Resultado Variables de Fuente de Venta por Campaña III             cod="0808"
+     Resultado Variables de Fuente de Venta por Campaña XXXX / XX       cod="0809"
+     Cuadro de Análisis por Segmento de Consultora                      cod="0810"
+     Cuadro de Análisis por Segmento de Consultora II                   cod="0811"
+     Listado de nuevas                                                  cod="0812" 
+     Listado de Posibles Reingresos                                     cod="0813" 
+     Listado de Reconocimientos - Aniversario Campaña C-XX              cod="0814" 
+     Ranking de Consultoras - Circulo de Honor                          cod="0815"     -->
+
+   <JS src="sicc_util.js"/>   
+   <JS src="PaginacionSicc.js"/>    
+   <JS src="DruidaTransactionMare.js"/>
+
+
+<JAVASCRIPT>
+  <![CDATA[ 
+   
+   function onLoad(){
+      
+      configurarMenuSecundario('Formulario');
+      fMostrarMensajeError();
+      
+      focaliza('Formulario.cbMarca');
+      
+   }
+
+//------------------------------------------------------------------------------
+
+   function fLimpiar(){
+     
+     var aCombo = new Array(new Array("",""));
+     set_combo('Formulario.cbRegion', aCombo, []); 
+     set_combo('Formulario.cbZona', aCombo, []); 
+
+     set_combo('Formulario.cbPeriodoDesde', aCombo, []); 
+     set_combo('Formulario.cbPeriodoHasta', aCombo, []); 
+ 
+     focaliza('Formulario.cbMarca');
+ 
+   }
+   
+//------------------------------------------------------------------------------
+   function onchangeMarcaCanal(){
+        
+       marca  = get('Formulario.cbMarca');
+       canal  = get('Formulario.cbCanal');
+       pais   = get('Formulario.pais');
+       idioma = get('Formulario.idioma');
+       lp = get("Formulario.lp");
+      
+       if(marca != '' && canal != ''){
+          var arr = new Array();
+          var arr2 = new Array();
+                      
+          
+          arr[arr.length] = ["oidIdioma", idioma]; 
+          arr[arr.length] = ["oidPais", pais]; 
+          arr[arr.length] = ["marca", marca];
+          arr[arr.length] = ["canal", canal];
+          
+          
+          arr2[arr2.length] = ["oidIdioma", idioma]; 
+          arr2[arr2.length] = ["oidPais", pais]; 
+          arr2[arr2.length] = ["oidMarca", marca];
+          arr2[arr2.length] = ["oidCanal", canal];
+          
+          
+          if(lp != 'FACDTRListadoNuevas'){
+             asignar([['COMBO','Formulario.cbPeriodoDesde',
+                             'ConectorDruidaTransactionQuery',
+                             'dtoSalida.resultado_ROWSET',
+                             formarCadenaDT('PRECargarPeriodos', 
+                                'es.indra.sicc.dtos.cra.DTOPeriodo', 
+                                MakeParameters()), 
+                              'funcionAejecutar(datos);']]);	
+                              
+                             
+          
+             recargaCombo("Formulario.cbPeriodoHasta","PRECargarPeriodos","es.indra.sicc.dtos.cra.DTOPeriodo",arr);
+          }else{
+             recargaCombo("Formulario.cbPeriodoDesde","PRECargarPeriodos","es.indra.sicc.dtos.cra.DTOPeriodo",arr);
+          }
+          
+          recargaCombo("Formulario.cbRegion","ZONRecargaRegiones","es.indra.sicc.dtos.zon.DTOUnidadAdministrativa",arr2);
+          
+       }else{
+           
+           var aCombo = new Array(new Array("",""));
+           set_combo('Formulario.cbPeriodoDesde', aCombo, []);
+           set_combo('Formulario.cbPeriodoHasta', aCombo, []);
+           set_combo('Formulario.cbRegion', aCombo, []);
+           set_combo('Formulario.cbZona', aCombo, []);
+          
+       }
+    } 
+
+//------------------------------------------------------------------------------
+   function cambioPeriodoDesde(){
+      lp = get("Formulario.lp");
+      periodoDesde = get('Formulario.cbPeriodoDesde');
+      marca  = get('Formulario.cbMarca');
+      canal  = get('Formulario.cbCanal');
+      
+      if(marca !='' && canal != '' && periodoDesde != ''){
+          if(lp == 'FACDTRListadoNuevas'){
+              var arr = new Array();
+              arr[arr.length] = ["oid", periodoDesde];
+              recargaCombo("Formulario.cbPeriodoHasta","REP4PeriodosPosteriores","es.indra.sicc.util.DTOOID",arr);   
+          }
+      }   
+   }
+//------------------------------------------------------------------------------
+    function MakeParameters(){
+         
+        marca  = get('Formulario.cbMarca');
+        canal  = get('Formulario.cbCanal');
+        pais   = get('Formulario.pais');
+        idioma = get('Formulario.idioma');
+        
+        var arr = new Array();
+        
+        arr[arr.length] = ["oidIdioma", idioma];
+        arr[arr.length] = ["oidPais", pais];
+        arr[arr.length] = ["marca", marca];
+        arr[arr.length] = ["canal", canal];
+        
+        return arr;
+    
+    }
+
+//------------------------------------------------------------------------------
+    function funcionAejecutar(datos){
+          var  arr = new Array();
+          
+          arr[arr.length] = new Array([''],['']);
+          
+          for (var i=0 ;i< datos.length ; i++){
+            arr[arr.length] = datos[i];
+          }
+          
+          set_combo('Formulario.cbPeriodoDesde',arr);
+          
+          var periodo = get('Formulario.primerPeriodo');
+          arr = new Array();
+          arr[0] = periodo;
+          
+          set('Formulario.cbPeriodoDesde',arr);
+      
+    
+    }
+
+//------------------------------------------------------------------------------
+
+   function onchangeRegion(){
+         if(get('Formulario.cbRegion')  != ''){
+              recargaCombo('Formulario.cbZona', 'ZONRecargaZonas', 'es.indra.sicc.dtos.zon.DTOUnidadAdministrativa',[[ "oidRegion", get('Formulario.cbRegion') ]] );
+         }
+    }
+   
+
+//------------------------------------------------------------------------------
+
+   function validarPeriodos(){
+     if(sicc_validaciones_generales()){
+		  var marca = get('Formulario.cbMarca');
+		  var marcaDesc = get('Formulario.cbMarca', 'T');
+		  var canal = get('Formulario.cbCanal');
+		  var canalDesc = get('Formulario.cbCanal', 'T');
+		  var periodoDesde = get('Formulario.cbPeriodoDesde');
+		  var periodoDesdeDesc = get('Formulario.cbPeriodoDesde', 'T');
+		  var periodoHasta = get('Formulario.cbPeriodoHasta');
+		  var periodoHastaDesc = get('Formulario.cbPeriodoHasta', 'T');
+		  var region = get('Formulario.cbRegion');
+		  var zona = get('Formulario.cbZona');
+		  var lp = get("Formulario.lp");
+
+		  set('Formulario.conectorAction', lp);
+		  set('Formulario.hidMarca', marca);
+		  set('Formulario.hidMarcaDesc', marcaDesc);
+
+		  set('Formulario.hidCanal', canal);
+		  set('Formulario.hidCanalDesc', canalDesc);
+		  set('Formulario.hidPeriodoDesde', periodoDesde);
+		  set('Formulario.hidPeriodoDesdeDesc', periodoDesdeDesc);
+		  set('Formulario.hidPeriodoHasta', periodoHasta);
+		  set('Formulario.hidPeriodoHastaDesc', periodoHastaDesc);
+		  set('Formulario.hidRegion', region);
+		  set('Formulario.hidZona', zona);
+
+		  set('Formulario.accion', 'validarPeriodos');
+		  eval('Formulario').oculto = 'S';
+		  enviaSICC('Formulario');
+   
+     }
+   }
+
+//------------------------------------------------------------------------------
+  function cadenaParam(params){
+     
+	 param = new String(params);
+     splitParam = param.split('|');
+	         
+	 var a = new Object();
+	 a.accion = 'generar';
+	 a.marca = splitParam[0];  
+	 a.marcaDesc = splitParam[1];  
+	 a.canal = splitParam[2];
+	 a.canalDesc = splitParam[3]; 
+	 a.periodoDesde = splitParam[4];
+	 a.periodoDesdeDesc = splitParam[5]; 
+	 a.periodoHasta = splitParam[6];
+	 a.periodoHastaDesc = splitParam[7]; 
+	 a.region = splitParam[8];         
+	 a.zona = splitParam[9];
+	      
+     a.formato = 'pdf';   
+          
+     var lp = get("Formulario.lp");
+          
+     mostrarModalSICC(lp,'generar', a);  
+  }
+
+//------------------------------------------------------------------------------
+
+   function alertaErrorPeriodos(){
+       cdos_mostrarAlert('El periodo hasta debe ser mayor o igual al periodo desde');   
+   }
+//------------------------------------------------------------------------------
+
+  ]]> 
+  
+  <VALIDACION>
+    
+    <ELEMENTO name="cbMarca" required="true" cod="6"/>
+    <ELEMENTO name="cbCanal" required="true" cod="7"/>
+    <ELEMENTO name="cbPeriodoDesde" required="true" cod="1175"/>
+    <ELEMENTO name="cbPeriodoHasta" required="true" cod="1176"/>
+       
+
+   
+</VALIDACION>
+</JAVASCRIPT>
+
+
+
+
+<FORMULARIO nombre="Formulario">
+<VAR nombre="accion" valor="" />
+<VAR nombre="conectorAction" valor="" />
+<VAR nombre="casoDeUso" valor=""/>
+<VAR nombre="errCodigo" valor="" />
+<VAR nombre="errDescripcion" valor="" />
+<VAR nombre="idioma" valor="" />
+
+<VAR nombre="pais" valor="" />
+<VAR nombre="marca" valor="" />
+<VAR nombre="lp" valor="" />
+
+<VAR nombre="primerPeriodo" valor="" />
+<VAR nombre="hidMarca" valor="" />
+<VAR nombre="hidMarcaDesc" valor="" />
+
+<VAR nombre="hidCanal" valor="" />
+<VAR nombre="hidCanalDesc" valor="" />
+<VAR nombre="hidPeriodoDesde" valor="" />
+<VAR nombre="hidPeriodoDesdeDesc" valor="" />
+<VAR nombre="hidPeriodoHasta" valor="" />
+<VAR nombre="hidPeriodoHastaDesc" valor="" />
+<VAR nombre="hidRegion" valor="" />
+<VAR nombre="hidZona" valor="" />
+
+
+  <CAPA nombre="capa">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+      <tr>
+        <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+        <td width="750"><IMG src="b.gif"/></td>
+        <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+      </tr>
+      <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset><legend class="legend"><LABELC nombre="lblCriteriosSeleccion"  alto="13" filas="1" valor="" id="legend" cod="00275"/></legend>
+            <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+              <tr> 
+                <td colspan="7"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr>
+              <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblMarca"  alto="13" filas="1" id="datosTitle" cod="6" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblCanal"  alto="13" filas="1" id="datosTitle" cod="7" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr> 
+              <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap">
+                     <COMBO nombre="cbMarca" size="1" multiple="N" valorinicial="" textoinicial="" id="datosCampos" req="S" onchange="onchangeMarcaCanal()">
+                		<ROWSET>		
+                  	 	</ROWSET>	
+	             </COMBO> 
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap">
+                     <COMBO nombre="cbCanal" size="1" multiple="N" valorinicial="" textoinicial="" id="datosCampos" req="S" onchange="onchangeMarcaCanal()">
+                		<ROWSET>	
+                  	 	</ROWSET>	
+	             </COMBO> 
+	           </td>
+	           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr>
+              <tr>
+                   <td colspan="7"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr>
+            </table>
+            <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+              <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblPeriodoDesde"  alto="13" filas="1" id="datosTitle" cod="1175" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblPeriodoHasta"  alto="13" filas="1" id="datosTitle" cod="1176" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr> 
+                <tr>
+                  
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap">
+                     <COMBO nombre="cbPeriodoDesde" size="1" multiple="N" valorinicial="" textoinicial="" id="datosCampos" req="S" onchange="cambioPeriodoDesde();">
+                		<ROWSET>	
+                  	 	</ROWSET>	
+	             </COMBO> 
+	           </td>
+	           <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap">
+                     <COMBO nombre="cbPeriodoHasta" size="1" multiple="N" valorinicial="" textoinicial="" id="datosCampos" req="S">
+                		<ROWSET>	
+                  	 	</ROWSET>	
+	             </COMBO> 
+	           </td>
+	           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr>
+              <tr>
+                   <td colspan="7"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr>
+            </table>
+            <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+              <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblRegion"  alto="13" filas="1" id="datosTitle" cod="109" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblZona"  alto="13" filas="1" id="datosTitle" cod="143" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap">
+                     <COMBO nombre="cbRegion" size="1" multiple="N" valorinicial="" textoinicial="" id="datosCampos" req="N" onchange="onchangeRegion();">
+                		<ROWSET>		
+                  	 	</ROWSET>	
+	                </COMBO> 
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap">
+                     <COMBO nombre="cbZona" size="1" multiple="N" valorinicial="" textoinicial="" id="datosCampos" req="N">
+                		<ROWSET>	
+                  	 	</ROWSET>	
+	             </COMBO> 
+	           </td>
+	           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr>
+              <tr>
+                   <td colspan="7"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr>
+            </table>
+          </fieldset>
+        </td>
+        <td><IMG src="b.gif" /></td>
+      </tr> 
+      <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnGenerarInforme" ID="botonContenido" tipo="html" accion="validarPeriodos();" estado="false" cod="2495" ontab="focaliza('Formulario.cbMarca')"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>       
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+ </CAPA>                                                                                                                                                           
+</FORMULARIO>
+</PAGINA>  

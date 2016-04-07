@@ -1,0 +1,102 @@
+<PAGINA nombre="salidaGenerica" titulo="" estilos="" colorf="#F0F0F0"
+          msgle="" onload="fInit()" xml:lang="es" cod="001">
+          
+<JS src="sicc_util.js"/>
+<MATRIZJS nombre="arrayDatos">  
+                    <ROWSET/> 
+</MATRIZJS> 
+
+<JAVASCRIPT>
+          <![CDATA[
+                    function fInit(){
+                              var deb = eval(get("frmFormulario.debugWindow"));
+                              if(deb){
+                                         debugger;
+                              }
+
+                              var cerrar = get("frmFormulario.cerrarVentana")+"";
+                              if (cerrar == "true" || cerrar == "1"){
+                                         cerrar = true;
+                              }else{
+                                         cerrar = false;
+                              }
+                              if(gestionarError()){
+                                         try{
+                                                   if(opener && !opener.closed){
+                                                             opener.focus();
+                                                             var formularioSiccjs = opener.getFormularioSICC();
+                                                             opener.configurarMenuSecundario(formularioSiccjs);
+                                                             var codigo = get("frmFormulario.ejecutarError")+"";
+                                                             if(codigo!=null && codigo.split(" ").join("")!=""){
+                                                                         eval("opener."+codigo);
+                                                             }
+                                                   }
+                                         }catch(e){
+                                                   ;
+                                         }
+                              }else{
+                                         try{
+                                                   if(opener){
+                                                             if (!opener.closed){
+                                                                         var formularioSiccjs = opener.getFormularioSICC();
+                                                                         opener.configurarMenuSecundario(formularioSiccjs);                                                    
+                                                                         var codigo = get("frmFormulario.ejecutar")+"";
+                                                                         if(arrayDatos != null && codigo!=null && codigo.split(" ").join("")!=""){
+                                                                                  eval("opener."+ codigo + arrayDatos +")");
+                                                                         }else if(codigo!=null && codigo.split(" ").join("")!=""){
+                                                                                   eval("opener."+codigo);
+                                                                         }
+                                                                         if(cerrar){
+                                                                                             opener.close();
+                                                                         }
+                                                             }
+                                                   }
+                                         }catch(e){
+                                                   ;
+                                         }
+                              }
+                              window.close();
+                    }
+
+                    function gestionarError(){
+                              if(opener && !opener.closed){
+                                         var sicc_formularioOpener = opener.getFormularioSICC();
+                                         opener.set(sicc_formularioOpener+".errCodigo",notNull(get("frmFormulario.errCodigo")));
+                                         opener.set(sicc_formularioOpener+".errDescripcion",notNull(get("frmFormulario.errDescripcion")));
+                                         opener.set(sicc_formularioOpener+".errSeverity",notNull(get("frmFormulario.errSeverity")));
+                                         try{
+                                                   opener.focus();
+                                         }catch(e){
+                                                   ;
+                                         }
+                                         return opener.fMostrarMensajeError();
+                              }/*esto fue agregado para que ande el caso de uso DescargarGuia de Productos, por JPB*/
+                              else if (get("frmFormulario.generarGuiaProducto")=='true'){
+                                         fMostrarMensajeError();
+                                         set("frmFormulario.conectorAction","LPDescargarGP");
+                                         set("frmFormulario.accion","");
+                                         enviaSICC("frmFormulario");
+                              }/*fin de chanchada*/
+                              return false;
+                    }
+
+                    function notNull(strValor){
+                              if(strValor==null){
+                                         return "";
+                              }else{
+                                         return strValor;
+                              }
+                    }
+   ]]>
+</JAVASCRIPT>
+<FORMULARIO nombre="frmFormulario">
+          <VAR nombre="cerrarVentana" valor="true"/>
+          <VAR nombre="ejecutar" valor=""/>
+          <VAR nombre="ejecutarError" valor=""/>
+          <VAR nombre="conectorAction" valor=""/>
+          <VAR nombre="accion" valor=""/>
+          <VAR nombre="debugWindow" valor="false"/>
+          <!--agregado por JPB porque no sabia como hacerlo andar sino-->
+          <VAR nombre="generarGuiaProducto" valor="false"/>
+</FORMULARIO>
+</PAGINA>

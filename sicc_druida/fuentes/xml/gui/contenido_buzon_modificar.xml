@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_buzon_modificar.xml,v 1.1 2009/12/03 18:46:26 pecbazalar Exp $
+   prueba arbol 
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+<PAGINA nombre="contenido_buzon_modificar" cod="" titulo="" estilos="estilosB3.css" colorf="#F0F0F0" msgle="Actualizar modificar" onload="onLoadPag();" xml:lang="es">
+	
+<!--Consultar buzón: cod="0591"-->
+
+<JS src="sicc_util.js"></JS> 
+<JS src="PaginacionSicc.js"></JS>
+<JS src="DruidaTransactionMare.js"></JS>
+
+ <JAVASCRIPT>
+ <![CDATA[ 
+
+  function onLoadPag(){
+	configurarMenuSecundario("formulario");
+	btnProxy(5,1);
+	focaliza('formulario.txtCodBuzon');
+	fMostrarMensajeError();	
+  }
+
+  function cargarLista() {
+	//- correcto = Llama al método comprobarCriteriosBusqueda() 
+
+	//Si correcto { 
+
+	//Si opcionMenu="Actualizar Buzon" { 
+	//Llama a LPBuzon con 
+	//- opcionMenu="Actualizar Buzon" 
+	//- accion = "buscar cabecera" 
+	//- y los parámetros: codBuzon, descripcionBuzon, secuenciaActividad, descripcionActividad, codCliente, //fechaActividadDesde, fechaActividadHasta 
+
+	//Si opcionMenu="Consultar Buzon" { 
+	//Llama a LPBuzon con 
+	//- opcionMenu="Consultar Buzon" 
+	//- accion = "buscar cabecera" 
+	//- y los parámetros: codBuzon, descripcionBuzon, secuenciaActividad, descripcionActividad, codCliente, //fechaActividadDesde, fechaActividadHasta 
+	//} 
+	//}
+
+	var codBuzon = get("formulario.txtCodBuzon");
+	var descripcionBuzon = get("formulario.txtDescripcionBuzon");
+	var secActividad = get("formulario.txtSecuenciaActividad");
+	var descripActividad = get("formulario.txtDescripcionActividad");
+	var codCliente = get("formulario.txtCodCliente");
+	var fechaActividadDesde = get("formulario.txtFechaDesde");
+	var fechaActividadHasta = get("formulario.txtFechaHasta");   
+
+	var opcion = get("formulario.opcionMenu");
+	var resultado = comprobarCriteriosBusqueda();
+
+	if(resultado) {
+	
+		set("formulario.codBuzon", codBuzon);
+		set("formulario.descripcionBuzon", descripcionBuzon);
+		set("formulario.secuenciaActividad", secActividad);
+		set("formulario.descripcionActividad", descripActividad);
+		set("formulario.codCliente", codCliente);
+		set("formulario.fechaActividadDesde", fechaActividadDesde);
+		set("formulario.fechaActividadHasta", fechaActividadHasta);		
+		if(sicc_validaciones_generales()){
+
+			if(get("formulario.opcionMenu")== "ActualizarBuzon" || get("formulario.opcionMenu")== "Actualizar Buzon"){
+				set("formulario.conectorAction", "LPBuzon");
+				set("formulario.accion", "buscar cabecera");
+				set("formulario.opcionMenu", "Actualizar Buzon");
+				enviaSICC("formulario");  
+			}
+		
+			if(get("formulario.opcionMenu")=="ConsultarBuzon"){
+				set("formulario.conectorAction", "LPBuzon");
+				set("formulario.accion", "buscar cabecera");
+				set("formulario.opcionMenu", "ConsultarBuzon");
+				enviaSICC("formulario");  
+			}
+		}
+	
+	}
+  }
+
+  function comprobarCriteriosBusqueda() {
+	//Si no se han rellenado almenos 2 criterios de busqueda: 
+	//mostrar mensaje: CAL001 
+	//devuelve false 
+	//En otro caso 
+	//devuelve true
+
+	var valores = new Array();
+	var contador = 0;
+    var valores = new Array();
+	valores[0] = get("formulario.txtCodBuzon");
+	valores[1] = get("formulario.txtDescripcionBuzon");
+	valores[2] = get("formulario.txtSecuenciaActividad");
+	valores[3] = get("formulario.txtDescripcionActividad");
+	valores[4] = get("formulario.txtCodCliente");
+	valores[5] = get("formulario.txtFechaDesde");
+	valores[6] = get("formulario.txtFechaHasta");
+
+	for(var i =0;i<valores.length; i++) {
+		/*valores[i].length debe ser mayor a cero , y no mayor a uno para 
+		que el campo haya sido completado	 */
+		if(valores[i].length > 0) {			
+			contador = contador + 1;			
+		} 
+	}
+
+	if(contador<2) {
+		GestionarMensaje('1389',2,null,null);		
+		return false;
+	}
+	else {
+		return true;
+	}
+
+  }
+
+
+	function fLimpiar(){
+		set("formulario.txtCodBuzon", "");
+		set("formulario.txtDescripcionBuzon", "");
+		set("formulario.txtSecuenciaActividad", "");
+		set("formulario.txtDescripcionActividad", "");
+		set("formulario.txtCodCliente", "");
+		set("formulario.txtFechaDesde", "");
+		set("formulario.txtFechaHasta", "");
+	}
+
+	function rellenarCodigoCliente(){
+		//incidencia  DBLG500000865, se debe rellenar con ceros
+		var codigoClient =  get("formulario.txtCodCliente") ;
+		set("formulario.txtCodCliente",rellenaCeros(codigoClient,11,codigoClient.length));
+	}
+
+	function onClickBusquedaCliente() {
+
+	// Método que se ejecuta al pulsar sobre el icono de búsqueda rápida del campo Cod.cliente 
+
+	//Invocamos al subsistema de soporte Búsqueda rápida de clientes (Activando la LPBusquedaRapidaCliente) y //recibimos un array con (oid, codigo, nombre1, nombre2, apellido1, apellido2). 
+
+	//	Mostramos codigo en codCliente
+
+	var obj = new Object();
+    var whnd = mostrarModalSICC('LPBusquedaRapidaCliente','',obj);
+    if(whnd!=null){
+      var oid = whnd[0];
+      var cod = whnd[1];
+      var nom1 = whnd[2];
+      var nom2 = whnd[3];
+      var ape1 = whnd[4];
+      var ape2 = whnd[5];
+      
+      set("formulario.oid", oid);
+      set("formulario.codigo", cod);      
+      set("formulario.nombre1", nom1);
+      set("formulario.nombre2", nom2);   
+      set("formulario.apellido1", ape1);
+      set("formulario.apellido2", ape2);   
+
+	  set("formulario.txtCodCliente", cod);   
+
+    }
+  }
+
+ ]]>  
+  </JAVASCRIPT>	
+
+
+<VALIDACION>
+	<ELEMENTO name="txtFechaDesde" format="F" required="false" cod="2775"/>	
+	<ELEMENTO name="txtFechaHasta" format="F" required="false" cod="2776"/>	
+	<ELEMENTO name="txtSecuenciaActividad" format="e" required="false" cod="2030"/>	
+</VALIDACION>
+ 
+<FORMULARIO nombre="formulario" >
+
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="opcionMenu" valor=""/>
+<VAR nombre="accion" valor=""/>
+<VAR nombre="errCodigo" valor=""/> 
+<VAR nombre="errDescripcion" valor=""/>
+
+<VAR nombre="codBuzon" valor=""/>
+<VAR nombre="descripcionBuzon" valor=""/>
+<VAR nombre="secuenciaActividad" valor=""/>
+<VAR nombre="descripcionActividad" valor=""/>
+<VAR nombre="codCliente" valor=""/>
+<VAR nombre="fechaActividadDesde" valor=""/>
+<VAR nombre="fechaActividadHasta" valor=""/>
+
+<CAPA nombre="capa1" >
+
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+     <tr> 
+      <td><IMG src="b.gif"/></td>
+      
+      <td>
+	<fieldset><legend class="legend"><LABELC nombre="lblCriteriosBusqueda"  alto="13" filas="1" valor="" id="legend" cod="0075"/></legend> 
+	<table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+          <!---primera fila-->
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td><LABELC nombre="lblCodBuzon" alto="13" filas="1" valor="" id="datosTitle" cod="2026"/></td>                   
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lblDescripcionBuzon"  alto="13" filas="1" valor="Descripción buzón" id="datosTitle" cod="2027"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td  nowrap="nowrap">
+                    <CTEXTO nombre="txtCodBuzon" id="datosCampos" max="5" tipo="" onchange="" req="N" size="5" valor="" validacion="" onshtab="focalizaBotonHTML('botonContenido', 'btnBuscar');" />
+                   </td>  
+                   <td><IMG src="b.gif" width="25" height="8"/></td>  
+                   <td  nowrap="nowrap">
+                    <CTEXTO nombre="txtDescripcionBuzon" id="datosCampos" max="40" tipo="" onchange="" req="N" size="40" valor="" validacion="" />
+                   </td>                 
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+         </td></tr>
+           <tr><td>      
+          
+       <!---fin primera fila-->
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td><LABELC nombre="lblSecuenciaActividad"  alto="13" filas="1" valor="" id="datosTitle" cod="2030"/></td>                   
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lblDescripcionActividad"  alto="13" filas="1" valor="" id="datosTitle" cod="2031"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td colspan="3"><LABELC nombre="lblCodCliente"  alto="13" filas="1" valor="" id="datosTitle" cod="263"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td  nowrap="nowrap">
+                    <CTEXTO nombre="txtSecuenciaActividad" id="datosCampos" max="5" tipo="" onchange="" req="N" size="5" valor="" validacion="" />
+                   </td>  
+                   <td><IMG src="b.gif" width="25" height="8"/></td>  
+                   <td  nowrap="nowrap">
+                    <CTEXTO nombre="txtDescripcionActividad" id="datosCampos" max="40" tipo="" onchange="" req="N" size="40" valor="" validacion="" />
+                   </td>  
+                   <td><IMG src="b.gif" width="25" height="8"/></td>  
+                   <td nowrap="nowrap"><CTEXTO nombre="txtCodCliente" id="datosCampos" max="15" tipo="" onchange="" onblur="rellenarCodigoCliente();"  req="N" size="19" valor="" validacion="" /></td>	                    
+	           <td><IMG src="b.gif" width="8" height="8"/></td>
+	           <td> <IMG src="iconBuscar.gif" onclick="onClickBusquedaCliente();"/></td>                
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+             </td></tr>
+             <tr><td>      
+          
+       <!---fin primera fila-->
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td><LABELC nombre="lblFechaDesde"  alto="13" filas="1" valor="" id="datosTitle" cod="2775"/></td>                   
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lblFechaHasta"  alto="13" filas="1" valor="" id="datosTitle" cod="2776"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td  nowrap="nowrap">
+                    <CTEXTO nombre="txtFechaDesde" id="datosCampos"  max="12" tipo="" onchange="" req="N" size="12" valor="" validacion="" />
+                   </td>  
+                   <td><IMG src="b.gif" width="25" height="8"/></td>  
+                   <td  nowrap="nowrap">
+                    <CTEXTO nombre="txtFechaHasta" id="datosCampos" max="10" tipo="" onchange="" req="N" size="12" valor="" validacion="" ontab="focalizaBotonHTML('botonContenido', 'btnBuscar');"/>
+                   </td>  
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+             </td></tr>
+           </table>
+
+        </fieldset>        
+      </td>
+      
+      <td><IMG src="b.gif" /></td>
+      
+    </tr> 
+
+
+
+
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnBuscar" ID="botonContenido" tipo="html" accion="cargarLista();" estado="false" cod="1" ontab="focaliza('formulario.txtCodBuzon');" onshtab="focaliza('formulario.txtFechaHasta');"/>
+       </td>
+    </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+    </tr>    
+
+    
+    
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+ 
+</CAPA> 
+
+ 
+ </FORMULARIO>
+</PAGINA>          

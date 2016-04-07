@@ -1,0 +1,898 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_parametros_cartera_insertar2.xml,v 1.1 2009/12/03 18:45:51 pecbazalar Exp $
+   prueba arbol 
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+<PAGINA nombre="contenido_parametros_cartera_insertar2" cod="" titulo="" estilos="estilosB3.css" colorf="#F0F0F0" 
+	msgle="Insertar parámetros de cartera" onload="onLoadPag();" xml:lang="es">
+
+<!--Barra Modificar parámetros de cartera cod="0436"
+    Barra Eliminar parámetros de cartera cod="0437"
+    Barra Consultar parámetros de cartera cod="0438"-->
+
+<VALIDACION>
+
+		<!-- El código no debería tener caracteres especiales.
+			ELEMENTO name="txtCodConfiguracion" required="true" cod="1474" group="grupo1" -->
+		<ELEMENTO name="txtCodConfiguracion" required="true" cod="1474" group="grupo1" format="t" chars="a-z1-9\\-\\+\\[\\]\\\\" />
+
+		<ELEMENTO name="cbNivelRiesgo" required="true" cod="928" group="grupo1"/>
+		<ELEMENTO name="cbGrupoSolicitud" required="true" cod="888" group="grupo1"/>
+    
+    <ELEMENTO name="txtDiasDeudaVencidaPermitida" required="true" cod="1479" group="grupo2" />
+        
+    <ELEMENTO name="txtFechaVigenciaDesde" required="true" format="F"  cod="1480" group="grupo3"/>
+    <ELEMENTO name="txtFechaVigenciaHasta" required="true" format="F"  cod="1481" group="grupo3"/>
+    <ELEMENTO name="cbIndicadorValidacion" required="true" cod="1482" group="grupo3"/>
+    <ELEMENTO name="txtPorcentaje" required="true" cod="2769" format="n" min="0" max="999.99" group="grupo3"/>
+    
+    <ELEMENTO name="txtMontoMaximoPermitido" required="true" cod="1484" format="n" min="0" max="9999999999.99" group="grupo4"/>
+    
+    <ELEMENTO name="txtPorcentajeMaximoPermitido" required="true" cod="1486" format="n" min="0" max="999.99" group="grupo5"/>
+    <ELEMENTO name="txtNDiasAdicionales" required="true" cod="1485" group="grupo5"/>
+    
+</VALIDACION>
+
+<JAVASCRIPT>
+  <![CDATA[ 
+
+  var varNoLimpiarSICC = true;
+
+        function onLoadPag(){
+            configurarMenuSecundario("frmInsertarCartera");
+            btnProxy(4, '0');             
+           
+            if(get('frmInsertarCartera.casoDeUso') == 'insertar'){
+               accion('frmInsertarCartera.txtDiasDeudaVencidaPermitida','.disabled=true');
+               accion('frmInsertarCartera.txtFechaVigenciaDesde','.disabled=true');
+               accion('frmInsertarCartera.txtFechaVigenciaHasta','.disabled=true');
+               accion('frmInsertarCartera.cbIndicadorValidacion','.disabled=true');
+               accion('frmInsertarCartera.txtPorcentaje','.disabled=true');
+               accion('frmInsertarCartera.txtMontoMaximoPermitido','.disabled=true');
+               accion('frmInsertarCartera.txtPorcentajeMaximoPermitido','.disabled=true');
+               accion('frmInsertarCartera.txtNDiasAdicionales','.disabled=true');
+               focaliza('frmInsertarCartera.txtCodConfiguracion');
+            }
+
+            if((get('frmInsertarCartera.casoDeUso') == 'consultarDetalle') || (get('frmInsertarCartera.casoDeUso') == 'consultarEliminar')){            
+               procesoConsultar();
+            }
+
+            if(get('frmInsertarCartera.casoDeUso') == 'consultarModificar'){
+               procesoModificar();
+               focaliza('frmInsertarCartera.DiasDeudaVencida');
+            }
+    
+
+            if (get('frmInsertarCartera.casoDeUso') == 'copiar'){
+               procesoCopiar();
+            }
+
+            
+        }
+
+        function procesoConsultar(){
+              set('frmInsertarCartera.txtCodConfiguracion', get('frmInsertarCartera.hidCodConf'));
+              accion("frmInsertarCartera.txtCodConfiguracion", ".disabled=true");
+
+              iSeleccionado = new Array(); 
+              iSeleccionado[0] = get('frmInsertarCartera.hidNivelRiesgo');
+              set('frmInsertarCartera.cbNivelRiesgo',iSeleccionado);
+              accion("frmInsertarCartera.cbNivelRiesgo", ".disabled=true");
+
+              iSeleccionado = new Array(); 
+              iSeleccionado[0] = get('frmInsertarCartera.hidGrupoSolicitud');
+              set('frmInsertarCartera.cbGrupoSolicitud',iSeleccionado);
+              accion("frmInsertarCartera.cbGrupoSolicitud", ".disabled=true");
+ 
+              
+              if(get('frmInsertarCartera.hidIndDiasDeuda') == 'true'){
+                 set('frmInsertarCartera.DiasDeudaVencida', 'S');
+              }
+              accion("frmInsertarCartera.DiasDeudaVencida", ".disabled=true");
+
+              set('frmInsertarCartera.txtDiasDeudaVencidaPermitida', get('frmInsertarCartera.hidDiasDeuda'))
+              accion("frmInsertarCartera.txtDiasDeudaVencidaPermitida", ".disabled=true");
+
+              if(get('frmInsertarCartera.hidIndLineaCredito') == 'true'){
+                 set('frmInsertarCartera.LineaCredito', 'S');
+              }
+              accion("frmInsertarCartera.LineaCredito", ".disabled=true");
+              
+              set('frmInsertarCartera.txtFechaVigenciaDesde', get('frmInsertarCartera.hidFechaDesde'));
+              accion("frmInsertarCartera.txtFechaVigenciaDesde", ".disabled=true");
+              set('frmInsertarCartera.txtFechaVigenciaHasta', get('frmInsertarCartera.hidFechaHasta'));
+              accion("frmInsertarCartera.txtFechaVigenciaHasta", ".disabled=true");
+
+              iSeleccionado = new Array(); 
+              iSeleccionado[0] = get('frmInsertarCartera.hidIndValidacion');
+              set('frmInsertarCartera.cbIndicadorValidacion',iSeleccionado);
+              accion("frmInsertarCartera.cbIndicadorValidacion", ".disabled=true");
+
+              set('frmInsertarCartera.txtPorcentaje', get('frmInsertarCartera.hidPorcValidacion'));
+              accion("frmInsertarCartera.txtPorcentaje", ".disabled=true");
+
+              if(get('frmInsertarCartera.hidIndMontoMax') == 'true'){
+                 set('frmInsertarCartera.MontoMaximo', 'S');
+              }
+              accion("frmInsertarCartera.MontoMaximo", ".disabled=true");
+
+              set('frmInsertarCartera.txtMontoMaximoPermitido', get('frmInsertarCartera.hidMontoMax'));
+              accion("frmInsertarCartera.txtMontoMaximoPermitido", ".disabled=true");
+
+              if(get('frmInsertarCartera.hidIndPorcMax') == 'true'){
+                 set('frmInsertarCartera.PorcentajeMaximo', 'S');
+              }
+              accion("frmInsertarCartera.PorcentajeMaximo", ".disabled=true");
+
+              set('frmInsertarCartera.txtPorcentajeMaximoPermitido', get('frmInsertarCartera.hidPorcMaxPerm'));
+              accion("frmInsertarCartera.txtPorcentajeMaximoPermitido", ".disabled=true");
+
+              set('frmInsertarCartera.txtNDiasAdicionales', get('frmInsertarCartera.hidDiasAdici'));
+              accion("frmInsertarCartera.txtNDiasAdicionales", ".disabled=true");
+        }
+
+        function procesoCopiar(){
+           var codigo = get('frmInsertarCartera.hidCodConf');
+           focaliza('frmInsertarCartera.txtCodConfiguracion');
+           set('frmInsertarCartera.txtCodConfiguracion', get('frmInsertarCartera.hidCodConf'));
+               
+           iSeleccionado = new Array(); 
+           iSeleccionado[0] = get('frmInsertarCartera.hidNivelRiesgo');
+           set('frmInsertarCartera.cbNivelRiesgo',iSeleccionado);
+
+           iSeleccionado = new Array(); 
+           iSeleccionado[0] = get('frmInsertarCartera.hidGrupoSolicitud');
+           set('frmInsertarCartera.cbGrupoSolicitud',iSeleccionado);
+              
+           if(get('frmInsertarCartera.hidIndDiasDeuda') == 'true'){
+              set('frmInsertarCartera.DiasDeudaVencida', 'S');
+				  accion("frmInsertarCartera.txtDiasDeudaVencidaPermitida", ".disabled=false");
+           }else accion("frmInsertarCartera.txtDiasDeudaVencidaPermitida", ".disabled=true");
+
+				  
+
+           set('frmInsertarCartera.txtDiasDeudaVencidaPermitida', get('frmInsertarCartera.hidDiasDeuda'))
+
+           if(get('frmInsertarCartera.hidIndLineaCredito') == 'true'){
+              set('frmInsertarCartera.LineaCredito', 'S');
+              accion('frmInsertarCartera.txtFechaVigenciaDesde','.disabled=false');
+				  accion('frmInsertarCartera.txtFechaVigenciaHasta','.disabled=false');
+				  accion('frmInsertarCartera.cbIndicadorValidacion','.disabled=false');
+				  accion('frmInsertarCartera.txtPorcentaje','.disabled=false');
+			  }else {
+				  accion('frmInsertarCartera.txtFechaVigenciaDesde','.disabled=true');
+				  accion('frmInsertarCartera.txtFechaVigenciaHasta','.disabled=true');
+				  accion('frmInsertarCartera.cbIndicadorValidacion','.disabled=true');
+				  accion('frmInsertarCartera.txtPorcentaje','.disabled=true');			  
+			  }
+							
+           set('frmInsertarCartera.txtFechaVigenciaDesde', get('frmInsertarCartera.hidFechaDesde'));
+           set('frmInsertarCartera.txtFechaVigenciaHasta', get('frmInsertarCartera.hidFechaHasta'));
+              
+           iSeleccionado = new Array(); 
+           iSeleccionado[0] = get('frmInsertarCartera.hidIndValidacion');
+           set('frmInsertarCartera.cbIndicadorValidacion',iSeleccionado);
+           
+           set('frmInsertarCartera.txtPorcentaje', get('frmInsertarCartera.hidPorcValidacion'));
+
+           if(get('frmInsertarCartera.hidIndMontoMax') == 'true'){
+              set('frmInsertarCartera.MontoMaximo', 'S');
+              accion('frmInsertarCartera.txtMontoMaximoPermitido','.disabled=false');
+           }else accion('frmInsertarCartera.txtMontoMaximoPermitido','.disabled=true');
+              
+           set('frmInsertarCartera.txtMontoMaximoPermitido', get('frmInsertarCartera.hidMontoMax'));
+     
+           if(get('frmInsertarCartera.hidIndPorcMax') == 'true'){
+              set('frmInsertarCartera.PorcentajeMaximo', 'S');
+				  accion('frmInsertarCartera.txtPorcentajeMaximoPermitido','.disabled=false');
+				  accion('frmInsertarCartera.txtNDiasAdicionales','.disabled=false');
+           }else{
+				  accion('frmInsertarCartera.txtPorcentajeMaximoPermitido','.disabled=true');
+				  accion('frmInsertarCartera.txtNDiasAdicionales','.disabled=true');			  
+			  }
+              
+           set('frmInsertarCartera.txtPorcentajeMaximoPermitido', get('frmInsertarCartera.hidPorcMaxPerm'));
+           set('frmInsertarCartera.txtNDiasAdicionales', get('frmInsertarCartera.hidDiasAdici'));
+           set('frmInsertarCartera.casoDeUso', 'insertar');
+              
+        }  
+
+        function procesoModificar(){        
+              set('frmInsertarCartera.txtCodConfiguracion', get('frmInsertarCartera.hidCodConf'));
+              accion("frmInsertarCartera.txtCodConfiguracion", ".disabled=true");
+
+              iSeleccionado = new Array(); 
+              iSeleccionado[0] = get('frmInsertarCartera.hidNivelRiesgo');
+              set('frmInsertarCartera.cbNivelRiesgo',iSeleccionado);
+              accion("frmInsertarCartera.cbNivelRiesgo", ".disabled=true");
+
+              iSeleccionado = new Array(); 
+              iSeleccionado[0] = get('frmInsertarCartera.hidGrupoSolicitud');
+              set('frmInsertarCartera.cbGrupoSolicitud',iSeleccionado);
+              accion("frmInsertarCartera.cbGrupoSolicitud", ".disabled=true");
+               
+              if(get('frmInsertarCartera.hidIndDiasDeuda') == 'true'){
+                 set('frmInsertarCartera.DiasDeudaVencida', 'S');
+                 accion('frmInsertarCartera.txtDiasDeudaVencidaPermitida','.disabled=false');
+              }else{
+                 set('frmInsertarCartera.DiasDeudaVencida', 'N');
+                 accion('frmInsertarCartera.txtDiasDeudaVencidaPermitida','.disabled=true');
+              }
+              
+              set('frmInsertarCartera.txtDiasDeudaVencidaPermitida', get('frmInsertarCartera.hidDiasDeuda'))
+
+              if(get('frmInsertarCartera.hidIndLineaCredito') == 'true'){
+                 set('frmInsertarCartera.LineaCredito', 'S');
+                 accion('frmInsertarCartera.txtFechaVigenciaDesde','.disabled=false');
+                 accion('frmInsertarCartera.txtFechaVigenciaHasta','.disabled=false');
+                 accion('frmInsertarCartera.cbIndicadorValidacion','.disabled=false');
+                 accion('frmInsertarCartera.txtPorcentaje','.disabled=false');
+              }else{
+                 set('frmInsertarCartera.LineaCredito', 'N');
+                 accion('frmInsertarCartera.txtFechaVigenciaDesde','.disabled=true');
+                 accion('frmInsertarCartera.txtFechaVigenciaHasta','.disabled=true');
+                 accion('frmInsertarCartera.cbIndicadorValidacion','.disabled=true');
+                 accion('frmInsertarCartera.txtPorcentaje','.disabled=true');
+              }
+                            
+              set('frmInsertarCartera.txtFechaVigenciaDesde', get('frmInsertarCartera.hidFechaDesde'));
+              set('frmInsertarCartera.txtFechaVigenciaHasta', get('frmInsertarCartera.hidFechaHasta'));
+              
+              iSeleccionado = new Array(); 
+              iSeleccionado[0] = get('frmInsertarCartera.hidIndValidacion');
+              set('frmInsertarCartera.cbIndicadorValidacion',iSeleccionado);
+
+              set('frmInsertarCartera.txtPorcentaje', get('frmInsertarCartera.hidPorcValidacion'));
+
+              if(get('frmInsertarCartera.hidIndMontoMax') == 'true'){
+                 set('frmInsertarCartera.MontoMaximo', 'S');
+                 accion('frmInsertarCartera.txtMontoMaximoPermitido','.disabled=false');
+              }else{
+                 set('frmInsertarCartera.MontoMaximo', 'N');
+                 accion('frmInsertarCartera.txtMontoMaximoPermitido','.disabled=true');
+              }
+
+              set('frmInsertarCartera.txtMontoMaximoPermitido', get('frmInsertarCartera.hidMontoMax'));
+
+              if(get('frmInsertarCartera.hidIndPorcMax') == 'true'){
+                 set('frmInsertarCartera.PorcentajeMaximo', 'S');
+                 accion('frmInsertarCartera.txtPorcentajeMaximoPermitido','.disabled=false');
+                 accion('frmInsertarCartera.txtNDiasAdicionales','.disabled=false');
+              }else{
+                 set('frmInsertarCartera.PorcentajeMaximo', 'N');
+                 accion('frmInsertarCartera.txtPorcentajeMaximoPermitido','.disabled=true');
+                 accion('frmInsertarCartera.txtNDiasAdicionales','.disabled=true');
+              }
+              
+              set('frmInsertarCartera.txtPorcentajeMaximoPermitido', get('frmInsertarCartera.hidPorcMaxPerm'));
+              set('frmInsertarCartera.txtNDiasAdicionales', get('frmInsertarCartera.hidDiasAdici'));
+
+              focaliza('frmInsertarCartera.DiasDeudaVencida');
+        }
+        
+        function fVolver(){
+           this.close();
+        }
+        
+
+        function validacionGeneral(){
+           
+
+           if(get('frmInsertarCartera.LineaCredito') == 'S'){
+              grupos += ',grupo3'
+           }
+
+           if(get('frmInsertarCartera.MontoMaximo') == 'S'){
+              grupos += ',grupo4'
+           }
+
+           if(get('frmInsertarCartera.PorcentajeMaximo') == 'S'){
+              grupos += ',grupo5'
+           }
+     
+		       if(!sicc_validaciones_generales(grupos)){
+              return false;
+           }else{
+              return true;
+           }
+        }
+        
+        function validaFechas(){
+				if (get('frmInsertarCartera.txtFechaVigenciaDesde')!= ''  && get('frmInsertarCartera.txtFechaVigenciaHasta') != ''){
+				
+				  if( EsFechaValida(get('frmInsertarCartera.txtFechaVigenciaDesde'), get('frmInsertarCartera.txtFechaVigenciaHasta'), 'frmInsertarCartera') == 0){
+					  return true;
+				  }else if ( EsFechaValida(get('frmInsertarCartera.txtFechaVigenciaDesde'), get('frmInsertarCartera.txtFechaVigenciaHasta'), 'frmInsertarCartera') == 1){
+							  GestionarMensaje('947',null,null,null);
+							  focaliza('frmInsertarCartera.txtFechaVigenciaDesde');
+							  return false;
+						 }else if( EsFechaValida(get('frmInsertarCartera.txtFechaVigenciaDesde'), get('frmInsertarCartera.txtFechaVigenciaHasta'), 'frmInsertarCartera') == 2 ){
+							  GestionarMensaje('947',null,null,null);
+							  focaliza('frmInsertarCartera.txtFechaVigenciaHasta');
+							  return false;
+						 }else if( EsFechaValida(get('frmInsertarCartera.txtFechaVigenciaDesde'), get('frmInsertarCartera.txtFechaVigenciaHasta'), 'frmInsertarCartera') == 3 ){
+							  GestionarMensaje("1007");
+							  focaliza('frmInsertarCartera.txtFechaVigenciaDesde');
+							  return false;
+						 }
+
+			  }else{
+					return true;
+			  }
+        }
+
+        
+        function fGuardar(){
+          
+            var grupos = 'grupo1'; 
+
+            if(!sicc_validaciones_generales('grupo1')){
+                  return;   
+
+            }
+
+            if(get('frmInsertarCartera.DiasDeudaVencida') == 'S'){
+               grupos += ',grupo2';
+
+               if(!sicc_validaciones_generales(grupos)){
+                  return;                     
+               }else{
+                  if(!validarDiasDeuda()){
+                     return;
+                  }
+               }
+            }
+
+            if(get('frmInsertarCartera.LineaCredito') == 'S'){
+              	//incidencia 	BELC300019812 
+					if (get('frmInsertarCartera.txtFechaVigenciaDesde')!= '')	 {
+							grupos += ',grupo3';
+					}
+               if(!sicc_validaciones_generales(grupos)){
+                  return;                     
+               }else{
+                  if (!validaFechas()){
+                     return;
+                  }
+                
+                }
+            }
+
+            if(get('frmInsertarCartera.MontoMaximo') == 'S'){
+               grupos += ',grupo4';
+
+               if(!sicc_validaciones_generales(grupos)){
+                  return;                     
+               }
+            }
+
+            if(get('frmInsertarCartera.PorcentajeMaximo') == 'S'){
+               grupos += ',grupo5';
+
+               if(!sicc_validaciones_generales(grupos)){
+                  return;                     
+               }else{
+               
+                  if(!validarDiasAdici()){
+                     return;                  
+                  }
+               }
+            }
+            
+            set('frmInsertarCartera.conectorAction','LPParametrosCAR');
+            set('frmInsertarCartera.accion','GuardarCodigo'); 
+            eval('frmInsertarCartera').oculto = 'S';
+            enviaSICC('frmInsertarCartera', '', '', 'N');           
+                  
+        }
+
+        function guardoOk(){
+              set('frmInsertarCartera.conectorAction','LPParametrosCAR');
+              set('frmInsertarCartera.accion','asignaCodigo'); 
+              eval('frmInsertarCartera').oculto = 'N';
+              enviaSICC('frmInsertarCartera', '', '', 'N');
+        }
+
+        function noGuardo(){
+
+        }
+
+        function validarPorcentaje(){
+          var porcentajeValidado = fValidarFloat(get("frmInsertarCartera.txtPorcentaje"), 3, 2, false, 0, 999999999999999, false);
+         
+          if(porcentajeValidado != 'OK'){
+             cdos_mostrarAlert(porcentajeValidado);
+             focaliza("frmInsertarCartera.txtPorcentaje");
+             return false;
+          }else{
+             return true;
+          }
+        }
+
+        function validarDiasDeuda(){
+           var dias = get('frmInsertarCartera.txtDiasDeudaVencidaPermitida');
+           if(fValidarNumero(dias, 200, 0, 9999999)!='OK'){
+              GestionarMensaje('1393'); 
+              focaliza('frmInsertarCartera.txtDiasDeudaVencidaPermitida');
+              return false;
+           }else{
+              return true;
+           }
+        }
+
+        function validarCamposPorcentaje(){
+          var porcentajeMaximoValidado = fValidarFloat(get("frmInsertarCartera.txtPorcentajeMaximoPermitido"), 3, 2, false, 0, 999, false);
+         
+          if(porcentajeMaximoValidado != 'OK'){
+             cdos_mostrarAlert(porcentajeMaximoValidado);
+             focaliza("frmInsertarCartera.txtPorcentajeMaximoPermitido");
+             return false;
+          }else {
+             return true;
+          }
+        }
+
+        function validarDiasAdici(){
+          var diasAdici = get('frmInsertarCartera.txtNDiasAdicionales');
+          if(fValidarNumero(diasAdici, 200, 0, 9999999)!='OK'){
+              GestionarMensaje('1393'); 
+              focaliza('frmInsertarCartera.txtNDiasAdicionales');
+              return false;
+           }else{
+              return true;
+           }
+           
+
+        }
+   
+        function muestraError(){
+            
+        }
+
+        function habilitaDeudaVencida(){
+            if( get('frmInsertarCartera.DiasDeudaVencida')=='S') {
+                accion('frmInsertarCartera.txtDiasDeudaVencidaPermitida','.disabled=false');
+            }else{
+                accion('frmInsertarCartera.txtDiasDeudaVencidaPermitida','.disabled=true');
+                set('frmInsertarCartera.txtDiasDeudaVencidaPermitida', '');
+            }
+        }
+
+        
+        function habilitaLineaCredito(){
+            if(get('frmInsertarCartera.LineaCredito')=='S'){
+                accion('frmInsertarCartera.txtFechaVigenciaDesde','.disabled=false');
+                accion('frmInsertarCartera.txtFechaVigenciaHasta','.disabled=false');
+                accion('frmInsertarCartera.cbIndicadorValidacion','.disabled=false'); 
+                accion('frmInsertarCartera.txtPorcentaje','.disabled=false');
+            }else{
+                accion('frmInsertarCartera.txtFechaVigenciaDesde','.disabled=true');
+                accion('frmInsertarCartera.txtFechaVigenciaHasta','.disabled=true');
+                accion('frmInsertarCartera.cbIndicadorValidacion','.disabled=true'); 
+                accion('frmInsertarCartera.txtPorcentaje','.disabled=true');
+                set('frmInsertarCartera.txtFechaVigenciaDesde','');
+                set('frmInsertarCartera.txtFechaVigenciaHasta','');
+                set('frmInsertarCartera.cbIndicadorValidacion','');
+                set('frmInsertarCartera.txtPorcentaje', '');
+                
+            }
+        }
+
+        function habilitaMontoMax(){
+            if(get('frmInsertarCartera.MontoMaximo')=='S'){
+                accion('frmInsertarCartera.txtMontoMaximoPermitido','.disabled=false');
+            }else{
+                accion('frmInsertarCartera.txtMontoMaximoPermitido','.disabled=true');
+                set('frmInsertarCartera.txtMontoMaximoPermitido', '');
+            }
+        }
+
+        function habilitaPorcentajeMax(){
+            if(get('frmInsertarCartera.PorcentajeMaximo')=='S'){
+                accion('frmInsertarCartera.txtPorcentajeMaximoPermitido','.disabled=false');
+                accion('frmInsertarCartera.txtNDiasAdicionales','.disabled=false');
+            }else{
+                accion('frmInsertarCartera.txtPorcentajeMaximoPermitido','.disabled=true');
+                accion('frmInsertarCartera.txtNDiasAdicionales','.disabled=true');
+                set('frmInsertarCartera.txtPorcentajeMaximoPermitido', '');
+                set('frmInsertarCartera.txtNDiasAdicionales', '');
+            }
+        }
+
+        function pasoAUnidades(){
+          set('frmInsertarCartera.conectorAction','LPParametrosCAR');
+          set('frmInsertarCartera.accion','asignaCodigo');
+          set('frmInsertarCartera.foco','false');
+          enviaSICC('frmInsertarCartera', '', '', 'N');
+        }
+
+        function pasoAUnidadesFoco(){
+          set('frmInsertarCartera.conectorAction','LPParametrosCAR');
+          set('frmInsertarCartera.accion','asignaCodigo');  
+          set('frmInsertarCartera.foco','true');          
+          enviaSICC('frmInsertarCartera', '', '', 'N');
+        }        
+
+        function fLimpiar(){
+           var casoDeUso = get('frmInsertarCartera.casoDeUso');
+
+           if(casoDeUso == 'consultarModificar'){
+              procesoModificar();          
+           }
+
+           if(casoDeUso == 'insertar'){
+              limpiarInsertar();
+           }
+        }
+
+        function limpiarInsertar(){
+      
+           set('frmInsertarCartera.txtCodConfiguracion', '');
+           set('frmInsertarCartera.cbNivelRiesgo', '');
+           set('frmInsertarCartera.cbGrupoSolicitud', '');
+           set('frmInsertarCartera.DiasDeudaVencida', 'N');
+           set('frmInsertarCartera.txtDiasDeudaVencidaPermitida', '')
+           accion("frmInsertarCartera.txtDiasDeudaVencidaPermitida", ".disabled=true");
+
+           set('frmInsertarCartera.LineaCredito', 'N');
+           set('frmInsertarCartera.txtFechaVigenciaDesde', '');
+           accion("frmInsertarCartera.txtFechaVigenciaDesde", ".disabled=true");
+           set('frmInsertarCartera.txtFechaVigenciaHasta', '');
+           accion("frmInsertarCartera.txtFechaVigenciaHasta", ".disabled=true");
+           set('frmInsertarCartera.cbIndicadorValidacion','');
+           accion("frmInsertarCartera.cbIndicadorValidacion", ".disabled=true");
+           set('frmInsertarCartera.txtPorcentaje', '');
+           accion("frmInsertarCartera.txtPorcentaje", ".disabled=true");
+
+           set('frmInsertarCartera.MontoMaximo', 'N');
+           set('frmInsertarCartera.txtMontoMaximoPermitido', '');
+           accion("frmInsertarCartera.txtMontoMaximoPermitido", ".disabled=true");
+
+           set('frmInsertarCartera.PorcentajeMaximo', 'N');
+           set('frmInsertarCartera.txtPorcentajeMaximoPermitido', '');
+           accion("frmInsertarCartera.txtPorcentajeMaximoPermitido", ".disabled=true");
+           set('frmInsertarCartera.txtNDiasAdicionales', '');
+           accion("frmInsertarCartera.txtNDiasAdicionales", ".disabled=true");
+           focaliza('frmInsertarCartera.txtCodConfiguracion');
+         }
+
+        
+         function focalizaUltimoCheck(){
+            if(get('frmInsertarCartera.casoDeUso') == 'insertar'){
+                   focaliza('frmInsertarCartera.txtCodConfiguracion');
+             
+            }
+
+            if(get('frmInsertarCartera.casoDeUso') == 'consultarModificar'){
+               focaliza('frmInsertarCartera.DiasDeudaVencida');
+            }
+         }
+
+         function focalizaUltimoCheck2(){
+            if(get('frmInsertarCartera.casoDeUso') == 'insertar'){
+                 if(get('frmInsertarCartera.PorcentajeMaximo')=='N'){                   
+                   focaliza('frmInsertarCartera.txtCodConfiguracion');
+                 }else{
+                   focaliza('frmInsertarCartera.txtPorcentajeMaximoPermitido');
+                 }
+             
+            }
+
+            if(get('frmInsertarCartera.casoDeUso') == 'consultarModificar'){
+               if(get('frmInsertarCartera.PorcentajeMaximo')=='N'){   
+                   focaliza('frmInsertarCartera.DiasDeudaVencida');
+               }else{
+                   focaliza('frmInsertarCartera.txtPorcentajeMaximoPermitido');
+               }
+            }
+         }
+
+         function focaliza1(){         
+            if(get('frmInsertarCartera.casoDeUso') == 'insertar'){
+               if(get('frmInsertarCartera.PorcentajeMaximo') == 'N'){
+                  pasoAUnidadesFoco();
+                  //focaliza('frmInsertarCartera.PorcentajeMaximo');
+               }else{
+                  focaliza('frmInsertarCartera.txtNDiasAdicionales');
+               }
+            }
+         }
+
+         function focalizacion2(){
+            if(get('frmInsertarCartera.casoDeUso') == 'insertar'){
+               focaliza('frmInsertarCartera.cbGrupoSolicitud');
+            }
+
+            if(get('frmInsertarCartera.casoDeUso') == 'consultarModificar'){
+               pasoAUnidadesFoco();
+            }
+         }
+
+         function poneManito(nombre) {          
+          var nombre = document.getElementById(nombre);
+          nombre.style.cursor = "hand";
+         }
+
+ ]]> 
+</JAVASCRIPT>
+<JS src="sicc_util.js"/>	 
+<JS src="PaginacionSicc.js"/>	 
+<JS src="DruidaTransactionMare.js"/>
+    
+<FORMULARIO nombre="frmInsertarCartera">
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="accion" valor=""/>
+<VAR nombre="errCodigo" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="hidCodConf" valor=""/>
+<VAR nombre="hidNivelRiesgo" valor=""/>
+<VAR nombre="hidGrupoSolicitud" valor=""/>
+<VAR nombre="hidIndDiasDeuda" valor=""/>
+<VAR nombre="hidDiasDeuda" valor=""/>
+<VAR nombre="hidIndLineaCredito" valor=""/>
+<VAR nombre="hidFechaDesde" valor=""/>
+<VAR nombre="hidFechaHasta" valor=""/>
+<VAR nombre="hidIndValidacion" valor=""/>
+<VAR nombre="hidPorcValidacion" valor=""/>
+<VAR nombre="hidIndMontoMax" valor=""/>
+<VAR nombre="hidMontoMax" valor=""/>
+<VAR nombre="hidIndPorcMax" valor=""/>
+<VAR nombre="hidPorcMaxPerm" valor=""/>
+<VAR nombre="hidDiasAdici" valor=""/>
+<VAR nombre="hidOid" valor=""/>
+<VAR nombre="oid" valor=""/>
+<VAR nombre="hidAsignaciones" valor=""/>
+<VAR nombre="indCopia" valor=""/>
+
+
+<VAR nombre="casoDeUso" valor=""/>
+<VAR nombre="hFormatoFechaPais" valor="d/m/YYYY"/>
+
+<VAR nombre="marcaDefecto" valor=""/>
+<VAR nombre="canalDefecto" valor=""/>
+<VAR nombre="foco" valor=""/>
+
+<CAPA nombre="capa">
+ <table width="100%" height="100%" border="0" align="center" cellpadding="0" cellspacing="0" class="menu4">
+  <tr> 
+    <td width="12" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="12" height="35"/></td>
+    <td nowrap="nowrap" class="menu5texto"><IMG src="b.gif"/></td>
+    <td width="10" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="92" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A">
+        <tr align="left"> 
+           <td id="unidades" nowrap="nowrap" onmouseover= "poneManito('unidades');" onclick="pasoAUnidades();"><LABELC nombre="lblUnidades" ancho="150" alto="13" filas="1" valor="" id="menu5textonegrita" cod="0043"/></td>
+        </tr>
+      </table>
+    </td>
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" bgcolor="#496A9A">
+        <tr align="left"> 
+          <td nowrap="nowrap" ><LABELC nombre="lblCodigoConf" ancho="120" alto="13" filas="1" valor="" id="menu5textoblanca" cod="00402"/></td>
+        </tr>
+      </table>
+   </td>
+   
+    <td width="16" class="menu5texto"><IMG src="b.gif" width="12" height="8"/></td>
+  </tr>
+</table>                          
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+<!--**************************-->
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblDatosPrincipales" alto="13" filas="1" valor="" id="legend" cod="00202"/></legend>
+          <!---primera fila-->
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblCodConfiguracion" alto="13" filas="1" valor="" id="datosTitle" cod="1474"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblNivelRiesgo" alto="13" filas="1" valor="" id="datosTitle" cod="928"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblGrupoSolicitud" alto="13" filas="1" valor="" id="datosTitle" cod="888"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap" ><CTEXTO nombre="txtCodConfiguracion" id="datosCampos" max="3" tipo="" onchange="" req="S" size="18" valor="" validacion="" onshtab="focaliza1();"/></td>
+                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td nowrap="nowrap"><COMBO nombre="cbNivelRiesgo" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="">
+                      <ROWSET>
+                      		
+                      </ROWSET>
+                    </COMBO> </td>
+                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                    <td nowrap="nowrap"><COMBO nombre="cbGrupoSolicitud" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="">
+                      <ROWSET>
+                      		
+                      </ROWSET>
+                    </COMBO> </td>
+                  <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+       <!---fin primera fila-->
+       <!---segunda fila-->
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+             	 <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblTipoValidacion" ancho="90" alto="25" filas="1" valor="" id="datosTitle" cod="1477"/></td>
+                   <td><IMG src="b.gif" width="23" height="8"/></td>
+                   <td><CHECKBOX nombre="DiasDeudaVencida" id="datosCampos" onclick="habilitaDeudaVencida()" check="N" onshtab="focalizacion2();"/></td>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblDiasDeudaVencida" ancho ="120" alto="25" filas="1" valor="" id="datosTitle" cod="1478" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblDiasDeudaVencidaPermitida" alto="13" filas="1" valor="" id="datosCampos" cod="1479"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap" ><IMG src="b.gif" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" ><IMG src="b.gif" /></td>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap" ><IMG src="b.gif" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" ><CTEXTO nombre="txtDiasDeudaVencidaPermitida" id="datosCampos" max="3" tipo="" onchange="" req="S" size="4" valor="" validacion="" /></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+      	    <!---segunda fila-->
+            <!---tercera fila-->
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+             
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><IMG src="b.gif" width="90" height="17"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><CHECKBOX nombre="LineaCredito" id="datosCampos" onclick="habilitaLineaCredito()" check="N"/></td>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblLineaCredito" ancho ="120" alto="25" filas="1" valor="" id="datosTitle" cod="910"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblFechaVigenciaDesde" alto="13" filas="1" valor="" id="datosCampos" cod="1480"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblFechaVigenciaHasta" alto="13" filas="1" valor="" id="datosCampos" cod="1481"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td ><LABELC nombre="lblIndicadorValidacion" alto="13" filas="1" valor="" id="datosCampos" cod="1482"/></td> 
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td ><LABELC nombre="lblPorcentajeValidacion" alto="13" filas="1" valor="" id="datosCampos" cod="2769"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap" ><IMG src="b.gif" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" ><IMG src="b.gif" /></td>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap" ><IMG src="b.gif" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" ><CTEXTO nombre="txtFechaVigenciaDesde" id="datosCampos" max="10" tipo="" onchange="" req="N" size="12" valor="" validacion="" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" ><CTEXTO nombre="txtFechaVigenciaHasta" id="datosCampos" max="10" tipo="" onchange="" req="N" size="12" valor="" validacion="" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap">
+                   <COMBO nombre="cbIndicadorValidacion" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                      <ROWSET>
+                      </ROWSET>
+                    </COMBO> </td>
+                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                    <td nowrap="nowrap" class="datosCampos" >
+                      <CTEXTO nombre="txtPorcentaje" id="datosCampos" max="6" tipo="" onchange="" req="N" size="8" valor="" validacion="" />%</td>                   
+                     <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+      	       <!---fin tercera fila-->
+      	      <!---cuarta fila-->
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+             
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><IMG src="b.gif" width="90" height="17"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><CHECKBOX nombre="MontoMaximo" id="datosCampos" onclick="habilitaMontoMax()" check="N"/></td>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblMontoMaximo" ancho ="120" alto="25" filas="1" valor="" id="datosTitle" cod="1483"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblMontoMaximoPermitido" alto="13" filas="1" valor="" id="datosCampos" cod="1484"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap" ><IMG src="b.gif" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" ><IMG src="b.gif" /></td>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap" ><IMG src="b.gif" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" ><CTEXTO nombre="txtMontoMaximoPermitido" id="datosCampos" max="16" tipo="" onchange="" req="S" size="16" valor="" validacion="" /></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+      	       <!---fin cuarta fila-->
+      	         <!---quinta fila-->
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+             
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><IMG src="b.gif" width="90" height="17"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><CHECKBOX nombre="PorcentajeMaximo" id="datosCampos"  onclick="habilitaPorcentajeMax()" check="N"  ontab="focalizaUltimoCheck2();"/></td>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblPorcentajeMaximo" ancho ="120" alto="25" filas="1" valor="" id="datosTitle" cod="1487"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td ><LABELC nombre="lblPorcentajeMaximoPermitido" alto="13" filas="1" valor="" id="datosCampos" cod="1486"/></td>
+                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblNDiasAdicionales" alto="13" filas="1" valor="" id="datosCampos" cod="1485" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap" ><IMG src="b.gif" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" ><IMG src="b.gif" /></td>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap" ><IMG src="b.gif" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" class="datosCampos"><CTEXTO nombre="txtPorcentajeMaximoPermitido" id="datosCampos" max="6" tipo="" onchange="" req="N" size="8" valor="" validacion="" />%
+                   	
+                   	<IMG src="b.gif" width="8" height="8"/>
+                   	<IMG src="iconorequerido.gif"/>
+                  </td>
+                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" ><CTEXTO nombre="txtNDiasAdicionales" id="datosCampos" max="3" tipo="" onchange="" req="S" size="3" valor="" validacion="" ontab="focalizaUltimoCheck();"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+      	       <!---fin quinta fila-->
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+  
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA> 
+ </FORMULARIO>
+</PAGINA> 

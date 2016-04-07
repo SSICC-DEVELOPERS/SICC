@@ -1,0 +1,603 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_movimiento_caja_realizar_detalle.xml,v 1.1 2009/12/03 18:45:49 pecbazalar Exp $
+   BEL
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_movimiento_caja_realizar_detalle" cod="0674" titulo="Realizar movimiento de caja" estilos="estilosB3.css" colorf="#F0F0F0"
+        msgle="" onload="onLoadPag();" xml:lang="es" >
+  <JS src="sicc_util.js"/>
+  <JS src="DruidaTransactionMare.js"/>        
+<JAVASCRIPT>
+  <![CDATA[ 
+	var signo;
+  function onLoadPag()   {
+  
+    
+
+    configurarMenuSecundario("formularios");
+    /*DrdEnsanchaConMargenDcho('listado1',12);
+    document.all["Cplistado1"].style.visibility='';
+    document.all["CpLin1listado1"].style.visibility='';
+    document.all["CpLin2listado1"].style.visibility='';
+    document.all["CpLin3listado1"].style.visibility='';
+    document.all["CpLin4listado1"].style.visibility='';
+
+    document.all["primera1Div"].style.visibility='';
+    document.all["ret1Div"].style.visibility='';
+    document.all["ava1Div"].style.visibility=''; 
+    document.all["separaDiv"].style.visibility='';
+    document.all["btnAnadirDiv"].style.visibility='';
+    document.all["btnModificarDiv"].style.visibility='';*/
+    eval (ON_RSZ);  
+	focaliza("formularios.cbTipoMovimiento")
+    posicionarCombos();
+    dehabilitarInicial();
+    
+  }
+  function dehabilitarInicial(){
+	accion('formularios.txtImporteDivisa','.disabled=true');
+	sicc_cambiar_estado('txtImporte', true)
+	accion('formularios.cbBanco','.disabled=true');
+    accion('formularios.txtNumCheque','.disabled=true');
+    accion('formularios.cbTipoTarjeta','.disabled=true');
+    accion('formularios.txtNumTarjeta','.disabled=true');
+    accion('formularios.txtNumvaleCompra','.disabled=true');
+  }
+  function posicionarCombos(){
+      var array = new Array();
+
+      if (get('formularios.oidTipoMovimiento')!=''){
+        array[0] = get('formularios.oidTipoMovimiento');
+        set('formularios.cbTipoMovimiento',array)
+      }
+
+      if (get('formularios.oidMedioPago')!=''){
+        array[0] = get('formularios.oidMedioPago');
+        set('formularios.cbMedioPago',array)
+      } 
+      if (get('formularios.oidMoneda')!=''){
+        array[0] = get('formularios.oidMoneda');
+        set('formularios.cbMoneda',array)
+      }       
+      if (get('formularios.oidBanco')!=''){
+        array[0] = get('formularios.oidBanco');
+        set('formularios.cbBanco',array)
+      } 
+      if (get('formularios.oidTipoTarjeta')!=''){
+        array[0] = get('formularios.oidTipoTarjeta');
+        set('formularios.cbTipoTarjeta',array)
+      }       
+  }
+  /** 
+   * Método para abrir Aceptar y cerrar la ventana
+   * @param void
+   * @return void
+   * @exception n/a 
+   * @author mdolce
+   */    
+  function accionAceptar(){
+  
+    if(!validarImporte()){
+       GestionarMensaje('UIBEL0012')
+       return;
+    }
+    
+    if(sicc_validaciones_generales()){
+
+        
+        var oidTipoMovimientoCaja = get('formularios.cbTipoMovimiento');
+        var tipoMovimientoCaja = get('formularios.cbTipoMovimiento','T');
+        var oidMedioPago = get('formularios.cbMedioPago');
+        var medioPago = get('formularios.cbMedioPago','T');
+        var oidMoneda = get('formularios.cbMoneda');
+        var Moneda = get('formularios.cbMoneda','T');
+        var importe = get('formularios.txtImporte');
+        var importeDivisa = get('formularios.txtImporteDivisa');
+        var nroCheque = get('formularios.txtNumCheque');
+        var oidBanco = get('formularios.cbBanco');
+        var Banco = get('formularios.cbBanco','T');
+        var oidTipoTarjeta = get('formularios.cbTipoTarjeta');
+        var tipoTarjeta = get('formularios.cbTipoTarjeta','T');
+        var nroTarjeta = get('formularios.txtNumTarjeta');
+        var nroValeCompra = get('formularios.txtNumvaleCompra');    
+
+        var arr = new Array();
+
+        arr[0] = tipoMovimientoCaja;
+        arr[1] = medioPago;
+        arr[2] = Moneda;
+        arr[3] = importe;
+        arr[4] = importeDivisa;
+        arr[5] = nroCheque;
+        arr[6] = Banco;
+        arr[7] = tipoTarjeta;
+        arr[8] = nroTarjeta;
+        arr[9] = nroValeCompra;
+        arr[10] = oidTipoMovimientoCaja;
+        arr[11] = oidMedioPago;
+        arr[12] = oidMoneda;
+        arr[13] = oidBanco;
+        arr[14] = oidTipoTarjeta;      
+
+        returnValue = arr;
+        
+        window.close();
+     }
+   
+  }
+  
+  function validarImporte(){
+     
+     var importe = new String(get('formularios.txtImporte'));
+     var importeCaracter = importe.charAt(0);
+     var importeDivisa = new String(get('formularios.txtImporteDivisa'));
+     var importeDivisaCaracter = importeDivisaCaracter = importeDivisa.charAt(0);
+     var banderaTemp = false;
+     var bandera = true;
+     var numeros = new Array();
+     numeros = ['1','2','3','4','5','6','7','8','9','0'];
+     
+     
+     //aca valida el importe
+     if(importeCaracter != ''){
+        for(var k=0;k<numeros.length;k++) {
+           if(importeCaracter == numeros[k]){
+              banderaTemp = true;
+           }
+        }
+        
+        if(!banderaTemp){
+           if(importeCaracter == signo){
+              bandera = true;
+           }else{
+              bandera = false;
+           }
+        }else{
+		   if(signo == '-'){
+		     bandera = false; 
+		   }
+		}
+     }
+     
+      //aca valida el importe Divisa
+     if(importeDivisaCaracter != ''){
+        for(var k=0;k<numeros.length;k++) {
+           if(importeDivisaCaracter == numeros[k]){
+              banderaTemp = true;
+           }
+        }
+        
+        if(!banderaTemp){
+           if(importeDivisaCaracter == signo){
+              bandera = true;
+           }else{
+              bandera = false;
+           }
+        }else{
+		   if(signo == '-'){
+		     bandera = false; 
+		   }
+		}
+     }
+        
+     if(bandera){
+        return true;
+     }else{
+        return false;
+     }
+ 
+  }
+  /** 
+   * Método para si cambia el combo moneda
+   * @param void
+   * @return void
+   * @exception n/a 
+   * @author enozigli
+   */    
+  function monedaOnChange(){
+    if ((get('formularios.varOidMonedaAlternativa')!='')&&
+        (get('formularios.cbMoneda','V')[0]!='')&&
+        (get('formularios.cbMoneda','V')[0]==get('formularios.varOidMonedaAlternativa'))){//Moneda Alternativa
+        accion('formularios.txtImporteDivisa','.disabled=false');
+        accion('formularios.txtImporte','.disabled=true');
+        
+        sicc_cambiar_estado('txtImporteDivisa', true);
+        sicc_cambiar_estado('txtImporte', false);
+               
+        txt_to('lbldtTipoCambio', get('formularios.varTipoCambio')); 
+        //calculo "importe" y su valor será el valor del campo "importeDivisa" x 
+        //el de "varTipoCambio" redondeado al número de decimales de la moneda alternativa.
+        calcularImporte2();
+               
+    } else { //Sin Moneda Alternativa
+        accion('formularios.txtImporteDivisa','.disabled=true');
+        accion('formularios.txtImporte','.disabled=false');
+        sicc_cambiar_estado('txtImporteDivisa', false);
+        sicc_cambiar_estado('txtImporte', true);
+        set('formularios.txtImporteDivisa','');
+        txt_to('lbldtTipoCambio', '');
+    }  
+  }
+  function roundit(Num, Places) {
+   if (Places > 0) {
+      if ((Num.toString().length - Num.toString().lastIndexOf('.')) > (Places + 1)) {
+         var Rounder = Math.pow(10, Places);
+         return Math.round(Num * Rounder) / Rounder;
+      }
+      else return Num;
+   }
+   else return Math.round(Num);
+ }
+
+  /** 
+   * Método para si cambia el combo medioPagoBelcenter
+   * @param void
+   * @return void
+   * @exception n/a 
+   * @author enozigli
+   */     
+  function medioPagoBelcenterOnChange(){
+
+      var cteCheque     = get('formularios.cteTipoMedioPagoCheque');
+      var cteTarjeta    = get('formularios.cteTipoMedioPagoTarjeta');
+      var cteVales      = get('formularios.cteTipoMedioPagoVales');
+      var medioPago = get('formularios.cbMedioPago');
+
+      var tipoMedioPago = obtenerTipoMedioPago(medioPago);
+    
+
+      if(tipoMedioPago == cteCheque){
+          //Habilitar el combo "banco" y ponerlo como obligatorio 
+          accion('formularios.cbBanco','.disabled=false');
+          sicc_cambiar_estado('cbBanco', true);
+
+          //Habilitar el campo "numeroCheque" y ponerlo como obligatorio 
+          accion('formularios.txtNumCheque','.disabled=false');
+          sicc_cambiar_estado('txtNumCheque', true);
+           
+          //Deshabilitar y limpiar (si es combo quitar la selección) los campos: tipoTarjeta, 
+          //numeroTarjeta y numeroValeCompra
+
+          set('formularios.cbTipoTarjeta', '');
+          accion('formularios.cbTipoTarjeta','.disabled=true');
+		  sicc_cambiar_estado('cbTipoTarjeta', false);
+
+          set('formularios.txtNumTarjeta', '');
+          accion('formularios.txtNumTarjeta','.disabled=true');
+          sicc_cambiar_estado('txtNumCheque', false);
+
+          set('formularios.txtNumvaleCompra', '');
+          accion('formularios.txtNumvaleCompra','.disabled=true');
+		  sicc_cambiar_estado('txtNumvaleCompra', false);
+
+          
+      }else{
+         if(tipoMedioPago == cteTarjeta){
+            //Habilitar el combo "tipoTarjeta" y ponerlo como opcional 
+            accion('formularios.cbTipoTarjeta','.disabled=false');
+            sicc_cambiar_estado('cbTipoTarjeta', false);
+
+            //Habilitar el campo "numeroTarjeta" y ponerlo como obligatorio 
+            accion('formularios.txtNumTarjeta','.disabled=false');
+            sicc_cambiar_estado('txtNumTarjeta', true);
+
+            //Deshabilitar y limpiar (si es combo quitar la selección) los campos: 
+            //banco, numeroCheque y numeroValeCompra
+
+            set('formularios.cbBanco', '');
+            accion('formularios.cbBanco','.disabled=true');
+			      sicc_cambiar_estado('cbBanco', false);
+
+            set('formularios.txtNumCheque', '');
+            accion('formularios.txtNumCheque','.disabled=true');
+			      sicc_cambiar_estado('txtNumCheque', false);
+                       
+            set('formularios.txtNumvaleCompra', '');
+            accion('formularios.txtNumvaleCompra','.disabled=true');
+			      sicc_cambiar_estado('txtNumvaleCompra', false);
+
+		 }else if(tipoMedioPago == cteVales){
+                   //Habilitar el campo "numeroValeCompra" y ponerlo como obligatorio 
+                   accion('formularios.txtNumvaleCompra','.disabled=false');
+                   sicc_cambiar_estado('txtNumvaleCompra', false);
+
+                   //Deshabilitar y limpiar (si es combo quitar la selección) los campos: 
+                   //banco, numeroCheque, tipoTarjeta, numeroTarjeta y
+
+                   set('formularios.cbBanco', '');
+                   accion('formularios.cbBanco','.disabled=true'); 
+  			           sicc_cambiar_estado('cbBanco', false);
+
+                   set('formularios.txtNumCheque', '');
+                   accion('formularios.txtNumCheque','.disabled=true');
+  			           sicc_cambiar_estado('txtNumCheque', false);
+
+                   set('formularios.cbTipoTarjeta', '');
+                   accion('formularios.cbTipoTarjeta','.disabled=true');
+				           sicc_cambiar_estado('cbTipoTarjeta', false);
+
+                   set('formularios.txtNumTarjeta', '');
+                   accion('formularios.txtNumTarjeta','.disabled=true');
+		               sicc_cambiar_estado('txtNumTarjeta', false);
+
+               }
+      }
+  }
+
+  function obtenerTipoMedioPago(medioPago){
+     for(var k=0;k<Lista1.datos.longitud;k++) {
+	    if ( Lista1.datos.ij(k,0) == medioPago) {
+           tipoMedioPago = Lista1.datos.ij(k,2);
+        }
+     }
+	 return tipoMedioPago;
+  }
+  
+  function seteaSigno(){
+     //aca seteo el signo del tipo movimiento caja seleccionado en una variable global
+     var tipoMovCaja = get('formularios.cbTipoMovimiento');
+     for(var k=0;k<Lista2.datos.longitud;k++) {
+	    if ( Lista2.datos.ij(k,0) == tipoMovCaja) {
+           signo = Lista2.datos.ij(k,1);
+        }
+     }
+  }
+
+  
+  function fGuardar(){
+    accionAceptar();
+  }
+  
+  function calcularImporte(){
+     
+		    var impDiv  = get('formularios.txtImporteDivisa');
+		    var importeDivisa = numeroDeFormatoSICC(impDiv, null);
+		    var tipoCambio = new Number(get('formularios.varTipoCambio'));
+	
+		    var ressinredondeo = importeDivisa * tipoCambio;
+		    var rlength = new Number(get('formularios.hCantidadDecimalesAlternativos')); 
+		   // The number of decimal places to round to
+		   //var resconredondeo = Math.round(ressinredondeo*Math.pow(10,rlength))/Math.pow(10,rlength);
+		    var resconredondeo = roundit(ressinredondeo,rlength);
+     
+ 		    set('formularios.txtImporte',numeroAsFormatoSICC(resconredondeo)); 
+    
+  }
+
+   function calcularImporte2(){
+
+		var impDiv  = get('formularios.txtImporteDivisa');
+		var importeDivisa = numeroDeFormatoSICC(impDiv, null);
+		var tipoCambio = new Number(get('formularios.varTipoCambio'));
+	
+		var ressinredondeo = importeDivisa * tipoCambio;
+		var rlength = new Number(get('formularios.hCantidadDecimalesAlternativos')); // The number of decimal places to round to
+		//var resconredondeo = Math.round(ressinredondeo*Math.pow(10,rlength))/Math.pow(10,rlength);
+		var resconredondeo = roundit(ressinredondeo,rlength);
+       
+		set('formularios.txtImporte',numeroAsFormatoSICC(resconredondeo)); 
+
+  }
+  
+  function fLimpiar(){
+     focaliza('formularios.cbTipoMovimiento');  
+  }
+
+   function fVolver(){
+      this.close();
+   }	
+
+
+
+ 
+  
+  ]]> 
+</JAVASCRIPT>         
+
+    <VALIDACION>
+      <ELEMENTO name="cbTipoMovimiento" required="true" cod="2312"/>
+      <ELEMENTO name="cbMedioPago" required="true" cod="673"/>
+      <!--Estos van todos en false porque los modifico en tiempo de ejecucion-->
+      <!--ELEMENTO name="txtImporte" required="false" cod="573" format="n" min="0" max="9999999999.99" group="gr1"/-->
+      <!--ELEMENTO name="txtImporteDivisa" required="false" cod="668" format="n" min="0" max="9999999999.99" group="gr1"/-->
+      <ELEMENTO name="cbBanco" required="false" cod="617" />
+      <ELEMENTO name="txtNumCheque" required="false" cod="2305" />
+      <ELEMENTO name="txtNumTarjeta" required="false" cod="2306" />
+      <ELEMENTO name="txtNumvaleCompra" required="false" cod="2307" />
+    </VALIDACION>    
+  
+<FORMULARIO nombre="formularios">
+  
+    <VAR nombre="accion" valor=""/>
+    <VAR nombre="casoDeUso" valor=""/>
+    <VAR nombre="errCodigo" valor=""/>
+    <VAR nombre="errDescripcion" valor=""/>
+    <VAR nombre="conectorAction" valor="LPRealizarMovimientoCaja"/>
+    <VAR nombre="varTipoCambio" valor=""/>
+    <VAR nombre="oidTipoMovimiento" valor=""/>
+    <VAR nombre="oidMedioPago" valor=""/>
+    <VAR nombre="oidMoneda" valor=""/>
+    <VAR nombre="varOidMonedaAlternativa" valor=""/>
+    <VAR nombre="oidBanco" valor=""/>
+    <VAR nombre="oidTipoTarjeta" valor=""/>
+    <VAR nombre="cteTipoMedioPagoCheque" valor=""/>
+    <VAR nombre="cteTipoMedioPagoTarjeta" valor=""/>
+    <VAR nombre="cteTipoMedioPagoVales" valor="" />
+
+ <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblDatosDetalle" alto="13" filas="1" valor="" id="legend" cod="00133"/></legend>
+          <!---primera fila-->
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr><td> 
+	                <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+	                <tr> 
+	                  <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+	                </tr>
+	                <tr>
+	                   <td><IMG src="b.gif" width="8" height="8"/></td>
+	                   <td><LABELC nombre="lblTipoMovimiento" alto="13" filas="1" valor="" id="datosTitle" cod="2312"/></td>
+	                   <td><IMG src="b.gif" width="25" height="8"/></td>
+	                   <td><LABELC nombre="lblMedioPago" alto="13" filas="1" valor="" id="datosTitle" cod="673"/></td>
+	                   <td><IMG src="b.gif" width="25" height="8"/></td>
+	                   <td><LABELC nombre="lblMoneda" alto="13" filas="1" valor="" id="datosTitle" cod="1216"/></td>
+	                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                </tr> 
+	                <tr>
+	                   <td><IMG src="b.gif" width="8" height="8"/></td>
+	                   <td nowrap="nowrap">
+	                      <COMBO nombre="cbTipoMovimiento" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onshtab="focalizaBotonHTML('botonContenido','btnAceptar');" onchange="seteaSigno();">
+	                      	<ROWSET>
+	                      	</ROWSET>
+	                      </COMBO>
+	                   </td>
+	                   <td><IMG src="b.gif" width="25" height="8"/></td>
+	                   <td nowrap="nowrap">
+	                      <COMBO nombre="cbMedioPago" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onchange="medioPagoBelcenterOnChange();" >
+	                      	<ROWSET>
+	                      	</ROWSET>
+	                      </COMBO>
+	                   </td>
+	                   <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td valign="bottom">
+	                      <COMBO nombre="cbMoneda" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" onchange="monedaOnChange();">
+	                      	<ROWSET>
+	                       	</ROWSET>
+	                      </COMBO>
+	                   </td>
+	                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                </tr>
+	                <tr>
+	                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+	                </tr> 
+	              </table>
+	       
+              </td></tr>
+              <tr><td> 
+	               <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+	                <tr>
+	                   <td><IMG src="b.gif" width="8" height="8"/></td>
+	                   <td><LABELC nombre="lblImporte" alto="13" filas="1" valor="" id="datosTitle" cod="573"/></td>
+	                   <td><IMG src="b.gif" width="25" height="8"/></td>
+	                   <td><LABELC nombre="lblImporteDivisa" alto="13" filas="1" valor="" id="datosTitle" cod="668"/></td>
+	                   <td><IMG src="b.gif" width="25" height="8"/></td>
+	                   <td><LABELC nombre="lblTipoCambio" alto="13" filas="1" valor="" id="datosTitle" cod="130"/></td>
+	                   <td><IMG src="b.gif" width="25" height="8"/></td>
+	                   <td><LABELC nombre="lblBanco" alto="13" filas="1" valor="" id="datosTitle" cod="617"/></td>
+	                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+	                </tr>
+	                <tr>
+	                   <td><IMG src="b.gif" width="8" height="8"/></td>
+	                   <td nowrap="nowrap"><CTEXTO nombre="txtImporte" id="datosCampos" max="13" tipo="" onchange="" req="N" size="19" valor="" validacion="" /></td>
+	                   <td><IMG src="b.gif" width="25" height="8"/></td>
+	                   <td nowrap="nowrap"><CTEXTO nombre="txtImporteDivisa" id="datosCampos" max="13" tipo="" onchange="calcularImporte();" req="N" size="19" valor="" validacion="" /></td>
+	                   <td><IMG src="b.gif" width="25" height="8"/></td>
+	                   <td><LABELC nombre="lbldtTipoCambio" alto="13" filas="1" valor="" id="datosCampos" /></td>
+	                   <td><IMG src="b.gif" width="25" height="8"/></td>
+	                   <td nowrap="nowrap">
+	                      <COMBO nombre="cbBanco" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+	                      	<ROWSET>
+	                      	</ROWSET>
+	                      </COMBO>
+	                   </td>
+	                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+	                </tr>
+		        <tr> 
+	                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+	                </tr> 
+	              </table>
+              </td></tr>
+      
+             <tr><td> 
+	              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+	                <tr>
+	                   <td><IMG src="b.gif" width="8" height="8"/></td>
+	                   <td><LABELC nombre="lblNumCheque" alto="13" filas="1" valor="" id="datosTitle" cod="2305"/></td>
+	                   <td><IMG src="b.gif" width="25" height="8"/></td>
+	                   <td><LABELC nombre="lblTipoTarjeta" alto="13" filas="1" valor="" id="datosTitle" cod="1130"/></td>
+	                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+	                </tr>
+	                <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td nowrap="nowrap"><CTEXTO nombre="txtNumCheque" id="datosCampos" max="20" tipo="" onchange="" req="N" size="26" valor="" validacion="" /></td>
+	                   <td><IMG src="b.gif" width="25" height="8"/></td>
+	                   <td >
+	                      <COMBO nombre="cbTipoTarjeta" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+	                      	<ROWSET>
+	                      		
+	                      	</ROWSET>
+	                      </COMBO>
+	                   </td>
+	                    <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+	                </tr>
+		        <tr> 
+	                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+	                </tr> 
+	              </table>
+              </td></tr>
+              <tr><td> 
+	              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+	                <tr>
+	                   <td><IMG src="b.gif" width="8" height="8"/></td>
+	                   <td><LABELC nombre="lblINumTarjeta" alto="13" filas="1" valor="" id="datosTitle" cod="2306"/></td>
+	                   <td><IMG src="b.gif" width="25" height="8"/></td>
+	                   <td><LABELC nombre="lblINumValeCompra" alto="13" filas="1" valor="" id="datosTitle" cod="2307"/></td>
+	                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+	                </tr>
+	                <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td nowrap="nowrap"><CTEXTO nombre="txtNumTarjeta" id="datosCampos" max="21" tipo="" onchange="" req="N" size="28" valor="" validacion="" /></td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td nowrap="nowrap"><CTEXTO nombre="txtNumvaleCompra" id="datosCampos" max="22" tipo="" onchange="" req="N" size="30" valor="" validacion="" /></td>
+	                    <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+	                </tr>
+		        <tr> 
+	                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+	                </tr> 
+	              </table>
+              </td></tr>
+              </table>
+       
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnAceptar" ID="botonContenido" tipo="html" accion="accionAceptar();" estado="false" cod="12" ontab="focaliza('formularios.cbTipoMovimiento')"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>       
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+  
+</FORMULARIO>
+</PAGINA>

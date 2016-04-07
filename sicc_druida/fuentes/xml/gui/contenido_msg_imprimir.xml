@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_msg_imprimir.xml,v 1.1 2009/12/03 18:46:33 pecbazalar Exp $
+   contenido MSG
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_msg_imprimir" cod="0330" titulo="Imprimir mensajes"  estilos="estilosB3.css" colorf="#F0F0F0" 
+	msgle="Imprimir mensajes" onload="onLoadPag();" xml:lang="es">
+  
+  
+<JS src="sicc_util.js"/>
+<JS src="PaginacionSicc.js"/>
+<JS src="DruidaTransactionMare.js"/>
+<JS src="ConstantesJS.js"/>
+
+
+ <JAVASCRIPT>
+ <![CDATA[
+
+function onLoadPag()  {
+          var a = chequeaErrores();
+		  
+          configurarMenuSecundario("frmMsgImprimir");
+          focaliza('frmMsgImprimir.comboPatron');
+          btnProxy(1, 0);
+          btnProxy(2, 0);
+          btnProxy(3, 0);
+          btnProxy(4, 0); 
+          
+          if (get('frmMsgImprimir.errDescripcion')!='') {
+           var wnd = fMostrarMensajeError(get('frmMsgImprimir.errCodigo'), get('frmMsgImprimir.errDescripcion'));
+          }
+}
+
+
+function accionBuscarCliente() {
+          var obj = new Object();
+              var whnd = mostrarModalSICC('LPBusquedaRapidaCliente','',obj);
+              if(whnd==null){
+
+              }else{
+                  var oid;
+              
+                  var oid = whnd[0];
+                  var cod = whnd[1];
+                  var nombre1 = whnd[2];
+                  var apellido1 = whnd[4];
+                  set("frmMsgImprimir.txtCliente", cod);    
+              
+              }     
+ }
+
+
+function tipoPeriodoOnChange2(){
+		
+		    var cmb1 = document.getElementById("comboTipoPeriodo");
+			
+			if(cmb1.options(cmb1.selectedIndex).text==""){
+				
+				//borramos lo que haya cargado en el combo
+				var cmb = document.getElementById("comboPeriodo");
+				var opciones = cmb.options;
+				
+				
+				for(var i=0;i < opciones.length;i++){
+				
+					cmb.all.item(i).text="";
+				}
+				return;
+			}
+			
+			
+			var arr = new Array();
+            arr[arr.length] = new Array("oidPais", get('frmMsgImprimir.hPais'));
+            arr[arr.length] = new Array("oidIdioma", get('frmMsgImprimir.hIdioma'));
+            arr[arr.length] = new Array("oidTipoPeriodo", getIndiceSeleccionado('comboTipoPeriodo'));
+
+
+            recargaCombo('frmMsgImprimir.comboPeriodo','SEGObtenerPeriodosPorTipoPeriodo',
+                              'es.indra.sicc.dtos.seg.DTOPeriodosPorTipoPeriodo',arr); 
+							  
+			
+}
+
+function tipoPeriodoOnChange(){
+			var arr = new Array();
+         arr[arr.length] = new Array("oidPais", get('frmMsgImprimir.hPais'));
+         arr[arr.length] = new Array("oidIdioma", get('frmMsgImprimir.hIdioma'));
+         arr[arr.length] = new Array("oidTipoPeriodo", get('frmMsgImprimir.comboTipoPeriodo'));
+         
+			recargaCombo('frmMsgImprimir.comboPeriodo','SEGObtenerPeriodosPorTipoPeriodo','es.indra.sicc.dtos.seg.DTOPeriodosPorTipoPeriodo',arr); 
+}
+
+
+function getIndiceSeleccionado(name){
+          var obj = document.all.tags("SELECT");
+          for(var i = 0; i<obj.length;i++){
+     
+          if(obj.item(i).name=="comboPeriodo"){ 
+             return  obj.item(i).selectedIndex;
+       
+          }
+          if(obj.item(i).name=="comboTipoPeriodo"){ 
+            return  obj.item(i).selectedIndex;
+        
+          }
+          if(obj.item(i).name=="comboPatron"){ 
+            return  obj.item(i).selectedIndex;
+        
+          }
+        }
+}
+
+
+function errorAlGuardar(){  	  
+    if (get('frmMsgImprimir.errCodigo') == "60021") {
+        btnProxy(1, 0);
+        btnProxy(2, 0);
+        btnProxy(3, 0);
+        btnProxy(4, 0);                    
+    } 
+}
+
+function  chequeaErrores() {
+		var errCod = get("frmMsgImprimir.errCodigo");
+
+		if (errCod != null)
+		{
+				fMostrarMensajeError();
+        focaliza('frmMsgImprimir.comboPatron');
+				return true;
+		}   
+		return false;
+}
+
+function imprimir(){  
+  if (sicc_validaciones_generales()){    
+     var patron = get("frmMsgImprimir.comboPatron");
+     var cliente =  get("frmMsgImprimir.txtCliente");
+     var periodo = get("frmMsgImprimir.comboPeriodo"); 
+          
+     set("frmMsgImprimir.oidPatronH", patron);
+     set("frmMsgImprimir.codigoClienteH", cliente);
+     set("frmMsgImprimir.oidPeriodo", periodo);
+
+	 set('frmMsgImprimir.accion','Imprimir mensajes');
+	 eval('frmMsgImprimir').oculto = 'S';
+	 set("frmMsgImprimir.conectorAction", "LPImprimirMensajesEditor");
+	 enviaSICC('frmMsgImprimir'); 
+  }  
+}
+
+function seteaValores(){ 
+  btnProxy(1, 0);
+  btnProxy(2, 0);
+  btnProxy(3, 0);
+  btnProxy(4, 0);
+}
+
+function TabShift(){  
+	var obj=document.getElementsByName("btnImprimir");
+	obj.item(0).focus();	
+}
+
+function TabUp(){  
+	focaliza("frmMsgImprimir.comboPatron");	
+}
+
+function fLimpiar(){   
+	set("frmMsgImprimir.comboPatron", "");
+	set("frmMsgImprimir.txtCliente", "");
+	set("frmMsgImprimir.comboTipoPeriodo","");
+	set("frmMsgImprimir.comboPeriodo","");	 
+    focaliza('frmMsgImprimir.comboPatron');  
+}
+
+function llenarDigitos(){
+              var txt  = document.getElementsByName("txtCliente").item(0);
+              if(get('frmMsgImprimir.txtCliente') != ''){
+              txt.value = get('frmMsgImprimir.txtCliente');
+              var uno = txt.value;
+              
+              
+              var valor = new Array(10);
+              var valoraux = new Array();
+               
+              valor = txt.value;
+              
+            
+              var con = Math.abs(11);
+              
+              
+              var dif = con-valor.length;
+              if(valor.length == con){
+                return;
+              }
+             if(valor.length < con){
+                   
+                  for(var i=0; i<dif;i++){
+                   valoraux= valoraux + '0';
+                }
+                
+              //  valoraux= valoraux + valor;
+               // set('frmMsgImprimir.txtCliente',valoraux + valor);
+                set('frmMsgImprimir.txtCliente', valoraux + uno );
+
+              }else{ 
+                  txt.value= "";
+            
+            }
+          }else{
+           
+          }
+        }
+
+]]> 
+
+<VALIDACION>
+	<ELEMENTO name="comboPatron" required="true" cod="823"/>
+</VALIDACION>
+
+</JAVASCRIPT> 
+
+<FORMULARIO nombre="frmMsgImprimir">
+
+<VAR nombre="accion" valor=""/>   
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="errCodigo" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="hPais" valor=""/>
+<VAR nombre="hIdioma" valor=""/>   
+<VAR nombre="oidPeriodo" valor=""/>
+<VAR nombre="oidPatronH" valor=""/>
+<VAR nombre="codigoClienteH" valor=""/>
+   
+    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr > 
+      <td><IMG src="b.gif"/></td>
+      <td >
+      
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="Seleccion"  alto="13" filas="1" valor="" id="legend" cod="00513"/></legend>
+	
+          <!---primera fila-->
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+             <table width="480" border="0" align="left" cellspacing="0" cellpadding="0">
+	                  <tr> 
+		            <td colspan="6"><IMG src="b.gif" width="8" height="8"/></td>
+		          </tr>
+		          <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td><LABELC nombre="codPatron"  alto="13" filas="1" valor="" id="datosTitle" cod="823"/></td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td colspan="2"><LABELC nombre="codCliente"  alto="13" filas="1" valor="" id="datosTitle" cod="263"/></td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td ><LABELC nombre="TipoPeriodo"  alto="13" filas="1" valor="" id="datosTitle" cod="132"/></td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td ><LABELC nombre="Periodo"  alto="13" filas="1" valor="" id="datosTitle" cod="276"/></td>
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td nowrap="nowrap"><COMBO nombre="comboPatron" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onshtab="TabShift();">
+			               <ROWSET>
+			                      	
+			               </ROWSET>
+			         </COMBO>
+			        
+			    </td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td nowrap="nowrap"><CTEXTO nombre="txtCliente" id="datosCampos" max="15" tipo="" onchange="llenarDigitos();" req="N" size="15" valor="" validacion="" onchane="llenarDigitos()" /></td>
+	                    <td><IMG src="b.gif" width="8" height="8"/><IMG src="iconBuscar.gif" onclick="accionBuscarCliente();"/></td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td nowrap="nowrap"><COMBO nombre="comboTipoPeriodo" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" onchange="tipoPeriodoOnChange();">
+			               <ROWSET>
+			                      	
+			               </ROWSET>
+			         </COMBO>
+			        
+			    </td>
+			    <td><IMG src="b.gif" width="25" height="8"/></td>
+			     <td nowrap="nowrap"><COMBO nombre="comboPeriodo" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+			               <ROWSET>
+			                      	
+			               </ROWSET>
+			         </COMBO>
+			        
+			    </td>
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr> 
+	                    <td colspan="6"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	            </table>
+	     </td></tr>
+       <!---fin primera fila-->
+          </table>
+        </fieldset>
+          
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td >
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0" >        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnImprimir" ID="botonContenido" tipo="html" accion="imprimir();" estado="false" cod="1157"  ontab="TabUp();" />
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>       
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+
+</FORMULARIO>
+
+
+</PAGINA>
+

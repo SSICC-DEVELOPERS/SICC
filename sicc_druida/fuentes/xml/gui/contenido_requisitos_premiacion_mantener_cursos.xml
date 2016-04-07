@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_requisitos_premiacion_mantener_cursos.xml,v 1.1 2009/12/03 18:45:04 pecbazalar Exp $
+   contenido CCC18/05/2005
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_requisitos_premiacion_mantener_cursos" cod="" titulo="Crear Concurso" estilos="estilosB3.css" colorf="#F0F0F0" msgle="" onload="onLoadPag();" xml:lang="es">
+
+<JS src="sicc_util.js"></JS> 
+<JS src="PaginacionSicc.js"></JS>
+<JS src="DruidaTransactionMare.js"></JS>
+<JS src="i18NJS.js"/>
+<JS src="pestanyas_concurso_inc.js"/>
+
+<JAVASCRIPT>    
+<![CDATA[
+
+// ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+function onLoadPag() {           
+  configurarMenuSecundario("formulario");	
+	muestraCapa();   
+
+	var opcionMenu = get("formulario.opcionMenu");
+ 
+	if(opcionMenu=="Consultar Concurso") {
+	   
+		document.getElementById("cbCurso").disabled = true;
+		document.getElementById("btnAnadir").disabled = true;
+		document.getElementById("btnAceptar").disabled = true;
+		document.getElementById("Eliminar").disabled = true;
+		btnProxy(4, '0');	
+		btnProxy(5, '0');	
+	}
+	else {
+		focoComboTipoConcurso();
+	}	
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+function fBorrar() {
+	accionEliminar();
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+function accionEliminar() {	
+	if (listado1.numSelecc()== 0) {
+		GestionarMensaje('1021',null,null,null);
+		return false;
+    }
+
+	listado1.eliminarSelecc();
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+function fLimpiar() {
+	var arrayVacio = new Array();
+	listado1.setDatos(arrayVacio);
+	focoComboTipoConcurso();
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+function muestraCapa() {
+	DrdEnsanchaConMargenDcho('listado1',26);      
+    document.all["Cplistado1"].style.visibility=''; 
+    document.all["CpLin1listado1"].style.visibility='';  
+    document.all["CpLin2listado1"].style.visibility=''; 
+    document.all["CpLin3listado1"].style.visibility='';
+    document.all["CpLin4listado1"].style.visibility='';        
+    document.all["primera1Div"].style.visibility=''; 
+    document.all["ret1Div"].style.visibility='';
+    document.all["ava1Div"].style.visibility='';  
+    document.all["separaDiv"].style.visibility='';           
+    eval (ON_RSZ);            
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+function fVolver() {
+	window.close();
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+function focoComboTipoConcurso() {
+	focaliza("formulario.cbCurso");
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+function focoBotonEliminar() {
+	focalizaBotonHTML('botonContenido','Eliminar');	
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+function focoBotonAceptar() {
+	focalizaBotonHTML('botonContenido','btnAceptar');	
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+function focoBotonAnadir() {
+	focalizaBotonHTML('botonContenido','btnAnadir');	
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+function accionEliminar() {
+	if (listado1.numSelecc()== 0) {
+		GestionarMensaje('1021',null,null,null);
+		return false;
+    }
+
+	listado1.eliminarSelecc();
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+function accionAnadir() {	
+	if(!sicc_validaciones_generales('grupoAnadir')) {
+		return;
+	}
+
+	var oidCursoExigido = " ";
+	var tipoCurso = " ";
+	var oidTipoCurso = " ";
+
+	if(get("formulario.cbCurso", "T")!="") tipoCurso = get("formulario.cbCurso", "T");
+	if(get("formulario.cbCurso")!="") oidTipoCurso = get("formulario.cbCurso");
+
+	/*
+	- 0 = oid curso exigido
+	- 1 = tipo curso
+	- 2 = oid tipo curso
+	*/
+
+	var existe = "false";
+	var datos = listado1.datos; 
+
+	for(var i=0 ; i<datos.length; i++) {
+		var temp = datos[i][2];
+		var valor1 = parseInt(temp, 10);
+		var valor2 = parseInt(oidTipoCurso, 10);
+
+		if(valor1 == valor2) {
+			existe = "true";
+		}
+	}
+
+   if(existe=="false") {
+		if(oidTipoCurso!="") {
+			var array = new Array();
+
+			array[0] = new String(oidCursoExigido);
+			array[1] = new String(tipoCurso);
+			array[2] = new String(oidTipoCurso);
+
+			listado1.actualizaDat();
+			var datos = listado1.datos;
+			datos[datos.length] = array; 
+			listado1.setDatos(datos);
+			listado1.repintaDat();
+		}
+   }	
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+function accionAceptar() {
+	var datos = listado1.datos;
+	var datosCompletos = "[";
+
+	for(var i=0; i<datos.length; i++) {
+		var fila = new Array();
+
+		var temp0 = datos[i][0];
+		if(temp0=="") temp0 = " ";
+		fila[0] = temp0;
+
+		var temp1 = datos[i][1];
+		if(temp1=="") temp1 = " ";
+		fila[1] = temp1;
+
+		var temp2 = datos[i][2];
+		if(temp2=="") temp2 = " ";
+		fila[2] = temp2;
+
+		if(i==0) datosCompletos = datosCompletos + fila;	
+		else datosCompletos = datosCompletos + "|" + fila;			
+	}
+
+	datosCompletos = datosCompletos + "]";
+	returnValue = datosCompletos;
+	window.close();
+}
+
+]]>   
+
+</JAVASCRIPT> 
+
+<VALIDACION>
+  <ELEMENTO name="cbCurso" required="true" cod="758" group="grupoAnadir"/>
+</VALIDACION>
+
+
+<FORMULARIO nombre="formulario">
+
+<VAR nombre="accion" valor=""/>
+<VAR nombre="opcionMenu" valor=""/>
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="errCodigo" valor=""/> 
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="varPais" valor=""/> 
+<VAR nombre="varIdioma" valor=""/>
+
+<VAR nombre="datosObligatorios" valor=""/>
+<VAR nombre="idPestanyaDest" valor=""/>
+
+   <CAPA nombre="capa1" >
+     <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblCursosExigidosPremiacion"  alto="13" filas="1" valor="" id="legend" cod="00380"/></legend>
+           <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+               <tr><td>
+                     <table width="100%"  align="left"  border="0" cellspacing="0" cellpadding="0">
+			     <tr> 
+		            <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+		          </tr>
+			    <tr> 
+			      <td><IMG src="b.gif"/></td>
+			      <td>
+			<!--primer formulario-->
+				<fieldset><legend class="legend"><LABELC nombre="lblDatosAnadir"  alto="13" filas="1" valor="" id="legend" cod="00280"/></legend>
+				 <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          			    <tr><td>
+			          <!---primera fila-->
+			              <table width="562" border="0" align="left" cellspacing="0" cellpadding="0">
+				                  <tr> 
+					            <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+					          </tr>
+					          <tr>
+				                    <td><IMG src="b.gif" width="8" height="8"/></td>
+				                    <td><LABELC nombre="lblTipoCurso"  alto="13" filas="1" valor="" id="datosTitle" cod="758"/></td>
+				                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+				                  </tr>
+				                  <tr>
+				                    <td><IMG src="b.gif" width="8" height="8"/></td>
+				                      <td  nowrap="nowrap"><COMBO nombre="cbCurso" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onshtab="focoBotonAceptar();">
+						               <ROWSET>
+						                       		
+						               </ROWSET>
+						         </COMBO> 
+						     </td>
+				                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+				                  </tr>
+				                  <tr> 
+				                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+				                  </tr>
+				            </table>
+			       <!---fin primera fila-->
+			                </td></tr>
+        			   </table>
+			        </fieldset>
+			<!--fin primer formulario-->
+			      </td>
+			      <td><IMG src="b.gif" /></td>
+			    </tr> 
+			      <tr> 
+				        <td><IMG src="b.gif"/></td>
+				        <td>
+					  <fieldset>
+					    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+					      <tr>
+					        <td class="botonera">
+						  <BOTON nombre="btnAnadir" ID="botonContenido" tipo="html" accion="accionAnadir();" estado="false" cod="404" ontab="focoBotonEliminar();"/>
+					        </td>
+					      </tr>    
+					    </table>        
+					  </fieldset>
+				        </td>
+				        <td><IMG src="b.gif" width="8" height="12"/></td>
+				      </tr>    
+			    <tr>
+			       	<td width="12" align="center"><IMG src="b.gif" width="12" height="338"/></td>
+			     	<td width="756" ><IMG src="b.gif"/></td>
+			      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+			    </tr>
+			  </table>   
+			  
+		</td></tr>
+           </table>	
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+				        <td><IMG src="b.gif"/></td>
+				        <td>
+					  <fieldset>
+					    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+					      <tr>
+					        <td class="botonera">
+						  <BOTON nombre="btnAceptar" ID="botonContenido" tipo="html" accion="accionAceptar();" estado="false" cod="12" ontab="focoComboTipoConcurso();" onshtab="focoBotonEliminar();"/>
+					        </td>
+					      </tr>    
+					    </table>        
+					  </fieldset>
+				        </td>
+				        <td><IMG src="b.gif" width="8" height="12"/></td>
+				      </tr>    
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>   
+ </CAPA>                                                                                                                
+
+  <LISTAEDITABLE nombre="listado1" ancho="566" alto="299" x="26" y="147" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+        <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+        <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+         <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+      <LINEAS>
+        <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="0" horizTitulo="1" horizBase="1"/> 
+        <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00621" ID="datosTitle" />
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+        <COL ancho="50" minimizable="S" minimizada="N"/>
+        <COL ancho="26" minimizable="S" minimizada="N" oculta="S"/>        
+      </COLUMNAS>
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+	  	<COL colFondo="" ID="EstCab" cod="758"></COL> 
+      	<COL colFondo="" ID="EstCab" ></COL> 	
+	
+      </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+             coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+             onLoad="" colorSelecc="#D0D9E8">
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+      
+      </DATOS>
+      <ROWSET>
+      </ROWSET>
+      <PAGINADO nombre="mipgndo" ancho="564" sep="$" x="26" class="botonera" y="423" control="|" conector="" rowset="" cargainicial="N">
+        
+        <BOTON nombre="ret1" x="51" y="427" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+        <BOTON nombre="ava1" x="66" y="427" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>
+        
+    </PAGINADO>
+  </LISTAEDITABLE>
+  <BOTON nombre="primera1" x="34" y="427" ID="botonContenido" img="primera_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();" />      
+  <BOTON nombre="separa" x="73" y="423" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />      
+  <BOTON nombre="Eliminar" x="93" y="424" ID="botonContenido" tipo="html" estado="false" cod="1254" ontab="focoBotonAceptar();" onshtab="focoBotonAnadir();" accion="accionEliminar();"/>                                                                                                                             
+</FORMULARIO>
+ 
+</PAGINA>  

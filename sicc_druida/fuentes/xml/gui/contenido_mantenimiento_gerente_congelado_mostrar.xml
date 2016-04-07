@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_mantenimiento_gerente_congelado_mostrar" cod="ComConge.view.label" titulo="" estilos="estilosB3.css" colorf="#F0F0F0"
+        msgle="" onload="onLoad();" xml:lang="es">
+		
+
+
+<JS src="sicc_util.js"></JS> 
+<JS src="PaginacionSicc.js"></JS>
+<JS src="DruidaTransactionMare.js"></JS>
+<JS src="buscar_gerentes_congelados.js"></JS>
+
+
+<JAVASCRIPT>
+ <![CDATA[  
+function onLoad () {	
+
+	configurarMenuSecundario('formulario');
+	focaliza('formulario.txtCodCliente','');
+	if (get('formulario.casoDeUso')=="consulta")  {
+		accion( 'formulario.txtCodCliente', '.disabled=true' );
+		accion( 'formulario.txtFechaDesde', '.disabled=true' );
+		accion( 'formulario.txtFechaHasta', '.disabled=true' );
+		accion( 'formulario.txtImporte', '.disabled=true' );
+		accion( 'formulario.ckDescongelacionAutomatica', '.disabled=true' );
+		set("formulario.txtCodCliente", get('formulario.codigoCliente'));
+		set("formulario.txtFechaDesde", get('formulario.fechaDesde'));
+		set("formulario.txtFechaHasta", get('formulario.fechaHasta'));
+		set("formulario.txtImporte", get('formulario.importe'));
+		set("formulario.ckDescongelacionAutomatica", get('formulario.descongelacionAutomatica'));
+
+	}
+
+	if (get('formulario.casoDeUso')=="modificacion")  {
+    accion( 'formulario.txtCodCliente', '.disabled=true' );
+		accion( 'formulario.txtFechaDesde', '.disabled=false' );
+		accion( 'formulario.txtFechaHasta', '.disabled=false' );
+		accion( 'formulario.txtImporte', '.disabled=false' );
+		accion( 'formulario.ckDescongelacionAutomatica', '.disabled=false' );
+	}
+    
+		set("formulario.txtCodCliente", get('formulario.codigoCliente'));
+		set("formulario.txtFechaDesde", get('formulario.fechaDesde'));
+		set("formulario.txtFechaHasta", get('formulario.fechaHasta'));
+		set("formulario.txtImporte", get('formulario.importe'));
+		set("formulario.ckDescongelacionAutomatica", get('formulario.descongelacionAutomatica'));
+    
+}
+
+function fGuardar(){
+
+	if(sicc_validaciones_generales()) {
+		 
+		if ( get('formulario.codigoCliente') != get('formulario.txtCodCliente'))  {
+			set("formulario.codigoCliente", get('formulario.txtCodCliente'));
+			set("formulario.oidCliente", "");
+		}
+		/* inicio Validacion de FechaDesde menor o igual que FechaHasta */
+		var fecha1 = get('formulario.txtFechaDesde');
+		var fecha2 = get('formulario.txtFechaHasta');
+		var resultadoComparacion = ComparaFechas(fecha1, fecha2);  // Ver codigo en archivo "valida.js"
+		if (resultadoComparacion != 0 && resultadoComparacion != 1 ) {
+			GestionarMensaje('UICOM0011'); // "La Fecha Hasta debe ser mayor o igual a la Fecha Desde"
+            focaliza('formulario.txtFechaHasta');
+			return false;
+		}
+       /* fin de Validacion de FechaDesde menor o igual que FechaHasta */
+
+
+    var fechaDesde = get('formulario.txtFechaDesde');
+    var fechaHasta = get('formulario.txtFechaHasta');
+    
+     
+		set("formulario.conectorAction", "LPMantenimientoGerenteCongelado");
+		set("formulario.accion", "guardar");
+		set("formulario.codigoCliente", get('formulario.txtCodCliente'));
+		set("formulario.fechaDesde", obtenerFormatoFecha(intercambiar(fechaDesde)));
+		set("formulario.fechaHasta", obtenerFormatoFecha(intercambiar(fechaHasta)));
+		set("formulario.importe", transformarImporte(get('formulario.txtImporte')));
+		set("formulario.descongelacionAutomatica", get('formulario.ckDescongelacionAutomatica'));
+		enviaSICC("formulario");
+		
+    
+    //--------------------------------------
+		
+    var arrayParaDevolver = new Array();
+		
+    arrayParaDevolver[0] = fechaDesde;
+		arrayParaDevolver[1] = fechaHasta;
+		arrayParaDevolver[2] = get("formulario.importe");
+
+		if	 (get("formulario.descongelacionAutomatica") == "S"){
+			arrayParaDevolver[3] = "1";
+		}else{
+			arrayParaDevolver[3] = "0";
+		}
+    
+    returnValue = arrayParaDevolver;
+    
+    window.close();
+        
+    //-----------------------------------------
+    
+  }
+
+}
+
+function intercambiar(fecha){
+  
+  var posicionGuion = fecha.indexOf("-");
+  var posicionBarra = fecha.indexOf("/");
+  
+  if (posicionGuion != -1){
+    var fechaEntrada = fecha.split("-");
+    var fechaSalida = fechaEntrada[1] + "-" + fechaEntrada[0] + "-" + fechaEntrada[2]
+  }
+  
+  if (posicionBarra != -1){
+    var fechaEntrada = fecha.split("/");
+    var fechaSalida = fechaEntrada[1] + "/" + fechaEntrada[0] + "/" + fechaEntrada[2]
+  }
+  
+  return fechaSalida;
+  
+}
+
+
+
+
+
+   ]]>
+</JAVASCRIPT>
+
+<VALIDACION>
+         <ELEMENTO name="txtCodCliente" required="true" cod="263"/>	
+         <ELEMENTO name="txtFechaDesde" format="f" required="true" cod="ComConge.fecDesd.label"/>
+         <ELEMENTO name="txtFechaHasta" format="f" required="true" cod="ComConge.fecHast.label"/>	
+         <ELEMENTO name="txtImporte" required="true" min="0" max="9999999999.99" format="m" cod="ComConge.impCong.label"/>	       
+</VALIDACION>
+
+<FORMULARIO nombre="formulario" oculto = "N">
+<VAR nombre="casoDeUso" valor=""/>
+<VAR nombre="accion" valor=""/>
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="oidCliente" valor=""/>
+<VAR nombre="codigoCliente" valor=""/>
+<VAR nombre="fechaDesde" valor=""/>
+<VAR nombre="fechaHasta" valor=""/>
+<VAR nombre="importe" valor=""/>
+<VAR nombre="descongelacionAutomatica" valor=""/>
+<VAR nombre="vigente" valor=""/>
+<VAR nombre="oidCongelado" valor=""/>
+
+
+
+<CAPA nombre="capa1">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblDatosGerenteCongelado"  alto="13" filas="1" valor="" id="legend" cod="ComConge.legend.label"/></legend>
+	 <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+       <!---segunda fila-->
+              <table width="499" border="0" align="left" cellspacing="0" cellpadding="0">
+               <tr> 
+						<td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+					</tr>
+               <tr>
+						 <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td colspan="3"><LABELC nombre="lblCodCliente"  alto="13" filas="1" valor="" cod="263" id="datosTitle"/></td>						 
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+						 <td nowrap="nowrap"><CTEXTO nombre="txtCodCliente" id="datosCampos" max="15" tipo="" onchange="onChangeCodigoCliente();" req="N" size="22" valor="" validacion="" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+               <tr> 
+						<td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+					</tr>
+              
+				  </table>             
+       <!---segunda fila-->
+        </td></tr>
+          <tr><td>
+          <!---primera fila-->
+              <table width="499" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblFechaDesde"  alto="13" filas="1" valor="" id="datosTitle" cod="ComConge.fecDesd.label"/></td>
+						<td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblFechaHasta"  alto="13" filas="1" valor="" id="datosTitle" cod="ComConge.fecHast.label"/></td>
+						<td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap" valign="bottom"><CTEXTO nombre="txtFechaDesde" id="datosCampos" max="15" tipo="" onchange="" req="N" size="15" valor="" validacion="" /></td>
+					    <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" valign="bottom"><CTEXTO nombre="txtFechaHasta" id="datosCampos" max="15" tipo="" onchange="" req="N" size="15" valor="" validacion="" /></td>
+						<td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+               <tr> 
+	          <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+	       </tr>
+              </table>
+       <!---fin primera fila-->
+       </td></tr>
+           <tr><td>
+       <!---segunda fila-->
+              <table width="499" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr>
+						 <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblImporte"  alto="13" filas="1" valor="" id="datosTitle" cod="ComConge.impCong.label"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblDescongelacionAutomatica"  alto="13" filas="1" valor="" id="datosTitle" cod="ComConge.indDescAuto.label"/></td>		   
+						 <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+						 <td nowrap="nowrap" valign="bottom"><CTEXTO nombre="txtImporte" id="datosCampos" max="13" tipo="" onchange="" req="N" size="13" valor="" validacion="" /></td>
+					    <td><IMG src="b.gif" width="25" height="8"/></td>
+						 <td nowrap="nowrap" valign="bottom"><CHECKBOX nombre="ckDescongelacionAutomatica" id="datosCampos" onclick="" check="N" req="N"/></td>						
+					    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr> 
+	           <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+	        </tr>
+              </table>             
+       <!---segunda fila-->
+          </td></tr>
+           </table>
+        </fieldset>
+        
+<!--fin primer formulario-->
+
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+
+</FORMULARIO>
+</PAGINA>         

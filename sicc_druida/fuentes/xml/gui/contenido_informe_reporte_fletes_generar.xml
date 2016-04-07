@@ -1,0 +1,785 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_informe_reporte_fletes_generar.xml,v 1.1 2009/12/03 18:45:58 pecbazalar Exp $
+   contenido PED
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_informe_reporte_fletes_generar" cod="0840" titulo="Generar Informe Reporte de Fletes" estilos="estilosB3.css" colorf="#F0F0F0" 
+	msgle="Generar Informe Reporte de Fletes" onload="onLoad();" xml:lang="es">
+   <JS src="sicc_util.js"/>   
+   <JS src="PaginacionSicc.js"/>    
+   <JS src="DruidaTransactionMare.js"/>
+
+<JAVASCRIPT>
+  <![CDATA[ 
+   
+   function onLoad(){
+      configurarMenuSecundario('Formulario');
+      cargarTipos();
+      focaliza('Formulario.cbMarca');
+   }
+
+     function quitarItemVacio(elemento){
+      var elementoADevolver = new Array();
+     
+      for(var k=0;k<elemento.length;k++) {
+          if (elemento[k] != ''){                            
+             elementoADevolver[elementoADevolver.length] = elemento[k];
+          }
+      }
+         
+      return elementoADevolver;
+      
+   }
+
+//------------------------------------------------------------------------------   
+   function generar(){
+      
+      if(sicc_validaciones_generales()){
+          /*recolectarParametros();
+          set('Formulario.conectorAction', 'PEDInformeReporteFletes');           
+          set('Formulario.accion', 'generar');
+          enviaSICC('Formulario');*/      
+          var a = new Object();
+          a.accion = 'generar';
+          a.marca= get('Formulario.cbMarca');
+          a.canal= get('Formulario.cbCanal');
+          a.accesos= quitarItemVacio(get('Formulario.cbAcceso'));
+          a.periodos= quitarItemVacio(get('Formulario.cbPeriodo'));
+          a.regiones= quitarItemVacio(get('Formulario.cbRegion'));
+          a.zonas= quitarItemVacio(get('Formulario.cbZona'));
+          a.tiposdespacho= quitarItemVacio(get('Formulario.cbTipoDespacho'));
+          a.tiposcliente = quitarItemVacio(get('Formulario.cbTipoCliente'));
+          a.subtiposcliente= quitarItemVacio(get('Formulario.cbSubtipoCliente'));
+          a.tiposclasifica= quitarItemVacio(get('Formulario.cbTipoClasificacion'));
+          a.clasificaciones= quitarItemVacio(get('Formulario.cbClasificacion'));                        
+          mostrarModalSICC('PEDInformeReporteFletes','generar', a);        
+      }
+
+   }
+//------------------------------------------------------------------------------
+  function recolectarParametros(){
+        set('Formulario.marca',get('Formulario.cbMarca')) ;
+        set('Formulario.canal',get('Formulario.cbCanal')) ;
+        set('Formulario.accesos', get('Formulario.cbAcceso'));
+        set('Formulario.periodos',get('Formulario.cbPeriodo'));
+        set('Formulario.regiones',get('Formulario.cbRegion'));
+        set('Formulario.zonas',get('Formulario.cbZona')) ;
+        set('Formulario.tiposdespacho',get('Formulario.cbTipoDespacho')) ;
+        set('Formulario.tiposcliente',get('Formulario.cbTipoCliente')) ;
+        set('Formulario.subtiposcliente',get('Formulario.cbSubtipoCliente'));
+        set('Formulario.tiposclasifica',get('Formulario.cbTipoClasificacion')) ;
+        set('Formulario.clasificaciones',get('Formulario.cbClasificacion')) ;   
+  }
+//------------------------------------------------------------------------------      
+
+   function fLimpiar(){
+ 
+      var aCombo = new Array(new Array("",""));            
+      set_combo('Formulario.cbAcceso', aCombo, []);            
+      set_combo('Formulario.cbPeriodo', aCombo, []);      
+      set_combo('Formulario.cbRegion', aCombo, []); 
+      set_combo('Formulario.cbZona', aCombo, []);                        
+      set_combo('Formulario.cbSubtipoCliente', aCombo, []);            
+      set_combo('Formulario.cbTipoClasificacion', aCombo, []);      
+      set_combo('Formulario.cbClasificacion', aCombo, []);         
+      
+      focaliza('Formulario.cbMarca'); 
+   }
+//------------------------------------------------------------------------------
+  function cargarTipos(){
+     for(var k=0;k<lstTipo.datos.longitud;k++) {                             	 
+        combo_add('Formulario.cbTipoCliente',lstTipo.datos.ij(k,0),lstTipo.datos.ij(k,1));    
+     }  
+  }
+//------------------------------------------------------------------------------   
+   function cambioCanal(){
+         
+     opciones = new Array();
+     set_combo('Formulario.cbAcceso',opciones);        
+     tipo = get('Formulario.cbCanal','V');
+     combo_add('Formulario.cbAcceso', '', '');
+       
+     for(var k=0;k<lstAcceso.datos.longitud;k++) {
+        for(var y=0;y<tipo.length;y++){
+          //alert(lstAcceso.datos.ij(k,1)+" "+tipo[y]+" "+lstAcceso.datos.ij(k,0)+" "+lstAcceso.datos.ij(k,2));
+           if (lstAcceso.datos.ij(k,2) == tipo[y]){ 			 
+              combo_add('Formulario.cbAcceso',lstAcceso.datos.ij(k,0),lstAcceso.datos.ij(k,1));
+    
+           }
+        }
+    }
+    cambioMarcaCanal();
+  }    
+//------------------------------------------------------------------------------          
+   
+   function cambioMarcaCanal(){
+         
+     tipoM = get('Formulario.cbMarca','V');
+     tipoC = get('Formulario.cbCanal','V');
+
+     //(inicio) modificado por Sapaza (Fecha 19/01/2007)       
+     if(tipoM != '' && tipoC != ''){
+       var arr = new Array();     
+	     pais   = get('Formulario.pais');
+	     idioma = get('Formulario.idioma');
+	     
+	     arr[arr.length] = ["oidIdioma", idioma]; 
+	     arr[arr.length] = ["oidPais", pais]; 
+	     arr[arr.length] = ["marca", tipoM];
+	     arr[arr.length] = ["canal", tipoC];
+     
+       recargaCombo("Formulario.cbPeriodo","REPCargarPeriodos","es.indra.sicc.dtos.cra.DTOPeriodo",arr);
+       
+     } else {
+       var aCombo = new Array(new Array("",""));
+       set_combo('Formulario.cbPeriodo', aCombo, []); 
+     }
+     //(fin)
+     
+     opcionesRegion = new Array();     
+     set_combo('Formulario.cbRegion',opcionesRegion);        
+     tipoM1 = get('Formulario.cbMarca','V');
+     tipoC1 = get('Formulario.cbCanal','V');
+     combo_add('Formulario.cbRegion', '', '');
+       
+     for(var k=0;k<lstRegion.datos.longitud;k++) {
+        for(var y=0;y<tipoM1.length;y++){
+          for(var x=0;x<tipoC1.length;x++){
+            //alert(lstRegion.datos.ij(k,1)+" "+tipoM1[y]+" "+lstRegion.datos.ij(k,0)+" "+lstRegion.datos.ij(k,2)+" "+lstRegion.datos.ij(k,3));
+             if ((lstRegion.datos.ij(k,2) == tipoM1[y])&&
+                 (lstRegion.datos.ij(k,3) == tipoC1[x])){ 			 
+                combo_add('Formulario.cbRegion',lstRegion.datos.ij(k,0),lstRegion.datos.ij(k,1));
+      
+             }
+           }
+        }
+    }
+    cambioRegionMarcaCanal();
+  }    
+//------------------------------------------------------------------------------          
+   /*
+   function cambioRegionMarcaCanal(){
+         
+     opcionesNZona = new Array();     
+     set_combo('Formulario.cbZona',opcionesNZona);        
+     tipoM = get('Formulario.cbMarca','V');
+     tipoC = get('Formulario.cbCanal','V');
+     tipoR = get('Formulario.cbRegion','V');          
+     combo_add('Formulario.cbZona', '', '');
+       
+     for(var k=0;k<lstZona.datos.longitud;k++) {
+        for(var y=0;y<tipoM.length;y++){
+          for(var x=0;x<tipoC.length;x++){
+            for(var z=0;z<tipoR.length;z++){              
+               if ((lstZona.datos.ij(k,3) == tipoM[y])&&
+                   (lstZona.datos.ij(k,4) == tipoC[x])&&
+                   (lstZona.datos.ij(k,1) == tipoR[z])){
+                  combo_add('Formulario.cbZona',lstZona.datos.ij(k,0),lstZona.datos.ij(k,2));
+        
+               }
+             }
+           }
+        }
+    }  
+  }  
+  */
+ //------------------------------------------------------------------------------
+ // agregado por Sapaza (Fecha 19/01/2007)
+  function cambioRegionMarcaCanal(){
+    
+    opciones = new Array();
+    set_combo('Formulario.cbZona',opciones);
+        
+    combo_add('Formulario.cbZona', '', '');
+
+    var regiones = quitarItemVacio(get('Formulario.cbRegion'));
+	  var pais = get('Formulario.pais');
+    var regionConc = new String();
+    
+    for(i=0;i<regiones.length;i++){
+        regionConc += regiones[i] + "x";
+    }
+         
+    regionConc = regionConc.substring(0, regionConc.length-1);
+    
+    var arr = new Array();
+    arr[arr.length] = ['cadena', regionConc];
+    arr[arr.length] = ['oidPais', pais]
+    
+    if(regionConc != ''){
+        recargaCombo("Formulario.cbZona", "REPRecargaZonas", "es.indra.sicc.util.DTOString",arr);
+    }     
+  }
+
+//------------------------------------------------------------------------------   
+   function cambioTipoClie(){
+         
+     opciones = new Array();
+     set_combo('Formulario.cbSubtipoCliente',opciones);        
+     tipo = get('Formulario.cbTipoCliente','V');
+     combo_add('Formulario.cbSubtipoCliente', '', '');
+       
+     for(var k=0;k<lstSubTipo.datos.longitud;k++) {
+        for(var y=0;y<tipo.length;y++){          
+           if (lstSubTipo.datos.ij(k,1) == tipo[y]){ 			 
+              combo_add('Formulario.cbSubtipoCliente',lstSubTipo.datos.ij(k,0),lstSubTipo.datos.ij(k,2));
+    
+           }
+        }
+    }
+    cambioSubTipoClie();
+  }
+//------------------------------------------------------------------------------   
+   function cambioSubTipoClie(){     
+     opciones = new Array();
+     set_combo('Formulario.cbTipoClasificacion',opciones);        
+     tipo = get('Formulario.cbSubtipoCliente','V');
+     combo_add('Formulario.cbTipoClasificacion', '', '');
+       
+     for(var k=0;k<lstTipoClasi.datos.longitud;k++) {
+        for(var y=0;y<tipo.length;y++){          
+           if (lstTipoClasi.datos.ij(k,1) == tipo[y]){ 		
+              
+              combo_add('Formulario.cbTipoClasificacion',lstTipoClasi.datos.ij(k,0),lstTipoClasi.datos.ij(k,2));
+    
+           }
+        }
+    }
+    cambioTipoClasi();
+  }
+  
+//------------------------------------------------------------------------------   
+   function cambioTipoClasi(){
+         
+     opciones = new Array();
+     set_combo('Formulario.cbClasificacion',opciones);        
+     tipo = get('Formulario.cbTipoClasificacion','V');
+     combo_add('Formulario.cbClasificacion', '', '');
+       
+     for(var k=0;k<lstClasi.datos.longitud;k++) {
+        for(var y=0;y<tipo.length;y++){          
+           if (lstClasi.datos.ij(k,1) == tipo[y]){ 			 
+              combo_add('Formulario.cbClasificacion',lstClasi.datos.ij(k,0),lstClasi.datos.ij(k,2));
+    
+           }
+        }
+    }    
+  }
+  
+//------------------------------------------------------------------------------         
+        function arrayComponentes(){
+              var arr = new Array();               
+              arr[arr.length]= new Array("cbMarca","");
+              arr[arr.length]= new Array("cbCanal","");              
+              arr[arr.length]= new Array("cbAcceso","");
+              arr[arr.length]= new Array("cbPeriodo","");
+              arr[arr.length]= new Array("cbRegion","");
+              arr[arr.length]= new Array("cbZona","");
+              arr[arr.length]= new Array("cbTipoDespacho","");
+              arr[arr.length]= new Array("cbTipoCliente","");
+              arr[arr.length]= new Array("cbSubtipoCliente","");
+              arr[arr.length]= new Array("cbTipoClasificacion","");
+              arr[arr.length]= new Array("cbClasificacion","");
+              arr[arr.length]= new Array("btnGenerarInforme","BOTON");
+              
+              return arr;
+          }
+          function tabGenerico(nombreComp, tipotab){       
+            var arr = arrayComponentes();
+            var tabular = false;
+            var nombreFormulario = getFormularioSICC();
+            var j = 0;
+            var k = arr.length;
+            if (tipotab != "sh") {
+                j = j-1;                
+                k = k-1;
+            }
+
+            while(j<k){
+                var t;
+                if(tipotab == "sh"){
+                  k--;
+                  t = k;
+                } else{
+                  j++;
+                  t = j;                  
+                }
+                  
+                var nombre = arr[t][0];
+                var tipo = arr[t][1];
+                if (tabular==false){
+                  if (nombreComp==nombre){
+                      tabular=true;
+                      if (tipotab == "sh"){
+                        if (k==0) k= arr.length;
+                      } else {
+                        if ((j+1)==arr.length)  j = -1;
+                      }
+                  }                
+                } else {
+                  try {
+                    var name = nombreFormulario+"."+nombre;
+                    if (tipo=="BOTONXY"){
+                       focalizaBotonHTML_XY(nombre);
+                    } else if (tipo=="BOTON") {
+                       focalizaBotonHTML("botonContenido",nombre)
+                    } else {
+                       focaliza(name);
+                    }
+                    return;
+                  } catch (e) {
+                  }
+                }
+            }
+          } 
+//------------------------------------------------------------------------------               
+  ]]> 
+</JAVASCRIPT>
+
+<VALIDACION>
+    
+    <ELEMENTO name="cbMarca" required="true" cod="6"/>
+    <ELEMENTO name="cbCanal" required="true" cod="7"/>
+    <ELEMENTO name="cbPeriodo" required="true" cod="276"/>
+      
+</VALIDACION>
+<FORMULARIO nombre="Formulario">
+<VAR nombre="accion" valor="" />
+<VAR nombre="conectorAction" valor="PEDInformeReporteFletes" />
+<VAR nombre="casoDeUso" valor=""/>
+<VAR nombre="errCodigo" valor="" />
+<VAR nombre="errDescripcion" valor="" />
+<VAR nombre="idioma" valor="" />
+
+<VAR nombre="pais" valor=""/>
+<VAR nombre="marca" valor="" />
+  <VAR nombre="marca" valor=""/>
+  <VAR nombre="canal" valor=""/>
+  <VAR nombre="accesos" valor=""/>
+  <VAR nombre="periodos" valor=""/>
+  <VAR nombre="regiones" valor=""/>
+  <VAR nombre="zonas" valor=""/>
+  <VAR nombre="tiposdespacho" valor=""/>
+  <VAR nombre="tiposcliente" valor=""/>
+  <VAR nombre="subtiposcliente" valor=""/>
+  <VAR nombre="tiposclasifica" valor=""/>
+  <VAR nombre="clasificaciones" valor=""/>
+
+
+<CAPA nombre="capa">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblCriteriosSeleccion"  filas="1" valor="" id="legend" cod="00275"/></legend>
+          <!---primera fila-->
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+         
+         <!-- <tr><td>
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                 <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblPais" filas="1" id="datosTitle" cod="5" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td class="datosCampos"><LABELC nombre="lbltxtPais" filas="1" id="datosCampos" cod="" /></td>
+	           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>-->
+          
+          <tr><td>
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblMarca" filas="1" id="datosTitle" cod="6" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblCanal" filas="1" id="datosTitle" cod="7" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap" valign="top"><COMBO nombre="cbMarca" onchange="cambioMarcaCanal();" size="1" multiple="N" valorinicial="" textoinicial="" id="datosCampos" req="S" ontab="tabGenerico('cbMarca');" onshtab="tabGenerico('cbMarca','sh');">
+                		<ROWSET>
+                  			
+                  	 	</ROWSET>	
+	                </COMBO> 
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbCanal" onchange="cambioCanal();" size="1" multiple="N" valorinicial="" textoinicial="" id="datosCampos" req="S" ontab="tabGenerico('cbCanal');" onshtab="tabGenerico('cbCanal','sh');">
+                		<ROWSET>
+                  			
+			              			
+                  	 	</ROWSET>	
+	                </COMBO> 
+	           </td>
+	           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>
+            
+            <tr><td>
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+               
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblAcceso" filas="1" id="datosTitle" cod="10" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblPeriodo" filas="1" id="datosTitle" cod="276" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbAcceso" size="5" multiple="S" valorinicial="" textoinicial="" id="datosCampos" req="N" ontab="tabGenerico('cbAcceso');" onshtab="tabGenerico('cbAcceso','sh');">
+                		<ROWSET>
+                  			
+                  	 	</ROWSET>	
+	                </COMBO> 
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbPeriodo" size="5" multiple="S" valorinicial="" textoinicial="" id="datosCampos" req="S" ontab="tabGenerico('cbPeriodo');" onshtab="tabGenerico('cbPeriodo','sh');">
+                		<ROWSET>
+                  			
+                  	 	</ROWSET>	
+	                </COMBO> 
+                   </td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>
+            <tr><td>
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+               
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblRegion" filas="1" id="datosTitle" cod="109" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblZona" filas="1" id="datosTitle" cod="143" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbRegion" onchange="cambioRegionMarcaCanal();" size="5" multiple="S" valorinicial="" textoinicial="" id="datosCampos" req="N" ontab="tabGenerico('cbRegion');" onshtab="tabGenerico('cbRegion','sh');">
+                		<ROWSET>
+                  			
+                  	 	</ROWSET>	
+	                </COMBO> 
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbZona" size="5" multiple="S" valorinicial="" textoinicial="" id="datosCampos" req="N" ontab="tabGenerico('cbZona');" onshtab="tabGenerico('cbZona','sh');">
+                		<ROWSET>
+                  			
+                  	 	</ROWSET>	
+	                </COMBO> 
+                   </td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>
+            
+            <tr><td>
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+               
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblTipoDespacho" filas="1" id="datosTitle" cod="1000" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbTipoDespacho" size="5" multiple="S" valorinicial="" textoinicial="" id="datosCampos" req="N" ontab="tabGenerico('cbTipoDespacho');" onshtab="tabGenerico('cbTipoDespacho','sh');">
+                		<ROWSET>
+                  			
+                  	 	</ROWSET>	
+	                </COMBO> 
+                   </td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>
+            
+            <tr><td>
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+               
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblTipoCliente" filas="1" id="datosTitle" cod="1869" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblSubtipoCliente" filas="1" id="datosTitle" cod="595" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbTipoCliente" onchange="cambioTipoClie();" size="5" multiple="S" valorinicial="" textoinicial="" id="datosCampos" req="N" ontab="tabGenerico('cbTipoCliente');" onshtab="tabGenerico('cbTipoCliente','sh');">
+                		<ROWSET>
+                  			
+                  	 	</ROWSET>	
+	                </COMBO> 
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbSubtipoCliente" onchange="cambioSubTipoClie();" size="5" multiple="S" valorinicial="" textoinicial="" id="datosCampos" req="N" ontab="tabGenerico('cbSubtipoCliente');" onshtab="tabGenerico('cbSubtipoCliente','sh');">
+                		<ROWSET>
+                  			
+                  	 	</ROWSET>	
+	                </COMBO> 
+                   </td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>
+            
+            <tr><td>
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+               
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblTipoClasificacion" filas="1" id="datosTitle" cod="756" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblClasificacion" filas="1" id="datosTitle" cod="550" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbTipoClasificacion" onchange="cambioTipoClasi();" size="5" multiple="S" valorinicial="" textoinicial="" id="datosCampos" req="N" ontab="tabGenerico('cbTipoClasificacion');" onshtab="tabGenerico('cbTipoClasificacion','sh');">
+                		<ROWSET>
+                  			
+                  	 	</ROWSET>	
+	                </COMBO> 
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbClasificacion" size="5" multiple="S" valorinicial="" textoinicial="" id="datosCampos" req="N" ontab="tabGenerico('cbClasificacion');" onshtab="tabGenerico('cbClasificacion','sh');">
+                		<ROWSET>
+                  			
+                  	 	</ROWSET>	
+	                </COMBO> 
+                   </td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>
+                         
+           </table>
+       <!---fin primera fila-->
+         
+        
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnGenerarInforme" ID="botonContenido" tipo="html" accion="generar();" estado="false" cod="2495" ontab="tabGenerico('btnGenerarInforme');" onshtab="tabGenerico('btnGenerarInforme','sh');"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>       
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+ </CAPA>          
+ <!--Manejo de mulstiseleccion y recarga multiple-->
+         <CAPA nombre="capaPeriodo" alto="3" ancho="624" colorf="" borde="0" imagenf="" repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="165" zindex="">
+                  <LISTA seleccion="boton" nombre="lstPeriodo" x="12" y="10" ancho="600" alto="3" multisel="-1" incy="10" incx="10" colorf="#EFEFEF" imagenoff="close_no.gif" imagenon="close_up.gif" accion="" sep="|" pixelsborde="2" colorborde="#CCCCCC">
+                           <CABECERA nombre="cab1" height="20">
+                                    <COL id="datosCamposCabecera" ancho="40">Periodo</COL>
+                                    <COL id="datosCamposCabecera" ancho="60">Descripción</COL>
+                                    <COL id="datosCamposCabecera" ancho="440">Marca</COL>
+                                    <COL id="datosCamposCabecera" ancho="440">Canal</COL>
+                                    <COL id="datosCamposCabecera" ancho="440">FechaIncio</COL>
+                                    <COL id="datosCamposCabecera" ancho="440">FechaFin</COL>
+                           </CABECERA>
+                           <PRESENTACION ancho="590" filas="1" bloquesid="['datosCamposCenterImpar', 'datosCamposCenterPar']">
+                                    <COL ancho="40" caracteres="20"/>
+                                    <COL ancho="60" caracteres="20"/>
+                                    <COL ancho="440" caracteres="30"/>
+                                    <COL ancho="440" caracteres="30"/>
+                                    <COL ancho="440" caracteres="30"/>
+                                    <COL ancho="440" caracteres="30"/>
+                           </PRESENTACION>
+                           <ROWSET>
+                           </ROWSET>
+                  </LISTA>
+         </CAPA>           
+ <!--Manejo de mulstiseleccion y recarga multiple-->
+         <CAPA nombre="capaRegion" alto="3" ancho="624" colorf="" borde="0" imagenf="" repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="165" zindex="">
+                  <LISTA seleccion="boton" nombre="lstRegion" x="12" y="10" ancho="600" alto="3" multisel="-1" incy="10" incx="10" colorf="#EFEFEF" imagenoff="close_no.gif" imagenon="close_up.gif" accion="" sep="|" pixelsborde="2" colorborde="#CCCCCC">
+                           <CABECERA nombre="cab1" height="20">
+                                    <COL id="datosCamposCabecera" ancho="40">Region</COL>
+                                    <COL id="datosCamposCabecera" ancho="60">Descripción</COL>
+                                    <COL id="datosCamposCabecera" ancho="440">Marca</COL>
+                                    <COL id="datosCamposCabecera" ancho="440">Canal</COL>
+                           </CABECERA>
+                           <PRESENTACION ancho="590" filas="1" bloquesid="['datosCamposCenterImpar', 'datosCamposCenterPar']">
+                                    <COL ancho="40" caracteres="20"/>
+                                    <COL ancho="60" caracteres="20"/>
+                                    <COL ancho="440" caracteres="30"/>
+                                    <COL ancho="440" caracteres="30"/>
+                           </PRESENTACION>
+                           <ROWSET>
+                           </ROWSET>
+                  </LISTA>
+         </CAPA> 
+<!--Manejo de mulstiseleccion y recarga multiple-->
+       <CAPA nombre="capaZona" alto="3" ancho="624" colorf="" borde="0" imagenf="" repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="165" zindex="">
+                <LISTA seleccion="boton" nombre="lstZona" x="12" y="10" ancho="600" alto="3" multisel="-1" incy="10" incx="10" colorf="#EFEFEF" imagenoff="close_no.gif" imagenon="close_up.gif" accion="" sep="|" pixelsborde="2" colorborde="#CCCCCC">
+                         <CABECERA nombre="cab1" height="20">
+                                  <COL id="datosCamposCabecera" ancho="40">Zona</COL>
+                                  <COL id="datosCamposCabecera" ancho="60">Region</COL>                                    
+                                  <COL id="datosCamposCabecera" ancho="440">Descripción</COL>
+                                  <COL id="datosCamposCabecera" ancho="440">Marca</COL>
+                                  <COL id="datosCamposCabecera" ancho="440">Canal</COL>
+                         </CABECERA>
+                         <PRESENTACION ancho="590" filas="1" bloquesid="['datosCamposCenterImpar', 'datosCamposCenterPar']">
+                                  <COL ancho="40" caracteres="20"/>
+                                  <COL ancho="60" caracteres="20"/>                                    
+                                  <COL ancho="440" caracteres="30"/>
+                                  <COL ancho="440" caracteres="30"/>
+                                  <COL ancho="440" caracteres="30"/>
+                         </PRESENTACION>
+                         <ROWSET>
+                         </ROWSET>
+                </LISTA>
+       </CAPA> 
+  <!--Manejo de mulstiseleccion y recarga multiple-->
+         <CAPA nombre="capaAcceso" alto="3" ancho="624" colorf="" borde="0" imagenf="" repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="165" zindex="">
+                  <LISTA seleccion="boton" nombre="lstAcceso" x="12" y="10" ancho="600" alto="3" multisel="-1" incy="10" incx="10" colorf="#EFEFEF" imagenoff="close_no.gif" imagenon="close_up.gif" accion="" sep="|" pixelsborde="2" colorborde="#CCCCCC">
+                           <CABECERA nombre="cab1" height="20">
+                                    <COL id="datosCamposCabecera" ancho="40">Acceso</COL>
+                                    <COL id="datosCamposCabecera" ancho="60">Descripción</COL>                                    
+                                    <COL id="datosCamposCabecera" ancho="440">Canal</COL>
+                           </CABECERA>
+                           <PRESENTACION ancho="590" filas="1" bloquesid="['datosCamposCenterImpar', 'datosCamposCenterPar']">
+                                    <COL ancho="40" caracteres="20"/>
+                                    <COL ancho="60" caracteres="20"/>                                    
+                                    <COL ancho="440" caracteres="30"/>
+                           </PRESENTACION>
+                           <ROWSET>
+                           </ROWSET>
+                  </LISTA>
+         </CAPA>         
+  <!--Manejo de mulstiseleccion y recarga multiple-->
+         <CAPA nombre="capaTipo" alto="3" ancho="624" colorf="" borde="0" imagenf="" repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="165" zindex="">
+                  <LISTA seleccion="boton" nombre="lstTipo" x="12" y="10" ancho="600" alto="3" multisel="-1" incy="10" incx="10" colorf="#EFEFEF" imagenoff="close_no.gif" imagenon="close_up.gif" accion="" sep="|" pixelsborde="2" colorborde="#CCCCCC">
+                           <CABECERA nombre="cab1" height="20">
+                                    <COL id="datosCamposCabecera" ancho="40">Tipo</COL>
+                                    <COL id="datosCamposCabecera" ancho="60">Descripción</COL>                                                                        
+                           </CABECERA>
+                           <PRESENTACION ancho="590" filas="1" bloquesid="['datosCamposCenterImpar', 'datosCamposCenterPar']">
+                                    <COL ancho="40" caracteres="20"/>
+                                    <COL ancho="60" caracteres="20"/>                                                                        
+                           </PRESENTACION>
+                           <ROWSET>
+                           </ROWSET>
+                  </LISTA>
+         </CAPA>    
+  <!--Manejo de mulstiseleccion y recarga multiple-->
+         <CAPA nombre="capaSubTipo" alto="3" ancho="624" colorf="" borde="0" imagenf="" repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="165" zindex="">
+                  <LISTA seleccion="boton" nombre="lstSubTipo" x="12" y="10" ancho="600" alto="3" multisel="-1" incy="10" incx="10" colorf="#EFEFEF" imagenoff="close_no.gif" imagenon="close_up.gif" accion="" sep="|" pixelsborde="2" colorborde="#CCCCCC">
+                           <CABECERA nombre="cab1" height="20">
+                                    <COL id="datosCamposCabecera" ancho="40">Subtipo</COL>
+                                    <COL id="datosCamposCabecera" ancho="60">Tipo</COL>                                    
+                                    <COL id="datosCamposCabecera" ancho="440">Descripción</COL>
+                           </CABECERA>
+                           <PRESENTACION ancho="590" filas="1" bloquesid="['datosCamposCenterImpar', 'datosCamposCenterPar']">
+                                    <COL ancho="40" caracteres="20"/>
+                                    <COL ancho="60" caracteres="20"/>                                    
+                                    <COL ancho="440" caracteres="30"/>
+                           </PRESENTACION>
+                           <ROWSET>
+                           </ROWSET>
+                  </LISTA>
+         </CAPA>      
+  <!--Manejo de mulstiseleccion y recarga multiple-->
+         <CAPA nombre="capaTipoClasi" alto="3" ancho="624" colorf="" borde="0" imagenf="" repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="165" zindex="">
+                  <LISTA seleccion="boton" nombre="lstTipoClasi" x="12" y="10" ancho="600" alto="3" multisel="-1" incy="10" incx="10" colorf="#EFEFEF" imagenoff="close_no.gif" imagenon="close_up.gif" accion="" sep="|" pixelsborde="2" colorborde="#CCCCCC">
+                           <CABECERA nombre="cab1" height="20">
+                                    <COL id="datosCamposCabecera" ancho="40">TipoClasi</COL>
+                                    <COL id="datosCamposCabecera" ancho="60">SubTipoClie</COL>                                    
+                                    <COL id="datosCamposCabecera" ancho="440">Descripción</COL>
+                           </CABECERA>
+                           <PRESENTACION ancho="590" filas="1" bloquesid="['datosCamposCenterImpar', 'datosCamposCenterPar']">
+                                    <COL ancho="40" caracteres="20"/>
+                                    <COL ancho="60" caracteres="20"/>                                    
+                                    <COL ancho="440" caracteres="30"/>
+                           </PRESENTACION>
+                           <ROWSET>
+                           </ROWSET>
+                  </LISTA>
+         </CAPA>    
+  <!--Manejo de mulstiseleccion y recarga multiple-->
+         <CAPA nombre="capaClasi" alto="3" ancho="624" colorf="" borde="0" imagenf="" repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="165" zindex="">
+                  <LISTA seleccion="boton" nombre="lstClasi" x="12" y="10" ancho="600" alto="3" multisel="-1" incy="10" incx="10" colorf="#EFEFEF" imagenoff="close_no.gif" imagenon="close_up.gif" accion="" sep="|" pixelsborde="2" colorborde="#CCCCCC">
+                           <CABECERA nombre="cab1" height="20">
+                                    <COL id="datosCamposCabecera" ancho="40">Clasi</COL>
+                                    <COL id="datosCamposCabecera" ancho="60">TipoClasi</COL>                                    
+                                    <COL id="datosCamposCabecera" ancho="440">Descripción</COL>
+                           </CABECERA>
+                           <PRESENTACION ancho="590" filas="1" bloquesid="['datosCamposCenterImpar', 'datosCamposCenterPar']">
+                                    <COL ancho="40" caracteres="20"/>
+                                    <COL ancho="60" caracteres="20"/>                                    
+                                    <COL ancho="440" caracteres="30"/>
+                           </PRESENTACION>
+                           <ROWSET>
+                           </ROWSET>
+                  </LISTA>
+         </CAPA>             
+</FORMULARIO>
+</PAGINA>

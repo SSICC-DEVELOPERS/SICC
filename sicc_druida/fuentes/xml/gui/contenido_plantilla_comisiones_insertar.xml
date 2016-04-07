@@ -1,0 +1,641 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_plantilla_comisiones_insertar.xml,v 1.1 2009/12/03 18:45:07 pecbazalar Exp $
+   EDU
+
+   DRUIDATARGET=/install/cvsiniciales
+
+   Autor: Marta Aurora Montiel
+   Fecha: 04/02/05
+   ult.mod.:  15/02/05 idedough
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_plantilla_comisiones_insertar" cod="" titulo="" estilos="estilosB3.css" colorf="#F0F0F0"
+        msgle="" onload="onLoadPag();" xml:lang="es">
+<!-- Barra Modificar Plantilla de Comisiones cod="0521"
+           Eliminar Plantilla de Comisiones, cod="0514";
+           Consultar Plantilla de Comisiones, cod="0511", 
+           Copiar Plantilla de Comisiones, cod="0513"-->
+<JS src="sicc_util.js"/> 
+<JS src="PaginacionSicc.js"/>
+<JS src="DruidaTransactionMare.js"/>
+<JS src="i18NJS.js"/>
+
+
+<JAVASCRIPT>
+  <![CDATA[ 
+
+  function onLoadPag()   
+  {		configurarMenuSecundario("formulario")
+
+		ucs = _get('casoDeUso')
+		
+//		alert(ucs + '  ' + fMostrarMensajeError() )
+		if( ucs=='copiar'){
+			btnProxy(1,0);
+			btnProxy(5,0);
+		}else{
+			btnProxy(1,1);
+			btnProxy(2,0);
+			btnProxy(5,1);
+		}
+
+
+		
+		fMostrarMensajeError();
+		
+		if(ucs == "cerrar")
+		{ 
+		   returnValue = false;
+		   window.close();
+		   return;
+		}
+		        
+		//combo_add('formulario.cbComparativo', '', '');
+        combo_add('formulario.cbComparativo', 'COM_SI', 'Sí');
+		combo_add('formulario.cbComparativo', 'COM_NO', 'No');
+
+		//combo_add('formulario.cbTratamientoDiferencialAntiguas', '', '');
+        combo_add('formulario.cbTratamientoDiferencialAntiguas', 'COM_SI', 'Sí');
+		combo_add('formulario.cbTratamientoDiferencialAntiguas', 'COM_NO', 'No');
+
+		if(ucs=='modificar' || ucs=='consultar' || ucs=='copiar' || ucs=='eliminar')
+		{
+			//set("formulario.cbCanal", get("formulario.oidCanal"));
+			//onChangeCanal();
+            modif = true
+			document.all["Cplistado1"].style.display='none';
+			document.all["CpLin1listado1"].style.display='none';
+			document.all["CpLin2listado1"].style.display='none';
+			document.all["CpLin3listado1"].style.display='none';
+			document.all["CpLin4listado1"].style.display='none';
+			//document.all["primera1Div"].style.display='none';
+			//document.all["ret1Div"].style.display='none';
+			//document.all["ava1Div"].style.display='none';
+			document.all["separaDiv"].style.display='none'
+
+
+
+			arrCan = new Array();
+			arrCan[0]  = _get('oidCanal')
+            set("formulario.cbCanal",arrCan);
+
+			onChangeCanal();
+
+			//genero el array para setear a los combos
+			var arrSeteo = new Array();
+			var arrTemp = new Array();
+						
+			arrSeteo = new Array();
+			arrTemp = new Array();
+			arrTemp = get("formulario.arrMarca").split('|');
+
+			for( i=0; i<arrTemp.length ; i++ )
+				arrSeteo[i] = arrTemp[i];
+			
+			set("formulario.cbMarca", arrSeteo);
+
+			arrSeteo = new Array();
+			arrTemp = new Array();
+			arrTemp = get("formulario.arrPais").split('|');
+
+			for( i=0; i<arrTemp.length ; i++ )
+				arrSeteo[i] = arrTemp[i];
+			
+			set("formulario.cbPais", arrSeteo);
+
+			arrComp = new Array();
+			arrComp[0]  = _get('comparativo')
+
+			set("formulario.cbComparativo",arrComp);
+
+
+			arrDif = new Array();
+			arrDif[0]  = _get('tratDifAntiguas')
+
+			set("formulario.cbTratamientoDiferencialAntiguas",arrDif);
+
+			arrCom = new Array();
+			arrCom[0]  = _get('oidTipoComision')
+			set("formulario.cbTipoComision", arrCom);
+
+			hide('btnDetalleDiv')
+			showLista(false)
+
+            btnProxy(2,1);
+			btnProxy(3,0);
+			//pregunta por eliminar porque vendria a ser la consulta del eliminar
+			if(ucs=='consultar' || ucs=='eliminar' || ucs=='copiar')
+			{  accion(_form+'txtDescripcionPlantilla', '.disabled=true');
+			   accion(_form+'cbCanal', '.disabled=true');
+			   accion(_form+'cbTipoComision', '.disabled=true');
+			   accion(_form+'cbComparativo', '.disabled=true');
+			   accion(_form+'cbTratamientoDiferencialAntiguas', '.disabled=true');
+
+				accion(_form+'cbPais', '.disabled=true');
+				accion(_form+'cbMarca', '.disabled=true');
+				accion(_form+'cbAcceso', '.disabled=true');
+			   btnProxy(1,0);
+			   btnProxy(5,0);
+			}			
+		}
+		else
+		{	
+
+			var arr = new Array();      
+			arr[arr.length] = new Array("oidIdioma", get("formulario.oidIdioma"));
+			arr[arr.length] = new Array("oidPais", get("formulario.oidPais"));  
+			
+			setTimeout('a();', 1000);
+
+			configurarPaginado(mipgndo,'COMObtenerPlantillaCom',
+									   'ConectorObtenerPlantillaCom',
+									   'es.indra.sicc.cmn.negocio.auditoria.DTOSiccPaginacion', 
+										arr); 
+			show('btnDetalleDiv')
+			//showLista(true)
+		}	
+		focaliza(_form+'txtDescripcionPlantilla')
+	}
+
+	function a()
+	{
+		return;
+	}
+
+// --------------------------------------------------------------------------------------------------------------
+    var modif = false;
+	function setValueAcceso(d)
+	{
+	   if(modif)
+	   {          
+		  set_combo("formulario.cbAcceso",arguments[0]);
+		  var arrTemp  = new Array(); 
+		  var arrSeteo  = new Array();
+		  arrTemp = get("formulario.arrAcceso").split('|');
+		  for(i=0;i<arrTemp.length;i++)
+			  arrSeteo[i] = arrTemp[i];
+		    set("formulario.cbAcceso", arrSeteo);
+	   }
+	}
+
+// --------------------------------------------------------------------------------------------------------------
+	function onChangeCanal()
+	{
+		if(get("formulario.cbCanal")!="")
+		{	var arr = new Array();      
+			arr[arr.length] = new Array("oid", get("formulario.cbCanal"));
+			arr[arr.length] = new Array("oidPais", get("formulario.oidPais")); 
+			arr[arr.length] = new Array("oidIdioma", get("formulario.oidIdioma")); 
+            if(modif)
+			   recargaCombo("formulario.cbAcceso", 'SEGObtieneAccesosPorCanal','es.indra.sicc.util.DTOOID',arr,'setValueAcceso(datos)');
+			else
+			   recargaCombo("formulario.cbAcceso", 'SEGObtieneAccesosPorCanal','es.indra.sicc.util.DTOOID',arr);
+		}
+	}
+
+
+	function onClickDetalle()
+	{	pos=chkPos()
+
+		if(pos != null)	
+		{	var obj = new Object();
+			//obj.oidPlantilla = listado1.datos[pos][0]; 
+			obj.oidPlantilla = listado1.codSeleccionados();
+			//obj.oidPlantilla = '7'
+			//alert(obj.oidPlantilla)
+			obj.accion = 'detalle'
+			obj.casoDeuso = 'insertar'
+			obj.conectorAction='LPPlantillaComisiones'
+			mostrarModalSICC('LPPlantillaComisiones','detalle',obj,800,350);		
+		} 
+		else 
+		{  GestionarMensaje('0',null,null,null);
+		   return false;
+		}
+	}
+
+
+	function fGuardar()
+	{	
+	
+		if(sicc_validaciones_generales()) 
+		{	// oidPlantilla
+			//alert('paso_validaciones')
+		    set("formulario.descripcion", get("formulario.txtDescripcionPlantilla"));            			
+			//alert(get("formulario.cbPais"))
+			//alert(get("formulario.cbAcceso"))
+
+			set("formulario.arrPais", get("formulario.cbPais"));
+			set("formulario.arrMarca", get("formulario.cbMarca"));
+			set("formulario.oidCanal", get("formulario.cbCanal"));
+
+			set("formulario.arrAcceso", get("formulario.cbAcceso"));
+
+			set("formulario.oidTipoComision", get("formulario.cbTipoComision"));
+			set("formulario.comparativo", get("formulario.cbComparativo"));
+            
+			set("formulario.tratDiferencial", get("formulario.cbTratamientoDiferencialAntiguas"));
+			//if(get("formulario.oidPlantilla") != '')
+			//  eval("formulario").oculto = 'S';
+			set("formulario.conectorAction", "LPPlantillaComisiones");
+			set("formulario.accion", "grabar");		
+			set("formulario.casoDeUso",get("formulario.casoDeUso") );				
+			enviaSICC("formulario",null,null,'N');  
+			//if(ucs=='modificar')
+			//	window.close();
+			//else
+			//	onLoadPag();  //Refrescar la listResultados, para reflejar la nueva plantilla insertada
+		}
+	}
+
+	function fLimpiar()
+	{  if(ucs=='insertar')
+	   {   var arr = new Array();  arr[0] = "";
+		   set(_form+'cbMarca', arr)
+		   set(_form+'cbPais', arr)
+		   set(_form+'cbTipoComision', arr)
+		   set(_form+'cbCanal')
+           set(_form+'cbAcceso',arr)
+		   set_combo(_form+'cbAcceso','')
+		   set(_form+'cbComparativo', arr)
+		   set(_form+'cbTratamientoDiferencialAntiguas', arr)
+		   set(_form+'txtDescripcionPlantilla',"")
+           limpiaI18N('formulario','1'); 
+		   focaliza(_form+'txtDescripcionPlantilla')
+	   }
+	   else if(ucs=='modificar' || ucs=='copiar')
+	               onLoadPag()
+	}
+    
+	function fVolver()
+	{ if(ucs=='modificar' || ucs=='consultar' || ucs=='copiar')
+	     window.close();  
+	}
+
+	function toDetalle()
+	{  if(document.all["btnDetalleDiv"].style.visibility == 'visible')
+		 focalizaBotonHTML('botonContenido','btnDetalle');
+	   else
+	   { if(arguments[0])
+		   focaliza('formulario.cbTratamientoDiferencialAntiguas');
+		 else
+		   focaliza('formulario.txtDescripcionPlantilla');
+	   }
+	}
+//  limpiaI18N('frmModificarDatosGrupo','1'); 
+//====================================================================================================================
+	_form='formulario.';ucs=null
+	function _get(){return get(_form+arguments[0])} 
+	function hide(){document.all[arguments[0]].style.visibility='hidden'}
+	function show(){document.all[arguments[0]].style.visibility='visible'}
+    //------------ ARRAY PARA PARAMETROS DE FN PAGINADO ---------------------------------------------------------------
+    function Args(){this.i=0;this.vArray=new Array()}
+	Args.prototype.put=function(){this.vArray[this.i]=new Array(arguments[0],arguments[1]);this.i++}
+	Args.prototype.getArgs=function(){return this.vArray}
+    //------------ LISTA --------------------------------------------------------
+	
+	function muestraLista2( ultima, rowset, error)
+	{
+	  return (rowset.length > 0)?showLista(true):showLista(false)
+	}
+
+	function muestraLista( ultima, rowset, error)
+	{
+			var tamano = rowset.length;
+			if (tamano > 0){
+			  muestraLista2();
+			  eval (ON_RSZ);      
+			  return true;
+			}
+			else {
+			  ocultaLista2();
+			  eval (ON_RSZ);                      
+			  return false;
+			}
+    }
+    
+
+	function muestraLista2()
+    {	     
+		DrdEnsanchaConMargenDcho('listado1',12);	    
+		document.all["Cplistado1"].style.visibility='';
+		document.all["CpLin1listado1"].style.visibility='';
+		document.all["CpLin2listado1"].style.visibility='';
+		document.all["CpLin3listado1"].style.visibility='';
+		document.all["CpLin4listado1"].style.visibility='';
+		document.all["primera1Div"].style.visibility='';
+		document.all["ret1Div"].style.visibility='';
+		document.all["ava1Div"].style.visibility='';
+		document.all["separaDiv"].style.visibility='';
+    }
+
+	function ocultaLista2()
+    {	     
+		DrdEnsanchaConMargenDcho('listado1',12);	    
+		document.all["Cplistado1"].style.visibility='hidden';
+		document.all["CpLin1listado1"].style.visibility='hidden';
+		document.all["CpLin2listado1"].style.visibility='hidden';
+		document.all["CpLin3listado1"].style.visibility='hidden';
+		document.all["CpLin4listado1"].style.visibility='hidden';
+		document.all["primera1Div"].style.visibility='hidden';
+		document.all["ret1Div"].style.visibility='hidden';
+		document.all["ava1Div"].style.visibility='hidden';
+		document.all["separaDiv"].style.visibility='hidden';
+    }
+
+    function showLista()
+    {	v=(arguments[0])?'':'hidden';      
+		DrdEnsanchaConMargenDcho('listado1',12);	    
+		document.all["Cplistado1"].style.visibility=v;
+		document.all["CpLin1listado1"].style.visibility=v;
+		document.all["CpLin2listado1"].style.visibility=v;
+		document.all["CpLin3listado1"].style.visibility=v;
+		document.all["CpLin4listado1"].style.visibility=v;
+		document.all["primera1Div"].style.visibility=v;
+		document.all["ret1Div"].style.visibility=v;
+		document.all["ava1Div"].style.visibility=v;
+		document.all["separaDiv"].style.visibility=v;
+		eval (ON_RSZ);
+		return arguments[0];
+    }
+	function chkPos() // verifica si seleccionado un registro, y devuelve him position o false/ow
+	{	if(listado1.numSelecc() == 1)
+			return obtenerPosicionListaEditable(listado1.codSeleccionados(),listado1);			
+		else
+		{  if(listado1.numSelecc() > 1)
+			cdos_mostrarAlert(GestionarMensaje("240"));		  
+		   else
+		   {  if(listado1.numSelecc() < 1)
+				 GestionarMensaje("4");
+		   }
+		}
+		return null;
+	}
+	//-------- eliminar -----------------------------------------------
+	function eliminarByList()
+	{	if(listado1.numSelecc() < 1)
+			GestionarMensaje("4");    // Debe seleccionar al menos un elemento de la lista
+		else
+		{	eliminarFilas(listado1.codSeleccionados(),arguments[0],mipgndo);
+			onClickBuscar();
+		}
+	}
+//==========================================================================================================	
+
+
+
+function reInicio(){
+	window.close();
+}
+
+
+
+]]> 
+</JAVASCRIPT>
+
+<VALIDACION>
+	<ELEMENTO name="cbPais" required="true" cod="5"/>	
+	<ELEMENTO name="cbMarca" required="true" cod="6"/>
+	<ELEMENTO name="cbMarca" required="true" cod="7"/>	
+	<ELEMENTO name="cbAcceso" required="true" cod="10"/>	
+  <ELEMENTO name="txtDescripcionPlantilla" format="t" required="true" cod="1697"/>	
+  
+	<!--<ELEMENTO name="cbTipoComision" required="true" cod="1857"/> -->
+</VALIDACION>
+
+<FORMULARIO nombre="formulario" oculto = "N">
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="opcionMenu" valor=""/>
+<VAR nombre="casoDeUso" valor=""/>
+<VAR nombre="accion" valor=""/>
+<VAR nombre="errCodigo" valor=""/> 
+<VAR nombre="errDescripcion" valor=""/>
+
+<VAR nombre="oidPlantilla" valor=""/>
+<VAR nombre="codPlantilla" valor=""/>
+
+<VAR nombre="descripcionPlantilla" valor=""/>
+<VAR nombre="oidCanal" valor=""/>
+<VAR nombre="oidPais" valor=""/>
+<VAR nombre="oidIdioma" valor=""/>
+
+
+<VAR nombre="arrPais" valor=""/>
+<VAR nombre="arrAcceso" valor=""/>
+<VAR nombre="arrMarca" valor=""/>
+
+<VAR nombre="oidTipoComision" valor=""/>
+<VAR nombre="comparativo" valor=""/>
+<VAR nombre="tratDifAntiguas" valor=""/>
+
+<VAR nombre="tratDiferencial" valor=""/>
+
+<VAR nombre="modificar" valor=""/>
+<VAR nombre="ejecutar" valor=""/>
+
+
+
+<CAPA nombre="capa1">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblDatosCabecera"  alto="13" filas="1" valor="" id="legend" cod="00156"/></legend>
+	 <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+       <!---segunda fila-->
+              <table width="499" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+	          <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+	       </tr>
+                <tr>
+		   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td colspan="3"><LABELC nombre="lblDescripcionPlantilla"  alto="13" filas="1" valor="" cod="1697" id="datosTitle"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+		   <td nowrap="nowrap" valign="bottom"><CTEXTO nombre="txtDescripcionPlantilla" id="datosCampos" max="30" tipo="" onchange="" req="S" size="30" valor="" validacion="" onshtab="toDetalle(true)" /></td>
+                   <td>	<IMG src="b.gif" width="8" height="8"  /></td>
+		   <td><IMG src="iconmultidioma.gif" width="21" height="15" onclick="levantarI18N('formulario','1');"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr> 
+	           <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+	        </tr>
+              </table>             
+       <!---segunda fila-->
+        </td></tr>
+          <tr><td>
+          <!---primera fila-->
+              <table width="499" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblPais"  alto="13" filas="1" valor="" id="datosTitle" cod="5"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblMarca"  alto="13" filas="1" valor="" id="datosTitle" cod="6"/></td>
+		   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap">
+		     <COMBO nombre="cbPais" id="datosCampos" size="5" multiple="S" req="S" valorinicial="" textoinicial="">
+		       <ROWSET></ROWSET>
+		     </COMBO>
+		   </td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td nowrap="nowrap">
+		     <COMBO nombre="cbMarca" id="datosCampos" size="5" multiple="S" req="S" valorinicial="" textoinicial="">
+		       <ROWSET>		       		
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+	           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+               <tr> 
+	          <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+	       </tr>
+              </table>
+       <!---fin primera fila-->
+       </td></tr>
+           <tr><td>
+       <!---segunda fila-->
+              <table width="499" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr>
+		   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblCanal"  alto="13" filas="1" valor="" id="datosTitle" cod="7"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblAcceso"  alto="13" filas="1" valor="" id="datosTitle" cod="10"/></td>		   
+		   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+		   <td nowrap="nowrap" valign="top">
+		     <COMBO nombre="cbCanal" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onchange="onChangeCanal();">
+		       <ROWSET>
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>       
+		   <td nowrap="nowrap">
+		     <COMBO nombre="cbAcceso" id="datosCampos" size="5" multiple="S" req="S" valorinicial="" textoinicial="" >
+		       <ROWSET></ROWSET>
+		     </COMBO>
+		   </td>
+		   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr> 
+	           <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+	        </tr>
+              </table>             
+       <!---segunda fila-->
+        </td></tr>
+           <tr><td>
+        <!---cuarta fila-->
+        <table width="499" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblTipoComision"  alto="13" filas="1" valor="" cod="1857" id="datosTitle"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblComparativo"  alto="13" filas="1" valor="" cod="1699" id="datosTitle"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblTratamientoDiferencialAntiguas"  alto="13" filas="1" valor="" cod="1700" id="datosTitle"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>        
+		  <td nowrap="nowrap">
+		     <COMBO nombre="cbTipoComision" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+		       <ROWSET>                  		
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+	           <td><IMG src="b.gif" width="25" height="8"/></td>
+		<td>
+		     <COMBO nombre="cbComparativo" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+		       <ROWSET></ROWSET>
+		     </COMBO>
+		   </td>
+	           <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td>
+		     <COMBO nombre="cbTratamientoDiferencialAntiguas" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" ontab="toDetalle()" >
+		       <ROWSET> </ROWSET> 
+		     </COMBO>
+		   </td>
+	           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+	       <tr> 
+	           <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+	        </tr>
+              </table>
+        <!---cuarta fila-->
+	    </td></tr>
+           </table>
+        </fieldset>
+        
+<!--fin primer formulario-->
+
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+ 
+
+  
+  <LISTAEDITABLE nombre="listado1" ancho="503" alto="301" x="12" y="310" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+        <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+        <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+        <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+      <LINEAS>
+        <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="0" horizTitulo="1" horizBase="1"/> 
+        <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00310" ID="datosTitle" />
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+        <COL ancho="20" minimizable="S" minimizada="N"/>
+      </COLUMNAS>
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+	<COL colFondo="" ID="EstCab" cod="00311"></COL> 
+      </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+             coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+             onLoad="" colorSelecc="#D0D9E8">
+       <COL tipo="texto" ID="EstDat"/> 
+      </DATOS>
+      <ROWSET>	
+      </ROWSET>
+      <PAGINADO nombre="mipgndo" ancho="507" sep="$" x="12" class="botonera" y="588" control="|" conector="" rowset="" cargainicial="N" onload="procesarPaginado(mipgndo,msgError, ultima, rowset, 'muestraLista(ultima, rowset)')" >
+        <BOTON nombre="ret1" x="37" y="592" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+        <BOTON nombre="ava1" x="52" y="592" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>
+        
+    </PAGINADO>
+  </LISTAEDITABLE>
+  <BOTON nombre="primera1" x="20" y="592" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();" />      
+  <BOTON nombre="separa" x="59" y="588" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />      
+  <BOTON nombre="btnDetalle" x="80" y="589" ID="botonContenido" tipo="html" estado="false" cod="3" accion="onClickDetalle()" onshtab="focaliza('formulario.cbTratamientoDiferencialAntiguas')" ontab="focaliza('formulario.txtDescripcionPlantilla')" /> 
+<CAPA nombre="capaEspacio" alto="12" ancho="100%" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="611" zindex="">
+  </CAPA>  
+
+</FORMULARIO>
+</PAGINA>         

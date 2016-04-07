@@ -1,0 +1,536 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_comisiones_datosComision_insertar_detalle.xml,v 1.2 2010/08/24 22:52:58 peextsapaza Exp $
+   prueba arbol 
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+<PAGINA nombre="contenido_comisiones_datosComision_insertar_detalle" cod="0515" titulo="Insertar comisiones" estilos="estilosB3.css" colorf="#F0F0F0" msgle="" onload="onLoadPag();" xml:lang="es">
+	<!-- Barra Modificar comisiones cod="0520"
+     Barra Consultar comisiones cod="0510"
+     Barra Eliminar comisiones cod="0558"-->
+
+<JS src="sicc_util.js"></JS> 
+<JS src="PaginacionSicc.js"></JS>
+<JS src="DruidaTransactionMare.js"></JS>
+<JS src="i18NJS.js"/>     
+
+<JAVASCRIPT>
+<![CDATA[ 
+
+function onLoadPag(){
+	configurarMenuSecundario("formulario");        
+	muestraLista();	
+
+	cargarLista();
+	var valor = get('formulario.hOpcionMenu');
+
+	if(get('formulario.hOpcionMenu') == 'consultar'){
+		deshabilitarTodo();
+	}
+
+	focoDiasTrasFacturacion();
+}
+
+function muestraLista() {
+	DrdEnsanchaConMargenDcho('listado1',24);
+    document.all["Cplistado1"].style.visibility='';
+    document.all["CpLin1listado1"].style.visibility='';
+    document.all["CpLin2listado1"].style.visibility='';
+    document.all["CpLin3listado1"].style.visibility='';
+    document.all["CpLin4listado1"].style.visibility='';
+    document.all["separaDiv"].style.visibility='hidden';
+    document.all["primera1Div"].style.visibility='hidden';
+    document.all["ret1Div"].style.visibility='hidden';
+    document.all["ava1Div"].style.visibility='hidden';
+    document.all["EliminarDiv"].style.visibility='';
+    eval (ON_RSZ);
+}
+
+function deshabilitarTodo(){
+	accion('formulario.txtDiasFacturacion','.disabled=true');
+	accion('formulario.txtNumDiasComision','.disabled=true');
+	accion('formulario.txtPorcentajeRecuperacion','.disabled=true');
+	accion('formulario.txtPorcentajeComision','.disabled=true');
+
+	// vbongiov -- Cambio 20090913 -- 5/08/2009
+	accion('formulario.txtPorcentajeActividad','.disabled=true');
+
+	// sapaza -- PER-SiCC-2010-0478 -- 19/08/2010
+	accion('formulario.txtPorcentajeComisionActividad','.disabled=true');
+
+	deshabilitarHabilitarBoton('botonContenido', 'btnAnadir', 'D');
+	deshabilitarHabilitarBoton('botonContenido', 'Eliminar', 'D');
+	deshabilitarHabilitarBoton('botonContenido', 'btnAceptar', 'D');
+}
+
+function cargarLista(){
+	var tipoParticipante = get('formulario.hTipoParticipante');
+	var tipoParticipanteCapital = get('formulario.hTipoParticipanteCapital');
+	var tipoParticipanteProvincia = get('formulario.hTipoParticipanteProvincia');
+	var tipoParticipanteFrontera = get('formulario.hTipoParticipanteFrontera');
+	var tramosComisionesCapital = get('formulario.hTramosComisionesCapital');
+	var tramosComisionesProvincia = get('formulario.hTramosComisionesProvincia');
+	var tramosComisionesFrontera = get('formulario.hTramosComisionesFrontera');
+	var hDiasTrasFacturacionCapital = get('formulario.hDiasTrasFacturacionCapital');
+	var hDiasTrasFacturacionProvincia = get('formulario.hDiasTrasFacturacionProvincia');
+	var hDiasTrasFacturacionFrontera = get('formulario.hDiasTrasFacturacionFrontera');
+
+	if(tipoParticipante == tipoParticipanteCapital){
+		pasarDatosLista(tramosComisionesCapital);
+		set("formulario.txtDiasFacturacion", hDiasTrasFacturacionCapital);
+	}
+	else if(tipoParticipante == tipoParticipanteProvincia){
+		pasarDatosLista(tramosComisionesProvincia);
+		set("formulario.txtDiasFacturacion", hDiasTrasFacturacionProvincia);
+	}
+	else if(tipoParticipante == tipoParticipanteFrontera){
+		pasarDatosLista(tramosComisionesFrontera);
+		set("formulario.txtDiasFacturacion", hDiasTrasFacturacionFrontera);
+	}
+}
+
+function pasarDatosLista(datos){
+	var ar;
+	var ar2;
+
+	if(datos.length > 0){
+		ar = datos.split('|');
+
+		for(var i = 0; i < ar.length; i++){
+			var s = ar[i];
+			ar2 = s.split('#');
+			listado1.insertar(ar2);
+		}
+	}
+}
+
+function btnAnyadirOnClick() {
+	/*	Si se han completado los campos del formulario: 
+	N° Días Comision
+	Porcentaje recuperación
+	Porcentaje Comisión
+
+	Validar que "N° Días Comisión" no sea igual a otro nivel de tramo ya ingresado
+	Si no es igual a otro nivel de tramo, se añade una línea con sus valores a la lista "tramos" 
+	Si es igual, se debe presentar el mensaje de error :
+	UICOM0008	(Número de días para comisión no puede ser igual para dos niveles de tramo) */
+
+	var numDiasComision = get('formulario.txtNumDiasComision');
+	var porcentajeRecuperacion = get('formulario.txtPorcentajeRecuperacion');
+	var porcentajeComision = get('formulario.txtPorcentajeComision');
+
+    // vbongiov -- Cambio 20090913 -- 5/08/2009
+	var porcentajeActividad = get('formulario.txtPorcentajeActividad');
+
+    // sapaza -- PER-SiCC-2010-0478 -- 19/08/2010
+	var porcentajeComisionActividad = get('formulario.txtPorcentajeComisionActividad');
+
+	//1° Validar que se haya ingresado Numero de dias comision, porcentaje recuperacion y comision
+	if(sicc_validaciones_generales('grupoAnadir')){
+
+		//2° Validar que el valor de Numero de dias comision, no sea igual a otro registro ya ingresado
+		var datos = listado1.datos;
+		for(var i=0; i<datos.length; i++) {
+			var temp = datos[i][2];
+			if(temp==numDiasComision) {
+				GestionarMensaje('UICOM0008',null,null,null);
+				focoDiasComision();
+				return;
+			}
+		}
+		
+		var dat = new Array();
+
+		//Obtener el ultimo oid insertado
+		var a = listado1.datos;
+		var oid;
+
+		if(a != null && a.length > 0){
+			var ind = a.length;
+			var ind2 = ind - 1;
+			var arr = a[ind2];
+			oid = eval(arr[0]) + 1;
+		}else{
+			oid = 1;
+		}
+
+		dat[0] = oid; //oid, oculto(secuencial)
+		dat[1] = oid; //Nivel tramo (secuencial)
+		dat[2] = numDiasComision;
+		dat[3] = porcentajeRecuperacion;
+		dat[4] = porcentajeComision;
+		// vbongiov -- Cambio 20090913 -- 5/08/2009
+		dat[5] = porcentajeActividad;
+		// sapaza -- PER-SiCC-2010-0478 -- 19/08/2010
+		dat[6] = porcentajeComisionActividad;
+
+		listado1.insertar(dat);
+
+		//Se limpian los campos
+		set('formulario.txtNumDiasComision', '');
+		set('formulario.txtPorcentajeRecuperacion', '');
+		set('formulario.txtPorcentajeComision', '');
+		// vbongiov -- Cambio 20090913 -- 5/08/2009
+		set('formulario.txtPorcentajeActividad', '');
+		// sapaza -- PER-SiCC-2010-0478 -- 19/08/2010
+		set('formulario.txtPorcentajeComisionActividad', '');
+
+		focoDiasComision();
+	}
+}
+
+function btnEliminarOnClick() {
+	/*	Se eliminan las líneas de "tramos" que halla seleccionado el usuario,
+	renumerando las que hayan quedado de arriba a abajo y numerando desde 1 a n	*/
+
+	if (listado1.numSelecc()== 0) {
+		GestionarMensaje('1021',null,null,null);
+		return;
+    }
+
+	listado1.eliminarSelecc();
+
+	var datos = listado1.datos;
+	var linea;
+	var j;
+
+	if(datos != null && datos.length > 0){
+		for(j = 0; j < datos.length; j++){
+			linea = datos[j];
+			if(linea != null && linea.length > 0){
+				var num = j + 1;
+				linea[0] = num.toString();
+				linea[1] = num.toString();
+			}
+		}
+		listado1.setDatos(datos);
+	}
+}
+
+function btnAceptarOnClick() {
+	var diasFacturacion = get('formulario.txtDiasFacturacion');
+	var o = new Object();
+	var datos = listado1.datos;
+	var datoTemp;
+	var sDatoTemp = '';
+	var i;
+
+	//1° Se valida que se haya ingresado un valor para Dias tras facturacion
+	if(sicc_validaciones_generales('grupoAceptar')){
+
+		//2° Se valida que haya al menos un registro en la lista
+		if(datos=="") {
+			GestionarMensaje('UICOM0009',null,null,null);
+			focoDiasComision();
+			return;
+		}
+
+		for(i = 0; i < datos.length; i++){
+			datoTemp = datos[i];
+			if(i > 0){
+				sDatoTemp += '|';
+			}
+			sDatoTemp += datoTemp.toString();
+		}
+
+		sDatoTemp = sDatoTemp + "?" + diasFacturacion;
+		o.valor = sDatoTemp;
+
+		window.returnValue = o;
+		window.close();
+	}
+}
+
+function onTabBotonAnadir() {
+	focalizaBotonHTML('botonContenido','Eliminar');
+}
+
+function onTabBotonEliminar() {
+	focalizaBotonHTML('botonContenido','btnAceptar');
+}
+
+function onShTabBotonEliminar() {
+	focalizaBotonHTML('botonContenido','btnAnadir');
+}
+
+function fVolver(){
+	window.close();
+}
+
+function fLimpiar(){
+	focoDiasTrasFacturacion();
+	var arrayVacio = new Array();
+	listado1.setDatos(arrayVacio);
+}
+
+function focoDiasTrasFacturacion() {
+	focaliza("formulario.txtDiasFacturacion");
+}
+
+function focoDiasComision() {
+	focaliza("formulario.txtNumDiasComision");
+}
+   
+]]> 
+
+</JAVASCRIPT>
+
+<VALIDACION>
+<ELEMENTO name="txtDiasFacturacion" required="true" group="grupoAceptar" cod="1729" format="e" min="0" max="999"/>
+<ELEMENTO name="txtNumDiasComision" required="true" group="grupoAnadir" cod="1730" format="e" min="0" max="999"/>
+<ELEMENTO name="txtPorcentajeRecuperacion" required="true" group="grupoAnadir" cod="2278" format="n" min="0" max="999.99"/>
+<ELEMENTO name="txtPorcentajeComision" required="true" group="grupoAnadir" cod="2279" format="n" min="0" max="999.99"/>
+<ELEMENTO name="txtPorcentajeActividad" required="false" group="grupoAnadir" cod="3442" format="n" min="0" max="9999999.99"/>
+<ELEMENTO name="txtPorcentajeComisionActividad" required="true" group="grupoAnadir" cod="3460" format="n" min="0" max="999.99"/>
+</VALIDACION>
+
+<FORMULARIO nombre="formulario">
+<VAR nombre="titulo" valor=""/>
+
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="accion" valor=""/>
+<VAR nombre="errCodigo" valor=""/> 
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="varPais" valor=""/> 
+<VAR nombre="varIdioma" valor=""/>
+
+<VAR nombre="hOpcionMenu" valor=""/>
+
+<!--
+Estos hiddens representan listas de datos (sustituyen a las
+listas ocultas).
+Los datos se almacenan en estas variables con el formato:
+xx,xx,xx,xx|xx,xx,xx,xx|xx,xx,xx,xx|...
+Cada tramo de String entre pipes representa un array.
+-->
+<VAR nombre="hTramosComisionesCapital" valor=""/>
+<VAR nombre="hTramosComisionesProvincia" valor=""/>
+<VAR nombre="hTramosComisionesFrontera" valor=""/>
+
+<VAR nombre="hTipoParticipante" valor=""/>
+<VAR nombre="hTipoParticipanteCapital" valor=""/>
+<VAR nombre="hTipoParticipanteProvincia" valor=""/>
+<VAR nombre="hTipoParticipanteFrontera" valor=""/>
+
+<VAR nombre="hDiasTrasFacturacionCapital" valor=""/>
+<VAR nombre="hDiasTrasFacturacionProvincia" valor=""/>
+<VAR nombre="hDiasTrasFacturacionFrontera" valor=""/>
+<VAR nombre="tituloFrame" valor=""/>
+
+<CAPA nombre="capa1">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr> 
+      <td><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif" width="1" height="1"/></td>
+      <td><IMG src="b.gif" width="12" height="12"/></td>
+    </tr>
+
+
+    <tr> 
+      <td width="12"><IMG src="b.gif" width="12" height="12"/></td>
+      <td>
+      <!-- Dependiendo de lo elegido en la pantalla anterior se debe cargar un código u otro a la label 
+      	   *Si la opción elegida en el combo de tipo de participante es capital el cod= 00548
+      	   *Si la opción elegida en el combo de tipo de participante es provincia el cod= 00549
+      	   *Si la opción elegida en el combo de tipo de participante es frontera el cod= 00550
+      	    -->
+        <fieldset><legend class="legend"><LABELC nombre="lblDatos" alto="13" filas="1" valor="" id="legend" cod="00548"/></legend>
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+        
+              <table width="587" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                  <td><IMG src="b.gif" width="8" height="8"/></td>
+                  <td><LABELC nombre="lblDiasFacturacion"  alto="13" filas="1" valor="" id="datosTitle" cod="1729"/></td>
+                  <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                  <td><IMG src="b.gif" width="8" height="8"/></td>
+                  <td nowrap="nowrap">
+                       	<CTEXTO nombre="txtDiasFacturacion" id="datosCampos" max="3" tipo="" onchange="" req="S" size="3" valor="" validacion="" onshtab="onTabBotonEliminar();" />
+                  </td>
+                </tr>  
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+           </td></tr>
+           
+           <tr><td>   
+       	       <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                
+                   <td width="100%">			
+	                <table width="100%" border="0" cellspacing="0" cellpadding="0">
+	                  <tr>
+	                    <td>
+		              <fieldset><legend class="legend"><LABELC nombre="lblDatosAnadir"  alto="13" filas="1" valor="" id="legend" cod="00280"/></legend> 
+		                <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          			<tr><td>
+			                <table width="575" border="0" align="left" cellspacing="0" cellpadding="0">
+			                  <tr> 
+			                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+			                  </tr>
+				          <tr>
+			                    <td><IMG src="b.gif" width="8" height="8"/></td>
+			                    <td><LABELC nombre="lblNumDiasComision" alto="13" filas="1" valor="" id="datosTitle" cod="1730"/></td>
+			                    <td><IMG src="b.gif" width="25" height="8"/></td>
+			                    <td><LABELC nombre="lblPorcentajeRecuperacion"  alto="13" filas="1" valor="" id="datosTitle" cod="2278"/></td>
+			                    <td><IMG src="b.gif" width="25" height="8"/></td>
+			                    <td><LABELC nombre="lblPorcentajeComision"  alto="13" filas="1" valor="" id="datosTitle" cod="2279"/></td>
+								<td><IMG src="b.gif" width="25" height="8"/></td>
+			                    <td><LABELC nombre="lblPorcentajeActividad"  alto="13" filas="1" valor="" id="datosTitle" cod="3442"/></td>
+								<td><IMG src="b.gif" width="25" height="8"/></td>
+			                    <td><LABELC nombre="lblPorcentajeComisionActividad"  alto="13" filas="1" valor="" id="datosTitle" cod="3460"/></td>
+			                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+			                  </tr>
+			                  <tr>
+			                    <td><IMG src="b.gif" width="8" height="8"/></td>
+			                    <td nowrap="nowrap">
+			                       	<CTEXTO nombre="txtNumDiasComision" id="datosCampos" max="3" tipo="" onchange="" req="S" size="3" valor="" validacion="" />
+			                  </td>
+			                    <td><IMG src="b.gif" width="25" height="8"/></td>
+			                    <td nowrap="nowrap">
+				                       	<CTEXTO nombre="txtPorcentajeRecuperacion" id="datosCampos" max="6" tipo="" onchange="" req="S" size="6" valor="" validacion="" />
+				            </td>
+				            <td><IMG src="b.gif" width="25" height="8"/></td>
+			                    <td nowrap="nowrap">
+				                       	<CTEXTO nombre="txtPorcentajeComision" id="datosCampos" max="6" tipo="" onchange="" req="S" size="6" valor="" validacion="" />
+				            </td>
+							 <td><IMG src="b.gif" width="25" height="8"/></td>
+			                    <td nowrap="nowrap">
+				                       	<CTEXTO nombre="txtPorcentajeActividad" id="datosCampos" max="10" tipo="" onchange="" req="S" size="10" valor="" validacion="" />
+				                       	
+				            </td>
+							 <td><IMG src="b.gif" width="25" height="8"/></td>
+			                    <td nowrap="nowrap">
+				                       	<CTEXTO nombre="txtPorcentajeComisionActividad" id="datosCampos" max="10" tipo="" onchange="" req="S" size="10" valor="" validacion="" />
+				                       	
+				            </td>
+			                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+			                  </tr>
+			                  <tr> 
+			                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+			                  </tr>
+			                </table>
+			             </td></tr>
+           			     
+          			 </table>
+		              </fieldset>
+		            </td>
+	                  </tr>  
+	                </table>                    
+                   </td>			
+                   <td><IMG src="b.gif" width="8" height="8"/></td>		
+                </tr>
+                <tr> 
+		      <td><IMG src="b.gif"/></td>
+		      <td>
+		        <fieldset>
+			  <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+			    <tr>
+			      <td class="botonera" width="100%">
+				<BOTON nombre="btnAnadir" ID="botonContenido" tipo="html" accion="btnAnyadirOnClick();" estado="false" cod="404" ontab="onTabBotonAnadir();"/>
+			      </td>
+			    </tr>    
+			  </table>        
+			</fieldset>
+		      </td>
+		      <td><IMG src="b.gif" width="12" height="12"/></td>
+		      
+	    	</tr> 
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="339"/></td>
+                </tr>                                                
+              </table>  
+            </td></tr>
+           </table>
+        </fieldset>
+      </td>
+      
+      <td><IMG src="b.gif" width="12" height="12"/></td>
+    </tr>
+   
+    <tr> 
+	      <td><IMG src="b.gif"/></td>
+	      <td>
+	        <fieldset>
+		  <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+		    <tr>
+		      <td class="botonera" width="100%">
+			<BOTON nombre="btnAceptar" ID="botonContenido" tipo="html" accion="btnAceptarOnClick();" estado="false" cod="12" ontab="focoDiasTrasFacturacion();" onshtab="onTabBotonAnadir();"/>
+		      </td>
+		    </tr>    
+		  </table>        
+		</fieldset>
+	      </td>
+	      <td><IMG src="b.gif" width="12" height="12"/></td>
+	      
+    </tr>  
+	         
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750" ><IMG src="b.gif"/></td>
+      <td width="12" ><IMG src="b.gif" width="12" height="12"/></td>
+    </tr>
+  </table>
+</CAPA>  
+
+<LISTAEDITABLE nombre="listado1" ancho="576" alto="300" x="24" y="191" colorFondo="#CECFCE" msgDebugJS="S">
+<IMGBOTONES precarga="S" conROver="S">
+	<BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+	<BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+    <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+</IMGBOTONES>
+<LINEAS>
+	<GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="0" horizTitulo="1" horizBase="1"/> 
+    <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+</LINEAS>
+<TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00346" ID="datosTitle" />
+<BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+
+<COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+	<COL ancho="20" minimizable="S" minimizada="N"/>
+    <COL ancho="30" minimizable="S" minimizada="N" /> 
+    <COL ancho="60" minimizable="S" minimizada="N" /> 
+    <COL ancho="50" minimizable="S" minimizada="N" /> 
+	<COL ancho="50" minimizable="S" minimizada="N" /> 
+	<COL ancho="50" minimizable="S" minimizada="N" />
+</COLUMNAS>
+<CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+	<COL colFondo="" ID="EstCab" align="center" cod="1871"></COL> 
+	<COL colFondo="" ID="EstCab" cod="1730"></COL> 
+	<COL colFondo="" ID="EstCab" cod="2278"></COL> 
+	<COL colFondo="" ID="EstCab" cod="2279"></COL> 
+	<COL colFondo="" ID="EstCab" cod="3442"></COL> 
+	<COL colFondo="" ID="EstCab" cod="3460"></COL>
+</CABECERA>
+<DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+	coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+    onLoad="" colorSelecc="#D0D9E8">
+	<COL tipo="texto" ID="EstDat"/> 
+	<COL tipo="texto" ID="EstDat2"/>
+	<COL tipo="texto" ID="EstDat"/> 
+	<COL tipo="texto" ID="EstDat2"/>
+	<COL tipo="texto" ID="EstDat"/> 
+	<COL tipo="texto" ID="EstDat2"/>
+</DATOS>
+<ROWSET> 
+</ROWSET>
+<PAGINADO nombre="mipgndo" ancho="576" sep="$" x="12" class="botonera" y="468" control="|" conector="" rowset="" cargainicial="N">       
+	<BOTON nombre="ret1" x="37" y="472" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+    <BOTON nombre="ava1" x="52" y="472" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>      
+    </PAGINADO>
+</LISTAEDITABLE>
+<BOTON nombre="primera1" x="20" y="472" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();" />      
+<BOTON nombre="separa" x="59" y="468" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />      
+<BOTON nombre="Eliminar" x="24" y="469" ID="botonContenido" img="separa_base" tipo="html" estado="false" cod="1254" accion="btnEliminarOnClick();" ontab="onTabBotonEliminar();" onshtab="onShTabBotonEliminar();"/>                                                                                     
+</FORMULARIO>
+</PAGINA>         

@@ -1,0 +1,966 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_parametros_gerente_mantener.xml,v 1.1 2009/12/03 18:46:17 pecbazalar Exp $
+   contenido CCC
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_parametros_gerente_mantener" cod="" titulo="Crear Concurso" estilos="estilosB3.css" 
+colorf="#F0F0F0" msgle="" onload="onLoadPag();" xml:lang="es">
+
+<JAVASCRIPT>
+<![CDATA[ 
+
+var vConstantesPestInc = new Array();    
+
+function onLoadPag() {  
+	configurarMenuSecundario('formulario');
+    fMostrarMensajeError();
+         
+    if (get('formulario.ocultaParticipante') == '1'){
+		//Ocultar el botón btParticipante
+        deshabilitarHabilitarBoton('botonContenido','btnParticipantes','D');
+    }
+	
+    //Inicialmente se ocultan todas las capas menos la de datos adicionales 
+    document.getElementById("capa2").style.visibility='hidden';//formaCalculo
+    document.getElementById("capa3").style.visibility='hidden';//Recomendadas
+    document.getElementById("capa4").style.visibility='hidden';//Monto
+
+    marcaSeleccionDelUsuario('formulario.cbFormaCalculo', get('formulario.oidFormaCalculo'));         
+         
+    if (get('formulario.hidIndGerentes') == '1'){ 
+		//Ya habia ingresado antes
+
+        if  ( get('formulario.oidFormaCalculo') == get('formulario.oid_Forma_Calc_Base_Calc')){
+	        document.getElementById("capa2").style.visibility='visible';
+            marcaSeleccionDelUsuario('formulario.cbFormaCalculo', get('formulario.oidFormaCalculo'));
+    
+			if (get('formulario.oidPlantillaBaseCalculo')!= '') {                  
+				marcaSeleccionDelUsuario('formulario.cbBaseCalculo', get('formulario.oidPlantillaBaseCalculo'));    
+                accion("formulario.cbBaseCalculo",".disabled=true");
+                      
+                if ( get('formulario.oidPlantillaBaseCalculo') == get('formulario.oidBC_Recomendada')) {
+					marcaSeleccionDelUsuario('formulario.cbPeriodoInicialEvaluacion', get('formulario.hidPeriodoInicialEval'));
+                    
+					document.getElementById("capa3").style.visibility='visible';
+                }
+                else { 
+					if( get('formulario.oidPlantillaBaseCalculo') == get('formulario.oidBC_Calculo_Monto'))
+						document.getElementById("capa4").style.visibility='visible';                         
+	                
+					//Ocultar la capa Recomendadas con los campos:                
+                    document.getElementById("capa3").style.visibility='hidden';//Recomendadas 
+                    marcaSeleccionDelUsuario('formulario.cbTipoVenta', get('formulario.oidTipoVta'));
+
+					if(get('formulario.oidTipoVta')!="" || get('formulario.oidTipoVentaPlantilla')!="") {
+						accion("formulario.cbTipoVenta",".disabled=true");
+					}
+
+                    document.getElementById("capa4").style.visibility='visible';
+                }
+            }
+            else {
+				marcaSeleccionDelUsuario('formulario.cbBaseCalculo', get('formulario.oidParamBaseCalculo'));
+
+                if ( get('formulario.oidParamBaseCalculo') == get('formulario.oidBC_Calculo_Monto')){
+					marcaSeleccionDelUsuario('formulario.cbTipoVenta', get('formulario.oidTipoVta'));
+					if(get('formulario.oidTipoVta')!="" || get('formulario.oidTipoVentaPlantilla')!="") {
+						accion("formulario.cbTipoVenta",".disabled=true");
+					}
+
+                    document.getElementById("capa4").style.visibility='visible';
+                }
+
+                if ( get('formulario.oidParamBaseCalculo') == get('formulario.oidBC_Recomendada')){
+					marcaSeleccionDelUsuario('formulario.cbPeriodoInicialEvaluacion', get('formulario.hidPeriodoInicialEval'));
+                    document.getElementById("capa3").style.visibility='visible';
+                }
+            } 
+        } 
+                           
+        if(get('formulario.hIndFaseCalificacion') == '1'){
+			accion("formulario.cbFormaCalculo",".disabled=true");				
+        }
+    } 
+    else {  // Si no se ingresó antes...
+		//COMIENZO - CAMBIOS INCIDENCIA 20760
+        var seleccFormaCalculo = get("formulario.seleccFormaCalculo");
+        var oidBaseCalculoTemp = get("formulario.oidBaseCalculoTemp");
+
+        if(seleccFormaCalculo=="variablesVenta") {
+			//Se seleccionara en el combo forma de calculo el valor
+            //correspondiente a variables de venta y se deshabilita el mismo
+            marcaSeleccionDelUsuario('formulario.cbFormaCalculo', get('formulario.oid_Forma_Calc_Vbles_Vta'));
+            accion("formulario.cbFormaCalculo",".disabled=true");
+
+            //Se ocultan las capas que correspondan
+            document.getElementById("capa2").style.visibility='hidden';//Forma Calculo
+            marcaSeleccionDelUsuario('formulario.cbBaseCalculo', "");
+            document.getElementById("capa4").style.visibility='hidden';//Monto
+            marcaSeleccionDelUsuario('formulario.cbTipoVenta', "");
+            document.getElementById("capa3").style.visibility='hidden';//Recomendadas
+            marcaSeleccionDelUsuario('formulario.cbPeriodoInicialEvaluacion', "");
+        }
+        else if(seleccFormaCalculo=="baseCalculo") {
+			//Se seleccionara en el combo forma de calculo el valor
+            //correspondiente a base de calculo y se deshabilita el mismo
+            marcaSeleccionDelUsuario('formulario.cbFormaCalculo', get('formulario.oid_Forma_Calc_Base_Calc'));
+            accion("formulario.cbFormaCalculo",".disabled=true");
+
+            //Se ocultan y ponen visible las capas que correspondan
+            accionAceptar();
+            accionAceptarFormaCalculo();
+        }
+
+        if(oidBaseCalculoTemp!="") {
+			//Se seleccionara el valor que haya en el combo base de calculo
+            //y se deshabilitara el mismo
+            marcaSeleccionDelUsuario('formulario.cbBaseCalculo', get('formulario.oidBaseCalculoTemp'));
+            accion("formulario.cbBaseCalculo",".disabled=true");
+        }
+        //FIN - CAMBIOS INCIDENCIA 20760
+    }
+
+    var menu = get("formulario.opcionMenu");      
+    if (menu == "Consultar Concurso"){
+		deshabilitaCamposTodos();            
+        btnProxy(1, 0);
+        btnProxy(5, 0);
+    }
+    else {
+		focoComboFormaCalculo();
+    }
+         
+    var vConst = get('formulario.hidConstantesPestINC');
+    vConstantesPestInc = vConst.split("|");      
+    finCargaPagina = true;
+}
+
+function fLimpiar() {
+         onLoadPag();	
+}
+
+function focoComboFormaCalculo() {
+         focaliza('formulario.cbFormaCalculo');
+}
+
+function focoComboTipoVenta() {
+         focaliza('formulario.cbTipoVenta');
+}
+    
+function deshabilitaCampos() {
+	accion('formulario.txtNumPeriodosEvaluar','.readOnly=true');
+	accion('formulario.txtNumMinPedidos','.readOnly=true');
+	accion('formulario.txtNumMinPedidosRecomendada','.readOnly=true');
+}
+    
+function accionExitosa() {
+		
+}
+    
+function deshabilitaCamposTodos(){    
+	accion("formulario.cbBaseCalculo", ".disabled=true");
+    accion("formulario.cbFormaCalculo", ".disabled=true");
+    accion("formulario.cbTipoVenta", ".disabled=true");
+    accion("formulario.ckRecomendacionEfectiva", ".disabled=true");
+    accion("formulario.cbPeriodoInicialEvaluacion", ".disabled=true");
+    deshabilitaCampos();
+    deshabilitarHabilitarBoton('botonContenido','btnAceptar1','D');
+    deshabilitarHabilitarBoton('botonContenido','btnAceptar2','D');
+}
+    
+function marcaSeleccionDelUsuario(pControl, datos){
+	datos = datos.split(",");
+    var comb = pControl;
+    set(comb, datos);
+}
+
+function comprobarDatosObligatorios(){
+	var formaCalculo = get("formulario.cbFormaCalculo");
+    var baseCalculo = get("formulario.cbBaseCalculo");
+    var oidFormaCalcBaseCalc = get("formulario.oid_Forma_Calc_Base_Calc");
+    var oidBaseCalcMonto = get("formulario.oidBC_Calculo_Monto");
+    var tipoVenta = get("formulario.cbTipoVenta");
+    var retorno = true;
+
+    // Si cbFormaCalculo está vacío, retorna false.
+	if ( formaCalculo == "" ) {
+		retorno = false;
+    }
+    else { 
+		// Si en Forma de Calculo se eligió "Base Calculo", se chequea que este combo tenga valor.
+        if ( parseInt(formaCalculo, 10) == parseInt(oidFormaCalcBaseCalc, 10) )  {
+			if ( baseCalculo == "" ) {
+				retorno = false;
+            }
+            else {
+				if(parseInt(baseCalculo, 10) == parseInt(oidBaseCalcMonto, 10) ) {
+					if(tipoVenta=="") {
+						retorno = false;
+                    }
+                }
+            }				
+        }
+    }
+    return retorno;
+}
+
+function onClickParticipantes() {                  
+	var obj = new Object();
+    obj.opcionMenu = get('formulario.opcionMenu');
+    var whnd = mostrarModalSICC('LPMantenerParametrosGerentes','cargar clasificacion participantes',obj);
+    
+	if (whnd != null) {
+	    set ('formulario.hidLstClasConsul',whnd[0]);
+        set ('formulario.hidListaClasif',whnd[1]);             
+        set('formulario.conectorAction', 'LPMantenerParametrosGerentes');
+        eval('formulario').oculto="S"; 
+        set('formulario.accion', 'almacenar Clasificacion Participantes');
+        enviaSICC('formulario','','','N');
+    }
+}
+
+function onClickMontoVentaRecomendada() {
+	var obj = new Object();
+    obj.opcionMenu = get('formulario.opcionMenu');
+    var whnd = mostrarModalSICC('LPMantenerParametrosGerentes','cargar monto venta recomendadas',obj,null,260);
+    
+	if (whnd != null){         
+	    set('formulario.hidLstMVR', whnd[0]) ;
+        set('formulario.conectorAction', 'LPMantenerParametrosGerentes');
+        eval('formulario').oculto="S"; 
+        set('formulario.accion', 'almacenar monto venta recomendadas');
+        enviaSICC('formulario');
+    }
+}
+    
+function accionAceptar(){        
+	var vOidFC = get('formulario.cbFormaCalculo');
+    set('formulario.oidFormaCalculo', vOidFC);
+    
+	if ( vOidFC == get('formulario.oid_Forma_Calc_Base_Calc')) {
+    // Agregado por ssantana, 1/6/2005 - Si existe un Oid de Base Calculo de la plantilla, se muestra 
+    // y deshabilita el combo Forma de Calculo.
+	    var oidBCPlantilla = get('formulario.oidPlantillaBaseCalculo');
+        if ( oidBCPlantilla != "") {
+	        marcaSeleccionDelUsuario('formulario.cbBaseCalculo', oidBCPlantilla );
+            accion("formulario.cbBaseCalculo",".disabled=true");
+            document.getElementById("capa2").style.visibility = "visible";
+
+			if ( oidBCPlantilla == get('formulario.oidBC_Recomendada') ) {
+				document.getElementById("capa1").style.visibility='visible';
+            }
+			else { 
+				if( oidBCPlantilla == get('formulario.oidBC_Calculo_Monto') ) {
+					document.getElementById("capa4").style.visibility='visible';
+
+					//si existe tipo de venta en la plantilla
+					var oidTipoVta = get('formulario.oidTipoVta');
+					var oidTipoVentaPlantilla = get('formulario.oidTipoVentaPlantilla');
+					if(oidTipoVentaPlantilla!="") {
+						//se selecciona en el combo
+						var oidSeleccionado = new Array();
+						oidSeleccionado = oidTipoVentaPlantilla.split(",");	    
+						set("formulario.cbTipoVenta", oidSeleccionado);
+
+						//y se deshabilita
+						accion("formulario.cbTipoVenta",".disabled=true");
+					}
+					else {
+						if(oidTipoVta!="") {
+							marcaSeleccionDelUsuario('formulario.cbTipoVenta', get('formulario.oidTipoVta'));
+							accion("formulario.cbTipoVenta",".disabled=true");
+						}
+					}		
+				}
+                
+				//Ocultar la capa Recomendadas con los campos:                
+                document.getElementById("capa3").style.visibility='hidden';
+            } 
+        }
+		else {
+			//dtoConcurso.paramGerentes.oidFormaCalculo != ConstantesINC.OID_FORMA_CALC_BASE_CALC 
+            document.getElementById("capa2").style.visibility='hidden';
+            document.getElementById("capa3").style.visibility='hidden';//Recomendadas
+            document.getElementById("capa4").style.visibility='hidden';         
+        } 
+
+        document.getElementById("capa2").style.visibility='visible';
+    }
+    else{
+		document.getElementById("capa2").style.visibility='hidden';//Forma Calculo
+        marcaSeleccionDelUsuario('formulario.cbBaseCalculo', "");
+        
+		document.getElementById("capa4").style.visibility='hidden';//Monto
+        marcaSeleccionDelUsuario('formulario.cbTipoVenta', "");
+        
+		document.getElementById("capa3").style.visibility='hidden';//Recomendadas
+        marcaSeleccionDelUsuario('formulario.cbPeriodoInicialEvaluacion', "");        
+		set('formulario.chkRecomendacionEfectiva','');
+        set('formulario.cbPeriodoInicialEvaluacion','');
+        set('formulario.txtNumeroPeriodosEvaluar','');
+        set('formulario.txtNumeroMinimoPedidos','');
+        set('formulario.txtNumeroMinimoPedidosRecomendada','');
+             
+        if ( vOidFC == get('formulario.oid_Forma_Calc_Vbles_Vta')) {
+			var obj = new Object();
+            obj.oidVariablesVenta = get('formulario.oidVariablesVenta');
+            obj.opcionMenu = get('formulario.opcionMenu');
+                  
+            var whnd = mostrarModalSICC('LPMantenerParametrosGerentes','cargar variables venta',obj,null,230);      
+            if (whnd != null) {
+                      set('formulario.hidVariablesVenta', whnd[0]);
+                      set('formulario.conectorAction', 'LPMantenerParametrosGerentes');
+                      eval('formulario').oculto="S"; 
+                      set('formulario.accion', 'almacenar variables venta');
+                      enviaSICC('formulario','','','N');
+            }
+        }
+    }
+}
+
+function onChangeBaseCalculo()    {
+	if (get('formulario.cbBaseCalculo','V') == get('formulario.oidBC_Calculo_Monto'))
+		document.getElementById("capa4").style.visibility='visible';//Monto
+    else
+		document.getElementById("capa4").style.visibility='hidden';//Monto
+}
+          
+function accionGuardar () {
+    if(get("formulario.cbFormaCalculo")==get("formulario.oid_Forma_Calc_Base_Calc") 
+    && get('formulario.cbBaseCalculo')== get('formulario.oidBC_Calculo_Monto')){
+		if(!sicc_validaciones_generales('Obligatorio')) {
+			return;
+        }	
+    }
+
+    if(!sicc_validaciones_generales('grupoCamposNumericos')) {
+		return;
+    }
+
+    if (tomarDatosPantalla()) {
+		var vDatosOblig = comprobarDatosObligatorios();
+        set('formulario.datosObligatorios', vDatosOblig);
+        set('formulario.conectorAction', 'LPMantenerParametrosGerentes');
+        eval('formulario').oculto="S"; 
+        set('formulario.accion', 'guardar');
+        enviaSICC('formulario','','','N');
+    }
+}
+    
+function tomarDatosPantalla(){
+	set('formulario.hidRecomendacionEfectiva',get('formulario.ckRecomendacionEfectiva'));
+    set('formulario.hidPeriodoInicialEval',get('formulario.cbPeriodoInicialEvaluacion','V'));
+    set('formulario.hidNroPeriodosEvaluar',get('formulario.txtNumPeriodosEvaluar'));
+    set('formulario.hidNroMinimoPedidos',get('formulario.txtNumMinPedidos'));
+    set('formulario.hidNroMinPedidosReco',get('formulario.txtNumMinPedidosRecomendada'));         
+    set('formulario.oidTipoVta', get('formulario.cbTipoVenta'));
+
+    if (document.getElementById("capa3").style.visibility =='hidden' ){
+		//Si capa oculta, vacio la lista
+        set('formulario.hidLstMVR','');
+    }
+
+    var vOidFC = get('formulario.cbFormaCalculo');
+    
+	if ( vOidFC == get('formulario.oid_Forma_Calc_Vbles_Vta')) {
+		if( get('formulario.hidVariablesVenta') == '' && get('formulario.tengoVariablesVenta') == ''){
+			GestionarMensaje('1498');
+            return false;
+        }
+    }
+         
+    if (get('formulario.cbBaseCalculo','V') == get('formulario.oidBC_Recomendada')){
+		if( get('formulario.hidLstMVR') == '' && get('formulario.tengoLstMVR') == ''){
+			GestionarMensaje('1499');
+            return false;
+        }
+    }
+    
+	return true;
+}
+    
+function fGuardar(){
+	accionGuardar();
+}
+    
+function pasaMouse(valor, nombre) {
+	var iPos = vConstantesPestInc[valor];
+    activarPuntero('formulario',  iPos, nombre);
+}
+    
+function haceClick(valor) {
+	var iPos = vConstantesPestInc[valor];
+    onClickPestanyaHabilitada(iPos, 'formulario', 'LPMantenerParametrosGerentes');
+}
+    
+function accionError(){
+	fMostrarMensajeError();
+}
+
+function accionAceptarFormaCalculo(){    
+	//se toma el oid del combo base de calculo
+	set('formulario.oidBaseCalculo', get('formulario.cbBaseCalculo','V'));
+         
+	//si la base de calculo es monto
+    if (get('formulario.cbBaseCalculo','V') == get('formulario.oidBC_Calculo_Monto')){
+		//muestra la capa de monto
+		document.getElementById("capa4").style.visibility='visible';//Monto
+		
+		//si existe tipo de venta en la plantilla
+		var oidTipoVta = get('formulario.oidTipoVta');
+		var oidTipoVentaPlantilla = get('formulario.oidTipoVentaPlantilla');
+		if(oidTipoVentaPlantilla!="") {
+			//se selecciona en el combo
+			var oidSeleccionado = new Array();
+			oidSeleccionado = oidTipoVentaPlantilla.split(",");	    
+			set("formulario.cbTipoVenta", oidSeleccionado);
+
+			//y se deshabilita
+            accion("formulario.cbTipoVenta",".disabled=true");
+		}
+		else {
+			if(oidTipoVta!="") {
+				marcaSeleccionDelUsuario('formulario.cbTipoVenta', get('formulario.oidTipoVta'));
+	 		    accion("formulario.cbTipoVenta",".disabled=true");
+			}
+		}		
+
+		//oculta la capa de recomendadas
+        document.getElementById("capa3").style.visibility='hidden';//Recomendadas
+        
+		//se limpian los componentes de la capa recomendadas
+        limpiaCapaRecomendados();
+    }
+    else{ // si la base de calculo no es monto
+		set('formulario.cbTipoVenta','');
+		// oculta la capa monto
+        document.getElementById("capa4").style.visibility='hidden';//Monto
+        
+		// si la base de calculo es recomendada muestra la capa recomendadas
+		if ( get('formulario.cbBaseCalculo','V') == get('formulario.oidBC_Recomendada'))
+			document.getElementById("capa3").style.visibility='visible';//Recomendadas
+        else { // si la base de calculo no es recomendada oculta la capa recomendadas
+	        document.getElementById("capa3").style.visibility='hidden';//Recomendadas
+            limpiaCapaRecomendados();
+        }
+    }
+}
+
+function limpiaCapaRecomendados(){
+	set('formulario.ckRecomendacionEfectiva', 'N');
+    set('formulario.cbPeriodoInicialEvaluacion', '');
+    set('formulario.txtNumPeriodosEvaluar','');
+    set('formulario.txtNumMinPedidos','');
+    set('formulario.txtNumMinPedidosRecomendada','');         
+}
+
+function onClickPestanyaPaginaGerentes(valor, form, nombreLP) {
+    if(get("formulario.cbFormaCalculo")==get("formulario.oid_Forma_Calc_Base_Calc") 
+    && get('formulario.cbBaseCalculo')== get('formulario.oidBC_Calculo_Monto')){
+		if(!sicc_validaciones_generales('Obligatorio')) {
+			return;
+        }	
+    }
+         
+    if(!sicc_validaciones_generales('grupoCamposNumericos')) {
+		return;
+    }
+
+    onClickPestanyaHabilitada(valor, form, nombreLP);
+}
+
+
+]]> 
+</JAVASCRIPT>
+    <JS src="sicc_util.js" />
+    <JS src="pestanyas_concurso_inc.js" />
+    
+<VALIDACION>
+  <ELEMENTO name="txtNumPeriodosEvaluar" group="grupoCamposNumericos" required="false" cod="1675" format="e" min="0" max="99"/>
+  <ELEMENTO name="txtNumMinPedidos" group="grupoCamposNumericos" required="false" cod="1676" format="e" min="0" max="999"/>
+  <ELEMENTO name="txtNumMinPedidosRecomendada" group="grupoCamposNumericos" required="false" cod="2423" format="e" min="0" max="999"/>
+
+  <ELEMENTO name="cbTipoVenta" group="Obligatorio" required="true" cod="1622"/>
+</VALIDACION>
+
+<FORMULARIO nombre="formulario" oculto="N">
+    <VAR nombre="accion" valor=""/>
+    <VAR nombre="conectorAction" valor=""/>
+    <VAR nombre="errCodigo" valor=""/>
+    <VAR nombre="errDescripcion" valor=""/>      
+    <VAR nombre="idPestanyaDest" valor=""/>
+    <VAR nombre="opcionMenu" valor=""/>
+    <VAR nombre="datosObligatorios" valor=""/>    
+    <!-- Variables para manejo de oid de combos -->
+    <VAR nombre="oidBaseCalculo" valor=""/>
+    <VAR nombre="oidVariablesVenta" valor=""/>    
+    <VAR nombre="hidIndGerentes" valor="0"/>    
+    <VAR nombre="hidListaClasif" valor=""/>
+    <VAR nombre="hidLstClasConsul" valor=""/>
+    <VAR nombre="hidLstMVR" valor=""/>
+    <VAR nombre="hidVariablesVenta" valor=""/>    
+    <VAR nombre="tengoLstMVR" valor=""/>
+    <VAR nombre="tengoVariablesVenta" valor=""/>
+    <VAR nombre="oidParamGerentes" valor=""/>
+    <VAR nombre="oidFormaCalculo" valor=""/>
+    <VAR nombre="oidPlantillaBaseCalculo" valor=""/>    
+    <VAR nombre="oidParamBaseCalculo" valor=""/>    
+    <!-- Variables con valores de constantes INC -->
+    <VAR nombre="hidConstantesPestINC" valor=""/>    
+    <VAR nombre="oidBC_Recomendada" valor=""/>
+    <VAR nombre="oidBC_Calculo_Monto" valor=""/>
+    <VAR nombre="oid_Forma_Calc_Base_Calc" valor=""/>
+    <VAR nombre="oid_Forma_Calc_Vbles_Vta" valor=""/>    
+    <VAR nombre="oidTipoVta" valor=""/>    
+    <VAR nombre="ocultaParticipante" valor=""/>    
+    <VAR nombre="hidRecomendacionEfectiva" valor=""/>
+    <VAR nombre="hidPeriodoInicialEval" valor=""/>
+    <VAR nombre="hidNroPeriodosEvaluar" valor=""/>
+    <VAR nombre="hidNroMinimoPedidos" valor=""/>
+    <VAR nombre="hidNroMinPedidosReco" valor=""/>
+    <VAR nombre="hIndEstadoProductos" valor=""/>
+    <VAR nombre="hIndEstadoAmbitoGeografico" valor=""/>
+    <VAR nombre="hIndEstadoCalificion" valor=""/>
+    <VAR nombre="hIndEstadoGerentes" valor=""/>
+    <VAR nombre="hIndEstadoConsultoras" valor=""/>
+    <VAR nombre="hIndEstadoProgramaNuevas" valor=""/>
+    <VAR nombre="hIndEstadoMultinivel" valor=""/>
+    <VAR nombre="hIndFaseCalificacion" valor="0"/>
+    <VAR nombre="seleccFormaCalculo" valor=""/>
+    <VAR nombre="oidBaseCalculoTemp" valor=""/>
+    <VAR nombre="oidTipoVentaPlantilla" valor=""/>		  
+    
+<!-- DEFINICION DE PESTANYAS -->
+
+ <table width="100%" height="100%" border="0" align="center" cellpadding="0" cellspacing="0" class="menu4">
+  <tr> 
+    <td width="12" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="12" height="30"/></td>
+    <td nowrap="nowrap" class="menu5texto">&nbsp;</td>
+    <td width="10" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <!--td width="92" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="poneManito('lblParametrosGenerales');" onclick="onClickPestanya(1);"-->
+    <td width="92" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="activarPuntero('formulario',1,'lblParametrosGenerales');" 
+         onclick="onClickPestanyaPaginaGerentes(1,'formulario','LPMantenerParametrosGerentes');">    
+         <tr align="center"> 
+           <td nowrap="nowrap"><LABELC nombre="lblParametrosGenerales"  alto="13" filas="1" valor=""  id="menu5textonegrita" cod="00393"/></td>
+         </tr>
+      </table>
+    </td>
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <!--<td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="poneManito('lblProductos');" onclick="onClickPestanya(2);">-->
+         <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" 
+         onmouseover="activarPuntero('formulario',5,'lblProductos');" onclick="onClickPestanyaPaginaGerentes(5,'formulario','LPMantenerParametrosGerentes');">
+         <tr align="center"> 
+           <td nowrap="nowrap" ><LABELC nombre="lblProductos"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="0094"/></td>
+         </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <!--td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="poneManito('lblPremios');" onclick="onClickPestanya(3);"-->
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" 
+         onmouseover="activarPuntero('formulario',6,'lblPremios');" onclick="onClickPestanyaPaginaGerentes(6,'formulario','LPMantenerParametrosGerentes');">
+         <tr align="center"> 
+           <td nowrap="nowrap" ><LABELC nombre="lblPremios"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00394"/></td>
+         </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <!--td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="poneManito('lblRequisitos');" onclick="onClickPestanya(4);"-->
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" 
+         onmouseover="activarPuntero('formulario',7,'lblRequisitos');" onclick="onClickPestanyaPaginaGerentes(7,'formulario','LPMantenerParametrosGerentes');">
+         <tr align="center"> 
+           <td nowrap="nowrap"  ><LABELC nombre="lblRequisitos"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00395"/></td>
+         </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <!--td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="poneManito('lblObtencionPuntos');" onclick="onClickPestanya(5);"-->
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" 
+         onmouseover="activarPuntero('formulario',4,'lblObtencionPuntos');" onclick="onClickPestanyaPaginaGerentes(4,'formulario','LPMantenerParametrosGerentes');">
+         <tr align="center"> 
+           <td nowrap="nowrap" ><LABELC nombre="lblObtencionPuntos"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00396"/></td>
+         </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <!--td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="poneManito('lblDespachoPremios');" onclick="onClickPestanya(6);"-->
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" 
+         onmouseover="activarPuntero('formulario',8,'lblDespachoPremios');" onclick="onClickPestanyaPaginaGerentes(8,'formulario','LPMantenerParametrosGerentes');">
+         <tr align="center"> 
+           <td nowrap="nowrap" ><LABELC nombre="lblDespachoPremios"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00397"/></td>
+         </tr>
+      </table>
+   </td>
+  
+    <td width="16" class="menu5texto"><IMG src="b.gif" width="12" height="8"/></td>
+  </tr>
+</table>         
+ <table width="100%" height="100%" border="0" align="center" cellpadding="0" cellspacing="0" class="menu4">
+  <tr> 
+    <td width="12" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="12" height="30"/></td>
+    <td nowrap="nowrap" class="menu5texto">&nbsp;</td>
+    <td width="10" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+     <td width="70" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" 
+                             onmouseover="activarPuntero('formulario',3,'lblAmbitoGeografico');" onclick="onClickPestanyaPaginaGerentes(3,'formulario','LPMantenerParametrosGerentes');">
+         <tr align="center"> 
+           <td nowrap="nowrap" ><LABELC nombre="lblAmbitoGeografico"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="2801"/></td>
+         </tr>
+      </table>
+    </td>
+    <td width="10" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+     <!--td width="70" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="poneManito('lblCalificacion');" onclick="onClickPestanya(8);"-->
+     <td width="70" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" 
+         onmouseover="activarPuntero('formulario',9,'lblCalificacion');" onclick="onClickPestanyaPaginaGerentes(9,'formulario','LPMantenerParametrosGerentes');">
+         <tr align="center"> 
+           <td nowrap="nowrap" ><LABELC nombre="lblCalificacion"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00398"/></td>
+         </tr>
+      </table>
+    </td>
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <!--td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="poneManito('lblGerentes');" onclick="onClickPestanya(9);"-->
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" bgcolor="##496A9A" 
+         onmouseover="" onclick="">
+         <tr align="center"> 
+           <td nowrap="nowrap" ><LABELC nombre="lblGerentes"  alto="13" filas="1" valor="" id="menu5textoblanca" cod="00399"/></td>
+         </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+   <!--td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="poneManito('lblConsultoras');" onclick="onClickPestanya(10);"-->
+   <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" 
+         onmouseover="activarPuntero('formulario',11,'lblConsultoras');" onclick="onClickPestanyaPaginaGerentes(11,'formulario','LPMantenerParametrosGerentes');">
+         <tr align="center"> 
+           <td nowrap="nowrap" ><LABELC nombre="lblConsultoras"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00401"/></td>
+         </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+         <td width="20" nowrap="nowrap" class="menu5texto">
+   <!--table width="75" border="1" align="center" cellpadding="1" cellspacing="0" ID="DatosGenerales" 
+        bordercolor="#496A9A" onclick="onClickPestanya(11);" onmouseover="poneManito('lblProgramaNuevas');"-->
+   <table width="75" border="1" align="center" cellpadding="1" cellspacing="0" ID="DatosGenerales" bordercolor="#496A9A" 
+         onmouseover="activarPuntero('formulario',2,'lblProgramaNuevas');" onclick="onClickPestanyaPaginaGerentes(2,'formulario','LPMantenerParametrosGerentes');">
+         <tr align="center"> 
+           <td nowrap="nowrap"><LABELC nombre="lblProgramaNuevas"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00590"/></td>
+         </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <!--td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onclick="onClickPestanya(12);" onmouseover="poneManito('lblMultinivel');"-->
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" 
+         onmouseover="activarPuntero('formulario',12,'lblMultinivel');" onclick="onClickPestanyaPaginaGerentes(12,'formulario','LPMantenerParametrosGerentes');">
+         <tr align="center"> 
+           <td nowrap="nowrap"><LABELC nombre="lblMultinivel"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00400"/></td>
+         </tr>
+      </table>
+   </td>
+    <td width="16" class="menu5texto"><IMG src="b.gif" width="12" height="8"/></td>
+  </tr>
+</table>                                                                                                             
+
+
+<!-- FIN DEFINICION DE PESTANYAS -->
+
+<CAPA nombre="capa1" alto="110" ancho="100%" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="70" zindex="">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+         <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+         <td width="750" ><IMG src="b.gif"/></td>
+         <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+<!--**************************-->
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+         <fieldset><legend class="legend"><LABELC nombre="lblDatosAdicionales" alto="13" filas="1" valor="" id="legend" cod="0052"/></legend>
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+           <tr><td>
+
+           <!---primera fila-->
+                <table width="696" border="0" align="left" cellspacing="0" cellpadding="0">
+                  <tr> 
+                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td><LABELC nombre="lblFormaCalculo1" alto="13" filas="1" valor="" id="datosTitle" cod="1671"/></td>
+                     <td width="100%" ><IMG src="b.gif" width="266" height="8"/></td>
+                  </tr> 
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td nowrap="nowrap"><COMBO nombre="cbFormaCalculo" id="datosCampos" 
+                  size="1" multiple="N" req="S" valorinicial="" textoinicial="" onshtab="focoComboTipoVenta();">
+                                   <ROWSET>
+                                   </ROWSET>
+                            </COMBO> 
+                     </td>
+                     <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                  <tr>
+                     <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                  
+                </table>
+        <!---fin primera fila-->
+            </td></tr>
+            </table>
+         </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr>
+      <tr> 
+         <td><IMG src="b.gif"/></td>
+         <td>
+           <fieldset>
+             <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">         
+                <tr>
+                  <td class="botonera">
+                    <BOTON nombre="btnAceptar1" ID="botonContenido" tipo="html" accion="accionAceptar();" estado="false" cod="12"/>
+                    <BOTON nombre="btnParticipantes" ID="botonContenido" tipo="html" accion="onClickParticipantes();" 
+           estado="false" cod="745"/>
+                  </td>
+                </tr>    
+             </table>         
+           </fieldset>
+         </td>
+         <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>      
+    <tr>
+         <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+         <td width="756" ><IMG src="b.gif"/></td>
+         <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+ </CAPA>  
+ <CAPA nombre="capa2" alto="110" ancho="100%" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="175" zindex="">
+         <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+         <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+         <td width="750" ><IMG src="b.gif"/></td>
+         <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+<!--**************************-->
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+         <fieldset><legend class="legend"><LABELC nombre="lblFormaCalculo2"  alto="13" filas="1" valor="" id="legend" cod="00288"/></legend>
+          <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+           <tr><td>
+           <!---primera fila-->
+                <table width="696" border="0" align="left" cellspacing="0" cellpadding="0">
+                  <tr> 
+                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td><LABELC nombre="lblBaseCalculo"  alto="13" filas="1" valor="" id="datosTitle" cod="1181"/></td>
+                     <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr> 
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td  nowrap="nowrap">
+                         <COMBO nombre="cbBaseCalculo" id="datosCampos" size="1" multiple="N" 
+                         req="S" valorinicial="" textoinicial="" onchange="">
+                           <ROWSET>      
+                                    
+                           </ROWSET>
+                         </COMBO>
+                     </td>
+                     <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                  <tr>
+                     <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                  
+                </table>
+        <!---fin primera fila-->
+            </td></tr>
+            </table>
+         </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+         <td><IMG src="b.gif"/></td>
+         <td>
+           <fieldset>
+             <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">         
+                <tr>
+                  <td class="botonera">
+                    <BOTON nombre="btnAceptar2" ID="botonContenido" tipo="html" accion="accionAceptarFormaCalculo();" estado="false" cod="12"/>
+                   
+                  </td>
+                </tr>    
+             </table>         
+           </fieldset>
+         </td>
+         <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>   
+    <tr>
+         <td width="12" align="center"><IMG src="b.gif" width="12" height="15"/></td>
+         <td width="756" ><IMG src="b.gif"/></td>
+         <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+ </CAPA>     
+ <CAPA nombre="capa3" alto="120" ancho="100%" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="hidden" contravsb="" x="0" y="280" zindex="">
+         <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+         <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+         <td width="750" ><IMG src="b.gif"/></td>
+         <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+<!--**************************-->
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+         <fieldset><legend class="legend"><LABELC nombre="lblRecomendadas"  alto="13" filas="1" valor="" id="legend" cod="00289"/></legend>
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+           <tr><td>
+           <!---primera fila-->
+                <table width="696" border="0" align="left" cellspacing="0" cellpadding="0">
+                  <tr> 
+                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td><LABELC nombre="lblRecomendacionEfectiva"  alto="13" filas="1" valor="" id="datosTitle" cod="1672"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td><LABELC nombre="lblPeriodoInicialEvaluacion"  alto="13" filas="1" valor="" id="datosTitle" cod="1674"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td><LABELC nombre="lblNumPeriodosEvaluar"  alto="13" filas="1" valor="" id="datosTitle" cod="1675"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td><LABELC nombre="lblNumMinPedidos"  alto="13" filas="1" valor="" id="datosTitle" cod="1676"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td><LABELC nombre="lblNumMinPedidosRecomendada"  alto="13" filas="1" valor="" id="datosTitle" cod="2423"/></td>
+                     <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr> 
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td><CHECKBOX nombre="ckRecomendacionEfectiva" id="datosCampos" onclick="" check="S"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td  nowrap="nowrap">
+                         <COMBO nombre="cbPeriodoInicialEvaluacion" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                           <ROWSET>
+                                                         		
+                           </ROWSET>
+                         </COMBO>
+                     </td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                      <td><CTEXTO nombre="txtNumPeriodosEvaluar" id="datosCampos" max="2" tipo="" onchange="" req="N" size="2" valor="" validacion="" /></td>              
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td><CTEXTO nombre="txtNumMinPedidos" id="datosCampos" max="3" tipo="" onchange="" req="N" size="3" valor="" validacion="" /></td>         
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td><CTEXTO nombre="txtNumMinPedidosRecomendada" id="datosCampos" max="3" tipo="" onchange="" req="N" size="3" valor="" validacion="" /></td>                    
+                     <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                  <tr>
+                     <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                  
+                </table>
+        <!---fin primera fila-->
+             </td></tr>
+            </table>
+         </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+         <td><IMG src="b.gif"/></td>
+         <td>
+           <fieldset>
+             <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">         
+                <tr>
+                  <td class="botonera">
+                    <BOTON nombre="btnMontoVentas" ID="botonContenido" tipo="html" accion="onClickMontoVentaRecomendada();" 
+           estado="false" cod="1677"/>
+                  </td>
+                </tr>    
+             </table>         
+           </fieldset>
+         </td>
+         <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>     
+    <tr>
+         <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+         <td width="756" ><IMG src="b.gif"/></td>
+         <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+ </CAPA>     
+  <CAPA nombre="capa4" alto="90" ancho="100%" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="" contravsb="" x="0" y="280" zindex="">
+         <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+         <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+         <td width="750" ><IMG src="b.gif"/></td>
+         <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+<!--**************************-->
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+         <fieldset><legend class="legend"><LABELC nombre="lblDatosMonto"  alto="13" filas="1" valor="" id="legend" cod="917"/></legend>
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+           <tr><td>
+
+           <!---primera fila-->
+                <table width="696" border="0" align="left" cellspacing="0" cellpadding="0">
+                  <tr> 
+                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td><LABELC nombre="lblTipoVenta"  alto="13" filas="1" valor="" id="datosTitle" cod="1622"/></td>
+                     <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr> 
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td  nowrap="nowrap">
+                         <COMBO nombre="cbTipoVenta" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" ontab="focoComboFormaCalculo();">
+                           <ROWSET>
+                           </ROWSET>
+                         </COMBO>
+                     </td>
+                     <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                  <tr>
+                     <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                  
+                </table>
+        <!---fin primera fila-->
+             </td></tr>
+            </table>
+         </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+   
+    <tr>
+         <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+         <td width="756" ><IMG src="b.gif"/></td>
+         <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+ </CAPA>                                                                                                                                                                
+</FORMULARIO>
+</PAGINA>  
+

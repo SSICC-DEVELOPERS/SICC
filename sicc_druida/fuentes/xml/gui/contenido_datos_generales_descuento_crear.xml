@@ -1,0 +1,1392 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_datos_generales_descuento_crear.xml,v 1.1 2009/12/03 18:46:05 pecbazalar Exp $
+   GEN
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_datos_generales_descuento_crear" 
+        cod="0644" 
+        titulo="Ingresar valores descuento" 
+        estilos="estilosB3.css" 
+        colorf="#F0F0F0"
+        msgle="" 
+        onload="onLoadPag();" 
+        xml:lang="es" >
+      
+      
+      <!--
+           0233 Consultar descuentos
+           0354 Modificar valores de descuentos
+           0343 Eliminar descuentos
+           0644 Crear valores de descuentos           
+        --> 
+              
+<JAVASCRIPT>
+  <![CDATA[ 
+
+    var formName = "formulario";
+    var arrLimpia = new Array();
+    var varNoLimpiarSICC = true;
+	 var arrComboAcceso;
+	 var arrComboSubacceso ;
+
+    function onLoadPag(){
+        
+        DrdEnsanchaConMargenDcho('listado1',12);
+        document.all["Cplistado1"].style.visibility='';
+        document.all["CpLin1listado1"].style.visibility='';
+        document.all["CpLin2listado1"].style.visibility='';
+        document.all["CpLin3listado1"].style.visibility='';
+        document.all["CpLin4listado1"].style.visibility='';
+        document.all["separaDiv"].style.visibility='hidden';
+        document.all["primera1Div"].style.visibility='hidden';
+        document.all["ret1Div"].style.visibility='hidden';
+        document.all["ava1Div"].style.visibility='hidden';
+        document.all["btnSiguienteDiv"].style.visibility='';
+        eval (ON_RSZ);  
+			
+        configurarMenuSecundario('formulario');
+
+        txt_to('lbldtPais',get('formulario.hidDescripcionPais'));
+        txt_to('lbldtNumDescuento',get('formulario.hidNumDescuento'));
+        
+        guardoConExito();
+        
+        document.getElementById("InsertarP1").style.backgroundColor = "#496A9A";
+        document.getElementById("InsertarP1").style.color = "#FFFFFF";
+
+        fMostrarMensajeError();
+        
+        //Incidencia 6285
+        //Si (casodeuso = "insertar") entonces
+        //-> Mostrar el atributo "activo" deschequeado y deshabilitado
+        //Si no Si (casodeuso = "modificar") entonces
+        //-> Mostrar el atributo "activo" con el valor recuperado y habilitado para ser modificado
+        //Fin Si
+
+        ColocarValoresDeLaMatrizDeDescuento();
+        verifObligatoriedad();
+        if (get('formulario.hidCasoDeUso') =='insertar' ){
+            // Genera la Lista sin indicar Activo
+            listado1.actualizaDat();
+            var datosLista = listado1.datos;
+            var parametros = new Array();
+    
+            for (var i = 0; i < datosLista.length; i++)
+            {
+                //if (datosLista[i][0] != 5) (ahora se muestra en la insercion el "Activo")
+                parametros[parametros.length] = datosLista[i];
+            }
+            
+            if (get('formulario.hVuelveErrPest')=='S'){    
+                seteaValores();
+            }
+            marcaValoresDeParametro();
+            //set("formulario.hidActiva", "N"); (ahora se muestra en la insercion el "Activo")
+            listado1.setDatos(parametros);
+
+        }
+
+        if ( get('formulario.hidCasoDeUso')=='consultar' || get('formulario.hidCasoDeUso')=='modificar' ){                  
+					 seteaValores();
+					 marcaValoresDeParametro();
+					if ( get('formulario.hidCasoDeUso')=='consultar'){     
+							 resguardarValoresCombo();
+							 deshabilitarEnConsulta();
+					}//else 
+			  }
+            
+        if ( get('formulario.hidCasoDeUso')=='modificar'){
+        
+            //Mostrar página "contenido_datos_generales_descuento_crear" con todos los controles deshabilitados y con el botón "siguiente" deshabilitado
+                if (get('formulario.hidVigenciaDescuento')=='C')
+                {
+                    deshabilitarEnConsulta();
+                    deshabilitarHabilitarBoton("botonContenido","btnSiguiente", "D");
+                    btnProxy(5, '0'); //limpiar
+                    btnProxy(1, '0');	//guardar
+                }
+                else if (get('formulario.hidVigenciaDescuento')=='V')
+                {
+                    deshabilitarEnDescuentoVigente();
+                    deshabilitarHabilitarBoton("botonContenido","btnSiguiente", "D");
+
+                    var listadoDatos = listado1.datos;
+
+                    var cantCodigos = listado1.codigos().length;                   
+                    
+                    listado1.actualizaDat();                    
+                    var nuevos_datos = new Array();
+                    listado1.setDatos(nuevos_datos);
+                    var datos;                    
+
+                    for ( var i = 0; i < cantCodigos; i++) 
+                    {
+                        switch ( parseInt(listadoDatos[i][0], 10) )
+                        {
+                            case 5:
+                                datos = listadoDatos[i][0] + "|" + listadoDatos[i][1] + "|" +  listadoDatos[i][2];                                    
+                                insertaParametros(datos);
+                                break;
+                            case 29:
+                                datos = listadoDatos[i][0] + "|" + listadoDatos[i][1] + "|" +  listadoDatos[i][2];
+                                insertaParametros(datos);
+                                break;
+                            case 30:
+                                datos = listadoDatos[i][0] + "|" + listadoDatos[i][1] + "|" +  listadoDatos[i][2];
+                                insertaParametros(datos);
+                                break;
+                        }//switch
+                    } //for						  
+                    btnProxy(1, '1');	//guardar
+                }
+			}
+
+
+      if ( get('formulario.hidCasoDeUso')=='modificar') {
+          if (get('formulario.hidVigenciaDescuento')=='V')
+              focaliza("formulario.cbVigenciaPeriodoHasta");
+          else
+              if (get('formulario.hidVigenciaDescuento')=='F')
+                  focaliza("formulario.txtNombreDescuento");
+      } else {
+          if ( get('formulario.hidCasoDeUso')=='insertar')
+              focaliza("formulario.txtNombreDescuento");
+          else                    
+              if ( get('formulario.hidCasoDeUso')=='consultar')
+                      focalizaBotonHTML('botonContenido','btnSiguiente');
+      }
+            
+		  tomarDatosPagina();
+   }
+   
+	function resguardarValoresCombo(){
+				arrComboAcceso= get("formulario.cbAcceso") ;
+				arrComboSubacceso= get('formulario.cbSubacceso') ;
+				
+	}
+
+	function seteaValores() {
+		marcaSeleccionDelUsuario('formulario.cbMarca', get("formulario.hidOidMarca"));
+        marcaSeleccionDelUsuario('formulario.cbCanal', get("formulario.hidOidCanal"));
+        canalOnChange();
+			var selac = get("formulario.hidAccesos");
+			selac = selac.split(",");
+			
+		  set("formulario.cbAcceso",selac);
+        buscoAcceso();
+			var selsub = get("formulario.hidSubAccesos");
+			selsub = selsub.split(",");
+		  set("formulario.cbSubacceso",selsub);
+	}
+
+  function deshabilitarEnConsulta() { 
+      listado1.tiposCol[1][6]=true; 
+      listado1.actualizaDat();
+      listado1.repinta();         	
+		  accion("formulario.txtNombreDescuento",".disabled=true");
+		  accion("formulario.cbMarca",".disabled=true");
+		  accion("formulario.cbCanal",".disabled=true");
+		  //accion("formulario.cbAcceso",".readonly=true");
+		  //accion("formulario.cbSubacceso",".readonly=true");
+		  accion("formulario.cbVigenciaPeriodoDesde",".disabled=true");
+		  accion("formulario.cbVigenciaPeriodoHasta",".disabled=true");		  
+  } 
+
+  function navegaPestaniasDetalle(pestanya) {    
+        
+      if (recogerInformacion() == true){  
+        set('formulario.conectorAction', 'LPMantenimientoDTODG');
+        set('formulario.accion', 'siguiente');
+
+        var estadoDescuento = get('formulario.hidVigenciaDescuento');
+        var casoUso = get("formulario.hidCasoDeUso");
+
+        if (casoUso == "modificar" && (estadoDescuento == "C" || estadoDescuento == "V" ))
+          return;
+
+        var pestActual = get("formulario.hidPestanya"); // Obtiene el numero de pestanya donde se está parado.
+         
+        // Solo se navega si la pestanya destino no es la misma que la que se está parado.
+        if  ( parseInt(pestActual, 10) != parseInt(pestanya,10) ) {
+            if(pestanya == 1) {
+                set("formulario.hidPestanya", "1");
+                if(casoUso != "consultar") {
+                  eval('formulario').oculto="S";     
+                }                   
+                enviaSICC('formulario');  
+            }
+        }
+      }  
+   }
+
+   function accionSiguiente() {
+        
+        if (validarFacturasOCCC() == true) {
+            if (recogerInformacion() == true){
+                set('formulario.conectorAction', 'LPMantenimientoDTODG');            
+                set('formulario.accion', 'siguiente');
+                                  
+                enviaSICC('formulario');                
+           }
+        }
+    }
+
+    function recogerInformacion() {
+        if (validarControles()) {
+            set('formulario.hidDescripcion',get('formulario.txtNombreDescuento'));
+            set('formulario.hidOidMarca',get('formulario.cbMarca','V'));
+            set('formulario.hidOidCanal',get('formulario.cbCanal','V'));
+
+            var vAcccesos = getComboSeleccionado('formulario.cbAcceso');
+				
+            if (vAcccesos != '')
+                set('formulario.hidAccesos', vAcccesos);
+
+            var vSubacccesos = getComboSeleccionado('formulario.cbSubacceso');
+            if (vSubacccesos != '')
+                set('formulario.hidSubAccesos', vSubacccesos);
+
+            set('formulario.hidOidPeriodoDesde',get('formulario.cbVigenciaPeriodoDesde','V'));
+            set('formulario.hidOidPeriodoHasta',get('formulario.cbVigenciaPeriodoHasta','V'));
+
+            //Tomar valores de la lista editable
+            var listadoDatos = listado1.datos;
+            var cantCodigos = listado1.codigos().length;
+
+            listado1.actualizaDat();
+            var listadoDatos = listado1.datos;
+            var cantCodigos = listado1.codigos().length;
+				
+            listado1.actualizaDat();
+				
+            for ( var i = 0; i < cantCodigos; i++) {
+                switch ( parseInt(listadoDatos[i][0], 10) ) {
+                    case 28:
+                        set('formulario.hidDescuentoAcumulativo',   listadoDatos[i][2]);
+								break;
+                    case 2:
+                        set('formulario.hidCulminacion',    listadoDatos[i][2]);
+								break;            
+                    case 27:
+                        set('formulario.hidControlDevoluciones',    listadoDatos[i][2]);
+                        break;
+                    case 32:    
+                        set('formulario.hidControlAnulaciones', listadoDatos[i][2]);                    
+								break;
+                    case 31:
+                        set('formulario.hidCdomunicacionAParticipantes',    listadoDatos[i][2]);
+								break;            
+                    case 5:
+                        set('formulario.hidActiva', listadoDatos[i][2]);
+								break;
+                    case 26:
+                        set('formulario.hidMorosidad',  listadoDatos[i][2]);
+								break;
+                    case 29:
+                        set('formulario.hidAfectaAFacturas',    listadoDatos[i][2]);
+								break;
+                    case 30:
+                        set('formulario.hidAfectaACuentasCorrientes',   listadoDatos[i][2]);
+								break;
+                }
+            }
+            return true;
+        }
+        else
+            return false
+    }
+
+    function accionGuardar() {
+        
+        if (validarFacturasOCCC() == true) {
+            if (recogerInformacion()== true) {
+                set('formulario.conectorAction', 'LPMantenimientoDTODG');            
+                set('formulario.accion', 'siguiente');
+                eval('formulario').oculto="S"; 
+                enviaSICC('formulario');
+            }
+        }
+    }
+
+    function marcaOnChange() {
+    
+				if (get('formulario.cbMarca','V') != '' &&  get('formulario.cbCanal','V') != '')	{
+					 recargaCombo(formName + ".cbVigenciaPeriodoDesde","CRAObtenerPeriodos","es.indra.sicc.dtos.cra.DTOPeriodo",makeParametersMarcaOnChange(),"marcaMarca(datos)");
+					 recargaCombo(formName + ".cbVigenciaPeriodoHasta","CRAObtenerPeriodos","es.indra.sicc.dtos.cra.DTOPeriodo",makeParametersMarcaOnChange(),"marcaCanal(datos)");      
+				}
+    
+	 }
+
+    function makeParametersMarcaOnChange() {
+        var parametros = new Array([],[],[]);
+
+        parametros[0][0] = 'pais';
+        parametros[0][1] = get('formulario.oidPais');        
+
+        parametros[1][0] = 'marca';
+        parametros[1][1]= get('formulario.cbMarca','V');
+
+        parametros[2][0] = 'canal';
+        parametros[2][1]= get('formulario.cbCanal','V');
+
+        return parametros;    
+    }
+
+    function marcaMarca(datos) {
+        var pd = get("formulario.selPD");
+        
+        var datosNuevo = new Array();
+        datosNuevo[0] = ["",""];
+
+        for (var i = 0; i < datos.length; i++ )
+            datosNuevo[i+1]  = datos[i];
+
+        set_combo("formulario.cbVigenciaPeriodoDesde", datosNuevo);
+        //marcaCombo("cbVigenciaPeriodoDesde", new Array(pd) );        
+        set("formulario.cbVigenciaPeriodoDesde", new Array(pd));     
+        arrLimpia[7] = get("formulario.cbVigenciaPeriodoDesde");
+    }
+
+    function marcaCanal(datos) {
+        var ph = get("formulario.selPH");    
+
+        var datosNuevo = new Array();
+        datosNuevo[0] = ["",""];
+
+        for (var i = 0; i < datos.length; i++ )
+            datosNuevo[i+1]  = datos[i];
+
+        set_combo("formulario.cbVigenciaPeriodoHasta", datosNuevo);
+        //marcaCombo("cbVigenciaPeriodoHasta", new Array(ph) );
+        set("formulario.cbVigenciaPeriodoHasta", new Array(ph));    
+        arrLimpia[8] = get("formulario.cbVigenciaPeriodoHasta");
+    }
+
+    function canalOnChange() {
+        if (get('formulario.cbCanal','V') != '' ){
+            buscoCanal();
+            marcaOnChange();
+        } else {
+            var datosNuevo = new Array();
+            datosNuevo[0] = ["",""];    
+            set_combo("formulario.cbVigenciaPeriodoDesde", datosNuevo);
+            set_combo("formulario.cbVigenciaPeriodoHasta", datosNuevo);
+            set_combo("formulario.cbAcceso", datosNuevo);
+            set_combo("formulario.cbSubacceso", datosNuevo);
+        }
+   }
+
+   function accesoOnChange() {
+      
+	     if ( get('formulario.hidCasoDeUso')!='consultar' ){
+			 focaliza("formulario.cbSubacceso");
+			  buscoAcceso();	
+		  } else{
+		  	  set('formulario.cbAcceso', arrComboAcceso	);	
+		  }
+		 
+   }
+
+	function subaccesoOnChange(){
+		  if ( get('formulario.hidCasoDeUso')=='consultar' ){
+			 set('formulario.cbSubacceso', arrComboSubacceso	);		
+		  }
+	}
+   
+	function fGuardar() {
+        
+        if (validarFacturasOCCC() == true) {
+            if (recogerInformacion()== true) {
+                set('formulario.conectorAction', 'LPMantenimientoDTODG');            
+                set('formulario.accion', 'guardar');                
+                enviaSICC('formulario');
+            }
+        }
+   }
+
+	 function	tomarDatosPagina() {
+			arrLimpia[0] = get("formulario.hidDescripcionPais");
+			arrLimpia[1] = get("formulario.hidNumDescuento");
+			arrLimpia[2] = get("formulario.txtNombreDescuento");
+			arrLimpia[3] = get("formulario.cbMarca");
+			arrLimpia[4] = get("formulario.cbCanal");
+			arrLimpia[5] = get("formulario.cbAcceso");
+			arrLimpia[6] = get("formulario.cbSubacceso");
+	 }
+
+   function fLimpiar() {
+   
+        if ( get('formulario.hidCasoDeUso')!='consultar') {        
+            if( ( get('formulario.hidCasoDeUso')=='modificar') || 
+                (get('formulario.hidCasoDeUso')=='insertar')) {
+                if (get('formulario.hidVigenciaDescuento')=='V') {
+                    set("formulario.cbVigenciaPeriodoHasta",arrLimpia[8]);
+                    focaliza("formulario.cbVigenciaPeriodoHasta");                    
+                } else {
+                    set("formulario.txtNombreDescuento",arrLimpia[2]);
+                    set("formulario.cbMarca",arrLimpia[3]);
+                    set("formulario.cbCanal",arrLimpia[4]);
+                    limpiaCombos();
+                    marcaValoresDeParametro();
+                    focaliza("formulario.txtNombreDescuento");
+                }
+            } else focaliza("formulario.txtNombreDescuento");
+        }
+    }
+
+    function limpiaCombos() {
+        var datosNuevo = new Array();
+        datosNuevo[0] = ["",""];    
+        set_combo("formulario.cbVigenciaPeriodoDesde", datosNuevo);
+        set_combo("formulario.cbVigenciaPeriodoHasta", datosNuevo);
+        
+        if (get('formulario.hidCasoDeUso') =='modificar' ){
+        
+        } else {
+            set_combo("formulario.cbAcceso", datosNuevo);
+            set_combo("formulario.cbSubacceso", datosNuevo);        
+        }
+    }
+
+    function ColocarValoresDeLaMatrizDeDescuento() {
+
+        if (get('formulario.ModificableMarca') == 'N')
+            accion('formulario.cbMarca','.disabled=true');
+    
+        if (get('formulario.ModificableCanal') == 'N')
+            accion('formulario.cbCanal','.disabled=true');
+      
+        if (get('formulario.VisibleAcceso') == 'N') {
+            document.getElementById("lblAcceso").style.visibility='hidden';        
+            document.getElementById("cbAcceso").style.visibility='hidden';        
+        }    
+        if (get('formulario.ModificableAcceso') == 'N')
+            accion('formulario.cbAcceso','.disabled=true');
+    
+        if (get('formulario.VisibleSubacceso') == 'N') {
+            document.getElementById("lblSubacceso").style.visibility='hidden';        
+            document.getElementById("cbSubacceso").style.visibility='hidden';        
+        }
+        if (get('formulario.ModificableSubacceso') == 'N')
+            accion('formulario.cbSubacceso','.disabled=true');
+    
+        if (get('formulario.VisiblePeriodoInicial') == 'N'){
+            document.getElementById("lblVigenciaPeriodoDesde").style.visibility='hidden';        
+            document.getElementById("cbVigenciaPeriodoDesde").style.visibility='hidden';        
+        }    
+        if (get('formulario.ModificablePeriodoInicial') == 'N')
+            accion('formulario.cbVigenciaPeriodoDesde','.disabled=true');		
+    
+        if (get('formulario.VisiblePeriodoFinal') == 'N') {
+            document.getElementById("lblVigenciaPeriodoHasta").style.visibility='hidden';        
+            document.getElementById("cbVigenciaPeriodoHasta").style.visibility='hidden';        
+        }    
+        if (get('formulario.ModificablePeriodoFinal') == 'N')
+            accion('formulario.cbVigenciaPeriodoHasta','.disabled=true');
+    
+        if (get('formulario.hidCasoDeUso')=='insertar') {
+            canalOnChange();
+        }
+
+        //------------------------- Poniendo valores en la lista -------------  
+        
+        var posDtoAcum                      = '0';
+        var posCulminacion                  = '1';
+        var posControlDevoluciones          = '2';
+        var posControlAnulaciones           = '3';
+        var posCdomunicacionAParticipantes  = '4';
+        var posActiva                       = '5';
+        var posMorosidad                    = '6';
+        var posAfectaAFacturas              = '7';
+        var posAfectaACtCte                 = '8';
+
+        var listaValoresVisibles = new Array();
+        listado1.actualizaDat();
+        var listadoDatos = listado1.datos;
+        var indic = 0;        
+        listado1.actualizaDat();
+        var datos;
+
+        var nuevos_datos = new Array();
+        listado1.setDatos(nuevos_datos);
+            
+        if (get('formulario.VisibleControlDesc') == 'S') {
+            datos = listadoDatos[posDtoAcum][0] + "|" + listadoDatos[posDtoAcum][1] + "|" +  listadoDatos[posDtoAcum][2];
+            insertaParametros(datos);
+        }
+
+        if (get('formulario.VisibleIndicador') == 'S') {            
+            datos = listadoDatos[posCulminacion][0] + "|" + listadoDatos[posCulminacion][1] + "|" +  listadoDatos[posCulminacion][2];
+            insertaParametros(datos);
+        }
+
+        if (get('formulario.VisibleControlDA') == 'S'){
+            datos = listadoDatos[posControlDevoluciones][0] + "|" + listadoDatos[posControlDevoluciones][1] + "|" +  listadoDatos[posControlDevoluciones][2];
+            insertaParametros(datos);
+            datos = listadoDatos[posControlAnulaciones][0] + "|" + listadoDatos[posControlAnulaciones][1] + "|" +  listadoDatos[posControlAnulaciones][2];
+            insertaParametros(datos);
+        }	
+
+      	if (get('formulario.VisibleComunicacion') == 'S'){
+            datos = listadoDatos[posCdomunicacionAParticipantes][0] + "|" + listadoDatos[posCdomunicacionAParticipantes][1] + "|" +  listadoDatos[posCdomunicacionAParticipantes][2];
+            insertaParametros(datos);
+        }
+
+        datos = listadoDatos[posActiva][0] + "|" + listadoDatos[posActiva][1] + "|" +  listadoDatos[posActiva][2];
+        insertaParametros(datos);
+
+        if (get('formulario.VisibleControlMorosidad') == 'S'){
+           datos = listadoDatos[posMorosidad][0] + "|" + listadoDatos[posMorosidad][1] + "|" +  listadoDatos[posMorosidad][2];
+           insertaParametros(datos);
+        }	
+		
+        if (get('formulario.VisibleAfectaFactura') == 'S'){
+            datos = listadoDatos[posAfectaAFacturas][0] + "|" + listadoDatos[posAfectaAFacturas][1] + "|" +  listadoDatos[posAfectaAFacturas][2];
+            insertaParametros(datos);
+        }
+	
+        if (get('formulario.VisibleAfectaCC') == 'S'){
+            datos = listadoDatos[posAfectaACtCte][0] + "|" + listadoDatos[posAfectaACtCte][1] + "|" +  listadoDatos[posAfectaACtCte][2];
+            insertaParametros(datos);
+        }        
+    }
+
+    function insertaParametros(datos) {
+        var newRow = new Array();
+        newRow = datos.split("|");
+        listado1.insertar(newRow);
+    }
+
+    function marcaValoresDeParametro() {
+        listado1.actualizaDat();
+        var listadoDatos = listado1.datos;
+        
+        var cantCodigos = listado1.codigos().length;
+        for (var i = 0; i < cantCodigos; i++) {        
+            switch (parseInt(listadoDatos[i][0], 10)) {
+                case 28:
+                    if (get('formulario.hidDescuentoAcumulativo') =='S')
+                        listadoDatos[i][2] = "S";
+                    else  listadoDatos[i][2] = "N";
+                    break;
+                case 2:
+                    if (get('formulario.hidCulminacion') =='S')
+                        listadoDatos[i][2] = "S";
+                    else listadoDatos[i][2] = "N";
+                    break;            
+                case 27:
+                    if (get('formulario.hidControlDevoluciones') =='S')
+                        listadoDatos[i][2] = "S";
+                    else listadoDatos[i][2] = "N";
+                    break;
+                case 32:    
+                    if (get('formulario.hidControlAnulaciones') =='S')
+                        listadoDatos[i][2] = "S";
+                    else listadoDatos[i][2] = "N";                    
+                    break;
+                case 31:
+                    if (get('formulario.hidCdomunicacionAParticipantes') =='S')
+                        listadoDatos[i][2] = "S";
+                    else listadoDatos[i][2] = "N";
+                    break;            
+                case 5:
+                    if (get('formulario.hidActiva') =='S')
+                        listadoDatos[i][2] = "S";
+                    else listadoDatos[i][2] = "N";
+                    break;
+                case 26:
+                        if (get('formulario.hidMorosidad') =='S')
+                            listadoDatos[i][2] = "S";
+                        else listadoDatos[i][2] = "N";
+                    break;
+                case 29:
+                    if (get('formulario.hidAfectaAFacturas') =='S')
+                         listadoDatos[i][2] = "S";
+                    else listadoDatos[i][2] = "N";
+                    break;
+                case 30:
+                    if (get('formulario.hidAfectaACuentasCorrientes') =='S')
+                         listadoDatos[i][2] = "S";
+                    else listadoDatos[i][2] = "N";
+                    break;
+            }
+        }
+        listado1.setDatos(listadoDatos);
+    }
+
+    function verifObligatoriedad(){             
+        if (get('formulario.ObligatorioAcceso') == 'S')
+            sicc_cambiar_estado("cbAcceso",true);                
+        if (get('formulario.ObligatorioSubacceso') == 'S')
+            sicc_cambiar_estado("cbSubacceso",true);                
+        if (get('formulario.ObligatorioPeriodoInicial') == 'S')
+            sicc_cambiar_estado("cbVigenciaPeriodoDesde",true);                
+        if (get('formulario.ObligatorioPeriodoFinal') == 'S')
+            sicc_cambiar_estado("cbVigenciaPeriodoHasta",true);                
+    }
+    
+    function validarControles() {
+        if(sicc_validaciones_generales("g1")) {		
+            var vAcc = get( 'formulario.cbAcceso');
+            var nMaxAcc = get('formulario.txtNmaximoAcceso');
+            if(nMaxAcc!=""){
+              if ( vAcc.length > nMaxAcc){
+                 GestionarMensaje(1263,'Accesos', get('formulario.txtNmaximoAcceso'));
+                 return false;
+              }
+            }
+          
+            var vSubacc = get( 'formulario.cbSubacceso');
+            var nMaxSubac = get('formulario.txtNmaximoSubacceso');
+            if (nMaxSubac!=""){
+              if ( vSubacc.length > nMaxSubac ){
+                 GestionarMensaje(1263,'Subccesos', get('formulario.txtNmaximoSubacceso'));
+                 return false;
+              }
+            }
+            return true;
+        } else return false;
+    }
+
+    function buscoAcceso() {
+
+        var combo = get("formulario.cbAcceso");
+        var id = get("formulario.SubaccesoOid");
+        var desc = get("formulario.SubaccesoDesc");
+        var padre = get("formulario.SubaccesoOidPadre");
+        
+        if (combo !="") {
+          if (combo.length == 1) {
+            id = id.split(",");
+            desc = desc.split(",");
+            padre = padre.split(",");
+            var largo = padre.length;
+            var opciones = new Array();
+                    opciones[0] = ["",""];
+            var j = 1;
+            var i = 0;
+            for(i=0; i < largo; i++) {  //padre            
+                if(padre[i] == combo) {
+                  opciones[j] = [id[i], desc[i]];
+                  j++;
+                }
+            }
+         }
+    
+         if (combo.length > 1) {
+            id = id.split(",");
+            desc = desc.split(",");
+            padre = padre.split(",");
+            var largo = padre.length;
+            var opciones = new Array();
+                    opciones[0] = ["",""];
+            var j = 1;
+            var i = 0;
+            var c = 0;
+            for(c=0;c<combo.length;c++) {  //combo            
+              for(i=0; i < largo; i++) {  //padre              
+                if(padre[i] == combo[c]) {
+                  opciones[j] = [id[i], desc[i]];
+                  j++;
+                }
+              }
+            }
+         }		
+         if (opciones.length >0)
+             set_combo("formulario.cbSubacceso", opciones);
+      } else {
+          opciones = new Array();
+          opciones[0] = ["", ""];
+          set_combo("formulario.cbSubacceso", opciones);
+      }
+	}
+
+  function buscoCanal()	{
+      var combo = get("formulario.cbCanal");
+      var id = get("formulario.accesoOid");
+      var desc = get("formulario.accesoDesc");
+      var padre = get("formulario.accesoOidPadre");
+          
+      if (combo !="") {
+          if (combo.length == 1) {
+            id = id.split(",");
+            desc = desc.split(",");
+            padre = padre.split(",");
+            var largo = padre.length;
+            var opciones = new Array();
+            var j = 1;
+            var i = 0;
+            opciones[0] = ["", ""];				
+            for(i=0; i < largo; i++) {  //padre          
+                if(padre[i] == combo) {              
+                  opciones[j] = [id[i], desc[i]];
+                  j++;
+                }
+            }
+         }
+    
+         if (combo.length > 1) {
+            id = id.split(",");
+            desc = desc.split(",");
+            padre = padre.split(",");
+            var largo = padre.length;
+            var opciones = new Array();
+            var j = 1;
+            var i = 0;
+            var c = 0;
+            opciones[0] = ["", ""];
+            for(c=0;c<combo.length;c++){  //combo          
+              for(i=0; i < largo; i++){  //padre            
+                if(padre[i] == combo[c]) {
+                  opciones[j] = [id[i], desc[i]];
+                  j++;
+                }
+              }
+            }
+         }		
+         if (opciones.length >0)
+             set_combo("formulario.cbAcceso", opciones);		      
+      } else {
+        opciones = new Array();
+        opciones[0] = ["", ""];
+        set_combo("formulario.cbAcceso", opciones);
+        buscoAcceso();
+        set_combo("formulario.cbAcceso", opciones);
+      }
+	}
+
+  /*#############  Métodos para manejar la lista con checks  ###############*/
+  function focalizaListaTab(FILAEVENTO) {
+      if(FILAEVENTO == (listado1.datos.length - 1)) {
+          setTimeout("focalizaBotonHTML('botonContenido','btnSiguiente')",10);
+      }
+  }
+
+  function focalizaListaShTab(FILAEVENTO) {
+      if(FILAEVENTO == 0) {
+          setTimeout("focaliza('formulario.cbVigenciaPeriodoHasta','')",10); 
+          focaliza('formulario.cbVigenciaPeriodoDesde','');
+      }
+  }
+
+  function checkEntrada() {
+      document.selection.empty();
+      var nombrelistado = "listado1";
+      var nombreCheckBox = "ckValor";
+      var indiceFila = 0;
+
+      eval(nombrelistado+".preparaCamposDR()");
+      focaliza('frm'+nombrelistado+'.'+nombreCheckBox+'_'+indiceFila,'');
+  }
+    
+  function inicioOnChange(filaCambiada) {     
+        //Este evento se dispara cuando cambia uno de los
+        //check de la columna "Valor" de la tabla.
+        var vIndicaAfectaFacturas;
+        var vIndicaAfectaCtaCte;
+        
+        listado1.actualizaDat();
+        var listadoDatos = listado1.datos;
+        var cantCodigos = listado1.codigos().length;
+        
+        for ( var i = 0; i < cantCodigos; i++) {
+                switch ( parseInt(listadoDatos[i][0], 10) ) {
+                    case 29:
+                            vIndicaAfectaFacturas = listadoDatos[i][2];
+                            break;
+                    case 30:
+                            vIndicaAfectaCtaCte = listadoDatos[i][2];
+                            break;
+                }
+        }
+        
+        if ( listadoDatos[filaCambiada][0] == '29' || listadoDatos[filaCambiada][0] == '30' ) {
+            if ( listadoDatos[filaCambiada][0] == '29' && vIndicaAfectaCtaCte == "S") {
+                 GestionarMensaje("1203");
+                 listadoDatos[filaCambiada][2] = "N";
+            }
+
+            if ( listadoDatos[filaCambiada][0] == '30' && vIndicaAfectaFacturas == "S") {
+                 GestionarMensaje("1203");
+                 listadoDatos[filaCambiada][2] = "N";
+            }
+
+            listado1.setDatos(listadoDatos);
+        }
+    }
+
+	function accionExitosa() {
+      if (get('formulario.hidCasoDeUso') != 'modificar') {
+        eval('formulario').oculto="N"; 
+        set("formulario.conectorAction","LPMantenimientoAlcanceTipoCliente");
+        set("formulario.accion","");
+        set("formulario.casoDeUso","modificar");
+        enviaSICC("formulario");
+      }          
+      //--Faltaba agregar?
+      if (get('formulario.hidCasoDeUso') == 'modificar') {
+        eval('formulario').oculto="N"; 
+        set("formulario.conectorAction","LPMantenimientoAlcanceTipoCliente");
+        set("formulario.accion","");
+        set("formulario.casoDeUso","modificar");
+        enviaSICC("formulario");
+      }        
+  }
+
+  function accionError() {
+      fMostrarMensajeError();
+  }
+
+  function fVolver() {
+      if (get('formulario.hidCasoDeUso') == "consultar" || get('formulario.hidCasoDeUso') == "modificar") {
+          window.close();
+      } else { 
+         set("formulario.conectorAction","LPMantenimientoDTO");
+         set("formulario.casoDeUso",get("formulario.hidCasoDeUso"));        
+         set("formulario.accion","volver");
+         eval('formulario').oculto="N";             
+         enviaSICC("formulario");
+      }
+  }
+
+  function deshabilitarEnDescuentoVigente() {
+        accion("formulario.txtNombreDescuento",".disabled=true");
+        accion("formulario.cbMarca",".disabled=true");
+        accion("formulario.cbCanal",".disabled=true");
+        accion("formulario.cbAcceso",".disabled=true");
+        accion("formulario.cbSubacceso",".disabled=true");
+        accion("formulario.cbVigenciaPeriodoDesde",".disabled=true");
+        btnProxy(1,0);
+  }
+    
+  function validarFacturasOCCC() {
+        var vIndicaAfectaFacturas;
+        var vIndicaAfectaCtaCte;
+        
+        listado1.actualizaDat();
+        var listadoDatos = listado1.datos;
+        var cantCodigos = listado1.codigos().length;
+        
+        for ( var i = 0; i < cantCodigos; i++) {
+            switch ( parseInt(listadoDatos[i][0], 10) ) {
+                case 29:
+                    vIndicaAfectaFacturas = listadoDatos[i][2];
+                    break;
+                case 30:
+                    vIndicaAfectaCtaCte = listadoDatos[i][2];
+                    break;
+            }
+        }
+
+        if (vIndicaAfectaFacturas == vIndicaAfectaCtaCte ) {
+            GestionarMensaje('UIDTO0007');
+            return false;
+        } else return true;
+  }
+
+  function onTabSiguiente() {
+      if (get('formulario.hidCasoDeUso')!='consultar')
+          focaliza('formulario.txtNombreDescuento')
+  }
+    
+  function onShTabSiguiente() {
+      if (get('formulario.hidCasoDeUso')=='consultar') {
+          focalizaBotonHTML_XY('btnSiguiente');
+      } else {
+          checkEntrada();
+      }
+  }
+    
+  function onClickPestanya(valor) {
+  
+      if (validarFacturasOCCC() == true) { // además deben validarse todos los campos obligatorios 
+          set('formulario.idPestanyaDest', valor);
+          if (get('formulario.hidCasoDeUso')!="consultar") { // Si en un "insertar" o un "modificar" debe almacenarse los datos                         
+              if (valor != "0") {//!=pestanyaDatosGenerales
+                  // Sólo llamamos a la LP para almacenar en el "dtoDescuento" los datos de la pestaña,
+                  // si el identificador de la pestaña actual es distinto de la variable idPestanyaDest 
+                  // (identificador de la pestaña que se ha pulsado) 
+                  if (recogerInformacion()== true) {
+                    set('formulario.conectorAction', 'LPMantenimientoDTODG');            
+                    set('formulario.accion', 'almacenar');
+                    //eval('formulario').oculto="S"; 
+                    enviaSICC('formulario');         
+                  }
+              }// Fin Si pestanyaDatosGenerales != idPestanyaDest 
+              
+          } else { // Si casodeuso == "consultar", solo debe redirigirse a otra pestaña               
+              if (recogerInformacion()== true) {
+                set('formulario.conectorAction', 'LPMantenimientoDTODG');            
+                set('formulario.accion', 'redirigir');
+                //eval('formulario').oculto="S"; 
+                enviaSICC('formulario');         
+              }              
+          } // Fin si 
+      } // Fin (validarFacturasOCCC() = true)
+  }
+  ]]> 
+</JAVASCRIPT>        
+    <JS src="sicc_util.js"/>
+    <JS src="PaginacionSicc.js"/>
+    <JS src="i18NJS.js"/>
+    <JS src="utilidadesDTO.js"/>
+    <!-- Include para la recarga de combos -->
+    <JS src="DruidaTransactionMare.js"/>
+    <!-- Agregue oculto="S">  para usar el ENVIO OCULTO-->
+
+<VALIDACION>
+      <ELEMENTO name="txtNombreDescuento" required="true" cod="942" group="g1"/>
+      <ELEMENTO name="cbMarca" required="true" cod="6" group="g1"/>
+      <ELEMENTO name="cbCanal" required="true" cod="7" group="g1"/>
+      <ELEMENTO name="cbAcceso" required="false" cod="10" group="g1"/>
+      <ELEMENTO name="cbSubacceso" required="false" cod="122" group="g1"/>
+      <ELEMENTO name="cbVigenciaPeriodoDesde" required="true" cod="1298" group="g1"/>
+      <ELEMENTO name="cbVigenciaPeriodoHasta" required="false" cod="1299" group="g1"/>      
+</VALIDACION>
+<FORMULARIO nombre="formulario" oculto="N">
+    <VAR nombre="conectorAction" valor="LPMantenimientoDTODG"/>
+    <VAR nombre="accion" valor=""/>
+    <VAR nombre="hidCasoDeUso" valor=""/>
+    <VAR nombre="casoDeUso" valor=""/>
+    <VAR nombre="oidPais" valor=""/>
+    <VAR nombre="errCodigo" valor=""/>
+    <VAR nombre="errDescripcion" valor=""/>
+    <VAR nombre="varNoLimpiarSICC" valor="true"/>
+    <!-- Variables para manejo de controles-->
+    <VAR nombre="hidDescripcionPais" valor=""/>
+    <VAR nombre="hidNumDescuento" valor=""/>    
+    <VAR nombre="hidOidDescuento" valor=""/>
+    <VAR nombre="hidDescripcion" valor=""/>    
+    <VAR nombre="hidOidMarca" valor=""/>
+    <VAR nombre="hidOidCanal" valor=""/>
+    <VAR nombre="hidAccesos" valor=""/>
+    <VAR nombre="hidSubAccesos" valor=""/>
+    <VAR nombre="hidOidPeriodoDesde" valor=""/>
+    <VAR nombre="hidOidPeriodoHasta" valor=""/>
+    <VAR nombre="oidCabeceraDTO" valor=""/>    
+
+    <!-- Variables para manejo de las listas ocultas-->
+            <!-- Accesos -->
+    <VAR nombre="accesoOid" valor=""/>
+    <VAR nombre="accesoDesc" valor=""/>
+    <VAR nombre="accesoOidPadre" valor=""/>  
+    
+            <!-- SubAccesos -->
+    <VAR nombre="SubaccesoOid" valor=""/>
+    <VAR nombre="SubaccesoDesc" valor=""/>
+    <VAR nombre="SubaccesoOidPadre" valor=""/>
+
+    <!-- Variables para manejo de selecciones -->
+    <VAR nombre="selMarca" valor=""/>
+    <VAR nombre="selCanal" valor=""/>
+    <VAR nombre="selAcceso" valor=""/>
+    <VAR nombre="selSubcceso" valor=""/>
+    <VAR nombre="selPD" valor=""/>
+    <VAR nombre="selPH" valor=""/>
+
+    <!-- Variables para manejo de los valores de la lista-->
+    <VAR nombre="hidDescuentoAcumulativo" valor=""/>
+    <VAR nombre="hidCulminacion" valor=""/>
+    <VAR nombre="hidControlDevoluciones" valor=""/>
+    <VAR nombre="hidControlAnulaciones" valor=""/>
+    <VAR nombre="hidCdomunicacionAParticipantes" valor=""/>
+    <VAR nombre="hidActiva" valor=""/>
+    <VAR nombre="hidMorosidad" valor=""/>
+    <VAR nombre="hidAfectaAFacturas" valor=""/>
+    <VAR nombre="hidAfectaACuentasCorrientes" valor=""/>
+
+    <!-- Variables para el control del comportamiento del formulario -->
+    <VAR nombre="VisibleMarca" valor=""/> 
+    <VAR nombre="ObligatorioMarca" valor=""/>
+    <VAR nombre="ModificableMarca" valor=""/>
+    <VAR nombre="txtNmaximoMarca" valor=""/>
+
+    <VAR nombre="VisibleCanal" valor=""/>
+    <VAR nombre="ObligatorioCanal" valor=""/>
+    <VAR nombre="ModificableCanal" valor=""/>
+    <VAR nombre="txtNmaximoCanal" valor=""/>
+	
+    <VAR nombre="VisibleAcceso" valor=""/>
+    <VAR nombre="ObligatorioAcceso" valor=""/>
+    <VAR nombre="ModificableAcceso" valor=""/>
+    <VAR nombre="txtNmaximoAcceso" valor=""/>
+
+    <VAR nombre="VisibleSubacceso" valor=""/>
+    <VAR nombre="ObligatorioSubacceso" valor=""/>
+    <VAR nombre="ModificableSubacceso" valor=""/>
+    <VAR nombre="txtNmaximoSubacceso" valor=""/>
+
+    <VAR nombre="VisiblePeriodoInicial" valor=""/>
+    <VAR nombre="ObligatorioPeriodoInicial" valor=""/>
+    <VAR nombre="ModificablePeriodoInicial" valor=""/>
+  
+    <VAR nombre="VisiblePeriodoFinal" valor=""/>
+    <VAR nombre="ObligatorioPeriodoFinal" valor=""/>
+    <VAR nombre="ModificablePeriodoFinal" valor=""/>
+  
+    <VAR nombre="VisibleControlDesc" valor=""/>
+    <VAR nombre="ObligatorioControlDesc" valor=""/>
+    <VAR nombre="ModificableControlDesc" valor=""/>
+
+    <VAR nombre="VisibleIndicador" valor=""/>
+    <VAR nombre="ObligatorioIndicador" valor=""/>
+    <VAR nombre="ModificableIndicador" valor=""/>
+  
+    <VAR nombre="VisibleControlDA" valor=""/>
+    <VAR nombre="ObligatorioControlDA" valor=""/>
+    <VAR nombre="ModificableControlDA" valor=""/>
+  
+    <VAR nombre="VisibleComunicacion" valor=""/>
+    <VAR nombre="ObligatorioComunicacion" valor=""/>
+    <VAR nombre="ModificableComunicacion" valor=""/>
+  
+    <VAR nombre="VisibleControlMorosidad" valor=""/>
+    <VAR nombre="ObligatorioControlMorosidad" valor=""/>
+    <VAR nombre="ModificableControlMorosidad" valor=""/>
+    
+    <VAR nombre="VisibleAfectaFactura" valor=""/>
+    <VAR nombre="ObligatorioAfectaFactura" valor=""/>
+    <VAR nombre="ModificableAfectaFactura" valor=""/>
+  
+    <VAR nombre="VisibleAfectaCC" valor=""/>
+    <VAR nombre="ObligatorioAfectaCC" valor=""/>
+    <VAR nombre="ModificableAfectaCC" valor=""/>
+
+
+    <!-- Vigencia del descuento  -->
+    <VAR nombre="hidVigenciaDescuento" valor=""/>
+    <!--VAR nombre="hidCampoActivo" valor=""/-->
+   
+     <!-- DMCO-DTO-BELC300014763 -->     
+     <VAR nombre="idPestanyaDest" valor=""/>
+     <VAR nombre="hVuelveErrPest" valor=""/>
+     <VAR nombre="hExito" valor=""/>
+	
+
+ <CAPA nombre="capa1" > 
+
+    <!-- Codigo para armar las pestañas -->
+
+ <table  bgcolor="red" width="100%" height="100%" border="0" align="center" cellpadding="0" cellspacing="0" class="menu5">
+  <tr> 
+    <td width="12" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="12" height="10"/></td>
+    <td nowrap="nowrap" class="menu5texto">&nbsp;</td>
+    <td width="10" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="10" height="0"/></td>
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto">
+	<table width="75" border="0" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A">
+        <tr align="center"> 
+          <td nowrap="nowrap" class="menu5textonegrita">
+	    <a href="#">
+		<DIV ID="InsertarP1" onclick="onClickPestanya('0')" onmouseover="poneManito('InsertarP1');"
+        style="width:80px;border-style:solid; border-color:#496A9A;border-width:2px;position:relative;top:3px;text-align:center;color:#496A9A;font-family: Arial, Helvetica, sans-serif;font-size: 11px;font-weight: bold; visibility:visible">Datos generales</DIV>
+	    </a>
+	    </td>
+        </tr>
+      </table>
+   </td>     
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto">
+    <table width="75" border="0" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A">
+        <tr align="center"> 
+          <td nowrap="nowrap" class="menu5textonegrita">
+	    <DIV ID="InsertarP2" onclick="onClickPestanya('1')" onmouseover="poneManito('InsertarP2');"
+        style="width:80px;border-style:solid; border-color:#496A9A;border-width:2px;position:relative;top:3px;text-align:center;color:#496A9A;font-family: Arial, Helvetica, sans-serif;font-size: 11px;font-weight: bold; visibility:visible">Tipo de cliente</DIV>
+	    </td>
+        </tr>
+      </table>
+   </td>
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto">
+    <table width="75" border="0" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A">
+        <tr align="center"> 
+          <td nowrap="nowrap"  class="menu5textonegrita">
+	    <DIV ID="InsertarP3" onclick="onClickPestanya('2')" onmouseover="poneManito('InsertarP3');"
+        style="width:80px;border-style:solid; border-color:#496A9A;border-width:2px;position:relative;top:3px;text-align:center;color:#496A9A;font-family: Arial, Helvetica, sans-serif;font-size: 11px;font-weight: bold; visibility:visible">Alcance administrativo</DIV>
+	    </td>
+        </tr>
+      </table>
+   </td>   
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto">
+    <table width="75" border="0" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A">
+        <tr align="center"> 
+          <td nowrap="nowrap" class="menu5textonegrita">
+	    <DIV ID="InsertarP4" onclick="onClickPestanya('3')" onmouseover="poneManito('InsertarP4');"
+        style="width:80px;border-style:solid; border-color:#496A9A;border-width:2px;position:relative;top:3px;text-align:center;color:#496A9A;font-family: Arial, Helvetica, sans-serif;font-size: 11px;font-weight: bold; visibility:visible">Base de cálculo</DIV>
+	    </td>
+        </tr>
+      </table>
+   </td>
+ <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto">
+    <table width="75" border="0" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A">
+        <tr align="center"> 
+          <td nowrap="nowrap" class="menu5textonegrita">
+	    <DIV ID="InsertarP5" onclick="onClickPestanya('4')" onmouseover="poneManito('InsertarP5');"
+        style="width:80px;border-style:solid; border-color:#496A9A;border-width:2px;position:relative;top:3px;text-align:center;color:#496A9A;font-family: Arial, Helvetica, sans-serif;font-size: 11px;font-weight: bold; visibility:visible">Aplicación de descuento</DIV>
+	    </td>
+        </tr>
+      </table>
+   </td>
+    <td width="16" class="menu5texto"><IMG src="b.gif" width="12" height="8"/></td>
+  </tr>
+</table>
+
+<!-- Fin código para armar las pestañas -->
+
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+	<fieldset><legend class="legend"><LABELC nombre="lblDatosPrincipales"  alto="13" filas="1" valor="" cod="0011" id="legend" /></legend>
+	  <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+
+              <table width="531" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblPais" alto="13" filas="1" valor="" id="datosTitle" cod="5"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>	                   
+                   <td><LABELC nombre="lblNumDescuento" alto="13" filas="1" valor="" id="datosTitle" cod="933"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td colspan="3"><LABELC nombre="lblNombreDescuento" alto="13" filas="1" valor="" id="datosTitle" cod="942"/></td>
+                   <td width="100%" colspan="2"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lbldtPais" alto="13" filas="1" valor="" id="datosCampos"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                    <td><LABELC nombre="lbldtNumDescuento" alto="13" filas="1" valor="" id="datosCampos" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap"><CTEXTO nombre="txtNombreDescuento" id="datosCampos" max="30" tipo="" onchange="" req="S" size="30" valor="" validacion="" onshtab="focalizaBotonHTML('botonContenido','btnSiguiente')"/></td>
+                   <td><IMG src="b.gif" /></td>
+                   <td><IMG src="iconmultidioma.gif" width="21" height="15"
+                   onclick="levantarI18N ('formulario', '1');"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+           </td></tr>
+           <tr><td>
+              <table width="531" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblMarca"  alto="13" filas="1" valor="" id="datosTitle" cod="6"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>	                   
+                   <td><LABELC nombre="lblCanal"  alto="13" filas="1" valor="" id="datosTitle" cod="7"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td  nowrap="nowrap">
+                      <COMBO nombre="cbMarca" id="datosCampos" size="1" multiple="N" 
+                      req="S" valorinicial="" textoinicial="" onchange="marcaOnChange();">
+                      	<ROWSET>
+                      	</ROWSET>
+                      </COMBO>
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td  nowrap="nowrap" >
+                      <COMBO nombre="cbCanal" id="datosCampos" size="1" multiple="N" 
+                      req="S" valorinicial="" textoinicial="" onchange="canalOnChange();">
+                      	<ROWSET>
+                      	</ROWSET>
+                      </COMBO>
+                   </td>                   
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table> 
+           </td></tr>
+           <tr><td>
+              <table width="531" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblAcceso" alto="13" filas="1" valor="" id="datosTitle" cod="10"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>	                   
+                   <td><LABELC nombre="lblSubacceso" alto="13" filas="1" valor="" id="datosTitle" cod="122"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td  nowrap="nowrap" >
+                      <COMBO nombre="cbAcceso" id="datosCampos" size="5" multiple="S" 
+                        req="N" valorinicial="" textoinicial="" onchange="accesoOnChange();">
+                      	<ROWSET>
+                      	</ROWSET>
+                      </COMBO>
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td  nowrap="nowrap" >
+                      <COMBO nombre="cbSubacceso" id="datosCampos" size="5" multiple="S" 
+                      req="N" valorinicial="" textoinicial="" onchange="subaccesoOnChange();">
+                      	<ROWSET>
+                      	</ROWSET>
+                      </COMBO>
+                   </td>                   
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table> 
+           </td></tr>
+           <tr><td>
+              <table width="531" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblVigenciaPeriodoDesde" alto="13" filas="1" valor="" id="datosTitle" cod="1298"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>	                   
+                   <td><LABELC nombre="lblVigenciaPeriodoHasta" alto="13" filas="1" valor="" id="datosTitle" cod="1299"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td  nowrap="nowrap" >
+                      <COMBO nombre="cbVigenciaPeriodoDesde" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="">
+                      	<ROWSET>
+                      	</ROWSET>
+                      </COMBO>
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td  nowrap="nowrap" valign="bottom">
+                      <COMBO nombre="cbVigenciaPeriodoHasta" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" ontab="checkEntrada()" textoinicial="">
+                      	<ROWSET>
+                      	</ROWSET>
+                      </COMBO>
+                   </td>                   
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>  
+           </td></tr>
+           
+         </table>                                      
+        </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr> 
+        
+      <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750"><IMG src="b.gif"/></td>
+      	<td width="12"><IMG src="b.gif" width="12" height="12"/></td>
+      </tr>
+    </table> 
+</CAPA>
+<LISTAEDITABLE nombre="listado1" ancho="535" alto="276" x="12" y="272" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+        <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+        <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+        <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+      <LINEAS>
+        <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="0" horizTitulo="1" horizBase="1"/> 
+        <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="955" ID="datosTitle" />
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+        <COL ancho="100" minimizable="S" minimizada="N"/>
+        <COL ancho="50" minimizable="S" minimizada="N" orden="alfanumerico"/> 
+        <COL ancho="50" minimizable="S" minimizada="N" oculta="S"/> 
+      </COLUMNAS>
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+	<COL colFondo="" ID="EstCab" align="center" cod="9" >Descripción</COL> 
+	<COL colFondo="" ID="EstCab" cod="1553">Valor</COL> 
+	<COL colFondo="" ID="EstCab">oidParametros</COL> 
+	
+      </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+             coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+             onLoad="" colorSelecc="#D0D9E8">
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="checkbox" nombre="ckValor"  ID="EstDat2" onShTab="focalizaListaShTab(FILAEVENTO);"
+       onTab="focalizaListaTab(FILAEVENTO)" onchange="inicioOnChange(FILAEVENTO);" ></COL>
+       <COL tipo="texto" ID="EstDat"/> 
+      </DATOS>
+      <ROWSET>
+	<ROW ID="1">
+	  <CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="28" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="Indicador dto. acumulativo" /> 
+	  <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+	</ROW>
+	<ROW ID="2">
+	  <CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="2" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="Indicador culminación" /> 
+	  <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+	</ROW>
+	<ROW ID="3">
+	  <CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="27" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="Control por devoluciones" /> 
+	  <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+	</ROW>
+	<ROW ID="1">
+	  <CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="32" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="Control por anulaciones" /> 
+	  <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+	</ROW>
+	<ROW ID="2">
+	  <CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="31" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="Comunicación a participantes" /> 
+	  <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+	</ROW>
+	<ROW ID="3">
+	  <CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="5" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="Activa" /> 
+	  <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+	</ROW>
+	<ROW ID="3">
+	  <CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="26" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="Morosidad" /> 
+	  <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+	</ROW>
+	<ROW ID="1">
+	  <CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="29" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="Afecta a facturas" /> 
+	  <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+	</ROW>
+	<ROW ID="2">
+	  <CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="30" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="Afecta a cuentas corrientes" /> 
+	  <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="" />
+	</ROW>
+      </ROWSET>
+      <PAGINADO nombre="mipgndo" ancho="535" sep="$" x="12" class="botonera" y="526" control="|" conector="conectorSandra" rowset="" cargainicial="N">
+        
+        <BOTON nombre="ret1" x="37" y="530" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+        <BOTON nombre="ava1" x="52" y="530" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>
+      
+    </PAGINADO>
+  </LISTAEDITABLE>
+  <BOTON nombre="primera1" x="20" y="530" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();" />      
+  <BOTON nombre="separa" x="59" y="526" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />      
+  <BOTON nombre="btnSiguiente" x="13" y="527" ID="botonContenido" tipo="html" estado="false" cod="446"  accion="accionSiguiente();" 
+    ontab="onTabSiguiente();" onshtab="onShTabSiguiente();"/>
+ <CAPA nombre="capaEspacio" alto="12" ancho="100%" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="549" zindex="">
+  </CAPA>                 
+</FORMULARIO>
+</PAGINA>

@@ -1,0 +1,620 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/PROY
+   $Id: contenido_cartera_territorios_reasignar.xml,v 1.1 2009/12/03 18:44:31 pecbazalar Exp $
+   DESC
+
+   DRUIDATARGET=/../../config/scripts/iniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+<PAGINA nombre="contenido_cartera_territorios_reasignar" cod="0285" titulo="" estilos="estilosB3.css" colorf="#F0F0F0" 
+	msgle="" onload="onLoadPag();" xml:lang="es">
+
+  <JS src="sicc_util.js"/>
+  <JS src="DruidaTransactionMare.js"/>
+  <JS src="PaginacionSicc.js"/>	
+
+<JAVASCRIPT>
+ <![CDATA[    
+      
+	function onLoadPag()   
+	{
+      ocultarLista();
+      configurarMenuSecundario("frmContenido");
+	    DrdEnsanchaConMargenDcho('listado1',12);
+	    eval (ON_RSZ);  
+      focaliza('frmContenido.cbUsuarioOrigen');
+	}
+
+     function usuarioOrigenOnChange() {
+            var arra = new Array();
+            arra[0] = ["oidPais",get('frmContenido.oidPais')];
+            arra[1] = ["oidIdioma",get('frmContenido.oidIdioma')];      
+            arra[2] = ["oid",get('frmContenido.cbUsuarioOrigen')];
+            recargaCombo("frmContenido.cbUsuarioDestino","COBObtenerUsuariosCobComboMenos1","es.indra.sicc.util.DTOOID",arra);
+            recargaCombo("frmContenido.cbCodEtDeuda","COBObtenerEtapasUsuarioCOB","es.indra.sicc.util.DTOOID",arra);
+            ocultarLista();
+      }
+
+      function recargaPeriodo(){
+         
+                 var arra = new Array();
+                 var arra1 = new Array();
+                 arra[0] = ["oidPais",get('frmContenido.oidPais')];
+                 arra1[0] = ["oidPais",get('frmContenido.oidPais')];
+                 arra[1] = ["oidCanal",get('frmContenido.cbCanal')];
+                 arra[2] = ["oidMarca",get('frmContenido.cbMarca')];
+                 arra1[1] = ["canal",get('frmContenido.cbCanal')];
+                 arra1[2] = ["marca",get('frmContenido.cbMarca')];
+                 recargaCombo("frmContenido.cbSubgerenciaVentas","ZONRecargaSubgerenciaVentas","es.indra.sicc.dtos.zon.DTOUnidadAdministrativa",arra);
+                 recargaCombo("frmContenido.cbCodPeriodo","CRAObtienePeriodos","es.indra.sicc.dtos.cra.DTOPeriodo",arra1);
+                 ocultarLista();
+      }
+
+
+      function subgerenciaOnChange(){
+			 var arra = new Array();
+			 arra[0] = ["oidPais",get('frmContenido.oidPais')];
+			 arra[1] = ["oidCanal",get('frmContenido.cbCanal')];
+		     arra[2] = ["oidMarca",get('frmContenido.cbMarca')];
+			 recargaCombo("frmContenido.cbRegion","ZONRecargaRegiones","es.indra.sicc.dtos.zon.DTOUnidadAdministrativa",arra);
+       ocultarLista();
+      }
+
+
+       function regionOnChange(){
+			 limpiarZona();
+			 limpiarSeccion();
+			 var arra = new Array();
+			 arra[0] = ["oidPais",get('frmContenido.oidPais')];
+			 arra[1] = ["oidCanal",get('frmContenido.cbCanal')];
+			 arra[2] = ["oidMarca",get('frmContenido.cbMarca')];
+			 arra[3] = ["oidRegion",get('frmContenido.cbRegion')];
+			 recargaCombo("frmContenido.cbZona","ZONRecargaZonas","es.indra.sicc.dtos.zon.DTOUnidadAdministrativa",arra);
+			 ocultarLista();
+      }
+	
+
+       function zonaOnChange (){
+			limpiarSeccion();
+			combo_add('frmContenido.cbSeccion', '', '');
+			var zonas = get('frmContenido.cbZona');
+			var pais = get('frmContenido.pais');
+			var zonaConc = new String();
+			for(i=0;i<zonas.length;i++){
+				zonaConc += zonas[i] + "x";
+			}
+			zonaConc = zonaConc.substring(0, zonaConc.length-1);
+			var arr = new Array();
+			arr[arr.length] = ['cadena', zonaConc];
+			arr[arr.length] = ['oidPais', pais]
+			if(zonaConc != ''){
+				recargaCombo("frmContenido.cbSeccion", "REPRecargaSecciones", "es.indra.sicc.util.DTOString",arr);
+			}
+			ocultarLista();
+        }
+        
+        
+        function  buscarOnClick(){
+            if(!sicc_validaciones_generales("gr")){
+                return false;
+            }  
+                configurarPaginado(mipgndo,"COBBuscarAsignacionesCobranza","ConectorBuscarAsignacionesCobranza","es.indra.sicc.dtos.cob.DTOAsignacionesCobranza", armarArray());          
+         }     
+         
+         
+         function armarArray(){
+            var arra = new Array();
+            var pos = 0;
+            
+            if(get("frmContenido.cbUsuarioOrigen")!="" && get("frmContenido.cbUsuarioOrigen")!=null){
+                arra[pos] = ["usuarioOrigen",get('frmContenido.cbUsuarioOrigen')];
+                set ('frmContenido.usuarioOrigen',get('frmContenido.cbUsuarioOrigen'));
+                pos++;
+             }
+             
+             if(get("frmContenido.cbUsuarioDestino")!="" && get("frmContenido.cbUsuarioDestino")!=null){
+                arra[pos] = ["usuarioDestino",get('frmContenido.cbUsuarioDestino')];
+                /*
+				 * INC 22282 - dmorello, 06/01/2006
+				 * Se estaba asignando el valor del combo Usuario destino a la variable usuarioOrigen.
+				 * Se corrige para que lo asigne a usuarioDestino.
+				 */
+				set ('frmContenido.usuarioDestino',get('frmContenido.cbUsuarioDestino'));
+                pos++;
+             }
+             
+             
+             if(get("frmContenido.cbCodEtDeuda")!="" && get("frmContenido.cbCodEtDeuda")!=null){
+                arra[pos] = ["etapaDeuda",get('frmContenido.cbCodEtDeuda')];
+                set ('frmContenido.etapaDeuda',get('frmContenido.cbCodEtDeuda'));
+                pos++;
+             }
+             
+             
+             if(get("frmContenido.cbMarca")!="" && get("frmContenido.cbMarca")!=null){
+                arra[pos] = ["marca",get('frmContenido.cbMarca')];
+                set ('frmContenido.marca',get('frmContenido.cbMarca'));
+                pos++;
+             }
+             
+             
+             if(get("frmContenido.cbCanal")!="" && get("frmContenido.cbCanal")!=null){
+                arra[pos] = ["canal",get('frmContenido.cbCanal')];
+                set ('frmContenido.canal',get('frmContenido.cbCanal'));
+                pos++;
+             }
+             
+             
+             if(get("frmContenido.cbCodPeriodo")!="" && get("frmContenido.cbCodPeriodo")!=null){
+                arra[pos] = ["periodo",get('frmContenido.cbCodPeriodo')];
+                set ('frmContenido.periodo',get('frmContenido.cbCodPeriodo'));
+                pos++;
+             }
+             
+             
+             if(get("frmContenido.cbSubgerenciaVentas")!="" && get("frmContenido.cbSubgerenciaVentas")!=null){
+                arra[pos] = ["subgerencia",get('frmContenido.cbSubgerenciaVentas')];
+                set ('frmContenido.subGerencia',get('frmContenido.cbSubgerenciaVentas'));
+                pos++;
+             }
+             
+             
+             if(get("frmContenido.cbZona")!="" && get("frmContenido.cbZona")!=null){
+                arra[pos] = ["zona",get('frmContenido.cbZona')];
+                set ('frmContenido.zona',get('frmContenido.cbZona'));
+                pos++;
+             }
+             
+             
+             if(get("frmContenido.cbRegion")!="" && get("frmContenido.cbRegion")!=null){
+                arra[pos] = ["region",get('frmContenido.cbRegion')];
+                set ('frmContenido.region',get('frmContenido.cbRegion'));
+                pos++;
+             }
+             
+             
+             if(get("frmContenido.cbSeccion")!="" && get("frmContenido.cbSeccion")!=null){
+                arra[pos] = ["seccion",get('frmContenido.cbSeccion')];
+                set ('frmContenido.seccion',get('frmContenido.cbSeccion'));
+                pos++;
+             }
+             
+             
+             arra[pos] = ["paginado","1"];
+			 set ('frmContenido.territorio',get('frmContenido.txtTerritorio'));
+			 pos++;
+			 
+			 if(get("frmContenido.txtTerritorio")!="" && get("frmContenido.txtTerritorio")!=null){
+                arra[pos] = ["territorio",get('frmContenido.txtTerritorio')];
+             }
+         
+      return arra;
+    }
+    
+    function tabSimple(nombre){
+        document.selection.empty();
+        focaliza(nombre);
+    }
+    
+    
+    function tabHTML (nombre){
+        document.selection.empty();
+        focaliza(nombre);
+    }
+    
+
+   function muestraLista(ultima, rowset) {
+        var tamano = rowset.length;
+        if (tamano > 0) {
+			mostrarLista();
+        }else{
+			ocultarLista();
+			return false;
+        }
+		// dmorello, 05/01/2006
+		return true;
+	}   
+
+
+    function ocultarLista(){
+	    document.all["Cplistado1"].style.visibility='hidden';
+	    document.all["CpLin1listado1"].style.visibility='hidden';
+	    document.all["CpLin2listado1"].style.visibility='hidden';
+	    document.all["CpLin3listado1"].style.visibility='hidden';
+	    document.all["CpLin4listado1"].style.visibility='hidden';
+	    document.all["primera1Div"].style.visibility='hidden';
+	    document.all["ret1Div"].style.visibility='hidden';
+	    document.all["ava1Div"].style.visibility='hidden';
+	    document.all["separaDiv"].style.visibility='hidden';
+      document.all["Reasignar"].style.visibility='hidden';
+	    eval (ON_RSZ);  
+	    
+	}
+  
+  	function mostrarLista(){
+          DrdEnsanchaConMargenDcho('listado1',12);
+          document.all["Cplistado1"].style.visibility='visible';
+          document.all["CpLin1listado1"].style.visibility='visible';
+          document.all["CpLin2listado1"].style.visibility='visible';
+          document.all["CpLin3listado1"].style.visibility='visible';
+          document.all["CpLin4listado1"].style.visibility='visible';
+          document.all["primera1Div"].style.visibility='visible';
+          document.all["ret1Div"].style.visibility='visible';
+          document.all["ava1Div"].style.visibility='visible';
+          document.all["separaDiv"].style.visibility='visible';
+          document.all["Reasignar"].style.visibility='visible';
+          eval (ON_RSZ);  
+	}
+         
+         
+   function fLimpiar(){
+        set_combo('frmContenido.cbUsuarioDestino', [[''],['']]);
+        set_combo('frmContenido.cbCodEtDeuda', [[''],['']]);
+        set_combo('frmContenido.cbCodPeriodo', [[''],['']]);
+        set_combo('frmContenido.cbSubgerenciaVentas', [[''],['']]);        
+        set_combo('frmContenido.cbRegion', [[''],['']]);        
+        set_combo('frmContenido.cbZona', [[''],['']]);        
+        set_combo('frmContenido.cbSeccion', [[''],['']]);        
+        ocultarLista();
+        focaliza('frmContenido.cbUsuarioOrigen','');
+	}
+         
+   function reasignarOnClick(){
+    set('frmContenido.accion','reasignar');         
+    set('frmContenido.conectorAction','LPReasignarCarteraTerritorios');
+    eval("frmContenido").oculto="S";
+    enviaSICC('frmContenido', '', '', 'N');
+    buscarOnClick();
+   
+  }
+  function quitaOculto(){
+    eval("frmContenido").oculto="N";
+  }      
+
+
+    function desSeleccionar(){
+      document.selection.empty();         
+    }
+
+   function limpiarZona(){
+      var aCombo = new Array(new Array("",""));
+      set_combo('frmContenido.cbZona', aCombo, []);
+   }
+
+   function limpiarSeccion(){
+      var aCombo = new Array(new Array("",""));
+      set_combo('frmContenido.cbSeccion', aCombo, []); 
+   }	
+
+   function focalizaBotonReasignar(){
+		 focalizaBotonHTML_XY('Reasignar');
+   }
+
+  ]]>
+  </JAVASCRIPT>
+
+  <VALIDACION>
+      <ELEMENTO name="cbUsuarioOrigen" required="true" cod="1048" group="gr"/>
+      <ELEMENTO name="cbUsuarioDestino" required="true" cod="1020" group="gr" />
+      <ELEMENTO name="cbCodEtDeuda" required="true" cod="818" group="gr"/>
+      <ELEMENTO name="cbMarca" required="true" cod="6" group="gr"/>
+      <ELEMENTO name="cbCanal" required="true" cod="7" group="gr" />
+      <ELEMENTO name="cbCodPeriodo" required="true" cod="30" group="gr" />
+      <ELEMENTO name="cbSubgerenciaVentas" required="true" cod="124" group="gr" />
+	</VALIDACION>  
+
+  
+<FORMULARIO nombre="frmContenido">
+    <VAR nombre="accion" valor=""/>
+    <VAR nombre="casoDeUso" valor=""/>
+    <VAR nombre="errCodigo" valor=""/>
+    <VAR nombre="errDescripcion" valor=""/>
+    <VAR nombre="conectorAction" valor="LPReasignarCarteraTerritorios"/>
+    <VAR nombre="oidPais" valor=""/>
+    <VAR nombre="oidIdioma" valor=""/>
+    <VAR nombre="usuarioOrigen" valor=""/>
+    <VAR nombre="usuarioDestino" valor=""/>
+    <VAR nombre="etapaDeuda" valor=""/>
+    <VAR nombre="marca" valor=""/>
+    <VAR nombre="canal" valor=""/>
+    <VAR nombre="periodo" valor=""/>
+    <VAR nombre="subGerencia" valor=""/>
+    <VAR nombre="zona" valor=""/>
+    <VAR nombre="region" valor=""/>
+    <VAR nombre="seccion" valor=""/>
+    <VAR nombre="territorio" valor=""/>
+
+
+<CAPA nombre="capaContenido">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+     <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+	<fieldset><legend class="legend"><LABELC nombre="lblCriterios" alto="13" filas="1" valor="Datos Búsqueda" id="legend" cod="0075"/></legend> 
+          <!---primera fila-->
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+               <tr><td>
+                <table width="640" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td><LABELC nombre="lblUsuarioOrigen" alto="13" filas="1" valor="" id="datosTitle" cod="1048"/></td>                   
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lblUsuarioDestino" alto="13" filas="1" valor="" id="datosTitle" cod="1020"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lblCodEtapaDeuda" alto="13" filas="1" valor="" id="datosTitle" cod="818"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td  nowrap="nowrap">
+                    <COMBO nombre="cbUsuarioOrigen" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onchange="usuarioOrigenOnChange();" ontab="tabSimple('frmContenido.cbUsuarioDestino')" onshtab="focalizaBotonHTML('botonContenido','btnBuscar')" >
+                      	<ROWSET>
+                      	</ROWSET>
+                    </COMBO>
+                   </td>  
+                   <td><IMG src="b.gif" width="25" height="8"/></td>  
+                   <td  nowrap="nowrap">
+                    <COMBO nombre="cbUsuarioDestino" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" ontab="tabSimple('frmContenido.cbCodEtDeuda')" onshtab="tabSimple('frmContenido.cbUsuarioOrigen')">
+                      	<ROWSET>
+                      	</ROWSET>
+                    </COMBO>
+                   </td>   
+                   <td><IMG src="b.gif" width="25" height="8"/></td>  
+                   <td  nowrap="nowrap">
+                    <COMBO nombre="cbCodEtDeuda" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" ontab="tabSimple('frmContenido.cbMarca')" onshtab="tabSimple('frmContenido.cbUsuarioDestino')">
+                      	<ROWSET>
+                      	</ROWSET>
+                    </COMBO>
+                   </td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+              </td>
+                </tr>
+             <tr><td>
+                <table width="640" border="0" align="left" cellspacing="0" cellpadding="0">
+                
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td><LABELC nombre="lblMarca" alto="13" filas="1" valor="" id="datosTitle" cod="6"/></td>                   
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lblCanal" alto="13" filas="1" valor="" id="datosTitle" cod="7"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lblCodPeriodo" alto="13" filas="1" valor="" id="datosTitle" cod="30"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td  nowrap="nowrap">
+                    <COMBO nombre="cbMarca" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onchange="recargaPeriodo();" ontab="tabSimple('frmContenido.cbCanal')" onshtab="tabSimple('frmContenido.cbCodEtDeuda')">
+                      	<ROWSET>
+                      	</ROWSET>
+                    </COMBO>
+                   </td>  
+                   <td><IMG src="b.gif" width="25" height="8"/></td>  
+                   <td  nowrap="nowrap">
+                    <COMBO nombre="cbCanal" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onchange="recargaPeriodo();" ontab="tabSimple('frmContenido.cbCodPeriodo')" onshtab="tabSimple('frmContenido.cbMarca')">
+                      	<ROWSET>
+                      	</ROWSET>
+                    </COMBO>
+                   </td>   
+                   <td><IMG src="b.gif" width="25" height="8"/></td>  
+                   <td  nowrap="nowrap">
+                    <COMBO nombre="cbCodPeriodo" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" ontab="tabSimple('frmContenido.cbSubgerenciaVentas')" onshtab="tabSimple('frmContenido.cbCanal')">
+                      	<ROWSET>
+                      	</ROWSET>
+                    </COMBO>
+                   </td>                       
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+              </td>
+                </tr>                               
+              <tr> <td>
+                <table width="640" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td><LABELC nombre="lblSubgerenciaVentas" alto="13" filas="1" valor="" id="datosTitle" cod="124"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lblRegion" alto="13" filas="1" valor="" id="datosTitle" cod="109"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td  nowrap="nowrap">
+                      <COMBO nombre="cbSubgerenciaVentas" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onchange="subgerenciaOnChange();" ontab="tabSimple('frmContenido.cbRegion')" onshtab= "tabSimple('frmContenido.cbCodPeriodo')">
+                      	<ROWSET>
+                      	</ROWSET>
+                      </COMBO>
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td  nowrap="nowrap" valign="bottom">
+                      <COMBO nombre="cbRegion" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" onchange="regionOnChange();" ontab="tabSimple('frmContenido.cbZona')" onshtab="tabSimple('frmContenido.cbSubgerenciaVentas')">
+                      	<ROWSET>
+                      	</ROWSET>
+                      </COMBO>
+                   </td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+              </td>
+                </tr>                
+              <tr> <td>
+                <table width="640" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td><LABELC nombre="lblZona" alto="13" filas="1" valor="" id="datosTitle" cod="143"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lblSeccion" alto="13" filas="1" valor="" id="datosTitle" cod="112"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td  nowrap="nowrap">
+                      <COMBO nombre="cbZona" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" onchange="zonaOnChange();" ontab="tabSimple('frmContenido.cbSeccion')" onshtab="tabSimple('frmContenido.cbRegion')">
+                      	<ROWSET>
+                      	</ROWSET>
+                      </COMBO>
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td  nowrap="nowrap">
+                      <COMBO nombre="cbSeccion" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" ontab="tabSimple('frmContenido.txtTerritorio')" onshtab="tabSimple('frmContenido.cbZona')">
+                      	<ROWSET>
+                      	</ROWSET>
+                      </COMBO>
+                   </td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+              </td>
+                </tr>                
+              <tr> <td>
+                <table width="640" border="0" align="left" cellspacing="0" cellpadding="0">
+
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td><LABELC nombre="lblTerritorio" alto="13" filas="1" valor="" id="datosTitle" cod="126"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                    <td><CTEXTO nombre="txtTerritorio" id="datosCampos" max="40" tipo="" onchange="ocultarLista();" req="N" size="40" valor="" validacion="" ontab="focalizaBotonHTML('botonContenido','btnBuscar'); document.selection.empty();" onshtab="tabSimple('frmContenido.cbSeccion')" /></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+              </td></tr>                
+                       
+              </table>
+        </fieldset>        
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnBuscar" ID="botonContenido" tipo="html" accion="buscarOnClick();" estado="false" cod="1" onclick="buscarOnClick();" ontab="tabSimple('frmContenido.cbUsuarioOrigen')" onshtab="tabSimple('frmContenido.txtTerritorio')"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+    </tr>   
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+  
+    <LISTAEDITABLE nombre="listado1" ancho="644" alto="317" x="12" y="289" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+	<BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+	<BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+	<BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+      <LINEAS>
+	<GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="1" horizTitulo="1" horizBase="1"/> 
+	<COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00135" ID="datosTitle" />
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+        <COL ancho="130" minimizable="S" minimizada="N"/>
+        <COL ancho="130" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="150" minimizable="S" minimizada="N"/>
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/>
+        <COL ancho="200" minimizable="S" minimizada="N"/> 
+        <COL ancho="200" minimizable="S" minimizada="N"/>
+        <COL ancho="200" minimizable="S" minimizada="N"/> 
+                  
+      </COLUMNAS>
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+	<COL colFondo="" ID="EstCab" cod="1219"></COL> 
+	<COL colFondo="" ID="EstCab" cod="1061"></COL> 
+	<COL colFondo="" ID="EstCab" cod="999"></COL> 
+	<COL colFondo="" ID="EstCab" cod="6"></COL> 
+        <COL colFondo="" ID="EstCab" cod="7"></COL> 
+        <COL colFondo="" ID="EstCab" cod="30"></COL> 
+	<COL colFondo="" ID="EstCab" cod="124"></COL> 
+	<COL colFondo="" ID="EstCab" cod="109"></COL> 
+	<COL colFondo="" ID="EstCab" cod="143"></COL> 
+        <COL colFondo="" ID="EstCab" cod="112"></COL> 
+        <COL colFondo="" ID="EstCab" cod="263"></COL> 
+	<COL colFondo="" ID="EstCab" cod="895"></COL> 
+	<COL colFondo="" ID="EstCab" cod="2128"></COL> 
+	<COL colFondo="" ID="EstCab" cod="1660"></COL> 
+      </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="0" msgErrMaxSel="" 
+             coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+             onLoad="" colorSelecc="#D0D9E8">
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+      </DATOS>
+      <ROWSET>
+	
+      </ROWSET>
+      <PAGINADO nombre="mipgndo" ancho="644" sep="$" x="12" class="botonera" y="583" control="|" conector="conector_prototipo_2" rowset="" cargainicial="N" onload="procesarPaginado(mipgndo,msgError,ultima,rowset,'muestraLista(ultima,rowset)');">
+    	<BOTON nombre="ret1" x="37" y="587" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+    	<BOTON nombre="ava1" x="52" y="587" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>        
+      </PAGINADO>
+   </LISTAEDITABLE>
+
+    <BOTON nombre="primera1" x="20" y="587" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();"/>  
+    <BOTON nombre="separa" x="59" y="583" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />       
+    <BOTON nombre="Reasignar" x="80" y="584" ID="botonContenido" tipo="html" estado="false" cod="977" accion="reasignarOnClick();"/>      
+
+ <CAPA nombre="capaEspacio" alto="12" ancho="50" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="606" zindex=""/>
+
+ </FORMULARIO>
+</PAGINA>  

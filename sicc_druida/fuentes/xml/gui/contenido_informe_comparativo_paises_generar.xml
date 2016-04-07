@@ -1,0 +1,540 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_informe_comparativo_paises_generar.xml,v 1.1 2009/12/03 18:44:05 pecbazalar Exp $
+   contenido CCC
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_informe_comparativo_paises_generar" cod="0857" titulo="Generar informe comparativo de países de retención de pedidos" estilos="estilosB3.css" colorf="#F0F0F0" 
+ msgle="" onload="onLoad()" xml:lang="es">
+
+<JS src="sicc_util.js"/>   
+<JS src="PaginacionSicc.js"/>    
+<JS src="DruidaTransactionMare.js"/>
+
+
+<JAVASCRIPT>
+  
+  <![CDATA[ 
+  
+  function onLoad(){
+  
+    configurarMenuSecundario('Formulario');
+    fMostrarMensajeError();
+    set('Formulario.txtAnio',get('Formulario.anio') );
+    setearPais();
+    cambioPais();
+    focaliza('Formulario.cbPais');
+  
+  }
+  
+
+    function quitarItemVacio(elemento){
+      var elementoADevolver = new Array();
+     
+      for(var k=0;k<elemento.length;k++) {
+          if (elemento[k] != ''){                            
+             elementoADevolver[elementoADevolver.length] = elemento[k];
+          }
+      }
+         
+      return elementoADevolver;
+      
+   }	
+//------------------------------------------------------------------------------
+
+  function anioActual() {
+  
+    d = new Date();
+    y = d.getFullYear();
+    return y;
+  
+  }
+  
+//------------------------------------------------------------------------------
+  
+  function setearPais(){
+  
+    var pais = get('Formulario.pais');
+    
+    iSeleccionado = new Array();
+    iSeleccionado[0] = pais;
+    set('Formulario.cbPais',iSeleccionado);
+  
+  }
+
+//------------------------------------------------------------------------------
+  
+  function fLimpiar(){
+    
+    var aCombo = new Array(new Array("",""));
+    
+    set_combo('Formulario.cbSubtipoCliente', aCombo, []);
+    set_combo('Formulario.cbTipoClasificacion', aCombo, []);
+    set_combo('Formulario.cbClasificacion', aCombo, []);
+    set_combo('Formulario.cbUnidadNegocio', aCombo, []);
+    set_combo('Formulario.cbNegocio', aCombo, []);
+    
+    set('Formulario.txtAnio', get('Formulario.anio'));
+    
+    focaliza('Formulario.cbPais');
+    
+  } 
+   
+//------------------------------------------------------------------------------
+  
+  function cambioPais(){
+  
+    
+    pais   = get('Formulario.cbPais');
+    idioma = get('Formulario.idioma');
+    
+    if(pais != ''){
+
+      var arr = new Array();
+      arr[arr.length] = ["oidPais", pais];
+      arr[arr.length] = ["oidIdioma", idioma];          
+    
+      recargaCombo("Formulario.cbUnidadNegocio","MAEObtenerUnidadesNegocioPorPais", "es.indra.sicc.util.DTOBelcorp",arr);
+      recargaCombo("Formulario.cbNegocio","MAEObtenerNegocioPorPais", "es.indra.sicc.util.DTOBelcorp",arr);
+    
+    }else{
+      
+      var aCombo = new Array(new Array("",""));
+      set_combo('Formulario.cbUnidadNegocio', aCombo, []); 
+      set_combo('Formulario.cbNegocio', aCombo, []); 
+    
+    }
+  
+}
+
+
+//------------------------------------------------------------------------------
+  
+
+  function cambioTipo(){
+         
+     opciones = new Array();
+     set_combo('Formulario.cbSubtipoCliente',opciones);
+     set_combo('Formulario.cbTipoClasificacion',opciones);
+     set_combo('Formulario.cbClasificacion',opciones);
+     tipo = get('Formulario.cbTipoCliente','V');
+     combo_add('Formulario.cbSubtipoCliente', '', '');
+       
+     for(var k=0;k<lstSubtipo.datos.longitud;k++) {
+        for(var y=0;y<tipo.length;y++){
+           if (lstSubtipo.datos.ij(k,1) == tipo[y]){ 			 
+              combo_add('Formulario.cbSubtipoCliente',lstSubtipo.datos.ij(k,0),lstSubtipo.datos.ij(k,2));
+    
+            }
+        }
+     }
+  }    
+  
+//------------------------------------------------------------------------------          
+
+  function cambioSubtipo(){
+     
+    opciones = new Array();
+    set_combo('Formulario.cbTipoClasificacion',opciones);
+    set_combo('Formulario.cbClasificacion',opciones);
+    var subTipo = get('Formulario.cbSubtipoCliente','V');
+    combo_add('Formulario.cbTipoClasificacion', '', '');
+    
+    for(var k=0;k<lstTipoClasificacion.datos.longitud;k++) {
+        for(var y=0;y<subTipo.length;y++){
+           if (lstTipoClasificacion.datos.ij(k,1) == subTipo[y]){ 			 
+              combo_add('Formulario.cbTipoClasificacion',lstTipoClasificacion.datos.ij(k,0),lstTipoClasificacion.datos.ij(k,2));
+           
+           }
+        }
+    }
+          
+    
+  }
+
+//------------------------------------------------------------------------------          
+
+  function cambioTipoClasificacion(){
+    
+    opciones = new Array();
+    set_combo('Formulario.cbClasificacion',opciones);
+    var tipoClasificacion = get('Formulario.cbTipoClasificacion','V');
+    combo_add('Formulario.cbClasificacion', '', '');
+  
+    for(var k=0;k<lstClasificacion.datos.longitud;k++) {
+      for(var y=0;y<tipoClasificacion.length;y++){
+        if (lstClasificacion.datos.ij(k,1) == tipoClasificacion[y]){ 			 
+          combo_add('Formulario.cbClasificacion',lstClasificacion.datos.ij(k,0),lstClasificacion.datos.ij(k,2));
+            
+        }
+      }
+    }
+  }
+   
+//------------------------------------------------------------------------------
+
+  function generar(formato){
+     
+    if(sicc_validaciones_generales()){
+      
+      var a = new Object();
+      a.accion = 'generar';
+      
+      a.pais = get('Formulario.cbPais');  
+      a.marca = get('Formulario.cbMarca');
+      a.marcaDesc = get('Formulario.cbMarca','T');
+      a.canal = get('Formulario.cbCanal');
+      a.tipoCliente = quitarItemVacio(get('Formulario.cbTipoCliente'));
+      a.tipoClienteDesc = quitarItemVacio(get('Formulario.cbTipoCliente', 'T'));
+      a.subtipoCliente = quitarItemVacio(get('Formulario.cbSubtipoCliente'));
+      a.subtipoClienteDesc = quitarItemVacio(get('Formulario.cbSubtipoCliente', 'T'));
+      a.tipoClasificacion = quitarItemVacio(get('Formulario.cbTipoClasificacion'));
+      a.tipoClasificacionDesc = quitarItemVacio(get('Formulario.cbTipoClasificacion', 'T'));
+      a.clasificacion = quitarItemVacio(get('Formulario.cbClasificacion'));
+      a.clasificacionDesc = quitarItemVacio(get('Formulario.cbClasificacion', 'T'));
+      a.unidadNegocio = quitarItemVacio(get('Formulario.cbUnidadNegocio'));
+      a.unidadNegocioDesc= quitarItemVacio(get('Formulario.cbUnidadNegocio', 'T'));
+      a.negocio = quitarItemVacio(get('Formulario.cbNegocio'));
+      a.negocioDesc = quitarItemVacio(get('Formulario.cbNegocio', 'T'));
+      a.anio = get('Formulario.txtAnio');
+      a.pedidosAnioAnterior = get('Formulario.txtPorcentajeRetencionAnioAnterior');
+   
+      a.formato = formato;
+   
+      mostrarModalSICC('INCComparativoPaisesRetencion','generar', a);
+      
+    }
+    
+  }
+
+
+//------------------------------------------------------------------------------
+
+
+]]>
+  
+  <VALIDACION>
+    <ELEMENTO name="cbPais" required="true" cod="5"/>
+    <ELEMENTO name="cbMarca" required="true" cod="6"/>
+    <ELEMENTO name="cbCanal" required="true" cod="7"/>
+    <ELEMENTO name="txtAnio" required="true" cod="171" format="e" min="0" max="9999"/>
+    <ELEMENTO name="txtPorcentajeRetencionAnioAnterior" required="true" cod="2696" format="e" min="0" max="999999"/>
+  </VALIDACION>
+
+</JAVASCRIPT>
+
+
+<FORMULARIO nombre="Formulario">
+<VAR nombre="accion" valor="" />
+<VAR nombre="conectorAction" valor="" />
+<VAR nombre="casoDeUso" valor=""/>
+<VAR nombre="errCodigo" valor="" />
+<VAR nombre="errDescripcion" valor="" />
+<VAR nombre="idioma" valor="" />
+<VAR nombre="pais" valor="" />
+<VAR nombre="anio" valor="" />
+
+
+<CAPA nombre="capa1">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblCriteriosSeleccion"  alto="13" filas="1" valor="" id="legend" cod="00275"/></legend>
+          <!---primera fila-->
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+           <tr><td>
+
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblPais"  alto="13" filas="1" id="datosTitle" cod="5" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbPais" size="1" multiple="N" valorinicial="" textoinicial="" id="datosCampos" req="S" onchange="cambioPais()" onshtab="focalizaBotonHTML('botonContenido','btnGenerarExcel');">
+                		<ROWSET>
+                    </ROWSET>
+	                </COMBO> 
+                   </td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr> 
+           <tr><td>
+
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+               
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblMarca"  alto="13" filas="1" id="datosTitle" cod="6" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblCanal"  alto="13" filas="1" id="datosTitle" cod="7" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbMarca" size="1" multiple="N" valorinicial="" textoinicial="" id="datosCampos" req="S">
+                		<ROWSET>
+                    </ROWSET>	
+	                </COMBO> 
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" ><COMBO nombre="cbCanal" size="1" multiple="N" valorinicial="" textoinicial="" id="datosCampos" req="S">
+                		<ROWSET>
+                    </ROWSET>	
+	                </COMBO>
+                   </td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>
+            
+            <tr><td>
+
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblTipoCliente"  alto="13" filas="1" id="datosTitle" cod="1869" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblSubtipoCliente"  alto="13" filas="1" id="datosTitle" cod="595" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbTipoCliente" size="5" multiple="S" valorinicial="" textoinicial="" id="datosCampos" req="N" onchange="cambioTipo()">
+                		<ROWSET>
+                    </ROWSET>
+	                </COMBO> 
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbSubtipoCliente" size="5" multiple="S" valorinicial="" textoinicial="" id="datosCampos" req="N" onchange="cambioSubtipo()">
+                		<ROWSET>         		
+                    </ROWSET>
+	                </COMBO> 
+                   </td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>
+            <tr><td>
+
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblTipoClasificacion"  alto="13" filas="1" id="datosTitle" cod="756" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblClasificacion"  alto="13" filas="1" id="datosTitle" cod="550" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap" valign="bottom"><COMBO nombre="cbTipoClasificacion" size="5" multiple="S" valorinicial="" textoinicial="" id="datosCampos" req="N" onchange="cambioTipoClasificacion()">
+                		<ROWSET>
+                    </ROWSET>
+	                </COMBO> 
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" valign="bottom"><COMBO nombre="cbClasificacion" size="5" multiple="S" valorinicial="" textoinicial="" id="datosCampos" req="N">
+                		<ROWSET>
+                    </ROWSET>
+	                </COMBO> 
+                   </td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>
+            <tr><td>
+
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblUnidadNegocio"  alto="13" filas="1" id="datosTitle" cod="1338" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblNegocio"  alto="13" filas="1" id="datosTitle" cod="588" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbUnidadNegocio" size="5" multiple="S" valorinicial="" textoinicial="" id="datosCampos" req="N">
+                		<ROWSET>
+                    </ROWSET>	
+	                </COMBO> 
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" valign="top"><COMBO nombre="cbNegocio" size="5" multiple="S" valorinicial="" textoinicial="" id="datosCampos" req="N">
+                		<ROWSET>
+                    </ROWSET>	
+	                </COMBO> 
+                   </td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>
+            <tr><td>
+
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblAnio"  alto="13" filas="1" id="datosTitle" cod="171" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td ><LABELC nombre="lblRetencionAnioAnterior"  alto="13" filas="1" id="datosTitle" cod="2696"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap" ><CTEXTO nombre="txtAnio" id="datosCampos" max="4" tipo="" onchange="" req="S" size="4" valor="" validacion=""/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" class="datosCampos" valign="bottom"><CTEXTO nombre="txtPorcentajeRetencionAnioAnterior" id="datosCampos" max="6" tipo="" onchange="" req="N" size="8" valor="" validacion=""/>%
+                   <IMG src="iconObligatorio.gif" />
+                   </td>                
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>
+           </table>
+       <!---fin primera fila-->
+         
+        
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnGenerarInforme" ID="botonContenido" tipo="html" accion="generar('pdf')" estado="false" cod="2495"/>
+		  <BOTON nombre="btnGenerarExcel" ID="botonContenido" tipo="html" accion="generar('xls')" estado="false" cod="2526" ontab="focaliza('Formulario.cbPais')"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>       
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+  
+ </CAPA>
+  
+  
+  
+  <CAPA nombre="capaSubtipo" alto="3" ancho="624" colorf="" borde="0" imagenf="" repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="165" zindex="">
+    <LISTA seleccion="boton" nombre="lstSubtipo" x="12" y="10" ancho="600" alto="3" multisel="-1" incy="10" incx="10" colorf="#EFEFEF" imagenoff="close_no.gif" imagenon="close_up.gif" accion="" sep="|" pixelsborde="2" colorborde="#CCCCCC">
+      
+      <CABECERA nombre="cab1" height="20">
+        <COL id="datosCamposCabecera" ancho="40"></COL>
+        <COL id="datosCamposCabecera" ancho="60">Subtipo</COL>
+        <COL id="datosCamposCabecera" ancho="440">Descripción</COL>
+      </CABECERA>
+      
+      <PRESENTACION ancho="590" filas="1" bloquesid="['datosCamposCenterImpar', 'datosCamposCenterPar']">
+        <COL ancho="40" caracteres="20"/>
+        <COL ancho="60" caracteres="20"/>
+        <COL ancho="440" caracteres="30"/>
+      </PRESENTACION>
+      
+      <ROWSET>
+      </ROWSET>
+  
+    </LISTA>
+  </CAPA>
+           
+  <CAPA nombre="capaTipoClasificacion" alto="3" ancho="624" colorf="" borde="0" imagenf="" repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="165" zindex="">
+    <LISTA seleccion="boton" nombre="lstTipoClasificacion" x="12" y="10" ancho="600" alto="3" multisel="-1" incy="10" incx="10" colorf="#EFEFEF" imagenoff="close_no.gif" imagenon="close_up.gif" accion="" sep="|" pixelsborde="2" colorborde="#CCCCCC">
+    
+      <CABECERA nombre="cab1" height="20">
+        <COL id="datosCamposCabecera" ancho="40"></COL>
+        <COL id="datosCamposCabecera" ancho="60">TipoClasificacion</COL>
+        <COL id="datosCamposCabecera" ancho="440">Descripción</COL>
+      </CABECERA>
+    
+      <PRESENTACION ancho="590" filas="1" bloquesid="['datosCamposCenterImpar', 'datosCamposCenterPar']">
+        <COL ancho="40" caracteres="20"/>
+        <COL ancho="60" caracteres="20"/>
+        <COL ancho="440" caracteres="30"/>
+      </PRESENTACION>
+    
+    <ROWSET>
+    </ROWSET>
+    
+    </LISTA>
+  </CAPA>
+  
+  <CAPA nombre="capaClasificacion" alto="3" ancho="624" colorf="" borde="0" imagenf="" repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="165" zindex="">
+    <LISTA seleccion="boton" nombre="lstClasificacion" x="12" y="10" ancho="600" alto="3" multisel="-1" incy="10" incx="10" colorf="#EFEFEF" imagenoff="close_no.gif" imagenon="close_up.gif" accion="" sep="|" pixelsborde="2" colorborde="#CCCCCC">
+    
+      <CABECERA nombre="cab1" height="20">
+        <COL id="datosCamposCabecera" ancho="40"></COL>
+        <COL id="datosCamposCabecera" ancho="60">Clasificacion</COL>
+        <COL id="datosCamposCabecera" ancho="440">Descripción</COL>
+      </CABECERA>
+      
+      <PRESENTACION ancho="590" filas="1" bloquesid="['datosCamposCenterImpar', 'datosCamposCenterPar']">
+        <COL ancho="40" caracteres="20"/>
+        <COL ancho="60" caracteres="20"/>
+        <COL ancho="440" caracteres="30"/>
+      </PRESENTACION>
+      
+      <ROWSET>
+      </ROWSET>
+    
+    </LISTA>
+  </CAPA>
+ 
+ 
+</FORMULARIO>
+
+</PAGINA>

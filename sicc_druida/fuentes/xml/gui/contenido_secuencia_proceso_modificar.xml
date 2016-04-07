@@ -1,0 +1,478 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_secuencia_proceso_modificar.xml,v 1.1 2009/12/03 18:44:38 pecbazalar Exp $
+   prueba arbol 
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+<PAGINA nombre="contenido_secuencia_proceso_modificar" cod="0634" titulo="" estilos="estilosB3.css" colorf="#F0F0F0" 
+	msgle="" onload="onLoadPag();" xml:lang="es">
+
+<!--Eliminar secuencia de procesos    cod="0635"-->
+<!--Consultar secuencia de procesos    cod="0636"-->
+
+<!--import javascript package.class-->
+<JS src="sicc_util.js"></JS>
+<JS src="DruidaTransactionMare.js"></JS>
+<JS src="PaginacionSicc.js"/>
+
+<JAVASCRIPT>
+ <![CDATA[    
+      
+	function onLoadPag()  {
+    configurarMenuSecundario("frmContenido");
+    completarCbIdEjecucionLinea();
+    fMostrarMensajeError();
+    accion('frmContenido.cbCodProceso','.disabled=true');
+    focaliza('frmContenido.cbTipoSol');
+
+	    DrdEnsanchaConMargenDcho('listado1',12);
+
+	    document.all["Cplistado1"].style.visibility='hidden';
+	    document.all["CpLin1listado1"].style.visibility='hidden';
+	    document.all["CpLin2listado1"].style.visibility='hidden';
+	    document.all["CpLin3listado1"].style.visibility='hidden';
+	    document.all["CpLin4listado1"].style.visibility='hidden';
+
+	    document.all["primera1Div"].style.visibility='hidden';
+	    document.all["ret1Div"].style.visibility='hidden';
+	    document.all["ava1Div"].style.visibility='hidden';
+	    document.all["separaDiv"].style.visibility='hidden';
+	    document.all["ModificarDiv"].style.visibility='hidden';
+	    document.all["DetalleDiv"].style.visibility='hidden';
+
+	    eval (ON_RSZ);  
+	}
+
+
+  function onChangeCbGProcesos()  {
+	if (get('frmContenido.cbGProcesos')!="")
+	{
+		 accion('frmContenido.cbCodProceso','.disabled=false');
+	    var arr = new Array();
+		 arr[arr.length] = new Array("oidIdioma",get('frmContenido.hOidIdioma'));
+	    arr[arr.length] = new Array("oid", get('frmContenido.cbGProcesos') );
+		 recargaCombo("frmContenido.cbCodProceso", "PEDconsultaCodigosProcesos", "es.indra.sicc.util.DTOOID", arr );
+	 }
+	 else 
+	 {
+		  set_combo('frmContenido.cbCodProceso',[0]);
+		  accion('frmContenido.cbCodProceso','.disabled=true');
+	 }
+
+
+  }
+
+
+  function completarCbIdEjecucionLinea()  {
+      var no = GestionarMensaje(86);
+      var si = GestionarMensaje(84);
+      combo_add('frmContenido.cbIdEjecucionLinea', "0", no);
+      combo_add('frmContenido.cbIdEjecucionLinea', "1", si);
+  }
+
+
+  function fLimpiar()  {
+    set_combo('frmContenido.cbCodProceso',[0]);
+    accion('frmContenido.cbCodProceso','.disabled=true');
+    focaliza('frmContenido.cbTipoSol');
+  }
+
+
+  function onClickBuscar()  {
+    if ( sicc_validaciones_generales() )  {
+      ocultarLista();
+      configurarPaginado(mipgndo,'PEDconsultaSecuenciaProcesos','ConectorBuscarSecuenciaProcesos',
+                         'es.indra.sicc.dtos.ped.DTOSecuenciaProcesos',armarArray() );
+    }
+  }
+
+
+  function armarArray()  {
+    var array = new Array();
+    var i = 0;
+    array[i] = new Array('oidIdioma',get('frmContenido.hOidIdioma'));
+    if (get('frmContenido.cbTipoSol') != '')  {
+      i++;
+      array[i] = new Array('oidTipoSolicitudPais',get('frmContenido.cbTipoSol'));
+    }
+    if (get('frmContenido.cbGProcesos') != '')  {
+      i++;
+      array[i] = new Array('oidGrupoProcesos',get('frmContenido.cbGProcesos'));
+    }
+    if (get('frmContenido.cbCodProceso') != '')  {
+      i++;
+      array[i] = new Array('oidProceso',get('frmContenido.cbCodProceso'));
+    }
+    if (get('frmContenido.txtSecuencia') != '')  {
+      i++;
+      array[i] = new Array('secuencia',get('frmContenido.txtSecuencia'));
+    }
+    if (get('frmContenido.cbIdEjecucionLinea') != '')  {
+      i++;
+      if (get('frmContenido.cbIdEjecucionLinea') == '1')  {
+        array[i] = new Array('indEjecucion','true');
+      } else {
+          array[i] = new Array('indEjecucion','false');
+        }
+    }
+    return array;
+  }
+
+  function visibilidadLista(rowset)  {
+    if (rowset.length == 0) {
+      ocultarLista();
+      btnProxy(4, '0');
+      return false;
+    } else {
+      listado1.setDatos(rowset);
+      listado1.display();
+      mostrarLista();
+      return true;
+    }
+  }
+
+
+  function ocultarLista()  {
+    document.all["Cplistado1"].style.visibility='hidden';
+    document.all["CpLin1listado1"].style.visibility='hidden';
+    document.all["CpLin2listado1"].style.visibility='hidden';
+    document.all["CpLin3listado1"].style.visibility='hidden';
+    document.all["CpLin4listado1"].style.visibility='hidden';
+
+    document.all["primera1Div"].style.visibility='hidden';
+    document.all["ret1Div"].style.visibility='hidden';
+    document.all["ava1Div"].style.visibility='hidden';
+    document.all["separaDiv"].style.visibility='hidden';
+    document.all["ModificarDiv"].style.visibility='hidden';
+    document.all["DetalleDiv"].style.visibility='hidden';
+  }
+
+
+  function mostrarLista()  {
+	    document.all["Cplistado1"].style.visibility='visible';
+	    document.all["CpLin1listado1"].style.visibility='visible';
+	    document.all["CpLin2listado1"].style.visibility='visible';
+	    document.all["CpLin3listado1"].style.visibility='visible';
+	    document.all["CpLin4listado1"].style.visibility='visible';
+
+	    document.all["primera1Div"].style.visibility='visible';
+	    document.all["ret1Div"].style.visibility='visible';
+	    document.all["ava1Div"].style.visibility='visible';
+	    document.all["separaDiv"].style.visibility='visible';
+    habilitarBotones();
+  }
+
+
+  function habilitarBotones()  {
+    if ( get('frmContenido.hCasoDeUso') == 'Modificar' )  {
+      document.all["ModificarDiv"].style.visibility='visible';
+      document.all["DetalleDiv"].style.visibility='hidden';
+      listado1.maxSel = 1;
+    }
+    if ( get('frmContenido.hCasoDeUso') == 'Eliminar' )  {
+      document.all["ModificarDiv"].style.visibility='hidden';
+      document.all["DetalleDiv"].style.visibility='visible';
+      btnProxy(4, '1');
+      listado1.maxSel = -1;
+    }
+    if ( get('frmContenido.hCasoDeUso') == 'Consultar' )  {
+      document.all["ModificarDiv"].style.visibility='hidden';
+      document.all["DetalleDiv"].style.visibility='visible';
+      listado1.maxSel = 1;
+    }
+  }
+
+
+  function onClickModificar()  {
+    set('frmContenido.accion','modificar');
+    if ( listado1.codSeleccionados().length == 1 )  {
+      var parametros = new Object();
+      parametros.hOIDModificar = listado1.codSeleccionados().toString();
+      parametros.hCasoDeUso = get('frmContenido.hCasoDeUso');
+      mostrarModalSICC("LPMantieneSecuenciaProcesos","modificar", parametros );
+      onClickBuscar();
+    } else {
+        GestionarMensaje('2525');
+        focaliza('frmContenido.cbTipoSol');
+      }
+  }
+
+
+  function onClickDetalle()  {
+    set('frmContenido.accion','detallar');
+    if ( listado1.codSeleccionados().length == 1 )  {
+      var parametros = new Object();
+      parametros.hOIDModificar = listado1.codSeleccionados().toString();
+      parametros.hCasoDeUso = get('frmContenido.hCasoDeUso');
+      mostrarModalSICC("LPMantieneSecuenciaProcesos","detallar", parametros );
+    } else {
+        GestionarMensaje('2525');
+        focaliza('frmContenido.cbTipoSol');
+      }
+  
+  }
+
+
+  function onClickEliminar()  {
+    if (listado1.numSelecc() != 0)  {
+      eliminarFilas(listado1.codSeleccionados(),"PEDeliminaSecuenciaProcesos",mipgndo);
+    } else {
+        GestionarMensaje('1021');
+      }
+  }
+
+
+  function fBorrar()  {
+    onClickEliminar();
+  }
+
+
+  function focalizarOnTabBB()  {
+    try {
+      if ( get('frmContenido.hCasoDeUso') == 'Modificar' )  {
+        document.all.Modificar.focus();
+      }
+      if ( get('frmContenido.hCasoDeUso') == 'Eliminar' )  {
+        document.all.Detalle.focus();
+      }
+      if ( get('frmContenido.hCasoDeUso') == 'Consultar' )  {
+        document.all.Detalle.focus();
+      }
+    } catch (e)  {
+        focaliza('frmContenido.cbTipoSol');
+      }
+  }
+
+
+  function focalizarOnShTabTS()  {
+    try {
+      if ( get('frmContenido.hCasoDeUso') == 'Modificar' )  {
+        document.all.Modificar.focus();
+      }
+      if ( get('frmContenido.hCasoDeUso') == 'Eliminar' )  {
+        document.all.Detalle.focus();
+      }
+      if ( get('frmContenido.hCasoDeUso') == 'Consultar' )  {
+        document.all.Detalle.focus();
+      }
+    } catch (e)  {
+        document.all.btnBuscar.focus();
+      }
+  }
+
+
+  function focalizarOnTabBL()  {
+    try {
+      focaliza('frmContenido.cbTipoSol');
+    } catch (e)  {
+        focaliza('frmContenido.cbTipoSol');
+      }
+  }
+
+
+  function focalizarOnShTabBL()  {
+    try {
+      document.all.btnBuscar.focus();
+    } catch (e)  {
+        document.all.btnBuscar.focus();
+      }
+  }
+
+
+]]>
+
+<VALIDACION>
+ <ELEMENTO name="txtSecuencia" required="false" format="e" min="0" max="999" cod="1499" />
+</VALIDACION>
+
+</JAVASCRIPT>
+  
+<FORMULARIO nombre="frmContenido">
+
+<VAR nombre="conectorAction" valor="LPMantieneSecuenciaProcesos"/>
+
+<VAR nombre="hCasoDeUso" valor=""/>
+<VAR nombre="hOid" valor=""/>
+<VAR nombre="hOIDModificar" valor=""/>
+<VAR nombre="hOidIdioma" valor=""/>
+
+<VAR nombre="errCodigo" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>
+
+
+<CAPA nombre="capaContenido">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+     <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+	<fieldset><legend class="legend"><LABELC nombre="lblCriteriosBusqueda" alto="13" filas="1" valor="" id="legend" cod="0075"/></legend> 
+          <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr> <td>
+                <table width="575" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td><LABELC nombre="lblTipoSol" alto="13" filas="1" valor="Cód. proceso" id="datosTitle" cod="415"/></td>                   
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lblGProcesos" alto="13" filas="1" valor="" id="datosTitle" cod="1466"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td  nowrap="nowrap">
+                    <COMBO nombre="cbTipoSol" onshtab="focalizarOnShTabTS();" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                      	<ROWSET>
+
+                      	</ROWSET>
+                    </COMBO>
+                   </td> 
+                   <td><IMG src="b.gif" width="25" height="8"/></td>  
+                   <td  nowrap="nowrap">
+                    <COMBO nombre="cbGProcesos" id="datosCampos" size="1" multiple="N" req="N" onchange="onChangeCbGProcesos();" valorinicial="" textoinicial="">
+                      	<ROWSET>
+
+                      	</ROWSET>
+                    </COMBO>
+                   </td>  
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+              </td>
+                </tr>                
+              <tr> <td>
+                <table width="575" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>   
+                   <td><LABELC nombre="lblCodProceso" alto="13" filas="1" valor="" id="datosTitle" cod="2171"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>                
+                   <td><LABELC nombre="lblSecuencia" alto="13" filas="1" valor="" id="datosTitle" cod="1499"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lblIdEjecucionLinea" alto="13" filas="1" valor="Ejecución línea" id="datosTitle" cod="2176"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td> 
+                    <td  nowrap="nowrap">
+                    <COMBO nombre="cbCodProceso" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                      	<ROWSET>
+
+                      	</ROWSET>
+                    </COMBO>
+                   </td>  
+                   <td><IMG src="b.gif" width="25" height="8"/></td>                          
+                   <td  nowrap="nowrap">
+                      <CTEXTO nombre="txtSecuencia" id="datosCampos" max="3" tipo="" onchange="" req="N" size="3" valor="" validacion="" />
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td>
+                    <COMBO nombre="cbIdEjecucionLinea" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                      <ROWSET>
+
+                      </ROWSET>
+                    </COMBO>
+                    </td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+              </td>
+                </tr>                
+              </table>
+        </fieldset>        
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnBuscar" ontab="focalizarOnTabBB();" ID="botonContenido" tipo="html" accion="onClickBuscar();" estado="false" cod="1"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+    </tr>    
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>  
+  
+    <LISTAEDITABLE nombre="listado1" ancho="578" alto="317" x="12" y="163" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+	<BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+	<BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+	<BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+      <LINEAS>
+	<GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="1" horizTitulo="1" horizBase="1"/> 
+	<COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00135" ID="datosTitle" />
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+      </COLUMNAS>
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+	<COL colFondo="" ID="EstCab" cod="415"/>
+	<COL colFondo="" ID="EstCab" cod="1466"/>
+	<COL colFondo="" ID="EstCab" cod="2171"/>
+	<COL colFondo="" ID="EstCab" cod="1499"/>
+        <COL colFondo="" ID="EstCab" cod="2176"/>
+      </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+             coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+             onLoad="" colorSelecc="#D0D9E8">
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+      </DATOS>
+      <ROWSET>
+
+
+      </ROWSET>
+      <PAGINADO nombre="mipgndo" onload="procesarPaginado(mipgndo,msgError, ultima, rowset, 'visibilidadLista(rowset)')" ancho="403" sep="$" x="12" class="botonera" y="457" control="|" conector="conector_prototipo_2" rowset="" cargainicial="N">
+    	<BOTON nombre="ret1" x="37" y="461" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+    	<BOTON nombre="ava1" x="52" y="461" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>        
+      </PAGINADO>
+   </LISTAEDITABLE>
+
+    <BOTON nombre="primera1" x="20" y="461" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();"/>  
+    <BOTON nombre="separa" x="59" y="457" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />       
+    <BOTON nombre="Modificar" ontab="focalizarOnTabBL();" onshtab="focalizarOnShTabBL();" accion="onClickModificar();" x="80" y="458" ID="botonContenido" tipo="html" estado="false" cod="2" />
+    <BOTON nombre="Detalle" ontab="focalizarOnTabBL();" onshtab="focalizarOnShTabBL();" accion="onClickDetalle();" x="80" y="458" ID="botonContenido" tipo="html" estado="false" cod="3" />
+
+ <CAPA nombre="capaEspacio" alto="12" ancho="50" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="480" zindex=""/>
+
+ </FORMULARIO>
+</PAGINA>

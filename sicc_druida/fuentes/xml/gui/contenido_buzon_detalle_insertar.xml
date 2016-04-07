@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_buzon_detalle_insertar.xml,v 1.1 2009/12/03 18:45:30 pecbazalar Exp $
+   prueba arbol 
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+<PAGINA nombre="contenido_buzon_detalle_insertar" cod="" titulo="" estilos="estilosB3.css" colorf="#F0F0F0" msgle="Crear buzón" onload="onLoadPag();" xml:lang="es">
+
+<!--Actualizar buzón: cod="0590"-->
+
+<JS src="sicc_util.js"></JS> 
+<JS src="PaginacionSicc.js"></JS>
+<JS src="DruidaTransactionMare.js"></JS>
+
+ <JAVASCRIPT>
+ <![CDATA[ 
+  var arrContacto = new Array();
+
+  function fLimpiar() {	
+	if( get("formulario.opcionMenu")=="Actualizar Buzon" ){
+		
+		btnProxy(1,1);
+		txt_to('lbldtSecuenciaActividad', get("formulario.secuenciaActividad"));
+
+		//primero recuperar los datos del combo
+		set_combo("formulario.cbContacto", arrContacto);	
+		var array = new Array();
+		array[0] = get('formulario.oidContacto');
+		set('formulario.cbContacto',array);
+
+
+		var array1 = new Array();
+		array1[0] = get('formulario.oidGestion');
+		set('formulario.cbGestion',array);
+
+		set("formulario.txtCodCliente",get("formulario.oidCliente"));
+		set("formulario.txtDescripcionActividad", get("formulario.descripcionActividad"));
+		set("formulario.atxtObservaciones", get("formulario.observaciones"));
+	}else{
+		set("formulario.txtDescripcionActividad", "");
+		set("formulario.txtCodCliente","");
+		var arr = new Array();
+		arr[0] = "";
+		set("formulario.cbContacto", arr);
+		set("formulario.cbGestion", arr);
+		set("formulario.atxtObservaciones", "");
+		focoDescripcionActividad();	
+	}
+  }
+
+  function focoDescripcionActividad() {
+	focaliza("formulario.txtDescripcionActividad");
+  }
+
+  function focoObservaciones() {
+	focaliza("formulario.atxtObservaciones");
+  }
+
+  function onLoadPag(){ 
+
+	configurarMenuSecundario("formulario"); 
+	fMostrarMensajeError();
+	btnProxy(2,1);
+	
+	if(get("formulario.opcionMenu") == "Actualizar Buzon" ){
+
+		var contacto = document.getElementById("cbContacto");
+		
+		for(var i=0; i<contacto.length; i++){
+			arrContacto[i] = new Array(contacto.item(i).value, contacto.item(i).innerText); 
+		}
+		
+		btnProxy(1,1);
+
+	    txt_to('lbldtSecuenciaActividad', get("formulario.secuenciaActividad"));
+		var array = new Array();
+		array[0] = get('formulario.oidContacto');
+		set('formulario.cbContacto',array);
+
+		var array1 = new Array();
+		array1[0] = get('formulario.oidGestion');
+		set('formulario.cbGestion',array);
+	}
+	focoDescripcionActividad();
+  }
+
+  function fGuardar() {
+	onClickGuardar();
+  }
+
+  function onClickGuardar() {
+	//Llama a LPBuzon con 
+	//- accion = "insertar Detalle" 
+
+	//- oidDetalle 
+	//- oidCabecera 
+	//- secuenciaActividad 
+	//- descripcionActividad 
+	//- oidContacto 
+	//- oidGestion 
+	//- observaciones 
+
+	if(sicc_validaciones_generales()) {
+		var oidCabecera = get("formulario.oidCabecera"); 
+		var oidDetalle = get("formulario.oidDetalle");
+		var secuenciaActividad = get("formulario.secuenciaActividad");
+		secuenciaActividad = replaceString(".","",secuenciaActividad);
+		secuenciaActividad = replaceString(",","",secuenciaActividad);
+		var descripcionActividad = get("formulario.txtDescripcionActividad");
+		var oidContacto = get("formulario.cbContacto");
+		var oidGestion = get("formulario.cbGestion");
+		var observaciones = get("formulario.atxtObservaciones");
+		
+		set("formulario.oidDetalle", oidDetalle);
+		set("formulario.oidCabecera", oidCabecera);
+		set("formulario.secuenciaActividad", secuenciaActividad);
+		set("formulario.descripcionActividad", descripcionActividad);
+		set("formulario.oidContacto", oidContacto);
+		set("formulario.oidGestion", oidGestion);
+		set("formulario.observaciones", observaciones);
+		set("formulario.conectorAction", "LPBuzon");
+		set("formulario.accion", "insertar detalle");
+		enviaSICC("formulario");  
+	}	
+  }
+
+  function codClienteRellenarCeros() {
+		//incidencia  DBLG500000865, se debe rellenar con ceros
+		var codigoClient=  get("formulario.txtCodCliente") ;
+		set("formulario.txtCodCliente",rellenaCeros(codigoClient,11,codigoClient.length));  
+  }
+
+  function codClienteOnChange() {
+
+		//Llamar al método recargaCombo utilizando el DTOCliente y el idBusiness = "CALObtenerContactosPorCliente". 
+
+		//Parametros del DTOCliente: 
+		//- DTOCliente.codCliente = codigo de cliente seleccionado en el campo codCliente 
+		//- DTOCliente.pais = pais activo 
+
+		//Obtenemos un DTOSalida y cargamos el combo cbContacto
+		var arr = new Array();      
+		 arr[arr.length] = new Array("codCliente", get("formulario.txtCodCliente"));
+		 arr[arr.length] = new Array("oidPais", get("formulario.oidPais"));      
+		 recargaCombo("formulario.cbContacto", 'CALObtenerContactosPorCliente','es.indra.sicc.dtos.cal.DTOCliente', arr);
+	 
+  }
+
+  function onClickBusquedaCliente() {
+	// Método que se ejecuta al pulsar sobre el icono de búsqueda rápida del campo Cod.cliente 
+
+	//Invocamos al subsistema de soporte Búsqueda rápida de clientes (Activando la LPBusquedaRapidaCliente) y //recibimos un array con (oid, codigo, nombre1, nombre2, apellido1, apellido2). 
+
+	//	Mostramos codigo en codCliente
+
+	var obj = new Object();
+    var whnd = mostrarModalSICC('LPBusquedaRapidaCliente','',obj);
+    if(whnd!=null){
+      var oid = whnd[0];
+      var cod = whnd[1];
+      var nom1 = whnd[2];
+      var nom2 = whnd[3];
+      var ape1 = whnd[4];
+      var ape2 = whnd[5];
+      
+      set("formulario.oid", oid);
+      set("formulario.codigo", cod);      
+      set("formulario.nombre1", nom1);
+      set("formulario.nombre2", nom2);   
+      set("formulario.apellido1", ape1);
+      set("formulario.apellido2", ape2);   
+
+	  set("formulario.txtCodCliente", cod);   
+	  codClienteOnChange();
+    }
+  }
+
+
+
+function codClienteOnChange() {
+	//Llamar al método recargaCombo utilizando el DTOCliente y el idBusiness = "CALObtenerContactosPorCliente". 
+
+	//Parametros del DTOCliente: 
+	//- DTOCliente.codCliente = codigo de cliente seleccionado en el campo codCliente 
+	//- DTOCliente.pais = pais activo 
+
+	//Obtenemos un DTOSalida y cargamos el combo cbContacto
+	var arr = new Array();      
+    arr[arr.length] = new Array("codCliente", get("formulario.txtCodCliente"));
+    arr[arr.length] = new Array("oidPais", get("formulario.oidPais"));      
+    recargaCombo("formulario.cbContacto", 'CALObtenerContactosPorCliente','es.indra.sicc.dtos.cal.DTOCliente', arr);
+  }
+
+	function fVolver(){
+		window.close();
+	}
+
+ ]]>  
+  </JAVASCRIPT>	
+
+<VALIDACION>
+	<ELEMENTO name="txtDescripcionActividad" required="true" cod="2031"/>	
+	<ELEMENTO name="txtCodCliente" required="true" cod="263"/>
+	<ELEMENTO name="cbContacto" required="true" cod="2032"/>	
+</VALIDACION>
+ 
+<FORMULARIO nombre="formulario" oculto="S">
+
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="opcionMenu" valor=""/>
+<VAR nombre="accion" valor=""/>
+<VAR nombre="errCodigo" valor=""/> 
+<VAR nombre="errDescripcion" valor=""/>
+
+<VAR nombre="oidCliente" valor=""/>
+
+<VAR nombre="oidDetalle" valor=""/>
+<VAR nombre="oidCabecera" valor=""/>
+<VAR nombre="secuenciaActividad" valor=""/>
+<VAR nombre="descripcionActividad" valor=""/>
+<VAR nombre="oidContacto" valor=""/>
+<VAR nombre="oidGestion" valor=""/>
+<VAR nombre="observaciones" valor=""/>
+
+<VAR nombre="oidPais" valor=""/>
+
+<VAR nombre="oid" valor=""/>
+<VAR nombre="codigo" valor=""/>
+<VAR nombre="nombre1" valor=""/>
+<VAR nombre="nombre2" valor=""/>
+<VAR nombre="apellido1" valor=""/>
+<VAR nombre="apellido2" valor=""/>
+<VAR nombre="formatoNro" valor=""/>
+
+
+<CAPA nombre="capa1" >
+
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+
+
+     <tr> 
+      <td><IMG src="b.gif"/></td>
+      
+      <td>
+	<fieldset><legend class="legend"><LABELC nombre="lblDatosDetalle"  alto="13" filas="1" valor="" id="legend" cod="00133"/></legend> 
+	 <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+          <!---primera fila-->
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td><LABELC nombre="lblSecuenciaActividad"  alto="13" filas="1" valor="" id="datosTitle" cod="2030"/></td>                   
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lblDescripcionActividad"  alto="13" filas="1" valor="" id="datosTitle" cod="2031"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td colspan="3"><LABELC nombre="lblCodCliente"  alto="13" filas="1" valor="" id="datosTitle" cod="263"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td  nowrap="nowrap">
+                    <LABELC nombre="lbldtSecuenciaActividad"  alto="13" filas="1" valor="" id="datosCampos" />  
+                   </td>  
+                   <td><IMG src="b.gif" width="25" height="8"/></td>  
+                   <td  nowrap="nowrap">
+                    <CTEXTO nombre="txtDescripcionActividad" id="datosCampos" max="40" tipo="" onchange="" req="S" size="40" valor="" validacion="" onshtab="focoObservaciones();"/>
+                   </td> 
+                   <td><IMG src="b.gif" width="25" height="8"/></td>  
+                   <td nowrap="nowrap"><CTEXTO nombre="txtCodCliente" id="datosCampos" max="15" tipo="" onchange="codClienteRellenarCeros();codClienteOnChange();"   onblur="" req="S" size="19" valor="" validacion="" /></td>     
+	           <td><IMG src="b.gif" width="8" height="8"/></td>  
+	           <td><IMG src="iconBuscar.gif" onclick="onClickBusquedaCliente();"/></td>  
+	           <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+       <!---fin primera fila-->
+      </td></tr>
+           <tr><td>
+       
+       	       <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td> 
+                   <td><LABELC nombre="lblContacto"  alto="13" filas="1" valor="" id="datosTitle" cod="2032"/></td> 
+                   <td><IMG src="b.gif" width="25" height="8"/></td>                  
+                   <td><LABELC nombre="lblGestion"  alto="13" filas="1" valor="" id="datosTitle" cod="2033"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td> 
+                   <td  nowrap="nowrap">
+                    <COMBO nombre="cbContacto" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="">
+                      	<ROWSET>
+                      	</ROWSET>
+                    </COMBO>
+                   </td>     
+                   <td><IMG src="b.gif" width="25" height="8"/></td>                   
+                   <td  nowrap="nowrap" >
+                    <COMBO nombre="cbGestion" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                      	<ROWSET>
+                      	</ROWSET>
+                    </COMBO>
+                   </td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+         </td></tr>
+           <tr><td>
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>  
+                   <td><LABELC nombre="lblObservaciones" alto="13" filas="1" valor="" id="datosTitle" cod="169"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td> 
+                   <td  nowrap="nowrap">
+                   <AREATEXTO cols="50" id="datosCampos" msjreq="" nombre="atxtObservaciones" readonly="N"
+                       req="N" rows="3" tabindex="2" valor="" max="100" ontab="focoDescripcionActividad();"/>
+                   </td>
+                  <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+	     </td></tr>
+           </table>
+
+        </fieldset>        
+      </td>
+      
+      <td><IMG src="b.gif" /></td>
+      
+    </tr> 
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+  
+  </CAPA>
+ 
+ 
+ </FORMULARIO>
+</PAGINA>          

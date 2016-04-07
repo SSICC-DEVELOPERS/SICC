@@ -1,0 +1,641 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_matriz_codigos_alternativos_registrar.xml,v 1.1 2009/12/03 18:45:21 pecbazalar Exp $
+   PRE
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+<PAGINA nombre="contenido_matriz_codigos_alternativos_registrar" cod="" 
+titulo="Registrar Matriz de Códigos Alternativos" estilos="estilosB3.css" 
+colorf="#F0F0F0" msgle="Registrar Matriz de Códigos Alternativos" onload="LoadBar()"
+xml:lang="es">
+<JS src="sicc_util.js"/>	 
+<JS src="PaginacionSicc.js"/> 
+<JS src="DruidaTransactionMare.js"/>
+<JAVASCRIPT>
+
+
+ <![CDATA[ 
+
+var formName = 'frmFormulario.';
+var formNameSinPunto = 'frmFormulario';
+var cantNiveles = null; 
+
+function fLimpiar(){	
+	cargarAccion("Matriz seleccionada","N");
+}
+
+ 
+function LoadBar(){ 
+	configurarMenuSecundario("frmFormulario");
+    DrdEnsanchaConMargenDcho('listado1',12);
+	
+    eval (ON_RSZ);  
+
+	focalizaBotonHTML('botonContenido' ,'btnBuscarProductoPrincipal');	
+
+    if( !fMostrarMensajeError() ){
+		if(get(formName + 'accion')=="Matriz seleccionada") {	
+			deshabilitarHabilitarBoton('botonContenido','btnBuscarProductoAlternativo','D')			
+		} else {
+			deshabilitarHabilitarBoton('botonContenido','btnBuscarProductoAlternativo','A')			
+		}
+
+		if((get('frmFormulario.hidDatosReemp')=="N") || (get('frmFormulario.hidDatosReemp')=="")){
+			ocultarLista();
+			btnProxy(1,'0');
+			btnProxy(4,'0');
+		} else if(get('frmFormulario.hidDatosReemp')=="S") {
+			mostrarLista();
+			btnProxy(1,'1');
+			btnProxy(4,'1');
+		}
+	}
+}	
+
+
+function ocultarLista() {
+	document.all["Cplistado1"].style.visibility='hidden';
+	document.all["CpLin1listado1"].style.visibility='hidden';
+	document.all["CpLin2listado1"].style.visibility='hidden';
+	document.all["CpLin3listado1"].style.visibility='hidden';
+	document.all["CpLin4listado1"].style.visibility='hidden';
+	//document.all["capaTitulo"].style.visibility='hidden';
+}
+
+
+function mostrarLista() {
+	document.all["Cplistado1"].style.visibility='';
+	document.all["CpLin1listado1"].style.visibility='';
+	document.all["CpLin2listado1"].style.visibility='';
+	document.all["CpLin3listado1"].style.visibility='';
+	document.all["CpLin4listado1"].style.visibility='';
+	//document.all["capaTitulo"].style.visibility='hidden';
+}
+
+
+function focalizaTab(componente) {  
+	if(componente==1){
+		if(get(formName + 'accion')=="Matriz seleccionada") {
+			focalizaBotonHTML('botonContenido' ,'btnBuscarProductoPrincipal');	
+		}else if (get(formName + 'accion')=="productoPrincipalSeleccionado" || get(formName + 'accion')=="grupoProductosSeleccionado"){	
+			focalizaBotonHTML('botonContenido' ,'btnBuscarProductoAlternativo');
+		}
+	}else if (componente==2){
+		focalizaBotonHTML('botonContenido' ,'btnBuscarProductoPrincipal');	
+	}
+}
+
+
+function focalizaTabShift(componente) {    
+	if (componente==1){	
+		if(get(formName + 'accion')=="Matriz seleccionada") {
+			focalizaBotonHTML('botonContenido' ,'btnBuscarProductoPrincipal');	
+		}else if (get(formName + 'accion')=="productoPrincipalSeleccionado" || get(formName + 'accion')=="grupoProductosSeleccionado"){	
+			focalizaBotonHTML('botonContenido' ,'btnBuscarProductoAlternativo');	
+		}
+	}else if (componente==2){	
+		focalizaBotonHTML('botonContenido' ,'btnBuscarProductoPrincipal');	
+	}
+}
+
+
+function chequeoCampos(){
+	var bDatosValidados = false;
+	var bChequeaCorrelatividad = false;
+
+	bDatosValidados = chequearDatos();
+		
+	if(bDatosValidados == true) {
+		bChequeaCorrelatividad = chequeaCorrelatividad2();
+		
+		if(bChequeaCorrelatividad == false){ 
+			return 0;
+		}else{
+			return new Boolean(true);
+		}
+	}else{
+		return false;
+	}
+}
+
+
+function chequearDatos() {	
+	var i = 0;
+	var bBreak = false;			
+	var bCaracteresInvalidos = false;
+	var sContenidoTextBox;
+	var sValorEtiqueta = "";
+	
+	while (bBreak == false && i<cantNiveles) {			 
+		sContenidoTextBox = document.getElementById("Texto1_" + i).value;	
+		//alert("valor: " + sContenidoTextBox);
+		// Solo si hay contenido en la caja de texto.
+		
+		if(sContenidoTextBox != "")  { 					 
+			// Cheque la validez de los caraceteres en esa caja de texto.
+			bCaracteresInvalidos = validaChars(sContenidoTextBox);
+			if(bCaracteresInvalidos == false) {
+				sValorEtiqueta = devuelveEtiqueta(i);
+				//alert("Nombre: " + sValorEtiqueta);
+				GestionarMensaje("1253", sValorEtiqueta, null, null);								
+				//alert(sValorEtiqueta + " solo puede contener los sig. caracteres: 0123456789");
+				document.getElementById("Texto1_" + i).focus();
+				bBreak = true;
+				break;
+			}
+		}else{
+			//alert("sin datos");
+			sValorEtiqueta = devuelveEtiqueta(i);
+			GestionarMensaje("1254", sValorEtiqueta, null, null);
+			document.getElementById("Texto1_" + i).focus();						
+			bBreak = true;
+			break;
+		}
+		i++;
+	}
+
+	if(bBreak == true)  // Si están vacias o si hubo un error con los caracteres.
+		return false;
+	else
+		return true;
+}
+
+
+function validaChars(str) {
+	var c;		
+	permitidos="0123456789";
+	
+	for (var i=0; i<str.length; i++) {
+		c=str.charAt(i);
+		
+		if( permitidos.indexOf(c) == -1 ) 
+			return false;
+		else if ( c == ' ' && i == 0 )
+			return false;
+		else if ( c == ' ' && i == (str.length-1) )
+			return false;				
+	}	
+	return true;
+}
+
+function devuelveEtiqueta(indice) {
+	// **************************************************************************************
+   	// Toma el contenido de la variable de form. valorEtiquetas (formato xxxx|yyyy|zzzz),
+	// la splitea, y devuelve el valor del índice correspondiente.
+	// **************************************************************************************
+	
+	nombre =  listado1.datos[indice][1];			
+	return nombre;
+}
+
+
+function chequeaCorrelatividad() {
+	// Chequea que los datos sean correlativos en las cajas de texto, comenzando por 1. 
+	// Para esto, se vale de un vector de cantNiveles-1 elementos. 
+	// En este vector:
+			
+	var arrayNiveles = new Array(cantNiveles);
+	var indicesCajasConTexto = new Array(cantNiveles);  // Sobre un posible maximo de cantNiveles (todas).
+	var indiceBuffer = 0;
+	var cantCajasTextoLlenas = 0 ;
+	var nValor;
+	var bBreak = false;
+	var i = 0;
+	//alert("chequeaCorrelatividad");
+		
+	//********************************************************************************************
+	// Trae la cantidad de cajas de texto llenas para luego chequear la correlatividad 
+	// de 1 a cantCajasTextoLlenas. 
+	// Nota: Siempre va a haber al menos 1 llena, ya que se chequea antes en otra función. 
+	// Nota 2:Ya se han validado caracteres, asi que siempre contienen numeros.
+	// *******************************************************************************************
+	
+	while(i < cantNiveles)	{
+		var nValor = document.getElementById("Texto1_" + i).value; 
+		
+		if (nValor != "") {
+			indicesCajasConTexto[cantCajasTextoLlenas] = i;
+			cantCajasTextoLlenas++;
+		}
+		i++;
+	}
+
+	//alert("Cant de cajas llenas: "  + cantCajasTextoLlenas);
+	//alert("Array con indices de txtBox que contienen texto: " + indicesCajasConTexto);
+	
+	if (cantCajasTextoLlenas == 1) { // Si hay llena una sola caja, chequea que tenga un 1.
+		nValor = document.getElementById("Texto1_" + indicesCajasConTexto[0] ).value;
+					
+		//alert("nvalor: "  + nValor);
+		if (nValor == "1") {
+			return true;
+		}else{
+			GestionarMensaje("964", null, null, null); 
+			//alert("Si va a seleccionar solo un elemento, este tiene que tener orden 1");
+			return false;
+		}
+	} 
+	
+	i = 0;
+
+	//********************************************************************************************
+	// Primero llena arrayNiveles con la cantidad de veces que apareca cada elemento. 
+	// (números de 1 a cantNiveles - los demás los ignora) 
+	//********************************************************************************************
+
+	while(i < cantCajasTextoLlenas){
+		arrayNiveles[i] = 0;
+		i++;
+	}
+	
+	i = 0;
+			
+	while( i < cantCajasTextoLlenas ){	
+		nValor = document.getElementById("Texto1_" + indicesCajasConTexto[i]).value;
+		//alert("nValor: " + nValor);
+		
+		if(( nValor > 0 ) && nValor <= cantCajasTextoLlenas){ // Entre 1 y cantNiveles. 
+			arrayNiveles[nValor-1]++;
+			//("nValor " + (nValor-1)+ ": " + arrayNiveles[nValor-1] );
+		}				
+		i++;
+	}
+	
+	//("arrayNiveles: " + arrayNiveles);
+
+	//********************************************************************************************
+	// Con el vector seteado, se recorre. Tiene que haber una secuencia de 1s para chequear correctitud,
+	// de principio a fin (0 significa que no se encontro el valor, mas de 1 significa que se repitio un valor).
+	//********************************************************************************************
+
+	i = 0;
+	var vBuffer = 0;
+	//alert("chequeo de correlatividad");
+
+	while(i < cantCajasTextoLlenas && bBreak == false){
+		vBuffer = arrayNiveles[i];
+		//if (vBuffer ==0) {
+		//GestionarMensaje("965", (i+1), null, null);
+		//alert("No se encontro elemento " + (i+1) + ". Se debe establecer una secuencia desde 1 a " + cantCajasTextoLlenas );
+		//bBreak = true;
+		//} else 
+		
+		if(vBuffer > 1){	
+			GestionarMensaje("966", (i+1), null, null);
+			//alert("Se ha repetido el elemento " + (i+1) + " unas " + vBuffer + " veces");
+			bBreak = true;
+		}
+		i++;
+	}
+	return !bBreak;	// Devuelve false si hubo algún problema (bBreak = true);
+}
+
+
+function chequeaCorrelatividad2(){
+	var arrayNiveles = new Array(cantNiveles);
+	
+	var i=0;
+	var x=0;
+	var duplicado=0;
+	var logica = false;
+	var cantCajasTextoLlenas = 0 ;
+	var valCajasConTexto = new Array(cantNiveles);
+	while(i < cantNiveles){
+		var nValor = document.getElementById("Texto1_" + i).value; 
+		
+		if(nValor != ""){
+			valCajasConTexto[cantCajasTextoLlenas] = nValor;
+			cantCajasTextoLlenas++;
+		}
+		i++;
+	}
+	i=0;
+	x=0;
+	
+	while (i<cantCajasTextoLlenas){
+		var nValor = document.getElementById("Texto1_" + i).value;
+		
+		while (x<cantCajasTextoLlenas){
+			if(valCajasConTexto[x]==nValor){
+				duplicado ++;
+			}
+			
+			if(duplicado > 1){
+				//El valor esta repetido
+				GestionarMensaje("1287", (nValor), null, null);
+				return false;
+			}	
+			x++;
+		}
+		i++;
+	    x=0;
+		duplicado=0;
+	}
+	return new Boolean(true);		
+}
+
+function checkeoNumeroOrden(){
+    var codigos = listado1.codigos();
+    listado1.actualizaDat();
+  	cantNiveles = listado1.datos.length; 
+    var todosNrOrden = new Array();
+		for (var i=0; i<codigos.length ; i++){
+        // Añade Nro de Orden
+        nrOrden = listado1.extraeDato(codigos[i], 2);
+        if(nrOrden==""){
+            GestionarMensaje("PRE0050", null, null, null);
+            return false;
+        }
+        if (existeEnArray(todosNrOrden, nrOrden)){
+            GestionarMensaje("PRE0050", null, null, null);
+            return false;
+        }
+        todosNrOrden[i]=nrOrden;
+    }
+    return true;
+}
+
+function existeEnArray(array, valor){
+    for (var i=0; i<array.length;i++){
+        if (array[i] == valor){
+            return true;
+        }
+    }
+    return false;
+}
+
+
+function fGuardar(){
+	var codigos = listado1.codigos();
+	listado1.actualizaDat();
+
+	var cadena = "";
+	cantNiveles = listado1.datos.length; 
+
+	//alert(listado1.datos);
+    if(chequearDatos()){
+    //if(chequeoCampos() && checkeoNumeroOrden()){
+		// 1. Construye la cadena, tomando los valores por cada fila.
+
+		for (var i=0; i<codigos.length ; i++){
+			if( i != 0)
+				cadena = cadena + "|";
+
+			cadena = cadena + codigos[i] + ",";
+
+			// Añade Codigo de Venta. 
+			codVenta = listado1.extraeDato(codigos[i], 0);
+					
+			if (codVenta==""){
+				codVenta=" ";
+			}
+
+			cadena = cadena + codVenta + ",";
+
+			// Añade Descripcion
+			desc = listado1.extraeDato(codigos[i], 1);
+			cadena = cadena + desc + ",";
+
+			// Añade Nro de Orden
+			nrOrden = listado1.extraeDato(codigos[i], 2);
+
+			if(nrOrden==""){
+				nrOrden=" ";
+			}
+				
+			cadena = cadena + nrOrden + ",";				
+
+			// Añade Emite Mensaje
+			emiteMen = listado1.extraeDato(codigos[i], 3);
+			cadena = cadena + emiteMen;
+			//alert('emiteMen' + emiteMen);
+		}
+				
+		set("frmFormulario.elementosSeleccionados", cadena);
+		//alert(cadena);
+
+		cargarAccion("guardarMatriz", "S");
+	//}
+  }
+}
+
+
+function fBorrar() {
+	var cantElementos = listado1.codSeleccionados();
+
+	if( cantElementos.length == 0 ){
+		GestionarMensaje("4", null, null, null);
+	}else{
+		listado1.eliminarSelecc();
+	}
+    
+	if(listado1.codigos().length==0){       
+		ocultarLista();
+		btnProxy(4,'0');
+		btnProxy(1,'0');
+	}else{
+		btnProxy(4,'1');
+	}
+}
+
+
+function cargarAccion(accion, oculto){
+	if(accion == 'buscarProductosAlternativos'){
+		armarCadena();
+	}
+	eval(formNameSinPunto).oculto= oculto;
+	set(formName + "conectorAction" ,"LPMantenimientoMatrizCodigosAlternativos");
+	set(formName + 'accion', accion);
+	enviaSICC(formNameSinPunto);	
+}
+
+
+function armarCadena(){
+	var codigos = listado1.codigos();
+	listado1.actualizaDat();
+
+	var cadena = "";
+	cantNiveles = listado1.datos.length; 
+
+	// 1. Construye la cadena, tomando los valores por cada fila.
+
+	for (var i=0; i<codigos.length ; i++){
+		if ( i != 0)
+			cadena = cadena + "|";
+
+		cadena = cadena + codigos[i] + ",";
+
+		// Añade Codigo de Venta. 
+		codVenta = listado1.extraeDato(codigos[i], 0);
+				
+		if (codVenta==""){
+			codVenta=" ";
+		}
+
+		cadena = cadena + codVenta + ",";
+
+		// Añade Descripcion
+		desc = listado1.extraeDato(codigos[i], 1);
+		cadena = cadena + desc + ",";
+
+		// Añade Nro de Orden
+		nrOrden = listado1.extraeDato(codigos[i], 2);
+
+		if (nrOrden==""){
+			nrOrden=" ";
+		}
+			
+		cadena = cadena + nrOrden + ",";				
+
+		// Añade Emite Mensaje
+		emiteMen = listado1.extraeDato(codigos[i], 3);
+		cadena = cadena + emiteMen;
+		//alert('emiteMen' + emiteMen);
+	}
+				
+	set("frmFormulario.elementosSeleccionados", cadena);
+
+	//alert('cadena: ' + cadena);
+}
+
+ ]]> 
+
+</JAVASCRIPT>
+<FORMULARIO nombre="frmFormulario">
+  <VAR nombre="accion" valor=""/>
+  <VAR nombre="hidDatosReemp" valor=""/>
+  <VAR nombre="conectorAction" valor=""/>
+  <VAR nombre="hPais" valor=""/>
+  <VAR nombre="hIdioma" valor=""/>
+  <VAR nombre="errCodigo" valor=""/>
+  <VAR nombre="errDescripcion" valor=""/>
+  <VAR nombre="elementosSeleccionados" valor=""/>
+  <VAR nombre="UltimaLP" valor=""/>
+  <VAR nombre="descripcionProducto" valor=""/>
+  <VAR nombre="codigoVenta" valor=""/>
+  <VAR nombre="varExitoInserta" valor=""/>  
+  <VAR nombre="oidMatrizCodigoAlternativo" valor=""/>
+  <VAR nombre="oidMatrizFacturacion" valor=""/>
+
+ 
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblProductoPrincipal" alto="13" filas="1" valor="" id="legend" cod="0014"/></legend>
+         <!---primera fila-->
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr> <td>
+                <table width="600" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblCodigoVenta" alto="13" filas="1" valor="" id="datosTitle" cod="336"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblDescripcion" alto="13" filas="1" valor="" id="datosTitle" cod="9"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                    <td><IMG src="b.gif" width="8" height="8"/></td>
+                    <td>
+ 						<LABELC nombre="lblCodigoVentaXX" alto="13" filas="1" valor="" id="datosCampos" codigo=""/>
+                    </td>
+                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td>
+ 						<LABELC nombre="lblDescripcionXX" alto="13" filas="1" valor="" id="datosCampos" codigo=""/>
+                    </td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+	        <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+              </table>
+              </td>
+                </tr> 
+              </table>
+        <!---primera fila-->
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnBuscarProductoPrincipal" ID="botonContenido" tipo="html" accion="cargarAccion('buscarProductoPrincipal','N');" estado="false" cod="431" ontab="focalizaTab(1);" onshtab="focalizaTabShift(1);"/>
+		  <BOTON nombre="btnBuscarProductoAlternativo" ID="botonContenido" tipo="html" accion="cargarAccion('buscarProductosAlternativos','N');" estado="false" cod="432" ontab="focalizaTab(2);" onshtab="focalizaTabShift(2);"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+    </tr>       
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+ 
+  <LISTAEDITABLE nombre="listado1" ancho="803" alto="299" x="12" y="117" colorFondo="#CECFCE" msgDebugJS="S"><!--ancho="603"-->
+      <IMGBOTONES precarga="S" conROver="S">
+	<BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+	<BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+	<BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+      <LINEAS>
+	<GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="1" horizTitulo="1" horizBase="1"/> 
+	<COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="430" ID="datosTitle" />
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+        <COL ancho="100" minimizable="S" minimizada="N"/>
+        <COL ancho="200" minimizable="S" minimizada="N"/> 
+        <COL ancho="80" minimizable="S" minimizada="N"/> 
+        <COL ancho="90" minimizable="S" minimizada="N"/>
+      </COLUMNAS>
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+	<COL colFondo="" ID="EstCab" align="center" cod="336">Código venta</COL> 
+	<COL colFondo="" ID="EstCab" cod="9">Descripción</COL> 
+	<COL colFondo="" ID="EstCab" cod="433" >Nº de orden</COL> 
+	<COL colFondo="" ID="EstCab" cod="434">Emitir mensaje</COL> 
+      </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+             coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8"  onLoad="" colorSelecc="#D0D9E8">
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="cajatexto" nombre="Texto1" size="3" max="2" IDOBJ="EstCajaDatForm" ID="EstDat"/> 
+       <COL tipo="checkbox" nombre="cbx1" ID="EstDat2"/> 
+      </DATOS>
+  <ROWSET>
+  </ROWSET>
+	  <!--    <PAGINADO nombre="mipgndo" ancho="503" sep="$" x="12" class="botonera" y="393" control="" conector="" rowset="" cargainicial="N">
+        <BOTON nombre="ava1" x="105" y="393" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();" /> 
+        <BOTON nombre="ret1" x="90" y="393" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();"/>
+    </PAGINADO> -->
+  </LISTAEDITABLE>                                      
+
+<CAPA nombre="capaEspacio" alto="18" ancho="100%" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="416" zindex="">
+</CAPA>
+</FORMULARIO>
+</PAGINA>                                                              
+                                        

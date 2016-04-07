@@ -1,0 +1,661 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_ambito_geografico_mantener.xml,v 1.1 2009/12/03 18:45:53 pecbazalar Exp $
+   contenido CCC
+
+   0492 
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_ambito_geografico_mantener" cod="" titulo="Mantener ámbito geográfico" estilos="estilosB3.css" colorf="#F0F0F0" msgle="" onload="onLoadPag();" xml:lang="es">
+
+<JS src="sicc_util.js"/>	 
+<JS src="PaginacionSicc.js"/>	 
+<JS src="DruidaTransactionMare.js"/>
+<JS src="pestanyas_concurso_inc.js"/>
+<!-- Caso de uso Mantener alcance geográfico ranking cod="0697"-->
+
+<JAVASCRIPT>
+<![CDATA[ 
+
+function onLoadPag()   {
+	focaliza('formulario.cbSubgerencia');  
+    configurarMenuSecundario("formulario");
+    fMostrarMensajeError();
+    varNoLimpiarSICC = true;      
+    DrdEnsanchaConMargenDcho('listado1',12);
+    document.all["Cplistado1"].style.visibility='';
+    document.all["CpLin1listado1"].style.visibility='';
+    document.all["CpLin2listado1"].style.visibility='';
+    document.all["CpLin3listado1"].style.visibility='';
+    document.all["CpLin4listado1"].style.visibility='';
+    document.all["separaDiv"].style.visibility='';
+    document.all["primera1Div"].style.visibility='';
+    document.all["ret1Div"].style.visibility='';
+    document.all["ava1Div"].style.visibility='';
+    
+    eval (ON_RSZ);  
+	finCargaPagina = true;
+  
+ 
+  //--Se agrega consultar - modificar 
+  //--Pcabrera
+  
+  var opcionMenu = get("formulario.opcionMenu"); 
+  
+  if (opcionMenu == "Consultar Concurso"){
+	//--se deshabilitan los componentes
+   //-- y los botones correspondientes   
+      deshabilitarCampos();
+      btnProxy(1, 0);
+      btnProxy(2, 1);
+      btnProxy(3, 0);
+      btnProxy(4, 0);
+      btnProxy(5, 0);
+      btnProxy(7, 0);
+      btnProxy(8, 0);
+      btnProxy(9, 0);
+      
+     deshabilitarHabilitarBoton('botonContenido','btnAnadir','D');
+	 }
+   else if(opcionMenu == "Modificar Concurso") {
+	btnProxy(2,'1');
+	btnProxy(3,'0');
+	btnProxy(7,'0');
+	btnProxy(8,'0');
+	btnProxy(9,'0');
+   }
+  
+ }
+
+ function fVolver() {
+	window.close();
+ }
+   
+  function onChangeSubgerencia() {
+	set_combo('formulario.cbRegion',['','']);
+	set_combo('formulario.cbZona',['','']);
+	set_combo('formulario.cbSeccion',['','']);
+	set_combo('formulario.cbTerritorio',['','']);  
+    var valor = get('formulario.cbSubgerencia');
+	if(valor!="") {
+		var arra = new Array();
+	    arra[0] = ["oidPais",get('formulario.oidPais')];
+		arra[1] = ["oidMarca",get('formulario.hidMarca')];
+	    arra[2] = ["oidCanal",get('formulario.hidCanal')];
+		arra[3] = ["oidSGV",get('formulario.cbSubgerencia')];      
+		recargaCombo("formulario.cbRegion","ZONRecargaRegiones","es.indra.sicc.dtos.zon.DTOUnidadAdministrativa",arra);
+	}
+  }
+  
+  function onChangeRegion(){
+	set_combo('formulario.cbZona',['','']);
+	set_combo('formulario.cbSeccion',['','']);
+	set_combo('formulario.cbTerritorio',['','']);  
+	var valor = get('formulario.cbRegion');
+	if(valor!="") {
+		var arra = new Array();
+	    arra[0] = ["oidPais",get('formulario.oidPais')];
+		arra[1] = ["oidMarca",get('formulario.hidMarca')];
+	    arra[2] = ["oidCanal",get('formulario.hidCanal')];
+		arra[3] = ["oidRegion",get('formulario.cbRegion')];      
+	    recargaCombo("formulario.cbZona","ZONRecargaZonas","es.indra.sicc.dtos.zon.DTOUnidadAdministrativa",arra);
+	}
+  }
+  
+  function onChangeZona(){
+	set_combo('formulario.cbSeccion',['','']);
+	set_combo('formulario.cbTerritorio',['','']);  
+	var valor = get('formulario.cbZona');
+	if(valor!="") {
+		var arra = new Array();
+	    arra[0] = ["oidPais",get('formulario.oidPais')];
+		arra[1] = ["oidMarca",get('formulario.hidMarca')];
+	    arra[2] = ["oidCanal",get('formulario.hidCanal')];
+		arra[3] = ["oidSGV",get('formulario.cbSubgerencia')];      
+	    arra[4] = ["oidRegion",get('formulario.cbRegion')];      
+		arra[5] = ["oidZona",get('formulario.cbZona')];      
+	    recargaCombo("formulario.cbSeccion","ZONRecargaSecciones","es.indra.sicc.dtos.zon.DTOUnidadAdministrativa",arra);
+	}
+  }
+  
+  function onChangeSeccion(){
+	set_combo('formulario.cbTerritorio',['','']);  
+	var valor = get('formulario.cbSeccion');
+	if(valor!="") {
+	    var arra = new Array();
+		arra[0] = ["oidPais",get('formulario.oidPais')];
+	    arra[1] = ["oidMarca",get('formulario.hidMarca')];
+		arra[2] = ["oidCanal",get('formulario.hidCanal')];
+	    arra[3] = ["oidSGV",get('formulario.cbSubgerencia')];      
+		arra[4] = ["oidRegion",get('formulario.cbRegion')];      
+	    arra[5] = ["oidZona",get('formulario.cbZona')];      
+		arra[6] = ["oidSeccion",get('formulario.cbSeccion')];
+		recargaCombo("formulario.cbTerritorio","ZONRecargaTerritorios", "es.indra.sicc.dtos.zon.DTOUnidadAdministrativa",arra);
+	}
+  }
+  
+  function accionAnadir(){
+    var posi = parseInt(get('formulario.hidUltimoElementoEnLaLista'), 10);
+    var codigo = listado1.generaCodigo( posi );
+    var subg = '';
+    var oidSubg = '';
+    var region = '';
+    var oidRegion = '';
+    var zona = '';
+    var oidZona = '';
+    var seccion = '';
+    var oidSeccion = '';
+    var terri = '';  
+    var oidTerri = '';  
+    
+    if(!existeFilaDatos())
+      return;
+        
+    sicc_cambiar_estado("cbSubgerencia",true);  
+    if(sicc_validaciones_generales()){
+    //if(get('formulario.cbSubgerencia')!=""){  
+        oidSubg = get('formulario.cbSubgerencia');    
+        subg = get('formulario.cbSubgerencia','T');          
+    
+        if(get('formulario.cbRegion')!=""){
+            oidRegion = get('formulario.cbRegion');    
+            region = get('formulario.cbRegion','T');          
+        }
+        if(get('formulario.cbZona')!=""){
+            oidZona = get('formulario.cbZona');    
+            zona = get('formulario.cbZona','T');          
+        }
+        if(get('formulario.cbSeccion')!=""){
+            oidSeccion = get('formulario.cbSeccion');    
+            seccion = get('formulario.cbSeccion','T');          
+        }
+        if(get('formulario.cbTerritorio')!=""){
+           oidTerri = get('formulario.cbTerritorio');    
+           terri = get('formulario.cbTerritorio','T');          
+        }
+        
+        var newRow = codigo + ',' + subg + ',' + region + ',' +  
+                     zona + ',' + seccion + ',' + terri + ',' + 
+                     oidSubg + ',' + oidRegion + ',' + oidZona + ',' + 
+                     oidSeccion + ',' + oidTerri;
+        newRow = newRow.split(",");             
+        listado1.insertar(newRow);
+        set('formulario.hidUltimoElementoEnLaLista', codigo); 
+    }
+  }
+  
+  //funcion que verifica que no se ingrese datos repetidos en la lista de ambito geografico
+  function existeFilaDatos(){
+    if(listado1.datos.length > 0){
+      var lista = listado1.datos;
+      for(var i = 0; i < lista.length; i++ ){
+        if(!verificaIgualdad(lista[i]))
+          return false;
+      }
+    }
+    return true;
+  }
+  
+  function verificaIgualdad(dato){
+      if(dato[1] == get('formulario.cbSubgerencia','T')&&
+         dato[2] == get('formulario.cbRegion','T')&&
+         dato[3] == get('formulario.cbZona','T')&&
+         dato[4] == get('formulario.cbSeccion','T')&&
+         dato[5] == get('formulario.cbTerritorio','T'))
+       return false;  
+    return true;
+  }
+  
+  function accionEliminar(){
+       var vMostrarMensaje ='';
+       var cantElementosL1 = listado1.codSeleccionados();		
+       if ( cantElementosL1.length == 0){
+                GestionarMensaje("4", null, null, null);
+                return;
+       }
+       if ( cantElementosL1.length > 0 )
+                listado1.eliminarSelecc();
+  }
+  
+  function accionGuardar(){
+    if(comprobarDatosObligatorios()){
+      set('formulario.conectorAction', 'LPMantenerAmbitoGeografico'); 
+      set('formulario.accion', 'guardar');
+      eval('formulario').oculto = 'S';
+      enviaSICC('formulario',null,null,'N');
+    }
+  }
+  
+  function comprobarDatosObligatorios (){
+      var lista = listado1.datos;
+      if(lista.length == 0){
+        //return false;
+        set('formulario.indOblig','false');
+      }
+        
+      tomarValoresLista();  
+      set('formulario.indOblig','true');    
+      return true;
+  }
+  
+  //funcion que toma los datos de la lista editable antes de guardar
+  function tomarValoresLista(){
+      var lista = listado1.datos;
+      var datos = '';
+      for(var i = 0; i < lista.length; i++){
+          datos = datos + '|' + aplicaUndef(lista[i]);
+      }
+      set('formulario.datos',datos);
+  }
+  
+  function aplicaUndef(dato){
+    for(var i = 0; i < dato.length; i++){
+        if(dato[i]=='')
+          dato[i] = 'undef';
+    }
+    return dato;
+  }
+  
+  function fGuardar(){
+    accionGuardar();
+  }
+  
+  function fBorrar(){
+    accionEliminar();
+  }
+  
+  function fLimpiar(){
+    set('formulario.cbSubgerencia','');
+	onChangeSubgerencia();
+    focaliza('formulario.cbSubgerencia');
+  }
+  
+  function onClickPestanyaH(id,formulario,lp){
+    comprobarDatosObligatorios();
+    onClickPestanyaHabilitada(id,formulario,lp);
+  }
+  
+  
+  function deshabilitarCampos(){
+    accion("formulario.cbSubgerencia", ".disabled=true");
+    accion("formulario.cbRegion", ".disabled=true");
+    accion("formulario.cbZona", ".disabled=true");
+    accion("formulario.cbSeccion", ".disabled=true");
+    accion("formulario.cbTerritorio", ".disabled=true");
+    
+  
+  }
+  
+  ]]> 
+</JAVASCRIPT>
+<VALIDACION>
+      <ELEMENTO name="cbSubgerencia" required="false" cod="992"/>
+</VALIDACION>
+
+<FORMULARIO nombre="formulario" oculto="N">
+
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="accion" valor=""/>
+<VAR nombre="opcionMenu" valor=""/>
+<VAR nombre="errCodigo" valor=""/> 
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="hidMarca" valor="1"/> 
+<VAR nombre="hidCanal" valor="1"/> 
+<VAR nombre="oidPais" valor="1"/> 
+<VAR nombre="oidIdioma" valor="1"/> 
+<VAR nombre="hidUltimoElementoEnLaLista" valor="0"/> 
+<VAR nombre="datos" valor=""/> 
+<VAR nombre="indOblig" valor=""/> 
+
+<VAR nombre="hIndEstadoProductos" valor=""/>
+<VAR nombre="hIndEstadoAmbitoGeografico" valor=""/> 
+<VAR nombre="hIndEstadoCalificion" valor=""/> 
+<VAR nombre="hIndEstadoGerentes" valor=""/> 
+<VAR nombre="hIndEstadoConsultoras" valor=""/> 
+<VAR nombre="hIndEstadoProgramaNuevas" valor=""/> 
+<VAR nombre="hIndEstadoMultinivel" valor=""/> 
+
+<VAR nombre="idPestanyaDest" valor=""/>
+
+<!-- DEFINICION DE PESTANYAS -->
+
+ <table width="100%" height="100%" border="0" align="center" cellpadding="0" cellspacing="0" class="menu4">
+  <tr> 
+    <td width="12" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="12" height="30"/></td>
+    <td nowrap="nowrap" class="menu5texto">&nbsp;</td>
+    <td width="10" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <!--td width="92" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="poneManito('lblParametrosGenerales');" onclick="onClickPestanya(1);"-->
+    <td width="92" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="activarPuntero('formulario',1,'lblParametrosGenerales');" 
+        onclick="onClickPestanyaH(1,'formulario','LPMantenerAmbitoGeografico');">    
+        <tr align="center"> 
+          <td nowrap="nowrap"><LABELC nombre="lblParametrosGenerales"  alto="13" filas="1" valor=""  id="menu5textonegrita" cod="00393"/></td>
+        </tr>
+      </table>
+    </td>
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <!--<td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="poneManito('lblProductos');" onclick="onClickPestanya(2);">-->
+        <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" 
+        onmouseover="activarPuntero('formulario',5,'lblProductos');" onclick="onClickPestanyaH(5,'formulario','LPMantenerAmbitoGeografico');">
+        <tr align="center"> 
+          <td nowrap="nowrap" ><LABELC nombre="lblProductos"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="0094"/></td>
+        </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <!--td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="poneManito('lblPremios');" onclick="onClickPestanya(3);"-->
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" 
+        onmouseover="activarPuntero('formulario',6,'lblPremios');" onclick="onClickPestanyaH(6,'formulario','LPMantenerAmbitoGeografico');">
+        <tr align="center"> 
+          <td nowrap="nowrap" ><LABELC nombre="lblPremios"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00394"/></td>
+        </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <!--td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="poneManito('lblRequisitos');" onclick="onClickPestanya(4);"-->
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" 
+        onmouseover="activarPuntero('formulario',7,'lblRequisitos');" onclick="onClickPestanyaH(7,'formulario','LPMantenerAmbitoGeografico');">
+        <tr align="center"> 
+          <td nowrap="nowrap"  ><LABELC nombre="lblRequisitos"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00395"/></td>
+        </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <!--td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="poneManito('lblObtencionPuntos');" onclick="onClickPestanya(5);"-->
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" 
+        onmouseover="activarPuntero('formulario',4,'lblObtencionPuntos');" onclick="onClickPestanyaH(4,'formulario','LPMantenerAmbitoGeografico');">
+        <tr align="center"> 
+          <td nowrap="nowrap" ><LABELC nombre="lblObtencionPuntos"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00396"/></td>
+        </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <!--td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="poneManito('lblDespachoPremios');" onclick="onClickPestanya(6);"-->
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" 
+        onmouseover="activarPuntero('formulario',8,'lblDespachoPremios');" onclick="onClickPestanyaH(8,'formulario','LPMantenerAmbitoGeografico');">
+        <tr align="center"> 
+          <td nowrap="nowrap" ><LABELC nombre="lblDespachoPremios"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00397"/></td>
+        </tr>
+      </table>
+   </td>
+  
+    <td width="16" class="menu5texto"><IMG src="b.gif" width="12" height="8"/></td>
+  </tr>
+</table>        
+ <table width="100%" height="100%" border="0" align="center" cellpadding="0" cellspacing="0" class="menu4">
+  <tr> 
+    <td width="12" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="12" height="30"/></td>
+    <td nowrap="nowrap" class="menu5texto">&nbsp;</td>
+    <td width="10" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+     <td width="70" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" bgcolor="#496A9A">
+        <tr align="center"> 
+          <td nowrap="nowrap" ><LABELC nombre="lblAmbitoGeografico"  alto="13" filas="1" valor="" id="menu5textoblanca" cod="2801"/></td>
+        </tr>
+      </table>
+    </td>
+    <td width="10" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+     <!--td width="70" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="poneManito('lblCalificacion');" onclick="onClickPestanya(8);"-->
+     <td width="70" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" 
+        onmouseover="activarPuntero('formulario',9,'lblCalificacion');" onclick="onClickPestanyaH(9,'formulario','LPMantenerAmbitoGeografico');">
+        <tr align="center"> 
+          <td nowrap="nowrap" ><LABELC nombre="lblCalificacion"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00398"/></td>
+        </tr>
+      </table>
+    </td>
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <!--td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="poneManito('lblGerentes');" onclick="onClickPestanya(9);"-->
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" 
+        onmouseover="activarPuntero('formulario',10,'lblGerentes');" onclick="onClickPestanyaH(10,'formulario','LPMantenerAmbitoGeografico');">
+        <tr align="center"> 
+          <td nowrap="nowrap" ><LABELC nombre="lblGerentes"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00399"/></td>
+        </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+   <!--td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="poneManito('lblConsultoras');" onclick="onClickPestanya(10);"-->
+   <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" 
+        onmouseover="activarPuntero('formulario',11,'lblConsultoras');" onclick="onClickPestanyaH(11,'formulario','LPMantenerAmbitoGeografico');">
+        <tr align="center"> 
+          <td nowrap="nowrap" ><LABELC nombre="lblConsultoras"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00401"/></td>
+        </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+	<td width="20" nowrap="nowrap" class="menu5texto">
+   <!--table width="75" border="1" align="center" cellpadding="1" cellspacing="0" ID="DatosGenerales" 
+       bordercolor="#496A9A" onclick="onClickPestanya(11);" onmouseover="poneManito('lblProgramaNuevas');"-->
+   <table width="75" border="1" align="center" cellpadding="1" cellspacing="0" ID="DatosGenerales" bordercolor="#496A9A" 
+        onmouseover="activarPuntero('formulario',2,'lblProgramaNuevas');" onclick="onClickPestanyaH(2,'formulario','LPMantenerAmbitoGeografico');">
+        <tr align="center"> 
+          <td nowrap="nowrap"><LABELC nombre="lblProgramaNuevas"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00590"/></td>
+        </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <!--td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onclick="onClickPestanya(12);" onmouseover="poneManito('lblMultinivel');"-->
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" 
+        onmouseover="activarPuntero('formulario',12,'lblMultinivel');" onclick="onClickPestanyaH(12,'formulario','LPMantenerAmbitoGeografico');">
+        <tr align="center"> 
+          <td nowrap="nowrap"><LABELC nombre="lblMultinivel"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00400"/></td>
+        </tr>
+      </table>
+   </td>
+    <td width="16" class="menu5texto"><IMG src="b.gif" width="12" height="8"/></td>
+  </tr>
+</table>                                                                                                
+
+
+<!-- FIN DEFINICION DE PESTANYAS -->
+
+
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblDatosAnadir" alto="13" filas="1" valor="" id="legend" cod="00280" /></legend>
+	 <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+          <!---primera fila-->
+             <table width="600" border="0" align="left" cellspacing="0" cellpadding="0">
+	                  <tr> 
+		            <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+		          </tr>
+		          <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td><LABELC nombre="lblSubgerencia"  alto="13" filas="1" valor="" id="datosTitle" cod="992"/></td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td><LABELC nombre="lblRegion"  alto="13" filas="1" valor="" id="datosTitle" cod="109"/></td>
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td nowrap="nowrap">
+                   		<COMBO nombre="cbSubgerencia" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onchange="onChangeSubgerencia();" onshtab="focalizaBotonHTML('botonContenido','btnAnadir');">
+	                     		<ROWSET>
+	                     			
+					</ROWSET>
+	                   	</COMBO>
+	                   </td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td nowrap="nowrap" valign="bottom">
+	                   	<COMBO nombre="cbRegion" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" onchange="onChangeRegion();">
+	                     		<ROWSET>
+	                     			
+					</ROWSET>
+	                   	</COMBO>
+	                   </td>
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr> 
+	                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	            </table>
+       <!---fin primera fila-->
+         </td></tr>
+           <tr><td>
+          	   <table width="600" border="0" align="left" cellspacing="0" cellpadding="0">
+	                  <tr> 
+		            <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+		          </tr>
+		          <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td><LABELC nombre="lblZona" alto="13" filas="1" valor="" id="datosTitle" cod="143"/></td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td><LABELC nombre="lblSeccion" alto="13" filas="1" valor="" id="datosTitle" cod="112"/></td>
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td nowrap="nowrap">
+                   		<COMBO nombre="cbZona" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" onchange="onChangeZona();">
+	                     		<ROWSET>
+	                     			
+					</ROWSET>
+	                   	</COMBO>
+	                   </td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td nowrap="nowrap">
+	                   	<COMBO nombre="cbSeccion" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" onchange="onChangeSeccion();">
+	                     		<ROWSET>
+	                     			
+					</ROWSET>
+	                   	</COMBO>
+	                   </td>
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr> 
+	                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	            </table>
+	     </td></tr>
+           <tr><td>
+        	    <table width="600" border="0" align="left" cellspacing="0" cellpadding="0">
+	                  <tr> 
+		            <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+		          </tr>
+		          <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td><LABELC nombre="lblTerritorio" alto="13" filas="1" valor="" id="datosTitle" cod="126"/></td>
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td nowrap="nowrap">
+                   		<COMBO nombre="cbTerritorio" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+	                     		<ROWSET>
+	                     			
+					</ROWSET>
+	                   	</COMBO>
+	                   </td>
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr> 
+	                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	            </table>
+      		</td></tr>
+           </table>
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnAnadir" ID="botonContenido" tipo="html" accion="accionAnadir();" estado="false" cod="404" ontab="focaliza('formulario.cbSubgerencia');"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>       
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+<!--x="12" y="220"-->
+<!--270-->
+  <LISTAEDITABLE nombre="listado1" ancho="604" alto="295" x="12" y="270" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+        <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+        <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+        <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+      <LINEAS>
+        <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="0" horizTitulo="1" horizBase="1"/> 
+        <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00279" ID="datosTitle" />
+     
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+        <COL ancho="10" minimizable="S" minimizada="N"/>
+        <COL ancho="15" minimizable="S" minimizada="N" /> 
+        <COL ancho="15" minimizable="S" minimizada="N" /> 
+        <COL ancho="15" minimizable="S" minimizada="N" /> 
+        <COL ancho="15" minimizable="S" minimizada="N" /> 
+        <COL ancho="10" minimizable="S" minimizada="N" oculta ="S"/>
+        <COL ancho="15" minimizable="S" minimizada="N" oculta ="S"/> 
+        <COL ancho="15" minimizable="S" minimizada="N" oculta ="S"/> 
+        <COL ancho="15" minimizable="S" minimizada="N" oculta ="S"/> 
+        <COL ancho="15" minimizable="S" minimizada="N" oculta ="S"/> 
+      </COLUMNAS>
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+	<COL colFondo="" ID="EstCab" cod="992" align="center" ></COL> 
+	<COL colFondo="" ID="EstCab" cod="109"></COL> 
+	<COL colFondo="" ID="EstCab" cod="143"></COL> 
+	<COL colFondo="" ID="EstCab" cod="112"></COL> 
+	<COL colFondo="" ID="EstCab" cod="126"></COL> 
+	<COL colFondo="" ID="EstCab" ></COL> 
+	<COL colFondo="" ID="EstCab" ></COL> 
+	<COL colFondo="" ID="EstCab" ></COL> 
+	<COL colFondo="" ID="EstCab" ></COL> 
+	<COL colFondo="" ID="EstCab" ></COL> 
+      </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+             coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+             onLoad="" colorSelecc="#D0D9E8">
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat"/>  
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat"/>  
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+      </DATOS>
+      <ROWSET>
+	
+      </ROWSET>
+      <PAGINADO nombre="mipgndo" ancho="604" sep="$" x="12" class="botonera" y="514" control="|" conector="" rowset="" cargainicial="N">
+        
+        <BOTON nombre="ret1" x="37" y="548" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+        <BOTON nombre="ava1" x="52" y="548" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>
+        
+    </PAGINADO>
+  </LISTAEDITABLE>
+  <BOTON nombre="primera1" x="20" y="548" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();" />      
+  <BOTON nombre="separa" x="59" y="542" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />      
+ <CAPA nombre="capaEspacio" alto="12" ancho="100%" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="569" zindex="">
+  </CAPA>                                                                                                                                                             
+</FORMULARIO>
+</PAGINA>  

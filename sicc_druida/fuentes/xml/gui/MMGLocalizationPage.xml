@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+   INDRA/CAR/mmg
+   $Id: MMGLocalizationPage.xml,v 1.1 2009/12/03 18:45:21 pecbazalar Exp $
+   Pagina para la determinación de las descripciones de las localizaciones
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+
+
+<PAGINA nombre="MMGLocalizationPage" titulo="Descripciones" estilos="estilos.css" colorf="#F0F0F0"
+	msgle="Descripciones" onload="initComponents()" xml:lang="es">
+	
+	<JS src="mmg.js"/>
+	<JS src="sicc_util.js"/>
+	
+	<JAVASCRIPT>
+		<![CDATA[
+		//Vector que va a almacenar las descripciones y los idiomas
+		var descriptions = new Vector();
+		
+		//Acciones a realiza cuando al cargar la página
+		function initComponents(){
+			//Ponemos el título a la barra
+			document.title = GestionarMensaje('MMGGlobal.localzation.windowtitle');
+			
+			//Cargamos las descripciones que tiene el atributo
+			loadDescriptions(window.opener.getLocalization(get('localizationFrm.atributteName')));
+		}
+		
+		//Nos permite cargar las descripciones del elemento. descriptions debe ser una cadena
+		//donde los elementos vayan separados por | y ,
+		function loadDescriptions(descriptionsVector){
+			for(var i=0; i < descriptionsVector.longitud; i++){
+				var languageIndex = languageList.datos.buscar(descriptionsVector.ij(i,0),0);
+				if(languageIndex != -1){
+					descriptionsList.datos.agregar([descriptionsVector.ij(i,0), 
+						languageList.datos.ij(languageIndex,1), descriptionsVector.ij(i,1)]);
+				}
+			}
+			descriptions.cargar(descriptionsVector.volcar());
+			descriptionsList.display();
+		}
+		
+		//Nos permite añadir una nueva descripcion
+		function addLocalizationDescription(){
+			//Comprovamos que se haya seleccionado un elemento de la lista
+			if(languageList.seleccion.longitud != 1){
+				cdos_mostrarAlert(GestionarMensaje('MMGGlobal.localzation.nolanguage.message'));
+				return;
+			}
+			
+			//Validamos la descrpción introducida
+			if(ValidaLongitud(get('localizationFrm.description'), 1, get('localizationFrm.size')) != "OK"){
+				cdos_mostrarAlert(GestionarMensaje('MMGGlobal.localzation.nodescription.message') +
+					'(1-' + ')' + get('localizationFrm.size'));
+				return;
+			}
+			
+			//Comprovamos que no esté previamente seleccionado
+			if(descriptionsList.datos.buscar(languageList.getSeleccion(),0) != -1){
+				cdos_mostrarAlert(GestionarMensaje('MMGGlobal.localzation.languagedescriptionexits.message'));
+				return;
+			}
+			
+			
+			//Añadimos la nueva descripción tanto a la lista como al vector
+			var indiceIdioma = languageList.datos.buscar(languageList.getSeleccion(),0);
+			descriptionsList.datos.agregar([languageList.getSeleccion(), languageList.datos.ij(indiceIdioma,1),
+				get('localizationFrm.description')]);
+			descriptions.agregar([languageList.getSeleccion(), get('localizationFrm.description')]);
+			
+			//Refrescamos la lista, vaciamos el texto de la descripción y deseleccionamos la lista de idiomas
+			descriptionsList.display();
+			set('localizationFrm.description','') ;
+			languageList.offN();
+		}
+			
+		//Nos permite eliminar las descripciones seleccionadas de la lista
+		// de selecciones(valga la redindancia)
+		function removeLocalizationDescriptions(){
+			//Si no se ha seleccionado ninguno no hacemos nada
+			if(descriptionsList.seleccion.longitud < 1) return;
+			
+			//Eliminamos del vector los elemenentos seleccionados
+			for(var i = 0; i < descriptionsList.seleccion.longitud; i++){
+				var indice = descriptions.buscar(descriptionsList.seleccion.ij(i,0), 0);
+				descriptions.eliminar(indice);
+				descriptionsList.datos.eliminar(indice);
+			}
+			
+			//Refrescamos la lista
+			descriptionsList.display();
+		}
+		
+		//Nos permite modificar la descripción seleccionada
+		function updateLocalizationDescription(){
+			//Validamos la descrpción introducida
+			if(ValidaLongitud(get('localizationFrm.updateDescription'), 1, get('localizationFrm.size')) != "OK"){
+				cdos_mostrarAlert(GestionarMensaje('MMGGlobal.localzation.nodescription.message') + 
+					'(1-' + ')' + get('localizationFrm.size'));
+				return;
+			}
+			
+			//Actualizamos el nuevo valor en la lista
+			var indice = descriptions.buscar(descriptionsList.getSeleccion(), 0);
+			descriptionsList.datos.ij2(get('localizationFrm.updateDescription'), indice, 2);
+			descriptions.ij2(get('localizationFrm.updateDescription'), indice, 1);
+			descriptionsList.display();
+			
+			//Ocultamos y mostramos capas
+			visibilidad('updateDescriptionLayer', 'O');
+			visibilidad('buttonBarLayer', 'V');
+		}
+		
+		function cancelUpdateLocalizationDescription(){
+			visibilidad('updateDescriptionLayer', 'O');
+			visibilidad('buttonBarLayer', 'V');
+		}
+		
+		//Nos permite asignar al campo que ha abierto la ventana las descripciones
+		//introducidas
+		function bindDescriptions(){
+			//Validamos que se haya dado valor al menos en el idioma por defecto
+			if(descriptions.longitud == 0 || descriptions.buscar(get('localizationFrm.defaultLanguageCode'),0) == -1){
+				cdos_mostrarAlert(GestionarMensaje('MMGGlobal.localzation.defalutlanguagevalue.message'));
+				return;
+			}
+		
+			//En la ventana padre actualizamos los valores del atributo y cerramos la ventana
+			window.opener.setLocalization(get('localizationFrm.atributteName'), descriptions);
+			window.close();
+		}
+		
+		//Nos permite modificar una descripción determinada
+		function update(){
+			//Si no se ha seleccionado ninguno no hacemos nada
+			if(descriptionsList.seleccion.longitud != 1){
+				cdos_mostrarAlert(GestionarMensaje('MMGGlobal.localzation.descriptionsingleselection.message'));
+				return;
+			}
+			
+			//Ponemos el valor del elemento seleccionado en la lista
+			var indice = descriptionsList.datos.buscar(descriptionsList.getSeleccion(), 0);
+			set('localizationFrm.updateDescription', descriptionsList.datos.ij(indice,2));
+			
+			//Mostramos y ocultamos capas
+			visibilidad('updateDescriptionLayer', 'V');
+			visibilidad('buttonBarLayer', 'O');
+		}
+		
+		//Acciones a realizar cunado se cancela
+		function cancel(){
+			//Simplemente cerramos la venta
+			window.close();
+		}
+		]]>
+	</JAVASCRIPT>
+
+	<FORMULARIO nombre="localizationFrm" oculto="N">	
+		<VAR nombre="atributteName" valor=""/> <!--El nombre del atributo que se está internacionalizando -->
+		<VAR nombre="defaultLanguageCode" valor=""/> <!--El idioma pro defecto asociado al usuario -->
+		<VAR nombre="size" valor=""/> <!--El tamaño máximo de que puede tomar la descripción-->
+		
+		
+		<CAPA nombre="languageLayer" alto="200" ancho="615" colorf="" borde="0" imagenf="" repeat="" padding="" visibilidad="visible" contravsb="" x="12" y="10" zindex="">
+			<LISTA seleccion="boton" nombre="languageList" x="0" y="0" ancho="200" alto="200" filas="1"
+				multisel="1" incy="10" incx="10" colorf="#EFEFEF"  imagenoff="close_no.gif" imagenon="close_up.gif" accion="" 
+				sep="|" pixelsborde="2"  colorborde="#CCCCCC">
+					
+				<CABECERA height="20">
+					<COL id="fondoCabecera" ancho="10"><LABELC nombre="selectionlanguageListLabel" ancho="10" alto="20" filas="1" id="datosCamposCabecera" cod="" valor=""/></COL>
+					<COL id="fondoCabecera" ancho="150"><LABELC nombre="languageLanguageListLabel" ancho="150" alto="20" filas="1" id="datosCamposCabecera" cod="MMGGlobal.localization.language.label" valor=""/></COL>
+				</CABECERA>
+				
+				<PRESENTACION ancho="160" filas="1" bloquesid="['datosCamposCenterImpar','datosCamposCenterPar']">
+					<COL ancho="10" caracteres="10" filas="1"/>             
+					<COL ancho="10" caracteres="150" filas="1"/>             
+				</PRESENTACION>
+			
+				<ROWSET/>
+			</LISTA>
+		</CAPA>
+	
+		<CAPA nombre="newDescriptionLayer" alto="50" ancho="615" colorf="" borde="0" imagenf="" repeat="" padding="" visibilidad="visible" contravsb="" x="12" y="220" zindex="">
+			<TABLE border="0" cellspacing="1" cellpadding="0" bordercolor="">
+				<TR>
+					<TD align="left">
+						<LABELC nombre="languageLabel" ancho="75" alto="20" filas="1" 
+							id="datosTitle" cod="MMGGlobal.localization.description.label" valor=""/>
+					</TD>
+					<TD><IMG src="b.gif" width="8" height="8"/></TD>
+					<TD align="left">
+						<TEXT nombre="description" id="datosCamposLeft" trim="S"
+							max="400" onchange="" size="50" 
+							valor="" validacion="" onblur=""/>
+					</TD>
+					<TD><IMG src="b.gif" width="8" height="8"/></TD>
+					<TD align="left">
+						<BOTON nombre="addDescriptionButton" ID="botonContenido" tipo="html"  accion="addLocalizationDescription();" 
+							estado="true" cod="MMGGlobal.localization.addbutton.label"/>
+					</TD>
+				</TR>
+			</TABLE>
+		</CAPA>
+	
+		<CAPA nombre="descriptionsLayer" alto="200" ancho="610" colorf="" borde="0" imagenf="" repeat="" padding="" visibilidad="visible" contravsb="" x="12" y="280" zindex="">
+			<LISTA seleccion="boton" nombre="descriptionsList" x="0" y="0" ancho="610" alto="200" filas="1"
+				multisel="-1" incy="10" incx="10" colorf="#EFEFEF"  imagenoff="close_no.gif" imagenon="close_up.gif" accion="" 
+				sep="|" pixelsborde="2"  colorborde="#CCCCCC">
+					
+				<CABECERA height="20">
+					<COL id="fondoCabecera" ancho="10"><LABELC nombre="selectionDescriptionsListLabel" ancho="10" alto="20" filas="1" id="datosCamposCabecera" cod="" valor=""/></COL>
+					<COL id="fondoCabecera" ancho="150"><LABELC nombre="languageDescriptionsListLabel" ancho="150" alto="20" filas="1" id="datosCamposCabecera" cod="MMGGlobal.localization.language.label" valor=""/></COL>
+					<COL id="fondoCabecera" ancho="400"><LABELC nombre="descriptionDescriptionsListLabel" ancho="400" alto="20" filas="1" id="datosCamposCabecera" cod="MMGGlobal.localization.description.label" valor=""/></COL>
+				</CABECERA>
+				
+				<PRESENTACION ancho="560" filas="1" bloquesid="['datosCamposCenterImpar','datosCamposCenterPar', 'datosCamposCenterImpar']">
+					<COL ancho="10" caracteres="10" filas="1"/>             
+					<COL ancho="10" caracteres="150" filas="1"/>             
+					<COL ancho="10" caracteres="400" filas="1"/>             
+				</PRESENTACION>
+			
+				<ROWSET/>
+			</LISTA>
+		</CAPA>
+	
+		<CAPA nombre="buttonBarLayer" alto="50" ancho="615" colorf="" borde="0" imagenf="" repeat="" padding="" visibilidad="visible" contravsb="" x="12" y="490" zindex="">
+			<TABLE border="0" cellspacing="1" cellpadding="0" bordercolor="">
+				<TR>
+					<TD>
+						<BOTON nombre="removeDescriptionsButton" ID="botonContenido" tipo="html"  
+							accion="removeLocalizationDescriptions();" estado="true" cod="MMGGlobal.localization.removebutton.label"/>
+						<BOTON nombre="upodateButton" ID="botonContenido" tipo="html"  
+							accion="update();" estado="true" cod="MMGGlobal.localization.updatebutton.label"/>
+					</TD>
+					<TD><IMG src="b.gif" width="30" height="8"/></TD>
+					<TD>
+						<BOTON nombre="acceptButton" ID="botonContenido" tipo="html"  
+							accion="bindDescriptions();" estado="true" cod="MMGGlobal.localization.bindbutton.label"/>
+						<BOTON nombre="cancelButton" ID="botonContenido" tipo="html"  
+							accion="cancel();" estado="true" cod="MMGGlobal.localization.cancelbutton.label"/>
+					</TD>
+				</TR>
+			</TABLE>
+		</CAPA>
+		
+		<CAPA nombre="updateDescriptionLayer" alto="50" ancho="615" colorf="" borde="0" imagenf="" repeat="" padding="" visibilidad="hidden" contravsb="" x="12" y="490" zindex="">
+			<TABLE border="0" cellspacing="1" cellpadding="0" bordercolor="">
+				<TR>
+					<TD align="left">
+						<LABELC nombre="languageLabel" ancho="75" alto="20" filas="1" 
+							id="datosTitle" cod="MMGGlobal.localization.newdescription.label" valor=""/>
+					</TD>
+					<TD><IMG src="b.gif" width="8" height="8"/></TD>
+					<TD align="left">
+						<TEXT nombre="updateDescription" id="datosCamposLeft" trim="S"
+							max="400" onchange="" size="50" 
+							valor="" validacion="" onblur=""/>
+					</TD>
+					<TD><IMG src="b.gif" width="8" height="8"/></TD>
+					<TD align="left">
+						<BOTON nombre="updateDescriptionButton" ID="botonContenido" tipo="html"  accion="updateLocalizationDescription();" 
+							estado="true" cod="MMGGlobal.localization.updatebutton.label"/>
+					</TD>
+					<TD><IMG src="b.gif" width="8" height="8"/></TD>
+					<TD align="left">
+						<BOTON nombre="canelUpdateDescriptionButton" ID="botonContenido" tipo="html"  accion="cancelUpdateLocalizationDescription();" 
+							estado="true" cod="MMGGlobal.localization.cancelupdatebutton.label"/>
+					</TD>
+				</TR>
+			</TABLE>
+		</CAPA>
+		
+	</FORMULARIO>
+</PAGINA>
+

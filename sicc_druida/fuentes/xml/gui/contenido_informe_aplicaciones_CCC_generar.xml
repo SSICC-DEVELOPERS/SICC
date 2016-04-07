@@ -1,0 +1,307 @@
+ function quitarItemVacio(elemento){
+      var elementoADevolver = new Array();
+     
+      for(var k=0;k<elemento.length;k++) {
+          if (elemento[k] != ''){                            
+             elementoADevolver[elementoADevolver.length] = elemento[k];
+          }
+      }
+         
+      return elementoADevolver;
+      
+   }<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_informe_aplicaciones_CCC_generar.xml,v 1.1 2009/12/03 18:44:54 pecbazalar Exp $
+   contenido CCC
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_informe_aplicaciones_CCC_generar" cod="0848" titulo="Generar informe Aplicaciones en cuenta corriente" estilos="estilosB3.css" colorf="#F0F0F0" 
+	msgle="" onload="onLoad();" xml:lang="es">
+  <JS src="sicc_util.js"/>   
+<JAVASCRIPT>
+  <![CDATA[ 
+ 
+   function onLoad(){
+      configurarMenuSecundario('Formulario');
+      fMostrarMensajeError();
+      focaliza('Formulario.cbProceso')
+           
+      
+   }
+
+    function quitarItemVacio(elemento){
+      var elementoADevolver = new Array();
+     
+      for(var k=0;k<elemento.length;k++) {
+          if (elemento[k] != ''){                            
+             elementoADevolver[elementoADevolver.length] = elemento[k];
+          }
+      }
+         
+      return elementoADevolver;
+      
+   }
+//------------------------------------------------------------------------------   
+   function generar(){
+      if(sicc_validaciones_generales()){
+         if(validarFechas()){
+            if(validarComprobante()){
+               /*recolectarParametros();
+               set('Formulario.conectorAction', 'CCCAplicacionesCC');           
+               set('Formulario.accion', 'generar');
+               enviaSICC('Formulario');*/
+               var a = new Object();
+               a.accion = 'generar';
+               a.procesos = quitarItemVacio(get('Formulario.cbProceso'));  
+               a.tipoCargo = quitarItemVacio(get('Formulario.cbTipoCargoAbono'));
+					a.tipoCargoDesc = quitarItemVacio(get('Formulario.cbTipoCargoAbono','T'));
+               a.fechaProcesoDesde = get('Formulario.txtFechaProcesoDesde');  
+               a.fechaProcesoHasta = get('Formulario.txtFechaProcesoHasta');
+               a.numeroComprobante = get('Formulario.txtNumeroComprobante');
+               mostrarModalSICC('CCCAplicacionesCC','generar', a);  
+            }
+         }      
+      }
+   }
+
+//------------------------------------------------------------------------------   
+
+   function validarComprobante(){
+      var comprobante = new Array();
+      comprobante = get('Formulario.txtComprobante');
+      
+      if(comprobante != ''){
+         if(comprobante.length < 12){
+            cdos_mostrarAlert("Debe rellenar los 12 digitos del comprobante");
+            return false;
+         }else{
+            return true;
+         }
+      }else{
+         return true;
+      }
+   }
+//------------------------------------------------------------------------------   
+
+   function validarFechas(){
+      
+      var fechaDesde = get('Formulario.txtFechaProcesoDesde');
+      var fechaHasta = get('Formulario.txtFechaProcesoHasta');
+      var formatoFecha = get('Formulario.hFormatoFechaPais');
+            
+     
+      if (! EsFechaValida_SICC(fechaDesde, "Formulario")){
+          GestionarMensaje("1006", formatoFecha, null, null);
+          focaliza("Formulario.txtFechaProcesoDesde");
+          return false;
+      }
+     
+      if(! EsFechaValida_SICC(fechaHasta, "Formulario")){
+          GestionarMensaje("1006", formatoFecha, null, null);
+          focaliza("Formulario.txtFechaProcesoHasta");
+          return false;
+      }
+                 
+      var errorLevel = EsFechaValida( fechaDesde, fechaHasta, "Formulario", "S");
+      if ( errorLevel == 3){
+          GestionarMensaje("1191");
+          focaliza('Formulario.txtFechaProcesoDesde');
+          return false;
+      }
+     
+      return true;   
+   
+   }
+//------------------------------------------------------------------------------   
+   function recolectarParametros(){
+           
+      set('Formulario.procesos', get('Formulario.cbProceso'));  
+      set('Formulario.tipoCargo', get('Formulario.cbTipoCargoAbono'));  
+      set('Formulario.fechaProcesoDesde', get('Formulario.txtFechaProcesoDesde'));  
+      set('Formulario.fechaProcesoHasta', get('Formulario.txtFechaProcesoHasta'));
+      set('Formulario.numeroComprobante', get('Formulario.txtNumeroComprobante'));
+ 
+  
+   }
+//------------------------------------------------------------------------------   
+
+   function onchangeProceso(){
+     opciones = new Array();
+     set_combo('Formulario.cbTipoCargoAbono',opciones);                         
+     var proceso = get('Formulario.cbProceso','V');
+     combo_add('Formulario.cbTipoCargoAbono', '', '');
+     
+     for(var k=0;k<ListaTC.datos.longitud;k++) {
+        for(var y=0;y<proceso.length;y++){
+           if (ListaTC.datos.ij(k,0) == proceso[y]){                     
+                 combo_add('Formulario.cbTipoCargoAbono',ListaTC.datos.ij(k,1),ListaTC.datos.ij(k,2));
+           }
+         }
+      }
+  
+   }
+   
+//------------------------------------------------------------------------------   
+
+   function fLimpiar(){
+      var aCombo = new Array(new Array("",""));
+      set_combo('Formulario.cbTipoCargoAbono', aCombo, []);
+      focaliza('Formulario.cbProceso');
+
+   
+   }
+   
+   
+
+ 
+  ]]> 
+  
+  <VALIDACION>
+    
+    
+    <ELEMENTO name="txtFechaProcesoDesde" required="true" cod="1915"/>
+    <ELEMENTO name="txtFechaProcesoHasta" required="true" cod="1916"/>
+   
+</VALIDACION>
+</JAVASCRIPT>
+
+
+<FORMULARIO nombre="Formulario">
+<VAR nombre="accion" valor="" />
+<VAR nombre="conectorAction" valor="" />
+<VAR nombre="casoDeUso" valor=""/>
+<VAR nombre="errCodigo" valor="" />
+<VAR nombre="errDescripcion" valor="" />
+
+
+<VAR nombre="pais" valor="" />
+
+<VAR nombre="banco" valor="" />
+<VAR nombre="cuentaCorriente" valor="" />
+<VAR nombre="fechaLiquidacion" valor="" />
+<VAR nombre="comprobante" valor="" />
+<VAR nombre="ordenImpresion" valor="" />
+<CAPA nombre="capa1">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblCriteriosSeleccion"  alto="13" filas="1" valor="" id="legend" cod="00275"/></legend>
+          <!---primera fila-->
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+            
+            
+           <tr><td>
+
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblProceso"  alto="13" filas="1" id="datosTitle" cod="689" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblTipoCargoAbono"  alto="13" filas="1" id="datosTitle" cod="700" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbProceso" size="5" multiple="S" valorinicial="" textoinicial="" id="datosCampos" req="N" onchange="onchangeProceso();" onshtab="focalizaBotonHTML('botonContenido','btnGenerarInforme');">
+                		<ROWSET>           
+			               		
+                  	</ROWSET>	
+	                </COMBO> 
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbTipoCargoAbono" size="5" multiple="S" valorinicial="" textoinicial="" id="datosCampos" req="N">
+                		<ROWSET>
+                  		
+                  	 	</ROWSET>	
+	                </COMBO> 
+	           </td>
+	           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>
+            
+             <tr><td>
+
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblFechaProcesoDesde"  alto="13" filas="1" id="datosTitle" cod="1915"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblFechaProcesoHasta"  alto="13" filas="1" id="datosTitle" cod="1916" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   
+                   <td><LABELC nombre="lblNumComprobante"  alto="13" filas="1" id="datosTitle" cod="2676" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap" valign="top"><CTEXTO nombre="txtFechaProcesoDesde" id="datosCampos" max="10" tipo="" onchange="" req="S" size="12" valor="" validacion=""/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" valign="top"><CTEXTO nombre="txtFechaProcesoHasta" id="datosCampos" max="10" tipo="" onchange="" req="S" size="12" valor="" validacion=""/></td>                
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" valign="bottom"><CTEXTO nombre="txtNumeroComprobante"  id="datosCampos" max="12" tipo="" onchange="" req="N" size="14" valor="" validacion=""/>
+                		
+                   </td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>
+            
+           </table>
+       <!---fin primera fila-->
+         
+        
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnGenerarInforme" ID="botonContenido" tipo="html" accion="generar()" estado="false" cod="2495" ontab="focaliza('Formulario.cbProceso')"/>
+		  
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>       
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+ </CAPA>                                                                                                                                                           
+</FORMULARIO>
+</PAGINA>  

@@ -1,0 +1,384 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_estructura_geopolitica_pais_consultar.xml,v 1.1 2009/12/03 18:45:59 pecbazalar Exp $
+   contenido ZON
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_estructura_geopolitica_pais_consultar" cod="073" titulo="Consultar Estructura Geopolítica de País"  estilos="estilosB3.css" colorf="#F0F0F0" 
+	msgle="" onload="onLoadPag();" xml:lang="es">
+
+<JS src="sicc_util.js"/>
+
+<JAVASCRIPT>
+<![CDATA[
+var varNoLimpiarSICC = true;
+acaboDeTabular = false; 
+
+  function onLoadPag()   {
+  
+      DrdEnsanchaConMargenDcho('listado1',12);
+      eval (ON_RSZ);  
+      ocultarLista();
+
+	  configurarMenuSecundario('frmformula');
+	  mostrarCodigoError();
+      listado1.maxSel = 0;
+      
+   
+      if (get('frmformula.hCantPaises') != "") {
+          for (i = 5; i > parseInt(get('frmformula.hCantPaises'),10); i--) {
+              listado1.alternaVerColumna(i, false);
+          }
+          var nomCols = get('frmformula.hNomCols');
+          var pos;
+          var nom;
+          for (i = 0; i < parseInt(get('frmformula.hCantPaises'),10); i++) {
+             pos = nomCols.indexOf("|");
+             nom = nomCols.substring(0,pos);
+             nomCols = nomCols.substring(pos+1, nomCols.length);
+             listado1.txtCab[i+1] = nom;
+          }
+          listado1.repinta();
+          mostrarLista();
+      }
+
+      var paisesSelec = get('frmformula.hPaisesSelec')
+      if (paisesSelec != "") {
+          var aCombo = new Array(); 
+          var i = 0;
+          while (paisesSelec.length > 1) {
+              pos = paisesSelec.indexOf("|");
+              nom = paisesSelec.substring(0,pos);
+              paisesSelec = paisesSelec.substring(pos+1, paisesSelec.length);
+              aCombo[i] = nom;	       
+              i++;
+          }
+          //alert("Selec: "+aCombo);
+          set('frmformula.comboPais',aCombo);      
+      }
+
+      focaliza('frmformula.comboPais');
+
+	  //controlTab();
+
+	 }
+
+
+	function controlTab() {
+
+		document.onkeydown= function (evt)   { //Definimos el evento global de keydown 
+
+			  if(window.event.keyCode==9&&!acaboDeTabular){ 
+				 acaboDeTabular=false; 
+				 setTimeout("focalizaTAB(1)",50); //Usar un timeOut es necesario porque me evita problemas con los eventos 
+				 return false; 
+			  } 
+			  acaboDeTabular=false; 
+		}
+	}
+
+   function focalizaTAB(campo)   { 
+	   acaboDeTabular=true; 
+	   if(campo==1)
+			focaliza('frmformula.comboPais');
+	   else
+	        focalizaBotonHTML('botonContenido','btnBuscar');
+   } 
+
+   function focalizaSHTAB(campo)   { 
+	   acaboDeTabular=true; 
+	   if(campo==1)
+			focaliza('frmformula.comboPais');
+	   else
+	        focalizaBotonHTML('botonContenido','btnBuscar');
+   } 
+
+
+
+
+
+    function ocultarLista() {
+        document.all["Cplistado1"].style.visibility='hidden';
+        document.all["CpLin1listado1"].style.visibility='hidden';
+        document.all["CpLin2listado1"].style.visibility='hidden';
+        document.all["CpLin3listado1"].style.visibility='hidden';
+        document.all["CpLin4listado1"].style.visibility='hidden';
+        document.all["primera1Div"].style.visibility='hidden';
+        document.all["ret1Div"].style.visibility='hidden';
+        document.all["ava1Div"].style.visibility='hidden';
+        document.all["separaDiv"].style.visibility='hidden';
+    }
+
+    function mostrarLista() {
+
+        document.all["Cplistado1"].style.visibility='';
+        document.all["CpLin1listado1"].style.visibility='';
+        document.all["CpLin2listado1"].style.visibility='';
+        document.all["CpLin3listado1"].style.visibility='';
+        document.all["CpLin4listado1"].style.visibility='';
+        //document.all["primera1Div"].style.visibility='';
+        //document.all["ret1Div"].style.visibility='';
+        //document.all["ava1Div"].style.visibility='';
+        //document.all["separaDiv"].style.visibility='';
+
+        //eval (ON_RSZ);  
+    }
+
+
+	 function disparaBusqueda() 
+	 {
+
+			var bContinua = chequeaCantPaisesSeleccionados();
+			if (bContinua == true)
+			{
+					if (get('frmformula.comboPais', 'T') != "")
+					{
+						
+						var str = "";
+						var arr = get('frmformula.comboPais');
+						for(var i=0; i<arr.length;i++){
+							str+=arr[i]+",";
+						}
+						set('frmformula.hidPaises', str);
+						set('frmformula.accion','Consultar');
+						set('frmformula.conectorAction', 'LPConsultarEG');
+						enviaSICC('frmformula');
+					} else 
+						GestionarMensaje('8', null, null, null);
+
+		    } else {  //de bContinua
+           focaliza("frmformula.comboPais");
+        }
+  	}
+
+    function formarCadenaDT(idBusiness , dto, parametros) {
+     var cadena = idBusiness + "|" + dto + "|";
+ 
+     //concateno los parámetros en parejas separadas por ampersand (como en una url).
+     for(i=0;i<parametros.length;i++) {
+         cadena += parametros[i][0] + "=" + parametros[i][1];
+         if (i!= parametros.length-1) {
+            cadena += "&";
+         }
+     }     
+      return cadena;
+    }
+
+	 function chequeaCantPaisesSeleccionados()
+	 {
+			var cmbSeleccion = get('frmformula.comboPais');			
+			var longArray = cmbSeleccion.length;
+
+			if ((longArray == 0)) {
+				 GestionarMensaje('991');
+          var pos = combo_get( 'frmformula.comboPais', 'V', 0 );
+          set('frmformula.comboPais',new Array(pos));
+          set('frmformula.comboPais',new Array());
+				 return false;
+			} else  if (longArray > 5 ) {
+				GestionarMensaje('992');
+				return false;
+			};
+
+			return true;
+	 }
+
+	function mostrarCodigoError(){
+		 var vErrCodigo  = get('frmformula.errCodigo');
+		 var vErrDescrip = get('frmformula.errDescripcion');
+		  if (get('frmformula.errDescripcion')!=''){				
+				var wnd = fMostrarMensajeError( vErrCodigo,vErrDescrip); 
+			} 
+	}
+
+  function fLimpiar() {
+    
+    var pos = combo_get( 'frmformula.comboPais', 'V', 0 );
+    set('frmformula.comboPais',new Array(pos));
+    set('frmformula.comboPais',new Array());
+    focaliza('frmformula.comboPais');
+
+  }
+
+]]>
+</JAVASCRIPT>
+
+<FORMULARIO nombre="frmformula">
+
+
+	<VAR nombre="errDescripcion"			valor="" />
+	<VAR nombre="hidPaises"			valor="" />
+	<VAR nombre="hidPaisABuscar"		valor="" />
+	<VAR nombre="accion"			valor="" />
+	<VAR nombre="conectorAction"		valor="LPConsultarEG" />
+	<VAR nombre="casoDeUso"			valor="" />
+  <VAR nombre="hIdioma" valor=""/>
+  <VAR nombre="hCantPaises" valor=""/>
+  <VAR nombre="hNomCols" valor=""/>
+  <VAR nombre="hPaisesSelec" valor=""/>
+
+
+    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr > 
+      <td><IMG src="b.gif"/></td>
+      <td >
+      
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblSeleccionPais"  alto="13" filas="1" valor="" id="legend" cod="00494"/></legend>
+	
+          <!---primera fila-->
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+             <table width="400" border="0" align="left" cellspacing="0" cellpadding="0">
+	                  <tr> 
+		            <td colspan="8"><IMG src="b.gif" width="8" height="8"/></td>
+		          </tr>
+		          <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td><LABELC nombre="lblPais"  alto="13" filas="1" valor="" id="datosTitle" cod="5"/></td>
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td nowrap="nowrap"><COMBO nombre="comboPais" id="datosCampos" size="5" multiple="S" req="S" onshtab="focalizaSHTAB(2);"  ontab="focalizaTAB(2);">
+			               <ROWSET>
+			                      	<ROW ID="1">
+                     				<CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="00"/>
+                     				<CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxx1"/>
+                  			</ROW>
+                  			<ROW ID="2">
+                     				<CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="01"/>
+                     				<CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxx1"/>
+                  			</ROW>
+               				<ROW ID="3">
+                     				<CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="02"/>
+                     				<CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxx1"/>
+                  			</ROW>
+                  			<ROW ID="4">
+                     				<CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="03"/>
+                     				<CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxx1"/>
+                  			</ROW>
+                  			<ROW ID="5">
+                     				<CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="04"/>
+                     				<CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxx1"/>
+                  			</ROW>
+                  			<ROW ID="6">
+                     				<CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="05"/>
+                     				<CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxx1"/>
+  					</ROW>		
+			               </ROWSET>
+			         </COMBO> 
+			    </td>
+
+	                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr> 
+	                    <td colspan="9"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	            </table>
+	     </td></tr>
+       <!---fin primera fila-->
+            </table>
+        </fieldset>
+          
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td >
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0" >        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnBuscar" ID="botonContenido" tipo="html" accion="disparaBusqueda();" estado="false" cod="1" onshtab="focalizaSHTAB(1);"  ontab="focalizaTAB(1);"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>       
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+
+
+  <LISTAEDITABLE nombre="listado1" ancho="404" alto="270" x="12" y="170" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+        <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+        <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+        <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+     
+      <LINEAS>
+        <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="1" horizTitulo="1" /> 
+        <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999"  /> 
+      </LINEAS>
+     <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00502" ID="datosTitle" />
+      
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+        <COL ancho="150" minimizable="S" minimizada="N"/>
+        <COL ancho="50" minimizable="S" minimizada="N" /> 
+        <COL ancho="50" minimizable="S" minimizada="N" /> 
+        <COL ancho="50" minimizable="S" minimizada="N" /> 
+        <COL ancho="50" minimizable="S" minimizada="N" /> 
+        <COL ancho="50" minimizable="S" minimizada="N" /> 
+        
+      </COLUMNAS>
+     
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC" ajustarAMitadInf="S">
+        <COL colFondo="" ID="EstCab" align="center" cod="2202">Niveles geográficos</COL> 
+	<COL colFondo="" ID="EstCab" cod="352">País 01</COL> 
+	<COL colFondo="" ID="EstCab" cod="353">País 02</COL> 
+	<COL colFondo="" ID="EstCab" cod="354">País 03</COL> 
+	<COL colFondo="" ID="EstCab" cod="355">País 04</COL> 
+	<COL colFondo="" ID="EstCab" cod="356">País 05</COL> 
+      </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+             coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+             onLoad="" colorSelecc="#D0D9E8">
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+       
+      </DATOS>
+      <ROWSET>
+	
+      </ROWSET>
+      <PAGINADO nombre="mipgndo" ancho="404" sep="$" x="12" class="botonera" y="440" control="|" conector="conectorSandra" rowset="" cargainicial="N">
+        <BOTON nombre="ret1" x="37" y="436" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+        <BOTON nombre="ava1" x="52" y="436" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>
+                
+    </PAGINADO>
+  </LISTAEDITABLE>
+  <BOTON nombre="primera1" x="20" y="436" ID="botonContenido" img="primera_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();"/>  
+  <BOTON nombre="separa" x="59" y="439" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />      
+  
+ <CAPA nombre="capaEspacio" alto="12" ancho="100%" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="441" zindex="">
+  </CAPA>                                            
+
+</FORMULARIO>
+
+
+</PAGINA>
+
+

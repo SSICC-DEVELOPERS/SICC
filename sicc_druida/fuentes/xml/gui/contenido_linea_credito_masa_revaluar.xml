@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_linea_credito_masa_revaluar.xml,v 1.1 2009/12/03 18:44:19 pecbazalar Exp $
+   EDU
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_linea_credito_masa_revaluar" cod="0296" titulo="" estilos="estilosB3.css" colorf="#F0F0F0"
+        msgle="" onload="onLoad();" xml:lang="es">
+        
+<!-- Caso de uso Re-evaluar nivel de riesgo en masa: cod="0297" -->
+<JS src="sicc_util.js"/>
+<JS src="PaginacionSicc.js"/>
+<JS src="DruidaTransactionMare.js"/>
+
+<JAVASCRIPT>
+  <![CDATA[
+    function cargaArray(datos){
+      var seteo = new Array(datos.length + 1);
+      seteo[0] = ['' , '']
+      for(i = 0; i < datos.length; i++){
+        seteo[i+1] = [ datos[i][0], datos[i][1] ]
+      }
+      return seteo;
+    }
+    
+    function arrayVacio(){  
+      var array = new Array();             
+          array[0] = new Array('','');
+  
+      return array;
+    }
+  
+    function onSeleccionaMarca(){ 
+      if( get('frmFormulario.cbCanal') != '' && get('frmFormulario.cbMarca') != ''){
+        accion('frmFormulario.cbSubgerenciaVentas', '.disabled=false');
+        recargaCombo('frmFormulario.cbSubgerenciaVentas', 'ZONRecargaSubgerenciaVentas', 
+            'es.indra.sicc.dtos.zon.DTOUnidadAdministrativa', [['oidPais', get('frmFormulario.hPais')], 
+            ['oidMarca', get('frmFormulario.cbMarca')], ['oidCanal', get('frmFormulario.cbCanal')]]);
+      } else {
+        set_combo('frmFormulario.cbSubgerenciaVentas', arrayVacio());
+        accion('frmFormulario.cbSubgerenciaVentas', '.disabled=true');
+        
+        set_combo('frmFormulario.cbRegion', arrayVacio());
+        accion('frmFormulario.cbRegion', '.disabled=true');        
+        
+        set_combo('frmFormulario.cbZona', arrayVacio());
+        accion('frmFormulario.cbZona', '.disabled=true');
+      }
+    }
+    
+    function onSeleccionaCanal(){
+      if( get('frmFormulario.cbCanal') != '' && get('frmFormulario.cbMarca') != ''){
+        accion('frmFormulario.cbSubgerenciaVentas', '.disabled=false');
+        recargaCombo('frmFormulario.cbSubgerenciaVentas', 'ZONRecargaSubgerenciaVentas', 
+            'es.indra.sicc.dtos.zon.DTOUnidadAdministrativa', [['oidPais', get('frmFormulario.hPais')], 
+            ['oidMarca', get('frmFormulario.cbMarca')], ['oidCanal', get('frmFormulario.cbCanal')]]);
+      } else {
+        set_combo('frmFormulario.cbSubgerenciaVentas', arrayVacio());
+        accion('frmFormulario.cbSubgerenciaVentas', '.disabled=true');
+
+        set_combo('frmFormulario.cbRegion', arrayVacio());
+        accion('frmFormulario.cbRegion', '.disabled=true');
+        
+        set_combo('frmFormulario.cbZona', arrayVacio());
+        accion('frmFormulario.cbZona', '.disabled=true');
+      }
+    }
+    
+    function recargaSGVDft(){
+      recargaCombo('frmFormulario.cbSubgerenciaVentas', 'ZONRecargaSubgerenciaVentas', 
+        'es.indra.sicc.dtos.zon.DTOUnidadAdministrativa', [['oidPais', get('frmFormulario.hPais')], 
+        ['oidMarca', get('frmFormulario.cbMarca')], ['oidCanal', get('frmFormulario.cbCanal')]],'recargaRegionDft(datos)');
+    }
+    
+    function recargaRegionDft(datos){
+      seteo = cargaArray(datos);
+      set_combo('frmFormulario.cbSubgerenciaVentas', seteo);
+      set('frmFormulario.cbSubgerenciaVentas', [get('frmFormulario.hCbSubger')]);
+      
+      recargaCombo('frmFormulario.cbRegion', 'ZONRecargaRegiones', 
+        'es.indra.sicc.dtos.zon.DTOUnidadAdministrativa', [['oidSGV', get('frmFormulario.cbSubgerenciaVentas')]], 'recargaZonaDft(datos)' );
+    }
+    
+    function recargaZonaDft(datos){
+      seteo = cargaArray(datos);
+      set_combo('frmFormulario.cbRegion', seteo);	  
+      set('frmFormulario.cbRegion', [get('frmFormulario.hCbRegion')]);
+      
+      recargaCombo('frmFormulario.cbZona', 'ZONRecargaZonas', 
+        'es.indra.sicc.dtos.zon.DTOUnidadAdministrativa', [['oidRegion', get('frmFormulario.cbRegion')]], 'recargaEnd(datos)' );
+    }
+    
+    function recargaEnd(datos){
+      seteo = cargaArray(datos);
+      set_combo('frmFormulario.cbZona', seteo);
+      set('frmFormulario.cbZona', [get('frmFormulario.hCbZona')]);
+      
+      focaliza('frmFormulario.cbMarca','');
+    }
+    
+    function onSeleccionaSubgerencia(){
+      if(get('frmFormulario.cbSubgerenciaVentas') != ''){
+        accion('frmFormulario.cbRegion', '.disabled=false');
+        recargaCombo('frmFormulario.cbRegion', 'ZONRecargaRegiones', 
+          'es.indra.sicc.dtos.zon.DTOUnidadAdministrativa', [['oidSGV', get('frmFormulario.cbSubgerenciaVentas')]] );
+      } else {
+        set_combo('frmFormulario.cbRegion', arrayVacio());
+        accion('frmFormulario.cbRegion', '.disabled=true');
+        set_combo('frmFormulario.cbZona', arrayVacio());
+        accion('frmFormulario.cbZona', '.disabled=true');
+      }
+    }
+
+    function onSeleccionaRegion(){
+      if(get('frmFormulario.cbRegion') != ''){
+        accion('frmFormulario.cbZona', '.disabled=false');
+        recargaCombo('frmFormulario.cbZona', 'ZONRecargaZonas', 
+          'es.indra.sicc.dtos.zon.DTOUnidadAdministrativa', [['oidRegion', get('frmFormulario.cbRegion')]] );
+      } else {
+        set_combo('frmFormulario.cbZona', arrayVacio());
+        accion('frmFormulario.cbZona', '.disabled=true');
+      }
+    }
+    
+    function onClickReevaluar(){
+      alert('implementar onClickReevaluar()');
+    }
+    
+    function onLoad(){
+	  configurarMenuSecundario('frmFormulario');
+      fMostrarMensajeError();
+      
+      set('frmFormulario.cbMarca', [get('frmFormulario.hCbMarca')]);
+      set('frmFormulario.cbCanal', [get('frmFormulario.hCbCanal')]);
+      recargaSGVDft();
+    }
+    
+    function fLimpiar(){
+      accion('frmFormulario.cbZona', '.disabled=false');
+      accion('frmFormulario.cbRegion', '.disabled=false');
+      accion('frmFormulario.cbSubgerenciaVentas', '.disabled=false');
+      set('frmFormulario.cbMarca', [get('frmFormulario.hCbMarca')]);
+      set('frmFormulario.cbCanal', [get('frmFormulario.hCbCanal')]);
+      set('frmFormulario.cbClaseSolicitud', '');
+      recargaSGVDft();
+    }
+    
+    function focalizaMarca(){
+      focaliza('frmFormulario.cbMarca','');
+    }
+    
+    function enviaOk(){
+      var obj = new Object();
+      var aux = get('frmFormulario.cbSubgerenciaVentas','T');
+      var aux2 = get('frmFormulario.cbRegion','T');
+      var aux3 = get('frmFormulario.cbZona','T');
+      
+      if ( aux != '')
+        obj.subgerenciaVentas = aux;
+      else
+        obj.subgerenciaVentas = '*';
+      
+      if( aux2 != '')
+        obj.region = aux2;
+      else
+        obj.region = '*';
+      
+      if( aux3 != '')
+        obj.zona = aux3;
+      else
+        obj.zona = '*'; 
+      
+      obj.marca = get('frmFormulario.cbMarca','T');
+      obj.canal = get('frmFormulario.cbCanal','T');
+      obj.claseSolicitud = get('frmFormulario.cbClaseSolicitud','T');
+
+      if( get('frmFormulario.varProcedencia') == get('frmFormulario.reevaluacionLC') ){
+        //alert('hola1');
+        GestionarMensaje('1455',obj,null,null);
+      }
+      if(get('frmFormulario.varProcedencia') == get('frmFormulario.reevaluacionNR') ){
+        //alert('hola2');
+        GestionarMensaje('1456',obj,null,null);
+      }
+    }
+    
+    function reevaluar(){
+      if(sicc_validaciones_generales()){
+        eval('frmFormulario').oculto = 'S';
+        set('frmFormulario.conectorAction', 'LPReevaluarEnMasa');
+        set('frmFormulario.accion', 'Reevaluar');
+        enviaSICC('frmFormulario');
+      }      
+    }
+  ]]> 
+</JAVASCRIPT>
+
+<VALIDACION>
+  <ELEMENTO name="cbMarca" required="true" cod="6"/>
+	<ELEMENTO name="cbCanal" required="true" cod="7"/>
+	<ELEMENTO name="cbClaseSolicitud" required="true" cod="814"/>  
+</VALIDACION>
+
+<FORMULARIO nombre="frmFormulario">
+<VAR nombre="accion" valor=""/>
+<VAR nombre="conectorAction" valor=""/>
+
+<VAR nombre="errCodigo" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>
+
+<VAR nombre="varProcedencia" valor=""/>
+<VAR nombre="reevaluacionLC" valor=""/>
+<VAR nombre="reevaluacionNR" valor=""/>
+
+<VAR nombre="hIdioma" valor=""/>
+<VAR nombre="hPais" valor=""/>
+<VAR nombre="hCbMarca" valor=""/>
+<VAR nombre="hCbCanal" valor=""/>
+<VAR nombre="hCbSubger" valor=""/>
+<VAR nombre="hCbRegion" valor=""/>
+<VAR nombre="hCbZona" valor=""/>
+
+<CAPA nombre="capaEspacio1" x="0" y="0">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblCriteriosSeleccion" alto="13" filas="1" valor="" id="legend" cod="00275"/></legend>
+          <!---primera fila-->
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblMarca" alto="13" filas="1" valor="" id="datosTitle" cod="6"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblCanal" alto="13" filas="1" valor="" id="datosTitle" cod="7"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+		   <td nowrap="nowrap">
+		     <COMBO nombre="cbMarca" id="datosCampos" size="1" multiple="N" req="S" valorinicial=""  textoinicial="" onchange="onSeleccionaMarca();" onshtab="focalizaBotonHTML('botonContenido','btnReevaluar');">
+		       <ROWSET>
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td nowrap="nowrap">
+		     <COMBO nombre="cbCanal" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onchange="onSeleccionaCanal();">
+		       <ROWSET>
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+		   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="3"><IMG src="b.gif" width="8" height="7"/></td>
+                </tr>
+              </table>
+       <!---fin primera fila-->
+          <!---segunda fila-->
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblSubgerenciaVentas" alto="13" filas="1" valor="" id="datosTitle" cod="124"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblRegion" alto="13" filas="1" valor="" id="datosTitle" cod="109"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+		   <td>
+		     <COMBO nombre="cbSubgerenciaVentas" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" onchange="onSeleccionaSubgerencia();">
+		       <ROWSET>
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+	           <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td>
+		     <COMBO nombre="cbRegion" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" onchange="onSeleccionaRegion();">
+		       <ROWSET>
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+		   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="3"><IMG src="b.gif" width="8" height="7"/></td>
+                </tr>
+              </table>
+       <!---fin segunda fila-->
+       <!---tercera fila-->
+        <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblZona" alto="13" filas="1" valor="" id="datosTitle" cod="143"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblClaseSolicitud" alto="13" filas="1" valor="" id="datosTitle" cod="814"/></td>
+		   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+		   <td>
+		     <COMBO nombre="cbZona" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+		       <ROWSET>
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td nowrap="nowrap">
+		     <COMBO nombre="cbClaseSolicitud" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" >
+		       <ROWSET>
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+	           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="3"><IMG src="b.gif" width="8" height="7"/></td>
+                </tr>
+              </table>
+       <!---fin tercera fila-->
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnReevaluar" ID="botonContenido" tipo="html" accion="reevaluar();" estado="false" cod="980" ontab="focaliza('frmFormulario.cbMarca');"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>        
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+</FORMULARIO>
+</PAGINA>

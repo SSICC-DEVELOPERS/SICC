@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+/**
+ * Copyright 2003 © por Indra Sistemas,S.A.. Todos los derechos reservados.
+ * Avda. de Bruselas, 35
+ * Parque Empresarial Arroyo de la Vega
+ * 28108 Alcobendas, Madrid
+ * España
+ *
+ * Privado y Confidencial.
+ * La información contenida en este documento es propiedad de Indra sistemas.
+ * Para uso exclusivo de empleados autorizados no permitiéndose
+ * la distribución de este código sin permiso expreso.
+ *
+ * Sistema:        Belcorp
+ * Componente:    contenido_mdg_actividad_anadir.xml
+ * Fecha:          26/06/2003
+ * Observaciones:
+ *
+ *
+ * @author aschet
+ * @version 1.0
+ */
+-->
+<!--
+   INDRA/CDOS/SICC
+   $Id: contenido_mdg_actividad_anadir.xml,v 1.1 2009/12/03 18:43:58 pecbazalar Exp $
+   DESC
+
+   DRUIDATARGET=/../../config/scripts/iniciales
+-->
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+<PAGINA nombre="contenido_mdg_actividad_anadir" titulo="Añadir Actividad"
+        estilos="estilos.css" colorf="#F0F0F0" msgle="Añadir Actividad"
+        onload="LoadBar();" xml:lang="es" cod="056">
+  <JS src="sicc_util.js"/>
+  <ESTILO>#estcombomenorF {width:40px} 
+                  #estcomboF {width:140px}</ESTILO>
+  <JAVASCRIPT>
+    <![CDATA[
+                            
+                            var primerCampo;
+                            var comboActividadV;
+                            var comboActividadT;
+                            
+                            function LoadBar()
+                            {
+                                configurarMenuSecundario("frmAnadirActividad");
+                                //del_combo("frmAnadirActividad.cbActividad", 0,0);
+                                comboActividadV = new Array();
+                                comboActividadT = new Array();
+                            		var inicioPeriodo = 'Inicio Periodo';//document.all.tags("TD")("hidInicioPeriodo").innerHTML;
+                                combo_add('frmAnadirActividad.cbActividad', 'inicioPeriodo', inicioPeriodo);
+                                for(var i=0;i<combo_get('frmAnadirActividad.cbActividad','L');i++){
+                                    comboActividadV[i]= combo_get('frmAnadirActividad.cbActividad','V',i);
+                                    comboActividadT[i]= combo_get('frmAnadirActividad.cbActividad','T',i);
+                                }
+                                if (combo_get('frmAnadirActividad.cbActividad','L')<3){
+                                    set('frmAnadirActividad.rbPreguntaAct','N');
+                                }
+                                if (get('frmAnadirActividad.hidIterando') == '1') {
+                                    primerCampo = 'frmAnadirActividad.cbActividad';
+                                    accion('frmAnadirActividad.cbGrupoDeZonas','.disabled=true');
+                                    set('frmAnadirActividad.cbGrupoDeZonas', new Array([get('frmAnadirActividad.hidGrupoDeZonas')]));
+                                } else
+                                    primerCampo = 'frmAnadirActividad.cbGrupoDeZonas';
+                                set('frmAnadirActividad.cbActividad', get('frmAnadirActividad.hidActividad'));
+                                set('frmAnadirActividad.txtDesplazamiento', get('frmAnadirActividad.hidDesplazamiento'));
+                                focaliza(primerCampo,'');
+                                if (get('frmAnadirActividad.hidTerminar') == '1') {
+                                    fMostrarMensajeError(get('frmAnadirActividad.errCodigo'), get('frmAnadirActividad.errDescripcion'));
+                                    set('frmAnadirActividad.conectorAction','LPAniadirActividadesModoGrafico');
+                                    if (get('frmAnadirActividad.cbActividad')=='inicioPeriodo')
+                                        set('frmAnadirActividad.cbActividad','');
+                                    enviaSICC('frmAnadirActividad');
+                               }else{
+                                  if (get('frmAnadirActividad.hidTerminar') == '2') {
+                                      fMostrarMensajeError(get('frmAnadirActividad.errCodigo'), get('frmAnadirActividad.errDescripcion'));
+                                      set('frmAnadirActividad.accion','');
+                                      if (get('frmAnadirActividad.cbActividad')=='inicioPeriodo')
+                                        set('frmAnadirActividad.cbActividad',''); 
+                                      enviaSICC('frmAnadirActividad');
+                                  }else
+                                      ShowError();
+                               }
+                            }
+                            
+                            function fLimpiar()
+                            {
+                                 if (get('frmAnadirActividad.hidIterando') != '1')
+                                    set('frmAnadirActividad.cbGrupoDeZonas','');
+                                 set('frmAnadirActividad.cbActividad','');	
+                                 set('frmAnadirActividad.txtDesplazamiento', get('frmAnadirActividad.hidDesplazamiento'));
+                                 focaliza(primerCampo,'');
+                            }
+                            
+                            function enviarFormulario()
+                            {
+                                         if(fValidarCOMBO('frmInsertarActividades.cbGrupoDeZonas') && 
+                                            fValidarCOMBO('frmInsertarActividades.cbActividad'))
+                                            if (get('frmAnadirActividad.cbActividad')=='inicioPeriodo')
+                                              set('frmAnadirActividad.cbActividad','');
+                                              enviaSICC('frmInsertarActividades');
+                            }
+                            
+                            function fVolver() {
+                                     set('frmAnadirActividad.accion', 'volver');
+                                     enviaSICC('frmAnadirActividad');
+                            }
+                            
+                            function ShowError()
+                            {
+                                     if (get('frmAnadirActividad.errDescripcion')!='' || get('frmAnadirActividad.errCodigo')!='')
+                                          fMostrarMensajeError(get('frmAnadirActividad.errCodigo'), 
+                                                       get('frmAnadirActividad.errDescripcion'));
+                            } 
+                            
+                            function fGuardar() {
+                                     setTimeout("Save2()", 100);
+                            }
+                            
+                            function Save2()
+                            {
+                                     if (!fValidarCOMBO('frmAnadirActividad.cbGrupoDeZonas')) {
+                                        focaliza('frmAnadirActividad.cbGrupoDeZonas','');
+                                        return false;
+                                     }
+                                     if (!validarNumerico())
+                                        return false;
+                                     set('frmAnadirActividad.accion','grabar');
+                                     set('frmAnadirActividad.conectorAction','LPAniadirActividadesReferenciadas');
+                                     if (get('frmAnadirActividad.cbActividad')=='inicioPeriodo')
+                                        set('frmAnadirActividad.cbActividad','');
+                                     enviaSICC('frmAnadirActividad');
+                            }
+                            
+                            function validarNumerico() {
+                              if (get('frmAnadirActividad.txtDesplazamiento') == '')
+                                  return true;
+                              if(fValidarNumero(get('frmAnadirActividad.txtDesplazamiento'), 9, -999999999, 999999999) != 'OK'){
+                                document.selection.empty();
+                                GestionarMensaje('405',null,null,null);
+                                focaliza('frmAnadirActividad.txtDesplazamiento','');
+                                return false;   
+                              } else
+                                return true;
+                            }
+                            
+                            function salida(){
+                                     focaliza('frmAnadirActividad.cbGrupoDeZonas','');
+                            }
+                            
+                            function focalizarElPrimero() {
+                                if (get('frmAnadirActividad.hidIterando') == 1)
+                                    focaliza('frmAnadirActividad.cbActividad');
+                                 else
+                                     focaliza('frmAnadirActividad.cbGrupoDeZonas');
+                            }
+                    
+                            function cambioRb(){
+                                var rb = get('frmAnadirActividad.rbPreguntaAct');
+                                if (rb=='S'){
+                                    del_combo('frmAnadirActividad.cbActividad',0,combo_get('frmAnadirActividad.cbActividad','L')-1);
+                                    for(var k=0;k<comboActividadV.length;k++){
+                                        combo_add('frmAnadirActividad.cbActividad',comboActividadV[k],comboActividadT[k]);
+                                    }
+                                }else if (rb=='N'){
+                                    if (combo_get('frmAnadirActividad.cbActividad','L')>2){
+                                        del_combo('frmAnadirActividad.cbActividad',0,combo_get('frmAnadirActividad.cbActividad','L')-1);
+                                        combo_add('frmAnadirActividad.cbActividad','inicioPeriodo','Inicio Periodo');
+                                    }
+                                }
+                    
+                            }
+                            
+                            ]]>
+  </JAVASCRIPT>
+  <FORMULARIO nombre="frmAnadirActividad">
+    <VAR nombre="accion" valor=""/>
+    <VAR nombre="conectorAction" valor="LPAniadirActividadesReferenciadas"/>
+    <VAR nombre="casoDeUso" valor=""/>
+    <VAR nombre="errCodigo" valor=""/>
+    <VAR nombre="errDescripcion" valor=""/>
+    <VAR nombre="hidActividad" valor=""/>
+    <VAR nombre="hidGrupoDeZonas" valor=""/>
+    <VAR nombre="hidDesplazamiento" valor=""/>
+    <VAR nombre="hidIterando" valor=""/>
+    <VAR nombre="hidTerminar" valor=""/>
+    <VAR nombre="hidVolver" valor=""/>
+    <!-- ****************** No Borrar se usa para internacionalizar datos del combo ******************-->
+    <LABELC nombre="hidInicioPeriodo" alto="0" ancho="0" id="hidInicioPeriodo"
+            texto="" filas="" cod="1273"/>
+    <!-- ******************************************************************************************** -->
+    <CAPA nombre="capaBusqueda" alto="250" ancho="100%" colorf="" borde="0"
+          imagenf="" repeat="" padding="" visibilidad="visible" contravsb=""
+          x="0" y="0" zindex="">
+      <table width="624" border="0" cellspacing="0" cellpadding="0" align="left">
+        <tr>
+          <td width="12" align="center">
+            <IMG src="b.gif" width="8" height="8"/>
+          </td>
+          <td width="776">
+            <IMG src="b.gif" width="8" height="8"/>
+          </td>
+          <td width="12">
+            <IMG src="b.gif" width="8" height="8"/>
+          </td>
+        </tr>
+        <tr>
+          <td align="left">
+            <IMG src="b.gif" width="8" height="8"/>
+          </td>
+          <td>
+            <table width="100%" border="1" cellspacing="1" cellpadding="0"
+                   bordercolor="#CCCCCC">
+              <TR>
+                <td bgcolor="#CCCCCC">
+                  <LABELC nombre="lblPath" ancho="400" align="left"
+                          valign="center" alto="25" filas="1"
+                          id="datosTitleLeft" valor="" enviaroculto="N"/>
+                </td>
+              </TR>
+              <tr>
+                <td>
+                  <table width="50%" border="0" cellspacing="0" cellpadding="0"
+                         align="left">
+                    <tr>
+                      <td colspan="7" nowrap="nowrap" class="">
+                        <IMG src="b.gif" width="8" height="8"/>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td width="120">
+                        <LABELC nombre="lblGrupoDeZonas" ancho="180" alto="30"
+                                filas="1" id="datosTitle" cod="180" valor=""
+                                enviaroculto="N"/>
+                      </td>
+                      <td width="1%">
+                        <IMG src="b.gif" width="8" height="8"/>
+                      </td>
+                      <td width="98%">
+                        <COMBO textoinicial="" valorinicial="" req="N"
+                               multiple="N" size="1" id="estcombo"
+                               nombre="cbGrupoDeZonas"
+                               onshtab="javascript:focaliza('frmAnadirActividad.rbPreguntaAct')">
+                          <ROWSET>
+                          </ROWSET>
+                        </COMBO>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td width="120">
+                        <LABELC nombre="lblActividad" ancho="180" alto="30"
+                                filas="1" id="datosTitle" cod="173" valor=""
+                                enviaroculto="N"/>
+                      </td>
+                      <td width="1%">
+                        <IMG src="b.gif" width="8" height="8"/>
+                      </td>
+                      <td width="98%">
+                        <COMBO textoinicial="" valorinicial="" req="N"
+                               multiple="N" size="1" id="estcombo"
+                               nombre="cbActividad">
+                          <ROWSET>
+                          </ROWSET>
+                        </COMBO>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td width="120">
+                        <LABELC nombre="lblDesplazamiento" ancho="180" alto="30"
+                                filas="1" id="datosTitle" cod="250" valor=""
+                                enviaroculto="N"/>
+                      </td>
+                      <td width="1%">
+                        <IMG src="b.gif" width="8" height="8"/>
+                      </td>
+                      <td width="98%">
+                        <CTEXTO nombre="txtDesplazamiento" class="datosCampos"
+                                id="txtDesplazamiento" max="3" tipo=""
+                                onchange="" req="N" size="3" valor=""
+                                validacion=""/>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td colspan="7" nowrap="nowrap" class="datosCampos">
+                        <IMG src="b.gif" width="8" height="8"/>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td width="120">
+                        <LABELC nombre="lblPreguntarAct" ancho="180" alto="30"
+                                filas="1" id="datosTitle" cod="253" valor=""
+                                enviaroculto="N"/>
+                      </td>
+                      <td width="1%">
+                        <IMG src="b.gif" width="8" height="8"/>
+                      </td>
+                      <td width="98%" class="datosCampos">
+                        <RADIOB nombre="rbPreguntaAct" tipo="H"
+                                 id="datosCampos"
+                                ontab="javascript:focalizarElPrimero();"
+                                onclick="cambioRb();">
+                          <RBINPUT valor="S" check="S" class="datosCampos">Sí</RBINPUT>
+                          <RBINPUT valor="N" check="N" class="datosCampos">No</RBINPUT>
+                        </RADIOB>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td colspan="7" nowrap="nowrap" class="datosCampos">
+                        <IMG src="b.gif" width="8" height="8"/>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </td>
+          <td>
+            <IMG src="b.gif" width="8" height="8"/>
+          </td>
+        </tr>
+        <tr>
+          <td align="center">
+            <IMG src="b.gif" width="8" height="8"/>
+          </td>
+          <td>
+            <IMG src="b.gif" width="8" height="8"/>
+          </td>
+          <td>
+            <IMG src="b.gif" width="8" height="8"/>
+          </td>
+        </tr>
+      </table>
+    </CAPA>
+  </FORMULARIO>
+</PAGINA>

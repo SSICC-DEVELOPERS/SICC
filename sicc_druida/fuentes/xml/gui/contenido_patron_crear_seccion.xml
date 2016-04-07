@@ -1,0 +1,558 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_patron_crear_seccion.xml,v 1.1 2009/12/03 18:44:40 pecbazalar Exp $
+   contenido MSG
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_patron_crear" cod="0248" titulo="Crear patrón"  estilos="estilosB3.css" colorf="#F0F0F0"
+	msgle="Crear patrón" onload="onLoadPag();" xml:lang="es">
+<!-- Barra Modificar patrón cod="0275"-->
+
+<JAVASCRIPT>
+    <![CDATA[
+    var oidsPrevios  = new Array();
+    var FORM = "frmFormulario";
+/********************* LISTENERS DE LA PAGINA ********************************/
+    function fGuardar() {
+        accionGuardar();        
+    }
+    
+    function fLimpiar() {
+        accionLimpiar();
+    }
+    
+    function fVolver() {
+        this.close();
+    }
+    
+    function fBorrar() {
+        return accionEliminar();     
+    }
+    function fEliminar() {
+        return accionEliminar(); 
+    }
+    function guardarOK(oidPatron, oidPatronPeriodo, codigoError) {
+        if ( !codigoError ) {
+            var arrayRet = new Array();
+            arrayRet[0] = oidPatron;
+            arrayRet[1] = oidPatronPeriodo;
+
+            eval(FORM).oculto = "S"; 
+            this.returnValue = arrayRet;
+            this.close();
+        } else{
+            GestionarMensaje(codigoError);
+		}
+
+    }
+
+    function guardarKO() {
+    }
+
+
+/*********************** METODOS DE PGDatosSeccion ****************************/
+    function onLoadPag()   {
+		
+        configurarMenuSecundario(FORM);
+		fMostrarMensajeError();
+        DrdEnsanchaConMargenDcho('listaMensajes',12);
+        document.all["CplistaMensajes"].style.visibility='';
+        document.all["CpLin1listaMensajes"].style.visibility='';
+        document.all["CpLin2listaMensajes"].style.visibility='';
+        document.all["CpLin3listaMensajes"].style.visibility='';
+        document.all["CpLin4listaMensajes"].style.visibility='';
+        document.all["primera1Div"].style.visibility='';
+        document.all["ret1Div"].style.visibility='';
+        document.all["ava1Div"].style.visibility='';
+        document.all["separaDiv"].style.visibility='';
+        document.all["btCrearMensajeDiv"].style.visibility='';
+        document.all["btModificarMensajeDiv"].style.visibility='';
+        document.all["btAnadirMensajeDiv"].style.visibility='';
+
+        DrdEnsanchaConMargenDcho('listaMensajesSeccion',24);
+        document.all["CplistaMensajesSeccion"].style.visibility='';
+        document.all["CpLin1listaMensajesSeccion"].style.visibility='';
+        document.all["CpLin2listaMensajesSeccion"].style.visibility='';
+        document.all["CpLin3listaMensajesSeccion"].style.visibility='';
+        document.all["CpLin4listaMensajesSeccion"].style.visibility='';
+        document.all["primera2Div"].style.visibility='hidden';
+        document.all["ret2Div"].style.visibility='hidden';
+        document.all["ava2Div"].style.visibility='hidden';
+        document.all["separa2Div"].style.visibility='hidden';
+
+        eval (ON_RSZ);
+
+
+        configurarPaginado
+            ( mipgndo
+            , "MSGObtenerMensajesPorPais"
+            , "ConectorObtenerMensajesPorPais"
+            , "es.indra.sicc.cmn.negocio.auditoria.DTOSiccPaginacion"
+            , paramsPaginado() );
+
+        var codigos = listaMensajesSeccion.codigos();
+        for ( i=0; i < codigos.length; i++ ) {
+            oidsPrevios[i] = new Array();
+            oidsPrevios[i][0] = codigos[i];
+            oidsPrevios[i][1] = listaMensajesSeccion.extraeDato(codigos[i], 0);
+            oidsPrevios[i][2] = listaMensajesSeccion.extraeDato(codigos[i], 1);
+            oidsPrevios[i][3] = listaMensajesSeccion.extraeDato(codigos[i], 2);
+        }        
+        set(FORM + ".cbOrdenSecuencia", [get(FORM + '.hddnOrdenInicial')]);
+        set(FORM + ".cbMetacaracteresEstructura", [get(FORM + '.hddnMetacaracter')]);
+		if (get(FORM + '.hOrdenInicialHabilitado') == 'N')
+			accion(FORM + '.cbOrdenSecuencia', '.disabled=true' );
+		else
+			accion(FORM + '.cbOrdenSecuencia', '.disabled=false' );
+    }
+
+    function accionAnadirMensaje() {
+		  if ( listaMensajes.numSelecc() != 0 ) {
+            // Pasamos los mensajes seleccionados de listaMensajes a listaMensajesSeccion
+            var selecs = listaMensajes.codSeleccionados();
+            var hashCodigos = new Array();
+            for ( i=0; i < selecs.length; i++ ) 
+                hashCodigos["'"+selecs[i]+"'"] = true;
+                
+            var codigos = listaMensajesSeccion.codigos();
+            var lastOrden = codigos.length; // Ultimo orden de impresion
+            // Cargo los oids ya agregados
+            var hashOidsSelecs = new Array();
+            for ( i=0; i < codigos.length; i++ ) 
+                hashOidsSelecs["'"+codigos[i]+"'"] = true;            
+
+				// Obtengo el ultimo
+            if ( lastOrden != 0 )
+                lastOrden = listaMensajesSeccion.extraeDato(codigos[lastOrden-1], 0);
+                
+            if ( lastOrden == NaN )
+                lastOrden == 0;
+                
+            var codigos = listaMensajes.codigos();
+            for ( i=0; i < codigos.length; i++ ) {
+                if  (   hashCodigos["'"+codigos[i]+"'"] ) {
+                    if ( !hashOidsSelecs["'"+codigos[i]+"'"] ) {
+                        lastOrden++;
+                        var datos = new Array();
+                        datos[0] = codigos[i];
+                        datos[1] = lastOrden;
+                        datos[2] = listaMensajes.extraeDato(codigos[i], 0);
+								datos[3] = listaMensajes.extraeDato(codigos[i], 2);
+                        listaMensajesSeccion.insertar(datos);
+                    }
+                    listaMensajes.deselecciona(i);
+                }
+            }
+        }
+
+    }
+
+    function accionGuardar() {
+        //Este método se ejecuta cuando se pulsa el botón Guardar del menú secundario
+        var correcto = comprobarDatosSeccion();
+        if ( correcto == true ) 
+        { 
+			if (verificacionNumerica() == 'true') {
+				set(FORM+".accion","Guardar seccion"); 
+				setListaMensajes(); // "Serializo" la ListaMensajes para poder pasarla a la LP
+				// Envia el formulario oculto 
+				eval(FORM).oculto = "S";
+				enviaSICC(FORM);
+			}
+        } 
+        else // Muestra un mensaje de error: MSG-0002 
+            GestionarMensaje('1421');
+    }
+
+	function verificacionNumerica(){
+		for (var i=0; i < listaMensajesSeccion.datos.length; i++)  {
+			if (fValidarNumero(listaMensajesSeccion.datos[i][1],200,0,999) != 'OK')  {
+						GestionarMensaje('405');
+						document.all['Orden_' + i].focus();
+						return 'false';
+			}
+		}
+		return 'true';
+	}
+
+    function comprobarDatosSeccion() {
+    
+        //Comprueba que se ha introducido algún valor para el campo txtCodigoSeccion 
+    	if (!sicc_validaciones_generales()) 
+            return false;
+
+        var codigos = listaMensajesSeccion.codigos(); 
+        //Comprueba que la lista listaMensajesSeccion tiene algún mensaje añadido 
+        if ( codigos.length == 0 )
+            return false;
+
+        //Comprueba que todos las filas de la lista listaMensajesSeccion tienen relleno el campo Orden impresion mensaje 
+        for ( i=0; i < codigos.length; i++) {
+            var orden = listaMensajesSeccion.extraeDato(codigos[i], 0);
+            if ( !orden || orden == "" )
+                return false;
+        }
+
+        //Si todas las comprobaciones son correctas, devuelve true
+        return true;
+    }
+
+    /**
+     *  Este método se ejecuta al pulsar sobre el botón Eliminar del menú secundario 
+     */
+    function accionEliminar() {
+        // Comprobar que hay algun elemento seleccionado en la lista listaMensajesSeccion
+        if ( listaMensajesSeccion.numSelecc() != 0 )
+            listaMensajesSeccion.eliminarSelecc(); //Si hay algun mensaje seleccionado, lo elimina de la lista 
+    }
+
+    /**
+     *  Método que se activa al pulsar sobre el botón btCrearMensaje 
+     */
+    function accionCrearMensaje() {
+        //  Llama a LPMantenimientoMensajes con: 
+        //  - opcionMenu = "Insertar mensaje" 
+        //  - accion = "" 
+    	var obj = new Object();
+    	obj.opcionMenu = "Insertar mensaje";
+		obj.casoDeUso = "Insertar mensaje";
+    	obj.accion = "";
+//alert("contenido_patron_clear_seccion accionCrearMensaje: 1");        
+    	//var whnd = 
+		mostrarModalSICC('LPMantenimientoMensajes','', obj);
+        /* Se bloquea la ejecución hasta el cierre de la ventana emergente */ 
+        // Refrescar la lista paginada de resultados para que se muestren las modificaciones realizadas
+        //if (whnd != null){
+//            oidPatron = whnd[0];
+//            oidPatronPeriodo = whnd[1];
+        //}
+//alert(whnd); 
+//alert("contenido_patron_clear_seccion accionCrearMensaje: 2");
+        recargarMensajes();
+//		get(FORM + '.mipgndo').repinta();
+
+//alert("contenido_patron_clear_seccion accionCrearMensaje: 3");
+    }
+
+    /**
+     *  Método que se activa al pulsar sobre el botón btModificarMensaje 
+     */
+    function accionModificarMensaje() {
+    //    Llama a LPMantenimientoMensajes con:
+    //      - opcionMenu = "Modificar mensaje"
+    //      - accion = ""
+    	var obj = new Object();
+    	obj.opcionMenu = "Modificar mensaje";
+		obj.casoDeUso = "Modificar mensaje";
+    	obj.accion = "";
+//alert("contenido_patron_clear_seccion accionModificarMensaje 1");        
+    	//var whnd = 
+		mostrarModalSICC('LPMantenimientoMensajes','', obj);
+//alert(whnd);            
+    /* Se bloquea la ejecución hasta el cierre de la ventana emergente */     
+    //Refrescar la lista paginada de resultados para que se muestren las modificaciones realizadas
+//        if (whnd != null){
+//            oidPatron = whnd[0];
+//            oidPatronPeriodo = whnd[1];
+//        }
+//alert("contenido_patron_clear_seccion accionModificarMensaje 2");        
+        recargarMensajes()
+//alert("contenido_patron_clear_seccion accionModificarMensaje 3");        
+    }
+
+    /*********************** METODOS INTERNOS ********************************/
+    function paramsPaginado() {
+        var array = new Array();
+        array[array.length] = new Array("oidPais" , get(FORM+".pais_activo"));      
+        array[array.length] = new Array("oidIdioma", get(FORM+".idioma_activo"));
+        return array;
+    }
+
+    /**
+     * setListaMensajes. Aplano la listaMensajes para poder pasarla y trabajarla en la LP.
+     */
+    function setListaMensajes() {
+        var codigos = listaMensajesSeccion.codigos();
+        
+        var strOidMensajes = "";
+        var strOrdenImpresionMensajes = "";
+        var strCodMsg = "";
+        var strTextoMensajes = "";
+        
+        for ( i=0; i < codigos.length; i++) {
+            var oidM = codigos[i];
+            var orden = listaMensajesSeccion.extraeDato(codigos[i], 0);
+            var codMsg = listaMensajesSeccion.extraeDato(codigos[i], 1);
+            var texto = listaMensajesSeccion.extraeDato(codigos[i], 2);
+            strOidMensajes = strOidMensajes +oidM;
+            strOrdenImpresionMensajes = strOrdenImpresionMensajes +orden;
+				strCodMsg = strCodMsg +codMsg;
+            strTextoMensajes = strTextoMensajes +texto;
+
+            if ( i != (codigos.length - 1 ) ) {
+                strOidMensajes += "\n";
+                strOrdenImpresionMensajes += "\n";
+                strCodMsg += "\n";
+                strTextoMensajes += "\n";
+            }
+        }
+
+        set(FORM+".hddnOidMensajes", strOidMensajes);
+        set(FORM+".hddnCodMensajes", strCodMsg);
+        set(FORM+".hddnOrdenesImpresion", strOrdenImpresionMensajes);
+        set(FORM+".hddnTextoMensajes", strTextoMensajes);
+        
+    }
+
+    function recargarMensajes() {
+        configurarPaginado
+            ( mipgndo
+            , "MSGObtenerMensajesPorPais"
+            , "ConectorObtenerMensajesPorPais"
+            , "es.indra.sicc.cmn.negocio.auditoria.DTOSiccPaginacion"
+            , paramsPaginado() );
+    }
+
+    function accionLimpiar() {
+        //Recargo la lista
+        recargarMensajes();
+        //Limpio la lista
+        var codigos = listaMensajesSeccion.codigos();
+        for ( i=0; i < codigos.length; i++ ) {
+            listaMensajesSeccion.selecciona(i);
+        }
+        listaMensajesSeccion.eliminarSelecc();
+        // la recargo
+        for ( i=0; i < oidsPrevios.length ; i++ ) {
+            listaMensajesSeccion.insertar(oidsPrevios[i]);
+        }
+        set(FORM + ".cbOrdenSecuencia", [get(FORM + '.hddnOrdenInicial')]);
+        set(FORM + ".cbMetacaracteresEstructura", [get(FORM + '.hddnMetacaracter')]);
+    }
+
+	function onKeyDown_ctexto(){
+
+
+	}
+
+    ]]>
+</JAVASCRIPT>
+
+<VALIDACION>
+    <ELEMENTO name="txtCodigoSeccion" required="true" cod="824" />
+    <ELEMENTO name="cbOrdenSecuencia" required="true" cod="952" />
+</VALIDACION>
+
+<JS src="sicc_util.js" />
+<JS src="PaginacionSicc.js"/>
+<JS src="DruidaTransactionMare.js"/>
+
+<FORMULARIO nombre="frmFormulario" oculto="S">
+<VAR nombre="accion" valor=""/>
+<VAR nombre="casoDeUso" valor=""/>
+<VAR nombre="conectorAction" valor="LPDatosSeccion"/>
+<VAR nombre="errCodigo" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>
+
+<VAR nombre="numeroSeccion" valor=""/>
+<VAR nombre="numeroSecciones" valor=""/>
+<VAR nombre="oidSeccion" valor=""/>
+<VAR nombre="oidPatron" valor=""/>
+<VAR nombre="oidPeriodo" valor=""/>
+<VAR nombre="oidPatronOrigen" valor=""/>
+<VAR nombre="oidPatronPeriodo" valor=""/>
+<VAR nombre="descripcionPais" valor=""/>
+<VAR nombre="codigoPatron" valor=""/>
+<VAR nombre="descripcionPatron" valor=""/>
+<VAR nombre="oidMedioEnvio" valor=""/>
+<VAR nombre="oidFormulario" valor=""/>
+<VAR nombre="activo" valor=""/>
+<VAR nombre="patronPeriodo" valor=""/>
+
+<VAR nombre="hddnOidMensajes" valor=""/>
+<VAR nombre="hddnCodMensajes" valor=""/>
+<VAR nombre="hddnOrdenesImpresion" valor=""/>
+<VAR nombre="hddnTextoMensajes" valor=""/>
+<VAR nombre="hddnOrdenInicial" valor=""/>
+<VAR nombre="hddnMetacaracter" valor=""/>
+<VAR nombre="hOrdenInicialHabilitado" valor=""/>
+<VAR nombre="idioma_activo" valor=""/>
+<VAR nombre="pais_activo" valor=""/>
+
+
+<CAPA nombre="capaSeccion1" alto="100%" ancho="100%" colorf="" borde="1" imagenf=""
+      repeat="" padding="" visibilidad="visible" contravsb="" zindex="" x="" y="0">
+        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+       <tr>
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend">
+	    <table border="0" bordercolor="#CCCCCC" cellspacing="0" cellpadding="0">
+          	<tr><td><LABELC nombre="lbSeccion"  alto="13" filas="1" valor="" id="legend" cod="00234"/></td>
+          	    <td><IMG src="b.gif" width="8" height="8"/></td>
+          	    <td ><LABELC nombre="Seccion1"  alto="13" filas="1" valor="1" id="legend" /></td>
+          	</tr>
+            </table>
+	</legend>
+
+          <!---primera fila-->
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+             <table width="612" border="0" align="left" cellspacing="0" cellpadding="0">
+	                  <tr>
+		            <td colspan="8"><IMG src="b.gif" width="8" height="319"/></td>
+		          </tr>
+		          <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td><LABELC nombre="lblCodigoSeccion"  alto="13" filas="1" valor="" id="datosTitle" cod="824"/></td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td><LABELC nombre="lblOrdenSecuencia"  alto="13" filas="1" valor="" id="datosTitle" cod="952"/></td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td><LABELC nombre="lblMetacaracteresEstructura"  alto="13" filas="1" valor="" id="datosTitle" cod="2479"/></td>
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td nowrap="nowrap"><CTEXTO nombre="txtCodigoSeccion" id="datosCampos" max="4" tipo="" onchange="" req="S" size="4" valor="" validacion="" /></td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                     <td nowrap="nowrap"><COMBO nombre="cbOrdenSecuencia" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="">
+			               <ROWSET>
+
+			               </ROWSET>
+			         </COMBO>
+
+			    </td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                     <td><COMBO nombre="cbMetacaracteresEstructura" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+			               <ROWSET>
+
+			               </ROWSET>
+			         </COMBO>
+
+			    </td>
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr>
+	                    <td colspan="9"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	            </table>
+	     </td></tr>
+       <!---fin primera fila-->
+
+          </table>
+        </fieldset>
+
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr>
+
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+
+  <LISTAEDITABLE nombre="listaMensajesSeccion" ancho="591" alto="295" x="24" y="37" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+        <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" />
+        <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" />
+        <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>
+      </IMGBOTONES>
+
+      <LINEAS>
+        <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="1" horizTitulo="1" horizBase="1"/>
+        <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999"  />
+      </LINEAS>
+     <TITULO colFondo="#CECFCE" alto="22" imgFondo=""  ID="datosTitle" cod="00545"/>
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+        <COL ancho="150" minimizable="S" minimizada="N"/>
+        <COL ancho="150" minimizable="S" minimizada="N"/>
+        <COL ancho="500" minimizable="S" minimizada="N"/>
+      </COLUMNAS>
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC" ajustarAMitadInf="S">
+	<COL colFondo="" ID="EstCab" cod="951">Orden impresión mensaje</COL>
+   <COL colFondo="" ID="EstCab" align="center" cod="821">Cód. mensaje</COL>
+	<COL colFondo="" ID="EstCab" align="center" cod="2480"></COL>
+      </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel=""
+             coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8"
+             onLoad="" colorSelecc="#D0D9E8">
+		 <COL tipo="cajatexto" nombre="Orden" size="4" max="4" IDOBJ="EstCajaDatForm" ID="EstDat2" onKeyDown="if(event.keyCode==13){window.event.cancelBubble=true;return false;}"/>
+       <COL tipo="texto" ID="EstDat"/>
+       <COL tipo="texto" ID="EstDat2"/>
+		</DATOS>
+      <ROWSET>
+      </ROWSET>
+      <PAGINADO nombre="mipgndo2" ancho="591" sep="$" x="12" class="botonera" y="309" control="|" conector="conectorSandra" rowset="" cargainicial="N">
+        <BOTON nombre="ret2" x="49" y="313" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo2.retroceder();" />
+        <BOTON nombre="ava2" x="64" y="325" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo2.avanzar();"/>
+    </PAGINADO>
+  </LISTAEDITABLE>
+  <BOTON nombre="primera2" x="32" y="313" ID="botonContenido" img="primera_on" tipo="1" estado="false" alt="" codigo="" accion="mipgndo2.retrocederPrimeraPagina();"/>
+  <BOTON nombre="separa2" x="71" y="309" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />
+
+<LISTAEDITABLE nombre="listaMensajes" ancho="616" alto="299" x="12" y="413" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+        <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" />
+        <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" />
+        <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>
+      </IMGBOTONES>
+      <LINEAS>
+        <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="1" horizTitulo="1" horizBase="1"/>
+        <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999"  />
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00405" ID="datosTitle" />
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+        <!-- COL ancho="80" minimizable="S" minimizada="N" oculta="S"/ -->
+        <COL ancho="80" minimizable="S" minimizada="N"/>
+        <COL ancho="500" minimizable="S" minimizada="N"/>
+        <COL ancho="80" minimizable="S" minimizada="N" oculta="S"/>
+      </COLUMNAS>
+
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC" ajustarAMitadInf="S">
+        <!--COL colFondo="" ID="EstCab" cod="">oidMensaje</COL -->
+        <COL colFondo="" ID="EstCab" align="center" cod="821">Cód. mensaje</COL>
+        <COL colFondo="" ID="EstCab" cod="9">Descripción</COL>
+        <COL colFondo="" ID="EstCab" cod="">texto</COL>
+      </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel=""
+             coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8"
+             onLoad="" colorSelecc="#D0D9E8">
+        <!--COL tipo="texto" ID="EstDat"/-->
+        <COL tipo="texto" ID="EstDat2"/>
+        <COL tipo="texto" ID="EstDat"/>
+        <COL tipo="texto" ID="EstDat2"/>
+      </DATOS>
+      <ROWSET>
+      </ROWSET>
+      <PAGINADO nombre="mipgndo" ancho="616" sep="$" x="12" class="botonera" y="689" control="|" conector="conectorSandra1" rowset="" cargainicial="N">
+        <BOTON nombre="ret1" x="37" y="693" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" />
+        <BOTON nombre="ava1" x="52" y="693" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>
+        <BOTON nombre="primera1" x="20" y="693" ID="botonContenido" img="primera_on" tipo="1" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();"/>
+        <BOTON nombre="separa" x="59" y="689" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />
+    </PAGINADO>
+  </LISTAEDITABLE>
+  <BOTON nombre="btCrearMensaje" x="80" y="690" ID="botonContenido" tipo="html" estado="false" cod="2481" accion="accionCrearMensaje()" />
+  <BOTON nombre="btModificarMensaje" x="185" y="690" ID="botonContenido" tipo="html" estado="false" cod="2482" accion="accionModificarMensaje()"  />
+  <BOTON nombre="btAnadirMensaje" x="315" y="690" ID="botonContenido" tipo="html" estado="false" cod="2483" accion="accionAnadirMensaje()" />
+
+<CAPA nombre="capaEspacio" alto="12" ancho="50" x="0" y="712"/>
+
+</FORMULARIO>
+</PAGINA>
+

@@ -1,0 +1,521 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/PROY
+   $Id: contenido_grupos_zonas_modificar.xml,v 1.1 2009/12/03 18:44:20 pecbazalar Exp $
+   DESC
+
+   DRUIDATARGET=/../../config/scripts/iniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_grupos_zonas_modificar" titulo="" estilos="estilosB3.css" colorf="#F0F0F0" msgle="" 
+        onload="onLoadPag();" xml:lang="es" cod="066">
+
+   <JS src="sicc_util.js"/>   
+   <JS src="DruidaTransactionMare.js"/>   
+   <JS src="I18NJS.js"/>   
+    
+   <JAVASCRIPT>    
+     <![CDATA[     
+       function onLoadPag(){   
+
+            configurarMenuSecundario("frmModificarGruposZonas");   
+            posicionarCombos();   
+            
+            
+         
+            var accion = get('frmModificarGruposZonas.accion');
+         
+
+            if(accion == 'muestraConsulta' || accion == 'muestraModificacion' || accion == 'muestraBorrado'){
+               document.all["btnMoverZonas"].style.visibility='hidden';   
+               document.all["btnModificarDatosGrupo"].style.visibility='hidden';   
+               document.all["btnAsignarZonas"].style.visibility='hidden';                    
+               document.all["capaMostrarArbolGruposZonas"].style.visibility='hidden';
+			   document.all["scrollPrincipal"].style.visibility='hidden';
+			}
+            
+            if (get('frmModificarGruposZonas.accion')=='consultar'||   
+                 get('frmModificarGruposZonas.accion')=='eliminar'){   
+              if (get('frmModificarGruposZonas.hCasoDeUso')=='consultar'||   
+                   get('frmModificarGruposZonas.hCasoDeUso')=='eliminar'){   
+                 document.all["btnMoverZonas"].style.visibility='hidden';   
+                 document.all["btnModificarDatosGrupo"].style.visibility='hidden';   
+                 document.all["btnAsignarZonas"].style.visibility='hidden';              
+              } else if (get('frmModificarGruposZonas.hCasoDeUso')=='modificar'){   
+                 document.all["btnMoverZonas"].style.visibility='visible';   
+                 document.all["btnModificarDatosGrupo"].style.visibility='visible';   
+                 document.all["btnAsignarZonas"].style.visibility='visible';   
+              }   
+            }   
+            if (get('frmModificarGruposZonas.accion')=='muestraBuscar'){   
+                 document.all["btnMoverZonas"].style.visibility='hidden';   
+                 document.all["btnModificarDatosGrupo"].style.visibility='hidden';   
+                 document.all["btnAsignarZonas"].style.visibility='hidden';                    
+                 document.all["capaMostrarArbolGruposZonas"].style.visibility='hidden';
+				 document.all["scrollPrincipal"].style.visibility='hidden';
+			}   
+            focaliza('frmModificarGruposZonas.cbMarcas');   
+            mostrarCodigoError();   
+       }   
+    
+
+       function posicionarCombos(){              
+            if (get('frmModificarGruposZonas.hMarca')!=''){   
+              iSeleccionadob = new Array();             
+              iSeleccionadob[0] = get('frmModificarGruposZonas.hMarca');         
+              set('frmModificarGruposZonas.cbMarcas',iSeleccionadob);                     
+            }    
+            if (get('frmModificarGruposZonas.hCanal')!=''){   
+              iSeleccionadob = new Array();             
+              iSeleccionadob[0] = get('frmModificarGruposZonas.hCanal');         
+              set('frmModificarGruposZonas.cbCanales',iSeleccionadob);                     
+            }   
+       }   
+
+	   
+	   function mostrarCodigoError() {     
+                  
+          var vErrCodigo = get('frmModificarGruposZonas.errCodigo');   
+          var vErrDescrip = get('frmModificarGruposZonas.errDescripcion');   
+             
+          if (get('frmModificarGruposZonas.errDescripcion')!='') {   
+                 var wnd = fMostrarMensajeError( vErrCodigo,vErrDescrip);   
+                 /*if (get('frmModificarGruposZonas.errCodigo')=='260020002')   
+                       focaliza('frmModificarGruposZonas.');*/   
+          }   
+             
+       }                
+    
+				
+       function fGuardar(){   
+          accionGuardarModificarDatos();   
+       }   
+    
+
+       function fBorrar(){   
+          accionEliminar();   
+       }   
+    
+
+		function fLimpiar() {
+			document.all["btnMoverZonas"].style.visibility='hidden';   
+			document.all["btnModificarDatosGrupo"].style.visibility='hidden';   
+            document.all["btnAsignarZonas"].style.visibility='hidden';                    
+            document.all["capaMostrarArbolGruposZonas"].style.visibility='hidden';
+            document.all["scrollPrincipal"].style.visibility='hidden';
+		}
+
+
+       function accionAsignarZonas(){  
+        if(toSeleccionado()){
+           if(get('frmModificarGruposZonas.hGrupoSeleccionado')!=''){   
+                 var parametros = new Object();     
+                 parametros.hGrupoSeleccionado = get('frmModificarGruposZonas.hGrupoSeleccionado');   
+                 parametros.hMarca = get('frmModificarGruposZonas.hMarca');   
+                 parametros.hCanal = get('frmModificarGruposZonas.hCanal');               
+                 var res = mostrarModalSICC("LPMantieneGruposZonas", "asignarZonas", parametros, 520, 250);             
+                 if (res=='guardo')   
+                     accionConsultar();                   
+           }else{   
+              GestionarMensaje('4');   
+           }
+
+         }
+       }   
+    
+
+       function accionGuardarModificarDatos(){   
+               set('frmModificarGruposZonas.accion','guardarModificarDatos');             
+               set('frmModificarGruposZonas.conectorAction','LPMantieneGruposZonas');   
+               envia('frmModificarGruposZonas');    
+       }   
+    
+
+       function accionModificarDatosGrupo(){ 
+            if(toSeleccionado()){
+               if(get('frmModificarGruposZonas.hGrupoSeleccionado')!=''){   
+                     var parametros = new Object();     
+                     parametros.hGrupoSeleccionado = get('frmModificarGruposZonas.hGrupoSeleccionado');   
+                     parametros.hMarca = get('frmModificarGruposZonas.hMarca');   
+                     parametros.hCanal = get('frmModificarGruposZonas.hCanal');               
+                     var res = mostrarModalSICC("LPMantieneGruposZonas", "modificarDatosGrupo", parametros, 650, 150);   
+    
+                     if (res=='guardo')   
+                          accionConsultar();    
+               } else {   
+                   GestionarMensaje('4');   
+               }
+           }
+       }   
+    
+
+       function accionMoverEntreGrupos(){   
+          if(toSeleccionado()){
+               if(get('frmModificarGruposZonas.hGrupoSeleccionado')!=''){   
+                   var parametros = new Object();     
+                   parametros.hGrupoSeleccionado = get('frmModificarGruposZonas.hGrupoSeleccionado');   
+                   parametros.hMarca = get('frmModificarGruposZonas.hMarca');   
+                   parametros.hCanal = get('frmModificarGruposZonas.hCanal');   
+                   var res = mostrarModalSICC("LPMantieneGruposZonas", "moverEntreGrupos", parametros, 600, 300);   
+    
+                   //if (res=='guardo')//si no guardo en este caso tamien lo voy a tener que llamar (ver)   
+                       accionConsultar();   
+               } else {   
+                   GestionarMensaje('4');   
+               }     
+          }
+       }   
+       function fhoja(){   
+       //no borrar   
+    
+       } 
+       
+       function accionConsultar(){   
+          if(!sicc_validaciones_generales()){   
+             return false;   
+          }   
+
+          set('frmModificarGruposZonas.accion','consultar');             
+          set('frmModificarGruposZonas.conectorAction','LPMantieneGruposZonas');   
+          envia('frmModificarGruposZonas');              
+       }         
+    
+       function accionEliminar(){   
+
+          if(!sicc_validaciones_generales()){   
+             return false;   
+          }   
+
+          if(toSeleccionado()){
+
+             if(get('frmModificarGruposZonas.hGrupoSeleccionado')!=''){   
+                if(GestionarMensaje('5')) {   
+                      set('frmModificarGruposZonas.accion','eliminar');             
+                      set('frmModificarGruposZonas.conectorAction','LPMantieneGruposZonas');   
+                      envia('frmModificarGruposZonas');   
+                }   
+             }else{   
+                GestionarMensaje('4');
+             }
+          }   
+       }   
+    
+       //Otras funciones.   
+      
+          
+       function cargarArbol(){//SI ARBOLLISTA   
+          var v1 = get('frmModificarGruposZonas.hArbol');   
+          if(v1 != ''){   
+              var v3 = eval(v1);   
+              miarbol.init(v3);   
+              miarbol.display();   
+             //if (!get('frmModificarGruposZonas.sGrupoDeZonasBusqueda')== ""){   
+             //  miarbol.checked(get('frmModificarGruposZonas.sGrupoDeZonasBusqueda'), true);   
+             //}   
+          }                       
+       }         
+    
+       function shtabMarcas(){         
+          var casoDeUso = get('frmModificarGruposZonas.hCasoDeUso');   
+          var accion = get('frmModificarGruposZonas.accion');   
+          var errCodigo = get('frmModificarGruposZonas.errCodigo');   
+          //alert(casoDeUso);   
+          //alert();   
+          if (casoDeUso=='eliminar'||casoDeUso=='consultar'||   
+              (casoDeUso=='modificar'&&accion=='muestraModificacion')){   
+              document.all.btnBuscar.focus();   
+          } else if (accion=='consultar'&&errCodigo==''){   
+              document.all.btnAsignarZonas.focus();   
+          } else {   
+              document.all.btnBuscar.focus();   
+          }         
+       }   
+       
+       function tabBuscar(){   
+          var casoDeUso = get('frmModificarGruposZonas.hCasoDeUso');   
+          var accion = get('frmModificarGruposZonas.accion');   
+          var errCodigo = get('frmModificarGruposZonas.errCodigo');   
+          //alert(casoDeUso);   
+          //alert();   
+          if (casoDeUso=='eliminar'||casoDeUso=='consultar'||   
+              (casoDeUso=='modificar'&&accion=='muestraModificacion')){   
+              focaliza('frmModificarGruposZonas.cbMarcas');   
+          } else if (accion=='consultar'&&errCodigo==''){   
+              document.all.btnMoverZonas.focus();   
+          } else {   
+              focaliza('frmModificarGruposZonas.cbMarcas');   
+          }   
+       }   
+       function shtabMover(){   
+            document.all.btnBuscar.focus();   
+       }   
+
+       window.seleccionadoArbol=-1;//IMPORTANTE
+       window.seleccionadoArbolEsPadre=false;//IMPORTANTE
+              
+        function returnFalse() {
+          return false;
+         }
+
+        function miFuncionArbol(nombreArbol,opcion,abriendocerrando,padreseleccionando,soypadre){
+          if (soypadre && !padreseleccionando) {
+            return true;//Estoy abriendo un padre
+          }
+  
+          var cod=eval(nombreArbol).E.ij(opcion,0)
+
+          if (abriendocerrando==1)   {   //Seleccionando
+            if (seleccionadoArbol!=-1)   {
+              if (seleccionadoArbolEsPadre)   
+                arbol('name0','O',seleccionadoArbol,1,"",true);
+              else   
+                arbol('name0','O',seleccionadoArbol,1);
+              }
+              seleccionadoArbol=opcion;
+              seleccionadoArbolEsPadre=soypadre;
+            }else      //Deseleccionando
+              seleccionadoArbol=-1;
+              return true; //IMPORTANTE
+        }
+
+
+        function getOidPadre(){
+          var nivelPulsado = name0.entradas[seleccionadoArbol][0];
+          var result =''; 
+          var victor = nivelPulsado.split('.'); 
+          if (victor.length>0) {
+            result = victor [0];
+          }
+          else return '';
+
+          for (i=1;i<victor.length -1;i++ )
+            result  = result +'.'+victor[i];
+
+          return arbolM(name0,'C?',result);//retiene el padre   
+        }
+
+        function verificaSeleccionado() {
+
+			 // Modificado por ssantana, 9/4/2005
+			 // Inc. 15581 - La raiz no debe tomarse como seleccionado (en la LP se le setea id "0" asi que chequeo esto).
+
+          if (seleccionadoArbol != -1 && seleccionadoArbol != 0 )  {
+            set('frmModificarGruposZonas.hGrupoSeleccionado',name0.entradas[seleccionadoArbol][2]); // el codigo tiene el oid
+            return 1;
+          }else if (seleccionadoArbol == 0) {            
+            set('frmModificarGruposZonas.hGrupoSeleccionado','-1'); //No selecciono nada  
+            return 2;
+          } else
+			 {
+				set('frmModificarGruposZonas.hGrupoSeleccionado','-1'); //No selecciono nada  
+				return 3;
+			 }
+        }
+
+        function toSeleccionado(){
+			 var retorno = verificaSeleccionado();
+
+			 if ( retorno == 1){
+				return true;
+			 }
+			 if (retorno == 2) 
+			 {
+            GestionarMensaje('1350',null,null,null);
+				return false;
+			 }
+
+			 if (retorno == 3)
+			 {
+            GestionarMensaje('97',null,null,null);            
+            return false;
+			 }
+
+/*          if(verificaSeleccionado()) {
+             
+            return true;
+          }
+          else {
+            GestionarMensaje('97',null,null,null);            
+            return false;
+          }*/
+        }
+
+        function funcionFinal () {
+          return false;
+        }
+
+      ]]> 
+   </JAVASCRIPT> 
+
+  <VALIDACION>
+      <ELEMENTO name="cbMarcas" required="true" cod="6" />
+      <ELEMENTO name="cbCanales" required="true" cod="7" />
+	</VALIDACION>   
+<FORMULARIO nombre="frmModificarGruposZonas">
+    <VAR nombre="accion" valor=""/>
+    <VAR nombre="conectorAction" valor="LPMantieneGruposZonas"/>
+    <VAR nombre="errCodigo" valor=""/>
+    <VAR nombre="errDescripcion" valor=""/>
+    <VAR nombre="hCasoDeUso" valor=""/>
+
+    <VAR nombre="hArbol" valor=""/>
+
+    <VAR nombre="hMarca" valor=""/>
+    <VAR nombre="hCanal" valor=""/>
+
+    <VAR nombre="hGrupoSeleccionado" valor=""/>    
+    
+<CAPA nombre="capaBusqueda" x="0" y="0">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primero formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblCriteriosBusqueda" alto="13" filas="1" valor="" id="legend" cod="0075"/></legend>
+          <!---primera fila-->
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr> <td>
+                <table width="500" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblPais" alto="13" filas="1" valor="" id="datosTitle" cod="5"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblMarca" alto="13" filas="1" valor="" id="datosTitle" cod="6"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblCanal" alto="13" filas="1" valor="" id="datosTitle" cod="7"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td valign="bottom"><LABELC nombre="lblPaisActual" alto="13" filas="1" valor="xxxx" id="datosCampos"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap">
+		     <COMBO nombre="cbMarcas" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onshtab="shtabMarcas();">
+		       <ROWSET>
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap">
+		     <COMBO nombre="cbCanales" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="">
+		       <ROWSET>
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr> 
+                  <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+              </table>
+              </td>
+                </tr> 
+              </table>
+       <!---fin primera fila-->
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr>  
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+	<fieldset>
+	  <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	    <tr>
+	      <td class="botonera">
+                <BOTON nombre="btnBuscar" ID="botonContenido" tipo="html" estado="false" cod="1" accion="accionConsultar();" ontab="tabBuscar();"/>
+              </td>
+	    </tr>    
+	  </table>        
+	</fieldset>
+      </td>
+      <td><IMG src="b.gif" width="8" height="12"/></td>
+    </tr>     
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+
+<CAPA nombre="capaMostrarArbolGruposZonas" x="0" y="104" visibilidad="">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0" >
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="150" nowrap="nowrap"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primero formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblGruposZonas" alto="13" filas="1" valor="" id="legend" cod="00497"/></legend>
+          <!---primera fila-->
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr>
+                <td><IMG src="b.gif" width="8" height="230"/></td>
+                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td> 
+              </tr>
+              </table>
+       <!---fin primera fila 210-->
+         <SCROLL nombre="scrollPrincipal"
+           x="20"
+           y="25"
+           ancho="310"
+           alto="220"
+           colorf=""
+           visibilidad="visible"
+           incx="10" 
+           incy="10"
+           colores="">
+           <REJILLA nombre="RArbol"/>
+         </SCROLL>    
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr>  
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+	<fieldset>
+	  <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	    <tr><td class="botonera">
+	    <table width="500" border="0" align="left" cellspacing="0" cellpadding="0">        
+	    <tr>
+	      <td class="botonera">
+                <BOTON nombre="btnAsignarZonas" ID="botonContenido" tipo="html" accion="accionAsignarZonas();" estado="false" cod="235" ontab="focaliza('frmModificarGruposZonas.cbMarcas');"/>
+                <BOTON nombre="btnModificarDatosGrupo" ID="botonContenido" tipo="html" accion="accionModificarDatosGrupo();" estado="false" cod="234"/>
+                <BOTON nombre="btnMoverZonas" ID="botonContenido" tipo="html" accion="accionMoverEntreGrupos();" estado="false" cod="233" onshtab="shtabMover();"/>
+              </td>
+	    </tr>    
+	  </table>
+          </td>
+	    </tr>    
+	  </table>
+	</fieldset>
+      </td>
+      <td><IMG src="b.gif" width="8" height="12"/></td>
+    </tr>     
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="156" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>                           
+
+</CAPA>
+</FORMULARIO>
+</PAGINA>

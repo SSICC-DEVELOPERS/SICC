@@ -1,0 +1,1374 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/PROY
+   $Id: contenido_cronograma_modificar.xml,v 1.1 2009/12/03 18:45:25 pecbazalar Exp $
+   DESC
+
+   DRUIDATARGET=/../../config/scripts/iniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_cronograma_modificar" titulo="" estilos="estilosB3.css" colorf="#F0F0F0" msgle="" 
+        onload="onLoadPag();" xml:lang="es" cod="081">
+
+<!-- Consultar cronograma: cod="080"
+     Eliminar cornograma: cod="082" -->
+  <JS src="DruidaTransactionMare.js"/>
+  <JS src="PaginacionSicc.js"/>	 
+  <JS src="sicc_util.js"/>
+
+  <ESTILO nombre="ESTILO1">
+
+    .actFija { font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 7pt; color: #FF0000;
+    text-align: right; height: auto}
+
+</ESTILO>
+
+<JAVASCRIPT>
+  <![CDATA[ 
+
+	var idVista = "";
+	var objActividadClick=null;
+
+	function onLoadPag()   {
+		try{
+			tdContenedor.onresize();
+		}catch(e){
+			;
+		}
+		if (get('frmModificarCronograma.casoDeUso') == "eliminaCronograma")
+			document.title = GestionarMensaje('1311');
+		else {
+			if (get('frmModificarCronograma.casoDeUso') == "consulta")
+				document.title = GestionarMensaje('1312');
+		}
+  		configurarMenuSecundario("frmModificarCronograma");
+    	set('frmModificarCronograma.hlblActiFija',GestionarMensaje('1002'));
+  		set('frmModificarCronograma.hlblActiRefe',GestionarMensaje('1003'));
+	   //document.all["capaTablas"].style.visibility='hidden';
+		if (get('frmModificarCronograma.hMostrarCrono') == '1') {
+         //document.all["capaTablas"].style.visibility='';
+        document.getElementById('miscroll').style.border = '1px solid #999999';
+        document.getElementById('capaBotones').style.clip = 'rect(0 100% 23 0)';
+        document.getElementById('capaBotones').style.border = '1px solid #999999';
+        if (get('frmModificarCronograma.casoDeUso') == 'consulta' ||
+           get('frmModificarCronograma.casoDeUso') == 'eliminaCronograma') {
+              //document.all["capaBotones"].style.visibility='hidden';
+              document.all["btnEliminarActividad2"].style.visibility='hidden';
+              document.all["CambiarFecha2"].style.visibility='hidden';
+         			listado2.maxSel = 0;
+        }
+		} else {
+        document.all["capaTablas"].style.visibility='hidden';
+        btnProxy(1, '0');
+		}
+		if (get('frmModificarCronograma.hMostrarFuera') == '1') {
+			mostrarListaFuera();
+			mostrarListaReferenciaPeridos();
+			//listado2.maxSel = 0;
+		} else {
+			ocultarListaFuera();
+			ocultarListaReferenciaPeriodos();
+			document.all["imgAltoTablas"].height='340';
+		}
+		inicializaCombos();
+
+		mostrarCodigoError();
+		focaliza('frmModificarCronograma.cbPaises');
+
+		if (get('frmModificarCronograma.casoDeUso') == "eliminaCronograma" &&
+			 !get_visibilidad('capaTablas')) {
+			btnProxy(4, '0');
+		}
+
+
+	}
+
+   function mostrarCodigoError() {  
+	     
+		  var vErrCodigo = get('frmModificarCronograma.errCodigo');
+		  var vErrDescrip = get('frmModificarCronograma.errDescripcion');
+
+		  if (get('frmModificarCronograma.errDescripcion')!=''){
+      		var wnd = fMostrarMensajeError( vErrCodigo,vErrDescrip);
+	     }		
+   }
+
+
+	function inicializaCombos() {
+		var aCombo = new Array();         
+		aCombo[0] = get('frmModificarCronograma.hCbPais');	       
+		set('frmModificarCronograma.cbPaises',aCombo);      
+
+		aCombo[0] = get('frmModificarCronograma.hMarca');	       
+		set('frmModificarCronograma.cbMarcas',aCombo);      
+
+		aCombo[0] = get('frmModificarCronograma.hCanal');	       
+		set('frmModificarCronograma.cbCanales',aCombo);      
+
+		set('frmModificarCronograma.txtCodPeriod',get('frmModificarCronograma.hCodPeriodo'));      
+
+		aCombo[0] = get('frmModificarCronograma.hGrupoZona');	       
+		set('frmModificarCronograma.cbGrupoZonas',aCombo);      
+
+		aCombo[0] = get('frmModificarCronograma.hSubgerencia');	       
+		set('frmModificarCronograma.cbSubgerenciaVentas',aCombo);      
+
+    if (get('frmModificarCronograma.hGrupoZona') != "")
+    		accion('frmModificarCronograma.cbSubgerenciaVentas','.disabled=true');
+    if (get('frmModificarCronograma.hSubgerencia') != "")
+    		accion('frmModificarCronograma.cbGrupoZonas','.disabled=true');
+
+		aCombo[0] = get('frmModificarCronograma.hRegion');	       
+		set('frmModificarCronograma.cbRegion',aCombo);      
+
+		aCombo[0] = get('frmModificarCronograma.hZona');	       
+		set('frmModificarCronograma.cbZona',aCombo);      
+
+	   setMV('frmModificarCronograma.cbPaises','N');
+	   setMV('frmModificarCronograma.cbMarcas','N');
+	   setMV('frmModificarCronograma.cbCanales','N');
+	   setMV('frmModificarCronograma.txtCodPeriod','N');
+
+	}
+
+
+	function mostrarListaFuera() {
+    //DrdEnsanchaConMargenDcho('listado1',24);
+    DrdEnsanchaConMargenDcho('listado2',24);
+
+    /*document.all["Cplistado1"].style.visibility='';
+    document.all["CpLin1listado1"].style.visibility='';
+    document.all["CpLin2listado1"].style.visibility='';
+    document.all["CpLin3listado1"].style.visibility='';
+    document.all["CpLin4listado1"].style.visibility='';*/
+    
+    document.all["Cplistado2"].style.visibility='';
+    document.all["CpLin1listado2"].style.visibility='';
+    document.all["CpLin2listado2"].style.visibility='';
+    document.all["CpLin3listado2"].style.visibility='';
+    document.all["CpLin4listado2"].style.visibility='';
+
+    /*document.all["primera1Div"].style.visibility='';
+    document.all["ret1Div"].style.visibility='';
+    document.all["ava1Div"].style.visibility='';*/
+    
+    document.all["primera2Div"].style.visibility='';
+    document.all["ret2Div"].style.visibility='';
+    document.all["ava2Div"].style.visibility='';
+    document.all["separa2Div"].style.visibility='';
+
+	 eval (ON_RSZ);  
+
+	}
+
+  function ocultarListaFuera() {
+	 document.all["Cplistado2"].style.visibility='hidden';
+    document.all["CpLin1listado2"].style.visibility='hidden';
+    document.all["CpLin2listado2"].style.visibility='hidden';
+    document.all["CpLin3listado2"].style.visibility='hidden';
+    document.all["CpLin4listado2"].style.visibility='hidden';
+
+    document.all["primera2Div"].style.visibility='hidden';
+    document.all["ret2Div"].style.visibility='hidden';
+    document.all["ava2Div"].style.visibility='hidden';
+    document.all["separa2Div"].style.visibility='hidden';
+
+    document.all["btnEliminarActividad2"].style.visibility='hidden';
+    document.all["CambiarFecha2"].style.visibility='hidden';
+
+   }
+
+  function mostrarListaReferenciaPeridos() {
+		DrdEnsanchaConMargenDcho('listado3',12);
+		document.all["Cplistado3"].style.visibility='';
+		document.all["CpLin1listado3"].style.visibility='';
+		document.all["CpLin2listado3"].style.visibility='';
+		document.all["CpLin3listado3"].style.visibility='';
+		document.all["CpLin4listado3"].style.visibility='';
+
+		document.all["primera3Div"].style.visibility='';
+		document.all["ret3Div"].style.visibility='';
+		document.all["ava3Div"].style.visibility='';
+		document.all["separa3Div"].style.visibility='';
+
+		eval (ON_RSZ);  
+   }
+
+
+  function ocultarListaReferenciaPeriodos() {
+		document.all["Cplistado3"].style.visibility='hidden';
+		document.all["CpLin1listado3"].style.visibility='hidden';
+		document.all["CpLin2listado3"].style.visibility='hidden';
+		document.all["CpLin3listado3"].style.visibility='hidden';
+		document.all["CpLin4listado3"].style.visibility='hidden';
+
+		document.all["primera3Div"].style.visibility='hidden';
+		document.all["ret3Div"].style.visibility='hidden';
+		document.all["ava3Div"].style.visibility='hidden';
+		document.all["separa3Div"].style.visibility='hidden';
+		document.all["btnCambiarFecha3"].style.visibility='hidden';
+   }
+
+
+	function ocultarCronograma() {
+	 document.all["capaTablas"].style.visibility='hidden';
+     document.all["miscroll"].style.visibility='hidden';
+	 document.all["capaBotones"].style.visibility='hidden';
+
+   }
+
+	function onChangeMarca() {
+		set('frmModificarCronograma.hChangePaisMC', get('frmModificarCronograma.cbPaises'));
+		set('frmModificarCronograma.hChangeMarcaMC', get('frmModificarCronograma.cbMarcas'));
+		set('frmModificarCronograma.hChangeCanalMC', get('frmModificarCronograma.cbCanales'));
+		var arr = new Array();
+		arr[arr.length]=new Array('oidPais', get('frmModificarCronograma.cbPaises'));
+		arr[arr.length]=new Array('oidCanal', get('frmModificarCronograma.cbCanales'));
+		arr[arr.length]=new Array('oidMarca', get('frmModificarCronograma.cbMarcas'));
+		arr[arr.length]=new Array('oidIdioma', get('frmModificarCronograma.hIdioma'));
+
+		recargaCombo('frmModificarCronograma.cbGrupoZonas', 'CRAObtieneGruposZonas', 
+						 'es.indra.sicc.dtos.cra.DTOGrupoZonas', arr);
+
+		arr = new Array();
+		arr[arr.length]=new Array('oidPais', get('frmModificarCronograma.cbPaises'));
+		arr[arr.length]=new Array('oidCanal', get('frmModificarCronograma.cbCanales'));
+		arr[arr.length]=new Array('oidMarca', get('frmModificarCronograma.cbMarcas'));
+		arr[arr.length]=new Array('oidIdioma', get('frmModificarCronograma.hIdioma'));
+
+		recargaCombo('frmModificarCronograma.cbSubgerenciaVentas', 'ZONRecargaSubgerenciaVentas', 
+						 'es.indra.sicc.dtos.zon.DTOUnidadAdministrativa', arr);
+
+		accion('frmModificarCronograma.cbGrupoZonas','.disabled=false');
+		accion('frmModificarCronograma.cbSubgerenciaVentas','.disabled=false');
+		var aCombo = new Array(new Array("",""));
+		set_combo('frmModificarCronograma.cbRegion',aCombo, []);
+		set_combo('frmModificarCronograma.cbZona',aCombo, []);
+		set('frmModificarCronograma.hChangeGrupo', '');
+		set('frmModificarCronograma.hChangeSub', '');
+		set('frmModificarCronograma.hChangeRegion', '');
+
+	}
+
+	function onChangeCanal() {
+		set('frmModificarCronograma.hChangePaisMC', get('frmModificarCronograma.cbPaises'));
+		set('frmModificarCronograma.hChangeMarcaMC', get('frmModificarCronograma.cbMarcas'));
+		set('frmModificarCronograma.hChangeCanalMC', get('frmModificarCronograma.cbCanales'));
+		var arr = new Array();
+		arr[arr.length]=new Array('oidPais', get('frmModificarCronograma.cbPaises'));
+		arr[arr.length]=new Array('oidCanal', get('frmModificarCronograma.cbCanales'));
+		arr[arr.length]=new Array('oidMarca', get('frmModificarCronograma.cbMarcas'));
+		arr[arr.length]=new Array('oidIdioma', get('frmModificarCronograma.hIdioma'));
+
+		recargaCombo('frmModificarCronograma.cbGrupoZonas', 'CRAObtieneGruposZonas', 
+						 'es.indra.sicc.dtos.cra.DTOGrupoZonas', arr);
+
+		arr = new Array();
+		arr[arr.length]=new Array('oidPais', get('frmModificarCronograma.cbPaises'));
+		arr[arr.length]=new Array('oidCanal', get('frmModificarCronograma.cbCanales'));
+		arr[arr.length]=new Array('oidMarca', get('frmModificarCronograma.cbMarcas'));
+		arr[arr.length]=new Array('oidIdioma', get('frmModificarCronograma.hIdioma'));
+
+		recargaCombo('frmModificarCronograma.cbSubgerenciaVentas', 'ZONRecargaSubgerenciaVentas', 
+						 'es.indra.sicc.dtos.zon.DTOUnidadAdministrativa', arr);
+
+		accion('frmModificarCronograma.cbGrupoZonas','.disabled=false');
+		accion('frmModificarCronograma.cbSubgerenciaVentas','.disabled=false');
+		var aCombo = new Array(new Array("",""));
+		set_combo('frmModificarCronograma.cbRegion',aCombo, []);
+		set_combo('frmModificarCronograma.cbZona',aCombo, []);
+		set('frmModificarCronograma.hChangeGrupo', '');
+		set('frmModificarCronograma.hChangeSub', '');
+		set('frmModificarCronograma.hChangeRegion', '');
+
+	}
+
+	function onChangeGrupo() {
+		if (get('frmModificarCronograma.cbGrupoZonas') != "") {
+			set('frmModificarCronograma.hChangeGrupo', get('frmModificarCronograma.cbGrupoZonas'));
+			set('frmModificarCronograma.hChangeSub', '');
+			accion('frmModificarCronograma.cbSubgerenciaVentas','.disabled=true');
+			accion('frmModificarCronograma.cbRegion','.disabled=true');
+			var aCombo = new Array(new Array("",""));
+			set_combo('frmModificarCronograma.cbRegion',aCombo, []);
+			set_combo('frmModificarCronograma.cbZona',aCombo, []);
+			set('frmModificarCronograma.hChangeRegion', '');
+
+			iSeleccionado = new Array(); 
+			iSeleccionado[0] = "";
+			set('frmModificarCronograma.cbSubgerenciaVentas',iSeleccionado);
+			set('frmModificarCronograma.cbRegion',iSeleccionado);
+
+			var arr = new Array();
+			arr[arr.length]=new Array('oid', get('frmModificarCronograma.cbGrupoZonas'));
+			arr[arr.length]=new Array('oidIdioma', get('frmModificarCronograma.hIdioma'));
+
+			recargaCombo('frmModificarCronograma.cbZona','CRAObtieneZonasGrupo', 
+							 'es.indra.sicc.util.DTOOID', arr);
+		} else {
+			accion('frmModificarCronograma.cbSubgerenciaVentas','.disabled=false');
+			accion('frmModificarCronograma.cbRegion','.disabled=false');
+			var aCombo = new Array(new Array("",""));
+			set_combo('frmModificarCronograma.cbZona',aCombo, []);
+			set('frmModificarCronograma.hChangeRegion', '');
+			set('frmModificarCronograma.hChangeGrupo', '');
+		}
+	}
+
+	function onChangeSubgerencia() {
+		if (get('frmModificarCronograma.cbSubgerenciaVentas') != "") {
+			set('frmModificarCronograma.hChangeSub', get('frmModificarCronograma.cbSubgerenciaVentas'));
+			set('frmModificarCronograma.hChangeGrupo', '');
+			accion('frmModificarCronograma.cbGrupoZonas','.disabled=true');
+			accion('frmModificarCronograma.cbRegion','.disabled=false');
+			var aCombo = new Array(new Array("",""));
+			set_combo('frmModificarCronograma.cbRegion',aCombo, []);
+			set_combo('frmModificarCronograma.cbZona',aCombo, []);
+			set('frmModificarCronograma.hChangeRegion', '');
+
+			iSeleccionado = new Array(); 
+			iSeleccionado[0] = "";
+			set('frmModificarCronograma.cbGrupoZonas',iSeleccionado);
+
+			var arr = new Array();
+			arr[arr.length]=new Array('oidPais', get('frmModificarCronograma.cbPaises'));
+			arr[arr.length]=new Array('oidCanal', get('frmModificarCronograma.cbCanales'));
+			arr[arr.length]=new Array('oidMarca', get('frmModificarCronograma.cbMarcas'));
+			arr[arr.length]=new Array('oidIdioma', get('frmModificarCronograma.hIdioma'));
+			arr[arr.length]=new Array('oidSGV', get('frmModificarCronograma.cbSubgerenciaVentas'));
+
+			recargaCombo('frmModificarCronograma.cbRegion','ZONRecargaRegiones', 
+							 'es.indra.sicc.dtos.zon.DTOUnidadAdministrativa', arr);
+		} else {
+			accion('frmModificarCronograma.cbGrupoZonas','.disabled=false');
+			var aCombo = new Array(new Array("",""));
+			set_combo('frmModificarCronograma.cbRegion',aCombo, []);
+			set_combo('frmModificarCronograma.cbZona',aCombo, []);
+			set('frmModificarCronograma.hChangeRegion', '');
+			set('frmModificarCronograma.hChangeSub', '');
+		}
+	}
+
+	function onChangeRegion() {
+		if (get('frmModificarCronograma.cbRegion') != "") {
+			set('frmModificarCronograma.hChangeRegion', get('frmModificarCronograma.cbRegion'));
+			var arr = new Array();
+			arr[arr.length]=new Array('oidPais', get('frmModificarCronograma.cbPaises'));
+			arr[arr.length]=new Array('oidCanal', get('frmModificarCronograma.cbCanales'));
+			arr[arr.length]=new Array('oidMarca', get('frmModificarCronograma.cbMarcas'));
+			arr[arr.length]=new Array('oidIdioma', get('frmModificarCronograma.hIdioma'));
+			arr[arr.length]=new Array('oidSGV', get('frmModificarCronograma.cbSubgerenciaVentas'));
+			arr[arr.length]=new Array('oidRegion', get('frmModificarCronograma.cbRegion'));
+
+			recargaCombo('frmModificarCronograma.cbZona','ZONRecargaZonas', 
+							 'es.indra.sicc.dtos.zon.DTOUnidadAdministrativa', arr);
+		} else {
+			var aCombo = new Array(new Array("",""));
+			set_combo('frmModificarCronograma.cbZona',aCombo, []);
+			set('frmModificarCronograma.hChangeRegion', '');
+		}
+		
+	}
+
+	function buscar() {
+		if (!sicc_validaciones_generales("grupo1"))
+			return;
+		generarArrayDiasSemana();
+		generarArrayMeses();
+		set('frmModificarCronograma.hlblActiFija',GestionarMensaje('1002'));
+		set('frmModificarCronograma.hlblActiRefe',GestionarMensaje('1003'));
+		set('frmModificarCronograma.accion', 'obtieneCronograma');
+		set('frmModificarCronograma.conectorAction', 'LPMantieneCronograma');
+		set('frmModificarCronograma.casoDeUso', get('frmModificarCronograma.casoDeUso'));
+		set('frmModificarCronograma.hCbPais', get('frmModificarCronograma.cbPaises'));
+		set('frmModificarCronograma.hMarca', get('frmModificarCronograma.cbMarcas'));
+		set('frmModificarCronograma.hCanal', get('frmModificarCronograma.cbCanales'));
+		set('frmModificarCronograma.hCodPeriodo', get('frmModificarCronograma.txtCodPeriod'));
+		set('frmModificarCronograma.hGrupoZona', get('frmModificarCronograma.cbGrupoZonas'));
+		set('frmModificarCronograma.hSubgerencia', get('frmModificarCronograma.cbSubgerenciaVentas'));
+		set('frmModificarCronograma.hRegion', get('frmModificarCronograma.cbRegion'));
+		set('frmModificarCronograma.hZona', get('frmModificarCronograma.cbZona'));
+		eval("frmModificarCronograma.oculto = 'N'");
+		enviaSICC('frmModificarCronograma');
+	
+	
+	}
+
+	function generarArrayMeses() {
+		var meses = '';
+		var i;
+		for(i = 0; i < 12; i++) {
+			meses = meses + GestionarMensaje((1231+i)+'');
+			if (i < 11) 
+				meses = meses + '|';
+		}
+		set('frmModificarCronograma.hVecMeses',meses);
+	}
+
+	function generarArrayDiasSemana() {
+		var dias = '';
+		var i;
+		for(i = 0; i < 7; i++) {
+			dias = dias + GestionarMensaje((1034+i)+'');
+			if (i < 6) 
+				dias = dias + '|';
+		}
+		set('frmModificarCronograma.hVecDiasSemana',dias);
+	}
+
+	function seleccionaActividad(id) {
+		idVista = id;
+		//ver el manejo del color al seleccionar la actividad (Incidencia 4460)
+		if(objActividadClick!=null){
+			objActividadClick.style.color = objActividadClick.normalColor;
+		}
+		objActividadClick = event.srcElement;
+		objActividadClick.normalColor = objActividadClick.style.color;
+		objActividadClick.style.color = "#0000FF";
+	}
+
+	function cambiarFecha() {
+		if (idVista == "") {
+			GestionarMensaje('407');
+			return;
+		}
+		set('frmModificarCronograma.accion', 'modificaFechaActividad');
+		set('frmModificarCronograma.conectorAction', 'LPMantieneCronograma');
+		set('frmModificarCronograma.hIdVista', idVista);
+		eval("frmModificarCronograma.oculto = 'S'");
+		enviaSICC('frmModificarCronograma');
+	}
+
+  function camFechFuera() {
+      if (listado2.numSelecc() == 1)
+      {		
+          var arrAux = new Array();
+          arrAux = listado2.codSeleccionados();
+          var posicion = obtenerPosicionListaEditable(listado2.codSeleccionados(),listado2);		
+          set('frmModificarCronograma.accion', 'modificaFechaActividad');
+          set('frmModificarCronograma.conectorAction', 'LPMantieneCronograma');
+          set('frmModificarCronograma.hMarca', get('frmModificarCronograma.hMarca'));
+          set('frmModificarCronograma.hCanal', get('frmModificarCronograma.hCanal'));
+          set('frmModificarCronograma.hCodPeriodo', get('frmModificarCronograma.hCodPeriodo'));
+          var idVistaFuera = listado2.datos[posicion][7];
+          //alert(idVistaFuera);
+          set('frmModificarCronograma.hIdVista', idVistaFuera);
+      		eval("frmModificarCronograma.oculto = 'S'");
+          enviaSICC('frmModificarCronograma');
+      } else {
+            if (listado2.numSelecc() > 1) {
+                 GestionarMensaje('2525');
+                 var cant = listado2.numSelecc();
+                 var arrSel = listado2.codSeleccionados();
+                 var fila;
+                 var i;
+                 for (i = 0; i < cant; i ++) {
+                    fila=DrIndiceEnArray(listado2.datos,arrSel[i],0);
+                    listado2.deselecciona(fila);
+                 }
+            } else {
+                 GestionarMensaje('4');
+            }
+            focalizaBotonHTML('botonContenido','btnCambiarFecha2');
+      }
+  }   
+
+   
+  function camFechRefeOtroPeri() {
+      if (listado3.numSelecc() == 1)
+      {		
+          var arrAux = new Array();
+          arrAux = listado3.codSeleccionados();
+          var posicion = obtenerPosicionListaEditable(listado3.codSeleccionados(),listado3);		
+          set('frmModificarCronograma.accion', 'modificaFechaActividad');
+          set('frmModificarCronograma.conectorAction', 'LPMantieneCronograma');
+          set('frmModificarCronograma.hMarca', get('frmModificarCronograma.hMarca'));
+          set('frmModificarCronograma.hCanal', get('frmModificarCronograma.hCanal'));
+          set('frmModificarCronograma.hCodPeriodo', get('frmModificarCronograma.hCodPeriodo'));
+          var idVistaFuera = listado3.datos[posicion][8];
+          //alert(idVistaFuera);
+          set('frmModificarCronograma.hIdVista', idVistaFuera);
+      		eval("frmModificarCronograma.oculto = 'S'");
+          enviaSICC('frmModificarCronograma');
+      } else {
+            if (listado3.numSelecc() > 1) {
+                 GestionarMensaje('2525');
+                 var cant = listado3.numSelecc();
+                 var arrSel = listado3.codSeleccionados();
+                 var fila;
+                 var i;
+                 for (i = 0; i < cant; i ++) {
+                    fila=DrIndiceEnArray(listado3.datos,arrSel[i],0);
+                    listado3.deselecciona(fila);
+                 }
+            } else {
+                 GestionarMensaje('4');
+            }
+            focalizaBotonHTML('botonContenido','btnCambiarFecha3');
+      }
+  }   
+
+
+	function aceptaModificaFecha(esFija, idV) {
+		//alert("aceptaModificaFecha");
+		if (esFija == '1') { //Es actividad fija
+			var acepta = GestionarMensaje("1288");
+			if (acepta) 
+				modificaFecha(idV);
+		} else {
+			modificaFecha(idV);			
+		}
+	}
+
+	function modificaFecha(idV) {
+		set('frmModificarCronograma.accion', 'aceptaModificarFija');
+		set('frmModificarCronograma.conectorAction', 'LPMantieneCronograma');
+		set('frmModificarCronograma.casoDeUso', 'ModificaCronograma');
+		set('frmModificarCronograma.hCbPais', get('frmModificarCronograma.hCbPais'));  //Por si cambian el combo y despues hacen modificar fecha sin generar
+		set('frmModificarCronograma.hMarca', get('frmModificarCronograma.hMarca'));  //Idem
+		set('frmModificarCronograma.hCanal', get('frmModificarCronograma.hCanal'));
+		set('frmModificarCronograma.hCodPeriodo', get('frmModificarCronograma.hCodPeriodo'));
+		set('frmModificarCronograma.hGrupoZona', get('frmModificarCronograma.hGrupoZona'));
+		set('frmModificarCronograma.hSubgerencia', get('frmModificarCronograma.hSubgerencia'));
+		set('frmModificarCronograma.hRegion', get('frmModificarCronograma.hRegion'));
+		set('frmModificarCronograma.hZona', get('frmModificarCronograma.hZona'));
+		set('frmModificarCronograma.hIdVista', idV);
+		eval("frmModificarCronograma.oculto = 'N'");
+		enviaSICC('frmModificarCronograma');
+	}
+
+	function eliminaActividad() {
+      if (idVista == "") {
+        GestionarMensaje('407');
+        return;
+      }
+      set('frmModificarCronograma.accion', 'confirmaActividadCronograma');
+      set('frmModificarCronograma.conectorAction', 'LPMantieneCronograma');
+      set('frmModificarCronograma.casoDeUso', 'ModificaCronograma');
+      set('frmModificarCronograma.hIdVista', idVista);
+  		eval("frmModificarCronograma.oculto = 'S'");
+      enviaSICC('frmModificarCronograma');
+
+  }
+
+	function eliminaActFuera() {
+      if (listado2.numSelecc() == 1)
+      {		
+          var arrAux = new Array();
+          arrAux = listado2.codSeleccionados();
+          var posicion = obtenerPosicionListaEditable(listado2.codSeleccionados(),listado2);		
+          set('frmModificarCronograma.accion', 'confirmaActividadCronograma');
+          set('frmModificarCronograma.conectorAction', 'LPMantieneCronograma');
+          set('frmModificarCronograma.casoDeUso', 'ModificaCronograma');
+          var idVistaFuera = listado2.datos[posicion][7];
+          set('frmModificarCronograma.hIdVista', idVistaFuera);
+      		eval("frmModificarCronograma.oculto = 'S'");
+          enviaSICC('frmModificarCronograma');
+      } else {
+           GestionarMensaje('4');
+           focalizaBotonHTML('botonContenido','btnEliminarActividad2');
+           return;
+      }
+  }
+
+
+	function vueltaEliminaActividad(esFija, idV) {
+      if (esFija == "1") {
+          GestionarMensaje("1435")
+          //cdos_mostrarAlert("La actividad que desea eliminar está marcada como fija. No se puede completar la acción");
+          return;
+      }
+      var acepta = GestionarMensaje("1269");
+      if (acepta) {
+        set('frmModificarCronograma.accion', 'eliminarActividad');
+        set('frmModificarCronograma.conectorAction', 'LPMantieneCronograma');
+        set('frmModificarCronograma.casoDeUso', 'ModificaCronograma');
+        set('frmModificarCronograma.hCbPais', get('frmModificarCronograma.hCbPais'));  //Por si cambian el combo y despues hacen modificar fecha sin generar
+        set('frmModificarCronograma.hMarca', get('frmModificarCronograma.hMarca'));  //Idem
+        set('frmModificarCronograma.hCanal', get('frmModificarCronograma.hCanal'));
+        set('frmModificarCronograma.hCodPeriodo', get('frmModificarCronograma.hCodPeriodo'));
+        set('frmModificarCronograma.hGrupoZona', get('frmModificarCronograma.hGrupoZona'));
+        set('frmModificarCronograma.hSubgerencia', get('frmModificarCronograma.hSubgerencia'));
+        set('frmModificarCronograma.hRegion', get('frmModificarCronograma.hRegion'));
+        set('frmModificarCronograma.hZona', get('frmModificarCronograma.hZona'));
+        set('frmModificarCronograma.hIdVista', idV);
+     		eval("frmModificarCronograma.oculto = 'N'");
+        enviaSICC('frmModificarCronograma');
+      }
+	}
+
+	function insertaActividad() {
+		set('frmModificarCronograma.accion', 'insertaActividad');
+		set('frmModificarCronograma.conectorAction', 'LPMantieneCronograma');
+		set('frmModificarCronograma.casoDeUso', 'ModificaCronograma');
+		set('frmModificarCronograma.hCbPais', get('frmModificarCronograma.hCbPais'));  //Por si cambian el combo y despues hacen modificar fecha sin generar
+		set('frmModificarCronograma.hMarca', get('frmModificarCronograma.hMarca'));  //Idem
+		set('frmModificarCronograma.hCanal', get('frmModificarCronograma.hCanal'));
+		set('frmModificarCronograma.hCodPeriodo', get('frmModificarCronograma.hCodPeriodo'));
+		set('frmModificarCronograma.hGrupoZona', get('frmModificarCronograma.hGrupoZona'));
+		set('frmModificarCronograma.hSubgerencia', get('frmModificarCronograma.hSubgerencia'));
+		set('frmModificarCronograma.hRegion', get('frmModificarCronograma.hRegion'));
+		set('frmModificarCronograma.hZona', get('frmModificarCronograma.hZona'));
+		set('frmModificarCronograma.hIdVista', idVista);
+		eval("frmModificarCronograma.oculto = 'N'");
+		enviaSICC('frmModificarCronograma');
+	}
+
+	function focoShTabPaises() {
+      if (get('frmModificarCronograma.hMostrarCrono') == '1') {
+          //if (document.all["capaBotones"].style.visibility != 'hidden') {
+          if (get('frmModificarCronograma.casoDeUso') != 'consulta' &&
+                get('frmModificarCronograma.casoDeUso') != 'eliminaCronograma' ) {        
+              if (get('frmModificarCronograma.hMostrarFuera') == '1') {
+                     focalizaBotonHTML('botonContenido','CambiarFecha2');
+              } else {
+                 focalizaBotonHTML('botonContenido','AnadirTablaGrafica');
+              }
+          } else {
+              focalizaBotonHTML('botonContenido','btnBuscar');
+          }
+      } else {
+           focalizaBotonHTML('botonContenido','btnBuscar');
+      }
+	}
+
+	function focoTabBuscar() {
+    if (get('frmModificarCronograma.hMostrarCrono') == '1') {
+        //if (document.all["capaBotones"].style.visibility != 'hidden') {
+        if (get('frmModificarCronograma.casoDeUso') != 'consulta' &&
+                get('frmModificarCronograma.casoDeUso') != 'eliminaCronograma' ) {        
+            focalizaBotonHTML('botonContenido','btnEliminarActividad');
+        } else {
+            focaliza('frmModificarCronograma.cbPaises');
+        }
+		} else {
+         focaliza('frmModificarCronograma.cbPaises');
+    }
+		
+	}
+
+  function focoTabBtnCrono() {
+        if (get('frmModificarCronograma.hMostrarFuera') == '1') {
+            focalizaBotonHTML('botonContenido','btnEliminarActividad2');
+        } else {
+      			focaliza('frmModificarCronograma.cbPaises');
+        }
+  }
+	
+	function fGuardar() {
+		set('frmModificarCronograma.accion', 'guardaCronograma');
+		set('frmModificarCronograma.conectorAction', 'LPMantieneCronograma');
+		set('frmModificarCronograma.casoDeUso', 'ModificaCronograma');
+		set('frmModificarCronograma.hCbPais', get('frmModificarCronograma.hCbPais'));  //Por si cambian el combo y despues hacen modificar fecha sin generar
+		set('frmModificarCronograma.hMarca', get('frmModificarCronograma.hMarca'));  //Idem
+		set('frmModificarCronograma.hCanal', get('frmModificarCronograma.hCanal'));
+		set('frmModificarCronograma.hCodPeriodo', get('frmModificarCronograma.hCodPeriodo'));
+		set('frmModificarCronograma.hGrupoZona', get('frmModificarCronograma.hGrupoZona'));
+		set('frmModificarCronograma.hSubgerencia', get('frmModificarCronograma.hSubgerencia'));
+		set('frmModificarCronograma.hRegion', get('frmModificarCronograma.hRegion'));
+		set('frmModificarCronograma.hZona', get('frmModificarCronograma.hZona'));
+		eval("frmModificarCronograma.oculto = 'N'");  //Porque si se hace oculto no se actualiza el TAD
+		enviaSICC('frmModificarCronograma');
+	}
+
+	function fBorrar(){
+		if (get('frmModificarCronograma.casoDeUso') =="eliminaCronograma") {
+			var acepta = GestionarMensaje("1290");
+			if (acepta) {
+				set('frmModificarCronograma.accion', 'eliminarCronograma');
+				set('frmModificarCronograma.conectorAction', 'LPMantieneCronograma');
+				eval("frmModificarCronograma.oculto = 'S'");
+				enviaSICC('frmModificarCronograma');
+			}
+			focaliza('frmModificarCronograma.cbPaises');
+		}
+
+	}
+
+	function vueltaEliminaCrono() {
+		//alert("Vuelta Elimina");
+		focaliza('frmModificarCronograma.cbPaises');
+		ocultarListaFuera();
+		ocultarCronograma();
+		btnProxy(4, '0');
+	}
+
+	function fLimpiar() {
+		var aCombo = new Array(new Array("",""));
+		set_combo('frmModificarCronograma.cbGrupoZonas',aCombo, []);
+		set_combo('frmModificarCronograma.cbRegion',aCombo, []);
+		set_combo('frmModificarCronograma.cbZona',aCombo, []);
+		set_combo('frmModificarCronograma.cbSubgerenciaVentas',aCombo, []);
+	}
+
+  ]]> 
+</JAVASCRIPT>
+
+<VALIDACION>
+	<ELEMENTO name="cbPaises" required="true" cod="5" group="grupo1"/>
+	<ELEMENTO name="cbMarcas" required="true" cod="6" group="grupo1"/>
+	<ELEMENTO name="cbCanales" required="true" cod="7" group="grupo1"/>
+	<ELEMENTO name="txtCodPeriod" required="true" cod="30" group="grupo1"/>
+</VALIDACION>
+	
+<FORMULARIO nombre="frmModificarCronograma">
+    <VAR nombre="accion" valor=""/>
+    <VAR nombre="casoDeUso" valor=""/>
+    <VAR nombre="conectorAction" valor=""/>
+    <VAR nombre="errCodigo" valor=""/>
+    <VAR nombre="errDescripcion" valor=""/>
+    <VAR nombre="hCbPais" valor=""/>
+    <VAR nombre="hMarca" valor=""/>
+    <VAR nombre="hCanal" valor=""/>
+    <VAR nombre="hGrupoZona" valor=""/>
+    <VAR nombre="hSubgerencia" valor=""/>
+    <VAR nombre="hRegion" valor=""/>
+    <VAR nombre="hZona" valor=""/>
+    <VAR nombre="hCodPeriodo" valor=""/>
+    <VAR nombre="hIdioma" valor=""/>
+    <VAR nombre="hPais" valor=""/>
+    <VAR nombre="hPaisDesc" valor=""/>
+    <VAR nombre="hExisteCrono" valor=""/>
+    <VAR nombre="hPagOculta" valor=""/>
+    <VAR nombre="hIdVista" valor=""/>
+    <VAR nombre="hVecDiasSemana" valor=""/>
+    <VAR nombre="hVecMeses" valor=""/>
+    <VAR nombre="hMostrarFuera" valor=""/>
+    <VAR nombre="hMostrarCrono" valor=""/>
+	 <VAR nombre="hlblActiFija" valor=""/>
+	 <VAR nombre="hlblActiRefe" valor=""/>
+    <VAR nombre="hChangePaisMC" valor=""/>
+    <VAR nombre="hChangeMarcaMC" valor=""/>
+    <VAR nombre="hChangeCanalMC" valor=""/>
+    <VAR nombre="hChangeGrupo" valor=""/>
+    <VAR nombre="hChangeSub" valor=""/>
+    <VAR nombre="hChangeRegion" valor=""/>
+
+<CAPA nombre="capaBusqueda" x="0" y="0">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primero formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblCriteriosBusqueda" alto="13" filas="1" valor="" id="legend" cod="0075"/></legend>
+          <!---primera fila-->
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr><td> 
+                <table width="575" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblPais" alto="13" filas="1" valor="" id="datosTitle" cod="5"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblMarca" alto="13" filas="1" valor="" id="datosTitle" cod="6"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap">
+		     <COMBO nombre="cbPaises" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onshtab="focoShTabPaises();">
+		       <ROWSET>
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap">
+		     <COMBO nombre="cbMarcas" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onchange="onChangeMarca();">
+		       <ROWSET>
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+		   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+              </table>
+              </td></tr>
+       <!---fin primera fila-->
+       <!---segunda fila-->
+              <tr><td> 
+              <table width="575" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblCanal" alto="13" filas="1" valor="" id="datosTitle" cod="7"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblCodPeriod" alto="13" filas="1" valor="" id="datosTitle" cod="30"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap">
+		     <COMBO nombre="cbCanales" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onchange="onChangeCanal();">
+		       <ROWSET>
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap"><CTEXTO nombre="txtCodPeriod" id="datosCampos" max="6" tipo="" onchange="" req="S" size="7" valor="" validacion="" /></td>
+	           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+              </table>
+              </td></tr>
+              <tr><td> 
+              <table width="575" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblGrupoZonas" alto="13" filas="1" valor="" id="datosTitle" cod="298"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblSubgerenciaVentas" alto="13" filas="1" valor="" id="datosTitle" cod="124"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td>
+		     <COMBO nombre="cbGrupoZonas" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" onchange="onChangeGrupo();">
+		       <ROWSET>
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td>
+		     <COMBO nombre="cbSubgerenciaVentas" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" onchange="onChangeSubgerencia();">
+		       <ROWSET>
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+	           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+              </table>
+              </td></tr>
+       <!---fin segunda fila-->
+       <!---tercera fila-->
+              <tr><td> 
+              <table width="575" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblRegion" alto="13" filas="1" valor="" id="datosTitle" cod="109"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblZona" alto="13" filas="1" valor="" id="datosTitle" cod="143"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td>
+		     <COMBO nombre="cbRegion" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" onchange="onChangeRegion();">
+		       <ROWSET>
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td>
+		     <COMBO nombre="cbZona" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+		       <ROWSET>
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+		   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr> 
+                  <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+              </table>
+              </td></tr>
+              </table>
+       <!---fin tercera fila-->
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr>  
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+	<fieldset>
+	  <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	    <tr>
+	      <td class="botonera">
+                <BOTON nombre="btnBuscar" ID="botonContenido" tipo="html" accion="buscar();" estado="false" cod="1" ontab="focoTabBuscar();"/>
+              </td>
+	    </tr>    
+	  </table>        
+	</fieldset>
+      </td>
+      <td><IMG src="b.gif" width="8" height="12"/></td>
+    </tr>        
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+
+<CAPA nombre="capaTablas" x="0" y="226" visibilidad="hidden">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primero formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblCronograma" alto="13" filas="1" valor="" id="legend" cod="00589"/></legend>
+          <!---primera fila-->
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+					<!-- Agregado  style="border:1px solid #CECFCE"-->
+						<tr valign="top">
+							<td id="tdContenedor" style="border:1px solid black" onresize="try{document.getElementById('miscroll').style.width=this.offsetWidth-15;
+																													document.getElementById('capaBotones').style.width=this.offsetWidth-15;
+																												}catch(e){;}"> 
+								<REJILLA nombre="rejCronograma" alto="317" ancho="790" x="0" y="437"/>
+							</td>
+							<!--td width="200" style="border:1px solid black">
+								<div width="100" style="border:1px solid black; position:absolute;left:725;top:338;">
+									<IMG src="b.gif"/>
+								</div>
+							</td-->
+						</tr>
+							 <!--tr bgcolor="#CECFCE"> 
+									<td width="575" height="23">
+									<IMG src="b.gif" width="12" height="12"/>
+									</td>
+							 </tr-->
+					<!-- Fin Agregado -->
+						<tr>
+							<td> 
+								<table width="525" border="0" align="left" cellspacing="0" cellpadding="0">
+								<tr> 
+									<td colspan="3">
+										<IMG id="imgAltoTablas" name="imgAltoTablas" src="b.gif" width="8" height="430"/>
+									</td>
+								</tr>
+							   </table>
+							</td>
+						</tr>
+						<tr>
+							<td> 
+								<table width="525" border="0" align="left" cellspacing="0" cellpadding="0">
+								<tr> 
+									<td colspan="3">
+										<IMG id="imgAltoTablas" name="imgAltoTablas" src="b.gif" width="8" height="610"/>
+									</td>
+								</tr>
+							   </table>
+							</td>
+						</tr>
+              </table>
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr>  
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <!--td name="tdBotones" id="tdBotones">
+        <fieldset>
+          <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+            <tr>
+              <td class="botonera">
+                      <BOTON nombre="btnEliminarActividad" ID="botonContenido" tipo="html" accion="eliminaActividad();" estado="false" cod="2410"/>
+                      <BOTON nombre="CambiarFecha" ID="botonContenido" img="" tipo="html" estado="false" cod="1978" accion="cambiarFecha();"/>     
+                      <BOTON nombre="AnadirTablaGrafica" ID="botonContenido" img="" tipo="html" estado="false" cod="187" accion="insertaActividad();" ontab="focaliza('frmModificarCronograma.cbPaises');"/>       
+                    </td>
+            </tr>    
+          </table>        
+        </fieldset>
+      </td-->
+      <td><IMG src="b.gif" width="8" height="12"/></td>
+    </tr>        
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+
+<!-- <REJILLA nombre="rejillaGrafica" alto="337" ancho="554" x="24" y="263"/> -->
+
+<!--LISTAEDITABLE nombre="listado1" ancho="554" alto="337" x="24" y="247" colorFondo="#CECFCE" msgDebugJS="S">
+  <IMGBOTONES precarga="S" conROver="S">
+    <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+    <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+    <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+  </IMGBOTONES>
+  <LINEAS>
+    <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="1" horizTitulo="1" horizBase="1"/> 
+    <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+  </LINEAS>
+  <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="0045" ID="datosTitle" />
+  <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+  <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+    <COL ancho="50" minimizable="S" minimizada="N"/>
+    <COL ancho="20" minimizable="S" minimizada="N"/>
+    <COL ancho="20" minimizable="S" minimizada="N"/>
+    <COL ancho="20" minimizable="S" minimizada="N"/>
+    <COL ancho="20" minimizable="S" minimizada="N"/>
+    <COL ancho="20" minimizable="S" minimizada="N"/>
+    <COL ancho="20" minimizable="S" minimizada="N"/>
+    <COL ancho="20" minimizable="S" minimizada="N"/>
+    <COL ancho="20" minimizable="S" minimizada="N"/>
+    <COL ancho="20" minimizable="S" minimizada="N"/>
+    <COL ancho="20" minimizable="S" minimizada="N"/>
+    <COL ancho="20" minimizable="S" minimizada="N"/>
+    <COL ancho="20" minimizable="S" minimizada="N"/>
+    <COL ancho="20" minimizable="S" minimizada="N"/>
+  </COLUMNAS>
+  <CABECERA alto="40" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC" ajustarAMitadInf="S">
+    <COL colFondo="" ID="EstCab" cod="1309"></COL>
+    <GRUPO ID="EstCab" cod="2196">
+	<COL colFondo="" ID="EstCab" cod="775"></COL> 
+	<COL colFondo="" ID="EstCab" cod="776"></COL> 
+	<COL colFondo="" ID="EstCab" cod="777"></COL> 
+	<COL colFondo="" ID="EstCab" cod="778"></COL> 
+	<COL colFondo="" ID="EstCab" cod="779"></COL> 
+	<COL colFondo="" ID="EstCab" cod="780"></COL> 
+	<COL colFondo="" ID="EstCab" cod="781"></COL> 
+    </GRUPO>
+    <GRUPO ID="EstCab" cod="2197">
+	<COL colFondo="" ID="EstCab" cod="782"></COL> 
+	<COL colFondo="" ID="EstCab" cod="783"></COL> 
+	<COL colFondo="" ID="EstCab" cod="784"></COL> 
+	<COL colFondo="" ID="EstCab" cod="785"></COL> 
+	<COL colFondo="" ID="EstCab" cod="786"></COL> 
+	<COL colFondo="" ID="EstCab" cod="787"></COL>
+    </GRUPO> 
+  </CABECERA>
+  <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+         coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" colorSelecc="#D0D9E8">
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+  </DATOS>
+  <ROWSET>
+	<ROW ID="1">
+	  <CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="COD0" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="Zona 1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+	</ROW>
+	<ROW ID="2">
+	  <CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="COD1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="Zona 2" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+	</ROW>
+	<ROW ID="3">
+	  <CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="COD2" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="Zona 3" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+	</ROW>
+	<ROW ID="1">
+	  <CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="COD3" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="Zona 4" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+	</ROW>
+	<ROW ID="2">
+	  <CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="COD4" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="Zona 5" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+	</ROW>
+	<ROW ID="3">
+	  <CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="COD5" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="Zona 6" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+	</ROW>
+	<ROW ID="3">
+	  <CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="COD6" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="Zona 7" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+	</ROW>
+	<ROW ID="1">
+	  <CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="COD0" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="Zona 8" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+	</ROW>
+	<ROW ID="2">
+	  <CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="COD1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="Zona 9" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+	</ROW>
+	<ROW ID="3">
+	  <CAMPO NOMBRE="dato1" TIPO="STRING" VALOR="COD2" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="Zona 10" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+          <CAMPO NOMBRE="dato4" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" /> 
+	</ROW>
+  </ROWSET>
+  <PAGINADO nombre="mipgndo" ancho="554" sep="$" x="12" class="botonera" y="561" control="|" conector="conector_prototipo_2" rowset="" cargainicial="N">
+    <BOTON nombre="ret1" x="49" y="565" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+    <BOTON nombre="ava1" x="64" y="565" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>        
+  </PAGINADO>
+</LISTAEDITABLE>
+    <BOTON nombre="primera1" x="32" y="565" ID="botonContenido" img="primera_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();"/>  
+    <BOTON nombre="separa" x="71" y="561" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" /-->      
+
+    <!-- Inc. 9186
+    <BOTON nombre="btnEliminarActividad1" x="80" y="562" ID="botonContenido" tipo="html" accion="" estado="false" cod="2410"/>
+    <BOTON nombre="btnCambiarFecha1" x="203" y="562" ID="botonContenido" img="" tipo="html" estado="false" cod="1978"/>     
+    <BOTON nombre="AnadirTablaGrafica2" x="308" y="562" ID="botonContenido" img="" tipo="html" estado="false" cod="187"/>  
+    -->
+
+<!--Lista de Actividades Fuera de Periodo -->
+<LISTAEDITABLE nombre="listado2" ancho="554" alto="317" x="24" y="608" colorFondo="#CECFCE" msgDebugJS="S">
+  <IMGBOTONES precarga="S" conROver="S">
+    <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+    <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+    <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+  </IMGBOTONES>
+  <LINEAS>
+    <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="1" horizTitulo="1" horizBase="1"/> 
+    <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+  </LINEAS>
+  <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="0046" ID="datosTitle" />
+  <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+  <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+    	<COL ancho="80" minimizable="S" minimizada="N"/>
+    	<COL ancho="60" minimizable="S" minimizada="N"/>
+        <COL ancho="170" minimizable="S" minimizada="N"/>
+        <COL ancho="100" minimizable="S" minimizada="N"/>
+        <COL ancho="120" minimizable="S" minimizada="N"/>
+        <COL ancho="120" minimizable="S" minimizada="N"/>
+        <COL ancho="20" minimizable="S" minimizada="N" oculta="S"/>
+  </COLUMNAS>
+  <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+    	<COL colFondo="" ID="EstCab" cod="1309"></COL>
+    	<COL colFondo="" ID="EstCab" cod="188"></COL> 
+	<COL colFondo="" ID="EstCab" cod="192"></COL> 
+	<COL colFondo="" ID="EstCab" cod="151"></COL> 
+	<COL colFondo="" ID="EstCab" cod="174"></COL> 
+	<COL colFondo="" ID="EstCab" cod="293"></COL> 
+  <COL colFondo="" ID="EstCab" codigo="">idVista</COL> 
+  </CABECERA>
+  <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="1" msgErrMaxSel="" 
+         coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" colorSelecc="#D0D9E8">
+       <COL tipo="botonytexto" ID="EstDat"/> 
+       <COL tipo="botonytexto" ID="EstDat2"/>
+       <COL tipo="botonytexto" ID="EstDat"/> 
+       <COL tipo="botonytexto" ID="EstDat2"/>
+       <COL tipo="botonytexto" ID="EstDat"/> 
+       <COL tipo="botonytexto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat2"/>
+  </DATOS>
+  <ROWSET>
+      </ROWSET>
+  <PAGINADO nombre="mipgndo2" ancho="554" sep="$" x="12" class="botonera" y="902" control="|" conector="conector_prototipo_2" rowset="" cargainicial="N">
+    <BOTON nombre="ret2" x="49" y="906" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+    <BOTON nombre="ava2" x="64" y="906" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>        
+  </PAGINADO>
+</LISTAEDITABLE>
+    <BOTON nombre="primera2" x="32" y="906" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();"/>  
+    <BOTON nombre="separa2" x="71" y="902" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />      
+    <BOTON nombre="btnEliminarActividad2" x="80" y="903" ID="botonContenido" tipo="html" accion="eliminaActFuera();" estado="false" cod="2410" onshtab="focalizaBotonHTML('botonContenido','AnadirTablaGrafica');"/>
+    <BOTON nombre="CambiarFecha2" x="203" y="903" ID="botonContenido" img="" tipo="html" estado="false" cod="1978" accion="camFechFuera();" ontab="focalizaBotonHTML('botonContenido','btnCambiarFecha2');"/>     
+ <CAPA nombre="capaEspacio2" alto="18" ancho="100" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="925" zindex="">
+</CAPA>   
+
+<!--Lista de Actividades con Referencia a Otra Campaña -->
+<LISTAEDITABLE nombre="listado3" ancho="525" alto="317" x="24" y="948" colorFondo="#CECFCE" msgDebugJS="S">
+  <IMGBOTONES precarga="S" conROver="S">
+    <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+    <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+    <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+  </IMGBOTONES>
+  <LINEAS>
+    <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="1" horizTitulo="1" horizBase="1"/> 
+    <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+  </LINEAS>
+  <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00682" ID="datosTitle" />
+  <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+  <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+    	<COL ancho="100" minimizable="S" minimizada="N"/>
+    	<COL ancho="80" minimizable="S" minimizada="N"/>
+        <COL ancho="100" minimizable="S" minimizada="N"/>
+        <COL ancho="130" minimizable="S" minimizada="N"/>
+        <COL ancho="100" minimizable="S" minimizada="N"/>
+        <COL ancho="100" minimizable="S" minimizada="N"/>
+        <COL ancho="120" minimizable="S" minimizada="N"/>
+        <COL ancho="20" minimizable="S" minimizada="N" oculta="S"/>
+  </COLUMNAS>
+  <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+    	<COL colFondo="" ID="EstCab" cod="1309">zona</COL>
+    	<COL colFondo="" ID="EstCab" cod="151">codigoActividad</COL> 
+	<COL colFondo="" ID="EstCab" cod="174">nombreActividad</COL> 
+	<COL colFondo="" ID="EstCab" cod="192">diasRespectoActividadOrigen</COL> 
+	<COL colFondo="" ID="EstCab" cod="297">periodoReferencia</COL> 
+	<COL colFondo="" ID="EstCab" cod="3225">codigoActividadOrigen</COL> 
+	<COL colFondo="" ID="EstCab" cod="3226">nombreActividadOrigen</COL> 
+  <COL colFondo="" ID="EstCab" codigo="">idVista</COL> 
+  </CABECERA>
+  <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="1" msgErrMaxSel=""
+         coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" colorSelecc="#D0D9E8">
+       <COL tipo="botonytexto" ID="EstDat"/> 
+       <COL tipo="botonytexto" ID="EstDat2"/>
+       <COL tipo="botonytexto" ID="EstDat"/> 
+       <COL tipo="botonytexto" ID="EstDat2"/>
+       <COL tipo="botonytexto" ID="EstDat"/> 
+       <COL tipo="botonytexto" ID="EstDat2"/>
+       <COL tipo="botonytexto" ID="EstDat"/>
+       <COL tipo="texto" ID="EstDat2"/>
+  </DATOS>
+  <ROWSET>
+      </ROWSET>
+  <PAGINADO nombre="mipgndo3" ancho="525" sep="$" x="12" class="botonera" y="1242" control="|" conector="conector_prototipo_2" rowset="" cargainicial="N">
+    <BOTON nombre="ret3" x="49" y="1246" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo3.retroceder();" /> 
+    <BOTON nombre="ava3" x="64" y="1246" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo3.avanzar();"/>        
+  </PAGINADO>
+</LISTAEDITABLE>
+    <BOTON nombre="primera3" x="32" y="1246" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo3.retrocederPrimeraPagina();"/>  
+    <BOTON nombre="separa3" x="71" y="1242" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />      
+    <BOTON nombre="btnCambiarFecha3" x="80" y="1243" ID="botonContenido" img="" tipo="html" estado="false" cod="1978" accion="camFechRefeOtroPeri();" ontab="focaliza('frmModificarCronograma.cbPaises');" onshtab="focalizaBotonHTML('botonContenido','btnCambiarFecha2');" />      
+
+<CAPA nombre="capaEspacio3" alto="18" ancho="100" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="1255" zindex="">
+</CAPA>
+
+</FORMULARIO>
+</PAGINA>

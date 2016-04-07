@@ -1,0 +1,435 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_atencion_cierra_puerta_obtener.xml,v 1.1 2009/12/03 18:44:45 pecbazalar Exp $
+   contenido CCC
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_consulta_cierra_puerta_obtener" cod="0746" titulo="Obtener atenciones de cierra puerta" estilos="estilosB3.css" colorf="#F0F0F0" 
+	msgle="" onload="onLoad();" xml:lang="es">
+<JS src="sicc_util.js"/>   
+   
+   <JS src="DruidaTransactionMare.js"/>
+
+
+<JAVASCRIPT>
+  <![CDATA[ 
+   
+   function onLoad(){
+      configurarMenuSecundario('Formulario');
+      fMostrarMensajeError();
+      focaliza('Formulario.cbCanal');
+   }
+//------------------------------------------------------------------------------   
+   function generar(formato){
+      if(sicc_validaciones_generales()){
+         if(validarFechas()){
+            if(validarHora()){
+               /*recolectarParametros();
+               set('Formulario.conectorAction', 'BELCierraPuertas');           
+               set('Formulario.accion', 'generar');*/
+               var a = new Object();
+               a.accion = 'generar';
+               a.canal = get('Formulario.cbCanal');  
+               a.acceso = get('Formulario.cbAcceso');
+               a.subacceso = get('Formulario.cbSubacceso');
+               a.codigoDescuento = get('Formulario.txtCodDescuento');
+               a.detalle = get('Formulario.cbDetalle');
+               a.fechaDesde = get('Formulario.txtFechaDesde');
+               a.fechaHasta = get('Formulario.txtFechaHasta');
+               a.horaDesde = get('Formulario.txtHoraDesde');
+               a.horaHasta = get('Formulario.txtHoraHasta');     
+               
+            
+               if(formato == 'xls'){
+                  a.formatoSalida = formato;
+               }
+               //enviaSICC('Formulario');
+               mostrarModalSICC('BELCierraPuertas','generar', a); 
+             }
+          }
+      }
+   }
+
+//------------------------------------------------------------------------------   
+   function recolectarParametros(){
+               
+    set('Formulario.canal', get('Formulario.cbCanal') );  
+    set('Formulario.acceso', get('Formulario.cbAcceso'));
+    set('Formulario.subacceso', get('Formulario.cbSubacceso'));
+    set('Formulario.codigoDescuento', get('Formulario.txtCodDescuento'))
+    set('Formulario.detalle', get('Formulario.cbDetalle'));
+    set('Formulario.fechaDesde', get('Formulario.txtFechaDesde'));
+    set('Formulario.fechaHasta', get('Formulario.txtFechaHasta'));
+    set('Formulario.horaDesde', get('Formulario.txtHoraDesde'));
+    set('Formulario.horaHasta', get('Formulario.txtHoraHasta'));
+        
+       
+   }
+ 
+   
+//------------------------------------------------------------------------------      
+
+    function fLimpiar(){
+      var aCombo = new Array(new Array("",""));
+      set_combo('Formulario.cbAcceso', aCombo, []);
+      set_combo('Formulario.cbSubacceso', aCombo, []);
+      focaliza('Formulario.cbCanal');
+ 
+   }
+   
+//------------------------------------------------------------------------------       
+
+  function validarFechas(){
+      var fechaInicio = get('Formulario.txtFechaDesde');
+      var fechaFin = get('Formulario.txtFechaHasta');
+      var formatoFecha = get('Formulario.hFormatoFechaPais');
+           
+     
+      if (! EsFechaValida_SICC(fechaInicio , "Formulario")){
+         GestionarMensaje("1006", formatoFecha, null, null);
+         focaliza("Formulario.txtFechaDesde");
+         return false;
+      }
+     
+      if(! EsFechaValida_SICC(fechaFin , "Formulario")){
+         GestionarMensaje("1006", formatoFecha, null, null);
+         focaliza("Formulario.txtFechaHasta");
+         return false;
+      }
+               
+      var errorLevel = EsFechaValida( fechaInicio, fechaFin, "Formulario", "S");
+      if ( errorLevel == 3){
+         GestionarMensaje("1191");
+         focaliza('Formulario.txtFechaDesde');
+         return false;
+      }
+     
+      return true;   
+   
+   }
+   
+//------------------------------------------------------------------------------      
+//------------------------------------------------------------------------------      
+
+ function onchangeCanal(){
+       if(get('Formulario.cbCanal') != ''){
+         
+         var arr = new Array();
+         var idioma = get('Formulario.idioma');
+         var canal = get('Formulario.cbCanal');
+         
+         arr[arr.length] = ["oidIdioma", idioma];
+         arr[arr.length] = ["oidCanal", canal];
+             
+         recargaCombo("Formulario.cbAcceso", "SEGObtenerAccesosPorCanal", "es.indra.sicc.dtos.seg.DTOAccesosPorCanal",arr);
+      
+      }else{
+         var aCombo = new Array(new Array("",""));
+         set_combo('Formulario.cbAcceso', aCombo, []);
+         set_combo('Formulario.cbSubacceso', aCombo, []);
+      }
+  }
+//------------------------------------------------------------------------------    
+ 
+ function onchangeAcceso(){
+    var arr = new Array();
+
+    if(get('Formulario.cbAcceso') != ''){
+
+       arr[arr.length] = new Array('oid', get('Formulario.cbAcceso')); 
+       arr[arr.length] = new Array('oidIdioma', get('Formulario.idioma'));
+       arr[arr.length] = new Array('oidPais', get('Formulario.pais'));
+    
+       recargaCombo('Formulario.cbSubacceso', 'SegObtenerSubaccesosPorAcceso', 'es.indra.sicc.util.DTOOID', arr );
+    }else{
+       var aCombo = new Array(new Array("",""));
+       set_combo('Formulario.cbSubacceso', aCombo, []);
+    }
+    
+    
+  }
+  
+//------------------------------------------------------------------------------
+
+   function validarHora(){
+      var horaDesde =  get('Formulario.txtHoraDesde');
+      var horaHasta =  get('Formulario.txtHoraHasta');
+      
+      if(horaDesde != ""){	
+         valido = validaFormatoHora(horaDesde);
+         if(valido == false){
+            GestionarMensaje("1514")  ;
+            focaliza('Formulario.txtHoraDesde');
+            return valido;
+         }
+      }
+      
+      // Valida que Hora Hasta sea numérico
+      if (horaHasta != ""){
+         valido = validaFormatoHora(horaHasta);
+         if (valido == false){
+            GestionarMensaje("1514");
+            focaliza('Formulario.txtHoraHasta');
+            return valido;
+         }
+      }
+      
+      if (horaHasta != "" && horaDesde != ""){
+         // En este punto, ya se valido que el formato de la hora es correcto, así
+         // que el formato a tomar es HH:mm
+         hastaArray = horaHasta.split(":");
+         desdeArray = horaDesde.split(":");
+         desdeNuevo = desdeArray[0] + desdeArray[1];
+         hastaNuevo = hastaArray[0] + hastaArray[1];
+
+         //alert(desdeNuevo + " < " + hastaNuevo + "? ");
+         if ( parseInt(desdeNuevo,10) >= parseInt(hastaNuevo, 10) ){
+            GestionarMensaje("MAE0018");
+            focaliza('Formulario.txtHoraDesde');
+            return false;
+         }
+      }
+     return true;
+   }
+
+//------------------------------------------------------------------------------   
+
+   function validaFormatoHora(hora){
+      // Valida hora con el formato establecido para la hora: HH:mm (Hora de 0 a 23, min de 00 a 59, ":" separa ambos numeros)
+        var horaArray = hora.split(":");
+  
+        if(horaArray.length != 2){
+           return false;
+        }
+  
+        // ------------------------- Hora ------------------------------------------------------------------------------------
+        // Valida que hora sea un numero y de 1 o 2 digitos.
+        if (esNumero(horaArray[0]) == -1 || (horaArray[0].length != 1 && horaArray[0].length != 2)){
+           return false;
+        }
+        // Valida que hora este entre 0 y 23
+        if ( parseInt(horaArray[0], 10) > 23 ){
+           return false;
+        }
+  
+        // ---------------------------------- Minutos ----------------------------------------------------
+        // Valida que minuto sea numerico y tenga 2 digitos siempre
+        if ( esNumero(horaArray[1]) == -1 || horaArray[1].length != 2){
+           return false;
+        }
+  
+        // Valida que minuto este entre 0 y 59
+        if ( parseInt(horaArray[1], 10) > 59 ){
+           return false;
+        }
+      return true;
+   }
+
+  ]]>
+   <VALIDACION>
+    <ELEMENTO name="cbCanal" required="true" cod="7"/>
+    <ELEMENTO name="cbAcceso" required="true" cod="10"/>
+    <ELEMENTO name="cbSubacceso" required="true" cod="122"/>
+    <ELEMENTO name="cbDetalle" required="true" cod="3"/>
+    
+    <ELEMENTO name="txtFechaDesde" required="true" cod="59"/>
+    <ELEMENTO name="txtFechaHasta" required="true" cod="1339"/>
+    <ELEMENTO name="txtHoraDesde" required="true" cod="1354"/>
+    <ELEMENTO name="txtHoraHasta" required="true" cod="1355"/>
+  </VALIDACION>
+  
+  
+</JAVASCRIPT>
+
+<FORMULARIO nombre="Formulario">
+<VAR nombre="accion" valor="" />
+<VAR nombre="conectorAction" valor="" />
+<VAR nombre="casoDeUso" valor=""/>
+<VAR nombre="errCodigo" valor="" />
+<VAR nombre="errDescripcion" valor="" />
+<VAR nombre="idioma" valor="" />
+<VAR nombre="pais" valor=""/>
+ 
+<VAR nombre="canal" valor="" />
+<VAR nombre="acceso" valor="" />
+<VAR nombre="subacceso" valor="" />
+<VAR nombre="codigoDescuento" valor="" />
+<VAR nombre="fechaDesde" valor="" />
+<VAR nombre="fechaHasta" valor="" />
+<VAR nombre="horaDesde" valor="" />
+<VAR nombre="horaHasta" valor="" />
+<VAR nombre="detalle" valor="" />
+  
+
+<VAR nombre="formatoSalida" valor="" />
+
+<CAPA nombre="capa">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblCriteriosSeleccion"  alto="13" filas="1" valor="" id="legend" cod="00275"/></legend>
+          <!---primera fila-->
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+           <tr><td>
+
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+               <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblCanal"  alto="13" filas="1" id="datosTitle" cod="7" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblAcceso"  alto="13" filas="1" id="datosTitle" cod="10" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbCanal" size="1" multiple="N" valorinicial="" textoinicial="" id="datosCampos" req="S" onchange="onchangeCanal();" onshtab="focalizaBotonHTML('botonContenido','btnGenerarExcel')">
+                		<ROWSET>
+                  				
+                  	 	</ROWSET>	
+	                </COMBO> 
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbAcceso" size="1" multiple="N" valorinicial="" textoinicial="" id="datosCampos" req="S" onchange="onchangeAcceso();">
+                		<ROWSET>
+                  			
+                  	 	</ROWSET>	
+	                </COMBO> 
+	           </td>
+	           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>
+           
+            <tr><td>
+
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+               
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblSubacceso"  alto="13" filas="1" id="datosTitle" cod="122" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblDetalle"  alto="13" filas="1" id="datosTitle" cod="3" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbSubacceso" size="5" multiple="S" valorinicial="" textoinicial="" id="datosCampos" req="S">
+                		<ROWSET>
+                  		
+                  	 	</ROWSET>	
+	                </COMBO> 
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" valign="top"><COMBO nombre="cbDetalle" size="2" multiple="S" valorinicial="" textoinicial="" id="datosCampos" req="S">
+                		<ROWSET>
+                  			<ROW ID="1">
+                     				<CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="1"/>
+                     				<CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="1º Detalle por producto"/>
+                  			</ROW>
+                   			<ROW ID="2">
+                     				<CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="2"/>
+                     				<CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="2º Detalle por especialista/cliente/producto"/>
+                  			</ROW>                 			
+                  	 	</ROWSET>	
+	                </COMBO> 
+                   </td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>
+            <tr><td>
+
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+               
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblCodDescuento"  alto="13" filas="1" id="datosTitle" cod="2527" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblFechaDesde" alto="13" filas="1" valor="" id="datosTitle" cod="59"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblFechaHasta" alto="13" filas="1" valor="" id="datosTitle" cod="1339"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblHoraDesde" alto="13" filas="1" valor="" id="datosTitle" cod="1354"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblHoraHasta" alto="13" filas="1" valor="" id="datosTitle" cod="1355"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   
+                    <td nowrap="nowrap"><CTEXTO nombre="txtCodDescuento" id="datosCampos" max="5" tipo="" onchange="" req="N" size="6" valor="" validacion=""/></td>                
+                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap"><CTEXTO nombre="txtFechaDesde" id="datosCampos" max="10" tipo="" onchange="" req="S" size="12" valor="" validacion=""/></td>                
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap"><CTEXTO nombre="txtFechaHasta" id="datosCampos" max="10" tipo="" onchange="" req="S" size="12" valor="" validacion=""/></td>                
+                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap"><CTEXTO nombre="txtHoraDesde" id="datosCampos" max="8" tipo="" onchange="" req="S" size="10" valor="" validacion=""/></td>                
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap"><CTEXTO nombre="txtHoraHasta" id="datosCampos" max="8" tipo="" onchange="" req="S" size="10" valor="" validacion=""/></td>                
+	           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>
+            
+            
+           </table>
+       <!---fin primera fila-->
+         
+        
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnGenerarInforme" ID="botonContenido" tipo="html" accion="generar();" estado="false" cod="2495"/>
+		  <BOTON nombre="btnGenerarExcel" ID="botonContenido" tipo="html" accion="generar('xls');" estado="false" cod="2526" ontab="focaliza('Formulario.cbCanal')"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>       
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+ </CAPA>                                                                                                                                                           
+</FORMULARIO>
+</PAGINA>  

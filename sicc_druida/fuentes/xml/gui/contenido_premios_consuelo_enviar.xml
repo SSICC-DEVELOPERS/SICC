@@ -1,0 +1,400 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_premios_consuelo_enviar.xml,v 1.1 2009/12/03 18:46:16 pecbazalar Exp $
+   contenido CCC
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+
+<PAGINA nombre="contenido_premios_consuelo_enviar" cod="0503" titulo="contenido_premios_consuelo_enviar" estilos="estilosB3.css" colorf="#F0F0F0"
+        msgle="Enviar premios de consuelo" onload="onLoad();" xml:lang="es" >
+        
+        
+        
+<JS src="sicc_util.js"/>
+<JS src="PaginacionSicc.js"/>
+<JS src="DruidaTransactionMare.js"/>
+<JS src="i18NJS.js"/>
+<JS src="ConstantesJS.js"/>
+
+<JAVASCRIPT>
+
+<![CDATA[    
+    
+    function onLoad(){
+       
+       configurarMenuSecundario("formulario");       
+       var accion = get("formulario.accion");
+       
+       btnProxy(1, 0);
+       btnProxy(2, 1);
+       btnProxy(3, 0);
+       btnProxy(7, 0);
+       btnProxy(8, 0);
+       btnProxy(9, 0);  
+       
+       
+       if (accion =="Cliente"){
+              
+            document.getElementById("capa1").style.visibility='hidden';
+            document.getElementById("capa2").style.visibility='';            
+            document.getElementById("capa3").style.visibility='hidden';
+            focaliza("formulario.cbClientes");    
+       }
+
+       if (accion =="Concurso"){
+            document.getElementById("capa1").style.visibility='';
+            document.getElementById("capa2").style.visibility='hidden';            
+            document.getElementById("capa3").style.visibility='hidden'; 
+            focaliza("formulario.cbNumConcurso");
+       }
+       
+       
+       if (accion =="Fichero"){
+            document.getElementById("capa1").style.visibility='hidden';
+            document.getElementById("capa2").style.visibility='hidden';            
+            document.getElementById("capa3").style.visibility=''; 
+            fichero1.focaliza();
+       }
+       
+       
+      if (get('formulario.errDescripcion')!='') {
+		    var wnd = fMostrarMensajeError(get('formulario.errCodigo'), get('formulario.errDescripcion'));
+      }
+
+   }
+
+
+    function onChangebtAceptarCliente(){
+        
+        if(sicc_validaciones_generales("grupo1")){
+
+            var ar = new Array();
+            ar = get("formulario.cbClientes");
+           
+            var datos = new Array();
+            
+            for(i=0;i<ar.length;i++){
+             	var newRow = new Array();
+				newRow = ar[i].split(",");
+				datos =  datos + newRow + "|"; 			
+            }//--for            
+             
+            set("formulario.clientesSeleccionados", datos);
+            returnValue = datos;        
+            close();        
+        
+        }   
+    
+    }// -- fin onChangebtAceptarCliente 
+    
+    
+    
+    function onChangebtAceptarNroConcurso(){
+        if(sicc_validaciones_generales("grupo2")){
+            var ar = new Array();
+            ar = get("formulario.cbNumConcurso");
+            set("formulario.nroConcursoSeleccionados", ar);
+            returnValue = ar;        
+            close();
+            
+        }
+    
+    }//-- fin onChangebtAceptarNroConcurso 
+    
+      
+   
+   
+    function processFile(file) {
+        set("formulario.clientesFicheroSeleccionados",file);
+        set("formulario.conectorAction","LPAsignarPremiosConsuelo");
+		set("formulario.accion","procesarFichero");	
+        enviaSICC('formulario', null, null, 'N');
+    }
+    
+    function fLimpiar(){
+    
+        var accion = get("formulario.accion");
+    
+    
+        if (accion =="Cliente"){
+            set("formulario.cbClientes", "");
+            focaliza("formulario.cbClientes");   
+        }
+        
+        if (accion =="Concurso"){
+            set("formulario.cbNumConcurso", "");
+            focaliza("formulario.cbNumConcurso");   
+        }
+        
+        if (accion =="Fichero"){
+            fichero1.reset();
+        }
+    
+    }//--Fin Limpiar
+    
+    
+    function tomaValores(dato){
+        btnProxy(1, 0);
+        btnProxy(2, 1);
+        btnProxy(7, 0);
+        btnProxy(8, 0);
+        btnProxy(9, 0);  
+        document.getElementById("capa1").style.visibility='hidden';
+        document.getElementById("capa2").style.visibility='hidden';  
+        set("formulario.clientesFicheroSeleccionados", dato);
+    
+    
+    }
+    
+    
+    function onChangebtAceptarFichero(){
+        var fichero = get("formulario.clientesFicheroSeleccionados");
+               
+        if (fichero !=""){
+            var datos = new Array();
+            datos = fichero;
+            set("formulario.clientesFicheroSeleccionados", datos);
+            returnValue = fichero;        
+            close();
+        
+        }
+        else{
+         GestionarMensaje('3334', null, null, null);
+        
+        }       
+    
+    }
+    
+    
+     
+   function fVolver(){
+       close();
+   }
+
+]]>
+
+
+
+
+<VALIDACION>
+	<ELEMENTO name="cbClientes" required="true" cod="0026" group="grupo1"/>
+    <ELEMENTO name="cbNumConcurso" required="true" cod="1604" group="grupo2"/>
+</VALIDACION>
+
+
+</JAVASCRIPT>
+        
+
+<FORMULARIO nombre="formulario" oculto="S">
+
+<VAR nombre="accion" valor=""/>
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="errCodigo" valor=""/>
+
+
+<VAR nombre="clientesSeleccionados" valor=""/>
+<VAR nombre="nroConcursoSeleccionados" valor=""/>
+<VAR nombre="clientesFicheroSeleccionados" valor=""/>
+
+
+<VAR nombre="capa" valor=""/>
+
+
+
+
+
+  <CAPA nombre="capa1" visibilidad="">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+      <tr>
+        <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+        <td width="750"><IMG src="b.gif"/></td>
+        <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+      </tr>
+      <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <legend class="legend"><LABELC nombre="lblDestinatariosPremio1" alto="13" filas="1" valor="" cod="00306" id="legend" /></legend>
+            <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+              <tr> 
+                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr>
+              <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td><LABELC nombre="lblNumConcurso" alto="13" filas="1" valor="" id="datosTitle" cod="1604"/></td>
+                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr> 
+              <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                 <td nowrap="nowrap">
+                  <COMBO nombre="cbNumConcurso" id="datosCampos" size="5" multiple="N" req="S" valorinicial="" textoinicial="" onshtab="focalizaBotonHTML('botonContenido','btnAceptar1');">
+                    <ROWSET>			       
+                    </ROWSET>
+                  </COMBO> 
+                </td>   
+                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td> 
+              </tr>
+              <tr> 
+                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr>              
+            </table>
+          </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr> 
+      <tr> 
+        <td><IMG src="b.gif"/></td>
+      	  <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		 <BOTON nombre="btnAceptar1" ID="botonContenido" tipo="html" accion="onChangebtAceptarNroConcurso();" estado="false" cod="12" ontab="focaliza('formulario.cbNumConcurso');" onshtab="focaliza('formulario.cbNumConcurso');"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>       
+      <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750"><IMG src="b.gif"/></td>
+      	<td width="12"><IMG src="b.gif" width="12" height="12"/></td>
+      </tr>
+    </table> 
+  </CAPA>
+
+  <CAPA nombre="capa2" visibilidad="">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+      <tr>
+        <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+        <td width="750"><IMG src="b.gif"/></td>
+        <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+      </tr>
+      <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <legend class="legend"><LABELC nombre="lblDestinatariosPremio2" alto="13" filas="1" valor="" cod="00306" id="legend" /></legend>
+            <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+              <tr> 
+                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr>
+              <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td><LABELC nombre="lblClientes" alto="13" filas="1" valor="" id="datosTitle" cod="0026"/></td>
+                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr> 
+              <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                 <td nowrap="nowrap">
+                  <COMBO nombre="cbClientes" id="datosCampos" size="5" multiple="S" req="S" valorinicial="" textoinicial="" onshtab="focalizaBotonHTML('botonContenido','btnAceptar2');">
+                    <ROWSET>			             
+                    </ROWSET>
+                  </COMBO> 
+                </td>   
+                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td> 
+              </tr>
+              <tr> 
+                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr>              
+            </table>
+          </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr> 
+      <tr> 
+        <td><IMG src="b.gif"/></td>
+      	  <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnAceptar2" ID="botonContenido" tipo="html" accion="onChangebtAceptarCliente();" estado="false" cod="12" ontab="focaliza('formulario.cbClientes');"/>
+            </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>       
+      <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750"><IMG src="b.gif"/></td>
+      	<td width="12"><IMG src="b.gif" width="12" height="12"/></td>
+      </tr>
+    </table> 
+  </CAPA>
+  
+  <CAPA nombre="capa3" visibilidad="">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+      <tr>
+        <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+        <td width="750"><IMG src="b.gif"/></td>
+        <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+      </tr>
+      <tr> 
+        <td><IMG src="b.gif"/></td>
+      	  <td>
+	  <fieldset>
+	    <legend class="legend">
+        <LABELC nombre="lblDestinatariosPremio3" alto="13" filas="1" valor="" cod="00306" id="legend" />
+        </legend>	  
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+              <tr> 
+                <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr>	    
+	      <tr>
+	        <td><IMG src="b.gif" width="8" height="8"/></td>
+	        <td>
+	    	    <FICHERO nombre="fichero1" campo="f1.ruta" comprimir="NO" descomprimir="NO" id="datosCampos" 
+            idenviar="datosCampos" max="100" ON="LPObjetoFicheroUpload"  funcion="processFile(file)"   readonly="N" cod="3055"
+	            	size="100"  ontab="fichero1.focaliza()" onshtab="fichero1.focalizaFinal()"/>
+           </td>
+	        <td><IMG src="b.gif" width="8" height="8"/></td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>      
+      
+      <!--agrego -->
+      
+      <tr> 
+        <td><IMG src="b.gif"/></td>
+      	  <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnAceptar3" ID="botonContenido" tipo="html" accion="onChangebtAceptarFichero();" estado="false" cod="12" ontab="fichero1.focaliza()"/>
+            </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>      
+      
+      <!--agrego -->
+      
+     <!--  <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750"><IMG src="b.gif"/></td>
+      	<td width="12"><IMG src="b.gif" width="12" height="12"/></td>
+      </tr> -->
+    </table> 
+ 
+  </CAPA>
+  
+  
+</FORMULARIO>
+</PAGINA>

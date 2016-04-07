@@ -1,0 +1,454 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/PROY
+   $Id: contenido_elemento_menu_modificar.xml,v 1.1 2009/12/03 18:44:49 pecbazalar Exp $
+   DESC
+
+   DRUIDATARGET=/../../config/scripts/iniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_elemento_menu_modificar" titulo="" estilos="estilosB3.css" colorf="#F0F0F0" msgle="" 
+         onload="fInit();" xml:lang="es" cod="029">
+         
+<JS src="sicc_util.js"/>
+<JS src="i18NJS.js"/>
+<JS src="jerarquia_seleccionar.js"/>
+
+<JAVASCRIPT>
+<![CDATA[
+
+   function fInit(){
+      configurarMenuSecundario("frmFormulario");
+      focaliza("frmFormulario.txtNombreElementoMenu");
+      fMostrarMensajeError();
+      setRButtons();
+      set(getFormularioSICC()+'.txtProgramaEjecutable',get(getFormularioSICC()+'.hidEjecutable'));
+            
+      var nombreArbol = get(getFormularioSICC()+'.nombreArbol');        
+
+      if (get('frmFormulario.seleccionado') != '') {
+          var indice =  indiceDeOpcionSeleccionada(get('frmFormulario.seleccionado'), name1);
+		  
+          if (indice != -1) {
+              var nivel = name1.entradas[indice][0];
+              var arrayNivelesAux = nivel.split('.');
+
+			  var cantNiveles = arrayNivelesAux.length - 1;
+              
+			  var arrayNiveles = new Array();
+			  arrayNiveles[0] = arrayNivelesAux[0];
+			  var nivelAnterior = arrayNiveles[0];
+              
+              /* (s) Selecciono el padre: */
+			  var indicePadre = indiceDePadreDeOpcionSeleccionada(indice, name1);
+              seleccionadoArbol = indicePadre;
+			  arbol('name1','O',seleccionadoArbol,1,"",true);
+			  /* (s) fin Selecciono el padre */
+
+			  for (var j = 1; j < cantNiveles; j++) {
+			      arrayNiveles[j] = nivelAnterior + '.' + arrayNivelesAux[j];
+				  nivelAnterior = arrayNiveles[j];
+			  }
+
+              for (var i = 0; i < cantNiveles; i++) {
+                  arbol('name1','&','',arrayNiveles[i]);
+              } 
+
+              arbol('name1','@');
+          }
+      }
+
+
+      //esta variable se usa para comparar en el momento de guardar si se clicko en otro
+      //padre != del que se manda desde jerarquia
+      //control_cambio = nivel_padre;
+        if ( get(getFormularioSICC()+'.tieneHijos')=='true' ) {
+          document.all.tags("INPUT")["IndicadorNivel"][0].disabled = true;
+          document.all.tags("INPUT")["IndicadorNivel"][1].disabled = true;
+        }    
+    }
+
+   
+      var control_cambio;
+      
+      function fVolver(){
+        window.close();
+      }
+
+      function levantarInternaziona(){
+         levantarI18N (getFormularioSICC(), 1);
+      }
+      
+      function fGuardar(){
+         if(verificaSeleccionado()) {
+            set(getFormularioSICC()+'.padre', get(getFormularioSICC()+'.seleccionado'));        
+         }
+        //controlo que en la pagina de modificacion se haya clickado en otro papa, != del que se seteo
+        //en jerarquia   
+        
+          if(datosValidos()){
+             if(get("frmFormulario.IndicadorNivel")=="S"){//funcion final
+                 set("frmFormulario.hidEjecutable",get("frmFormulario.txtProgramaEjecutable"));
+             }           
+             set("frmFormulario.hidRastreo",get("frmFormulario.IndicadorRastreo"));      
+             set("frmFormulario.hidNivel",get("frmFormulario.IndicadorNivel"));
+             set("frmFormulario.accion","guardar");
+             return enviaSICC("frmFormulario");
+          }
+      }
+
+      function retorna() {
+        window.returnValue = true;
+        window.close();
+      }
+
+      function fLimpiar(){
+        setRButtons();
+        set("frmFormulario.txtProgramaEjecutable","");
+        set(getFormularioSICC()+'.txtProgramaEjecutable',get(getFormularioSICC()+'.hidEjecutable'));
+
+        if ("S"== get(getFormularioSICC()+".hidNivel")) {
+          accion("frmFormulario.txtProgramaEjecutable", '.disabled=false');
+        }
+        else {          
+          accion("frmFormulario.txtProgramaEjecutable", '.disabled=true');
+        }               
+
+        focaliza("frmFormulario.txtNombreElementoMenu");
+        //limpiaI18N(getFormularioSICC(), 1);
+      }
+
+      function datosValidos(){
+        
+          var nivel_pulsado = get(getFormularioSICC()+'.nivel_pulsado');
+          if (get(getFormularioSICC()+'.oid') == get(getFormularioSICC()+'.seleccionado') ){
+             GestionarMensaje('1127',null,null,null);
+             return false;
+           }
+          if(get("frmFormulario.txtNombreElementoMenu")==""){
+             GestionarMensaje('42',null,null,null);
+             focaliza('frmFormulario.txtNombreElementoMenu');
+             return false;
+          }else{
+             
+             var est =get("frmFormulario.txtNombreElementoMenu");
+             
+             if(!ValidaCaractNombreElementoMenu(est)){
+                 GestionarMensaje('119',null,null,null);
+                 focaliza("frmFormulario.txtNombreElementoMenu");
+                 return false;
+             }
+             
+          }
+          
+          if(get("frmFormulario.IndicadorNivel")==""){
+          
+             GestionarMensaje('9',null,null,null);
+             try{
+                 //focaliza("frmFormulario.IndicadorNivel");
+          
+                 document.all.tags("INPUT")["IndicadorNivel"][0].focus();
+             }catch(e){
+                 ;
+             }
+          
+             return false;
+          }
+         
+          if(get("frmFormulario.IndicadorRastreo")==""){
+             GestionarMensaje('9',null,null,null);
+             try{
+                 //focaliza("frmFormulario.IndicadorRastreo");
+                 document.all.tags("INPUT")["IndicadorRastreo"][0].focus();
+             }catch(e){
+                 ;
+             }
+         
+             return false;
+          }
+          
+          if (get('frmFormulario.IndicadorNivel')=="S" && get('frmFormulario.txtProgramaEjecutable').split(" ").join("")=="") {
+             GestionarMensaje('96',null,null,null);
+             focaliza("frmFormulario.txtProgramaEjecutable");
+         
+             return false;
+          }
+         
+          return true;
+      }
+
+    function setRButtons(){
+      if ( "S"== get(getFormularioSICC()+".hidRastreo"))
+        document.all.tags("INPUT")["IndicadorRastreo"][0].checked = true;
+      else
+        document.all.tags("INPUT")["IndicadorRastreo"][1].checked = true;
+
+      if ("S"== get(getFormularioSICC()+".hidNivel"))
+        document.all.tags("INPUT")["IndicadorNivel"][0].checked = true;
+      else {
+        document.all.tags("INPUT")["IndicadorNivel"][1].checked = true;
+        accion("frmFormulario.txtProgramaEjecutable", '.disabled=true');
+      }
+    } 
+           
+      function levantarGarompa(){
+         levantarI18N (getFormularioSICC(), 1);
+      }
+
+      function ValidaCaractNombreElementoMenu(valor) {
+          var c;
+          var permitidos="abcdefghijklmnñopqrstuvwxyz ABCDEFGHIJKLMNÑOPQRSTUVWXYZ_-0123456789.áéíóú/";
+          for(var i=0;i<valor.length;i++) {
+             c=valor.charAt(i);
+             if (permitidos.indexOf(c)==-1) {
+                 return false;
+             }
+          }
+          return true;
+      }
+      
+      function getClick(){
+        if(get("frmFormulario.IndicadorNivel")=="S"){//funcion final
+          accion("frmFormulario.txtProgramaEjecutable", '.disabled=false');
+        }
+        else{
+          accion("frmFormulario.txtProgramaEjecutable", '.disabled=true');
+        }
+        return true;
+      }
+
+      function focoRastreo() {
+        document.selection.empty();
+        focaliza("frmFormulario.IndicadorRastreo");
+      }
+
+      function focoPrograma() {
+        document.selection.empty();
+        if(document.getElementById("txtProgramaEjecutable").disabled==true) {
+          if(document.all.tags("INPUT")["IndicadorNivel"][0].disabled==true) {
+            focaliza("frmFormulario.IndicadorRastreo");          
+          }
+          else {
+            focaliza("frmFormulario.IndicadorNivel");      
+          }          
+        }
+        
+        else {
+          focaliza("frmFormulario.txtProgramaEjecutable");
+        }        
+      }
+
+      function focoNombreElemento() {
+        focaliza("frmFormulario.txtNombreElementoMenu");
+      }
+
+      function focoNivel() {
+        document.selection.empty();
+        if ( get(getFormularioSICC()+'.tieneHijos')=='true' ) {
+          focaliza("frmFormulario.txtNombreElementoMenu");
+        }
+        else {
+          focaliza("frmFormulario.IndicadorNivel");
+        }        
+      }
+
+      function focoPrueba() {
+        if(document.getElementById("txtProgramaEjecutable").disabled==true) {
+          focaliza("frmFormulario.txtNombreElementoMenu");
+        }
+        else {
+          focaliza("frmFormulario.txtProgramaEjecutable");
+        }        
+      }
+      
+      function indiceDeOpcionSeleccionada(codigo, arbol) {
+	      var cantElementos = arbol.entradas.length;
+		  for (var i = 0; i < cantElementos; i++) {
+		      if (arbol.entradas[i][2] == codigo) {
+			      return i;
+			  }
+		  }
+		  return -1;
+	  }
+
+	  function indiceDePadreDeOpcionSeleccionada(indiceHijo, arbol) {
+	      var nivelHijo = arbol.entradas[indiceHijo][0];
+		  var cantElementosArbol = arbol.entradas.length;
+
+		  var arrayNivelHijo = nivelHijo.split('.');
+		  var cantNiveles = arrayNivelHijo.length;
+		  
+		  if (cantNiveles > 0) { 
+		      var nivelPadre = arrayNivelHijo[0];
+
+		      for (var i = 1; i < (cantNiveles - 1); i++) {
+		          nivelPadre = nivelPadre + '.' + arrayNivelHijo[i];
+		      }
+              
+		      for (var j = 0; j < cantElementosArbol; j++) {
+		          if (nivelPadre == arbol.entradas[j][0]) {
+			          return j;
+			      }
+		      }
+	      } else {
+		      return 0;
+		  }
+	  }
+
+
+
+
+   ]]>
+</JAVASCRIPT>   
+<FORMULARIO nombre="frmFormulario" oculto="S">
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="accion" valor="completar"/>
+<VAR nombre="hidNombre" valor=""/>
+<VAR nombre="hidRastreo" valor=""/>
+<VAR nombre="hidNivel" valor=""/>
+<VAR nombre="hidEjecutable" valor=""/>
+<VAR nombre="seleccion" valor=""/>
+<VAR nombre="oid" valor=""/>
+<VAR nombre="padre" valor=""/>
+<VAR nombre="hidProgramaEjecutable" valor=""/>
+<VAR nombre="nombreArbol" valor=""/>
+<VAR nombre="nivel_padre" valor=""/>
+<VAR nombre="seleccionado" valor=""/>
+<VAR nombre="nivel_pulsado" valor=""/>
+<VAR nombre="tieneHijos" valor=""/>
+
+<CAPA nombre="capaPrincipal" x="0" y="0">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr> 
+    <tr>  
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primero formulario-->
+         <fieldset><legend class="legend"><LABELC nombre="lblListaFunciones" alto="13" filas="1" valor="" id="legend" cod="00505"/></legend>
+           <!---primera fila-->
+                <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                  <tr>
+                  <td><IMG src="b.gif" width="8" height="230"/></td>
+                  <td width="100%"><IMG src="b.gif" width="496" height="8"/></td> 
+                </tr>
+                </table>
+        <!---fin primera fila-->
+         </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr>  
+    <tr>
+         <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+         <td width="756" ><IMG src="b.gif"/></td>
+         <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+
+  <SCROLL nombre="scrollPrincipal"
+     x="22"
+     y="28"
+     ancho="450"
+     alto="250"
+     colorf=""
+     visibilidad="visible"
+     incx="10" 
+     incy="10"
+     colores="">
+     <REJILLA nombre="RArbol"/>
+  </SCROLL>     
+
+</CAPA>
+
+<CAPA nombre="capaFormulario" x="0" y="269">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primero formulario-->
+         <fieldset><legend class="legend"><LABELC nombre="lblDatosElementoMenu" alto="13" filas="1" valor="" id="legend" cod="00506"/></legend>
+           <!---primera fila-->
+                <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                  <tr> 
+                    <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td colspan="3"><LABELC nombre="lblNombreElementoMenu" alto="13" filas="1" valor="" id="datosTitle" cod="96"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td><LABELC nombre="lblIndicadorRastreo" alto="13" filas="1" valor="" id="datosTitle" cod="74"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td><LABELC nombre="lblIndicadorNivel" alto="13" filas="1" valor="" id="datosTitle" cod="73"/></td>
+                     <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr> 
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td nowrap="nowrap"><CTEXTO nombre="txtNombreElementoMenu" id="datosCampos" max="25" tipo="" onchange="" req="S" size="25" valor="" validacion="" ontab="focoRastreo();" onshtab="focoPrograma();"/></td>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td><IMG src="iconmultidioma.gif" onClick="levantarInternaziona()"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td class="datosCampos" nowrap="nowrap">
+                        <RADIOB nombre="IndicadorRastreo" tipo="H" id="datosCampos" ontab="focoNivel();" onshtab="focoNombreElemento();" req="S">
+                          <RBINPUT valor="S" check="N" onfocus="" id="datosCampos" cod="117"></RBINPUT>
+                          <RBINPUT valor="N" check="N" onfocus="" id="datosCampos" cod="87"></RBINPUT>
+                        </RADIOB>
+                     </td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td class="datosCampos" nowrap="nowrap">
+                        <RADIOB nombre="IndicadorNivel" tipo="H" id="datosCampos" onclick="getClick();" ontab="focoPrueba();" onshtab="focoRastreo();" req="S">
+                          <RBINPUT valor="S" check="N" onfocus="" id="datosCampos" cod="66"></RBINPUT>
+                          <RBINPUT valor="N" check="N" onfocus="" id="datosCampos" cod="13"></RBINPUT>
+                        </RADIOB>
+                     </td>
+                     <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr> 
+                </table>
+        <!---fin primera fila-->
+        <!---segunda fila-->
+                <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                  <tr> 
+                    <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td><LABELC nombre="lblProgramaEjecutable" alto="13" filas="1" valor="" id="datosTitle" cod="107"/></td>
+                     <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr> 
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td>                                                                
+                        <AREATEXTO max="80" nombre="txtProgramaEjecutable" id="datosCampos" cols="50" rows="3" ontab="focoNombreElemento();" onshtab="focoNivel();"/>                                                             
+                     </td>
+                     <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr> 
+                  <tr> 
+                    <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                </table>
+        <!---fin segunda fila-->
+         </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr>   
+    <tr>
+         <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+         <td width="756" ><IMG src="b.gif"/></td>
+         <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+</FORMULARIO>
+</PAGINA>
+

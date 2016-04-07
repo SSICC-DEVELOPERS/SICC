@@ -1,0 +1,441 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_controles_almacen_insertar" cod="01036" titulo="" estilos="estilosB3.css" colorf="#F0F0F0"
+        msgle="" onload="onLoadPag();" xml:lang="es">
+
+  <JS src="sicc_util.js"/>
+  <JS src="DruidaTransactionMare.js"/>
+
+<JAVASCRIPT>
+  <![CDATA[ 
+
+  function onLoadPag() {
+
+      configurarMenuSecundario("formulario");
+      fMostrarMensajeError();
+        
+      if (get('formulario.cerrar') == "S") {
+          window.close();
+      }
+
+      if (get('formulario.habilitaCanal') == "N") {
+            accion('formulario.cbCanal','.disabled=true');            
+      }
+      if (get('formulario.habilitaAcceso') == "N") {
+          accion('formulario.cbAcceso','.disabled=true');            
+      }
+      if (get('formulario.habilitaSubacceso') == "N") {
+           accion('formulario.cbSubacceso','.disabled=true');            
+      }
+      if (get('formulario.habilitaCodProd') == "N") {
+          accion('formulario.txtCodigoProducto','.disabled=true');            
+      }
+      if (get('formulario.habilitaAlmacen') == "N") {
+          accion('formulario.cbAlmacen','.disabled=true');            
+      }
+    
+      if (get('formulario.opcionMenu') == "InsertarControlesAlmacen") {
+          if (get('formulario.recupera') == "S") {
+			  set('formulario.recupera', "N");
+			  cargarCombos();
+			  onChangeCanal();
+		  }
+		  focaliza('formulario.cbCanal');
+
+      } else { // Para consultar y modificar
+	      varNoLimpiarSICC = true;
+          if (get('formulario.opcionMenu') == "ConsultarControlesAlmacen") {
+              accion('formulario.cbActivado','.disabled=true');
+              accion('formulario.txtStockMinimo','.disabled=true');
+              accion('formulario.txtStockMaximo','.disabled=true');
+              accion('formulario.txtStockReposicion','.disabled=true');
+          }
+          cargarCombos();
+          onChangeCanal();
+      }
+      
+
+  }
+
+  function fBorrar() {
+      accionEliminar();
+  }
+
+  function fGuardar() {
+      accionGuardar();
+  }
+
+  function fLimpiar() {
+	  if (get('formulario.opcionMenu') == "ModificarControlesAlmacen") {
+	      set( "formulario.txtStockMinimo", get('formulario.hStockMinimo') );
+	      set( "formulario.txtStockMaximo", get('formulario.hStockMaximo') );
+ 	      set( "formulario.txtStockReposicion", get('formulario.hStockReposicion') );
+
+	      iSeleccionado = new Array(); 
+          iSeleccionado[0] = get('formulario.activado'); 
+          set('formulario.cbActivado',iSeleccionado); 
+	  }
+  }
+
+  function fVolver() {
+      if (get('formulario.opcionMenu') != "InsertarControlesAlmacen") {
+		window.close();
+	  }
+  }
+
+  function onChangeCanal() {
+      var arra = new Array();
+      arra[0] = ["oidPais",get('formulario.pais')];
+      arra[1] = ["oidIdioma",get('formulario.idioma')];      
+      arra[2] = ["oid",get('formulario.cbCanal')];
+      recargaCombo("formulario.cbAcceso","SEGObtieneAccesosPorCanal","es.indra.sicc.util.DTOOID",arra, "cargaComboAcceso(datos)");
+  }
+
+  function onChangeAcceso() {
+      if (get('formulario.cbAcceso')!=''){ 
+		  var arra = new Array();
+		  arra[0] = ["oidPais",get('formulario.pais')];
+		  arra[1] = ["oidIdioma",get('formulario.idioma')];      
+		  arra[2] = ["oid",get('formulario.cbAcceso')];
+		  recargaCombo("formulario.cbSubacceso","SegObtenerSubaccesosPorAcceso","es.indra.sicc.util.DTOOID",arra, "cargaComboSubacceso(datos)");
+
+	  } else {
+		// vbongiov -- RI 20090074 -- 02/03/2009
+		set_combo('formulario.cbSubacceso', arrayVacio());
+	  }
+  }
+
+  function accionBuscarProducto() {
+      if ( get('formulario.opcionMenu') == "InsertarControlesAlmacen" ) {
+      
+          var prodSelecc;
+          var cantProdSelecc = 0;
+
+		// inc BELC300023322 cdos gPineda 
+		set("formulario.casoDeUso","buscarProducto");
+
+          var obj = new Object();
+
+  		// inc BELC300023322 cdos gPineda 
+		  obj.casoDeUso = "buscarProducto";
+          
+		  var whnd = mostrarModalSICC('LPBuscarProductosDTO','',obj);
+          if (whnd != null) {
+              prodSelecc = whnd[0].split("$");
+              /* La LPBuscarProductosDTO devuelve un array de tres elementos donde
+                el primero ([0]) son los productos separados por '$',
+                 con dicho simbolo al comienzo de cada uno.
+                 Dentro de cada producto los campos están separados por '|'
+                 y son: oid|codigo|descripcion */
+              cantProdSelecc = prodSelecc.length - 1; // Le restamos uno por split de "$asdfa" da 2 elementos
+          }
+          if (cantProdSelecc != 1) {
+              if (cantProdSelecc != 0) {
+                  GestionarMensaje("1226", null, null, null);  //Solo puede seleccionar un producto.
+              }
+          } else {
+              var prod = prodSelecc[1].split("|");
+              set("formulario.txtCodigoProducto", prod[1]);
+              set("formulario.oidProducto", prod[0]);
+          }
+      
+      } else {
+          // No debe hacer nada cuando opcionMenu es para Detalle ni Modificar
+	  }
+
+  }
+
+  function accionGuardar() {
+      if(!sicc_validaciones_generales()){
+          return false;
+      }                
+      set('formulario.conectorAction','LPMantenimientoControlesAlmacen');
+      set('formulario.accion','guardar');
+      enviaSICC('formulario');
+      
+  }
+
+
+  function cargarCombos(){
+    iSeleccionado = new Array(); 
+    iSeleccionado[0] = get('formulario.hCanal'); 
+    set('formulario.cbCanal',iSeleccionado); 
+
+    iSeleccionado = new Array(); 
+    iSeleccionado[0] = get('formulario.oidAlmacen'); 
+    set('formulario.cbAlmacen',iSeleccionado);
+
+    iSeleccionado = new Array(); 
+    iSeleccionado[0] = get('formulario.activado'); 
+    set('formulario.cbActivado',iSeleccionado); 
+
+
+  }
+
+  // vbongiov -- RI 20090074 -- 02/03/2009
+  function arrayVacio(){  
+    var array = new Array();              
+    array[0] = new Array('','');
+  
+    return array;
+  }
+
+  function cargaComboAcceso(datos) {
+    if (datos!=''){ 
+      var arrRes = new Array(); 
+      arrRes[arrRes.length] = new Array(); 
+      for(var i=0; i<datos.length;i++){
+         arrRes[arrRes.length] = datos[i];
+      } 
+
+      set_combo('formulario.cbAcceso',arrRes, []); 
+      if (get('formulario.hAcceso')!=''){ 
+          iSeleccionadob = new Array();
+          iSeleccionadob[0] = get('formulario.hAcceso'); 
+          set('formulario.cbAcceso',iSeleccionadob); 
+      } 
+	  // vbongiov -- RI 20090074 -- 02/03/2009
+	  if (get('formulario.cbAcceso')!=''){ 
+		onChangeAcceso(); 
+	  } else {
+		set_combo('formulario.cbSubacceso', arrayVacio());
+	  }
+
+    } else {
+		// vbongiov -- RI 20090074 -- 02/03/2009
+		set_combo('formulario.cbAcceso', arrayVacio());
+		set_combo('formulario.cbSubacceso', arrayVacio());
+	}
+    
+  }
+
+
+  function cargaComboSubacceso(datos) {
+    if (datos!=''){ 
+      var arrRes = new Array(); 
+      arrRes[arrRes.length] = new Array(); 
+      for(var i=0; i<datos.length;i++){
+         arrRes[arrRes.length] = datos[i];
+      } 
+
+      set_combo('formulario.cbSubacceso',arrRes, []); 
+      if (get('formulario.hSubacceso')!=''){ 
+          iSeleccionadob = new Array();
+          iSeleccionadob[0] = get('formulario.hSubacceso'); 
+          set('formulario.cbSubacceso',iSeleccionadob); 
+      } 
+	}
+    
+  }
+
+
+  ]]> 
+</JAVASCRIPT>
+
+<VALIDACION>
+      <ELEMENTO name="cbCanal" required="true" cod="7"/>
+      <ELEMENTO name="cbAcceso" required="true" cod="10"/>
+      <ELEMENTO name="cbSubacceso"  required="true" cod="122"/>
+      <ELEMENTO name="cbAlmacen" required="true" cod="797"/>
+      <ELEMENTO name="txtCodigoProducto" required="true" cod="574"/>
+      <ELEMENTO name="txtStockMinimo" format="e" required="false" cod="1593" min="0" max="999999999"/>
+      <ELEMENTO name="txtStockMaximo" format="e" required="false" cod="1595" min="0" max="999999999"/>
+      <ELEMENTO name="txtStockReposicion" format="e" required="false" cod="1594" min="0" max="999999999"/>
+</VALIDACION>
+
+
+<FORMULARIO nombre="formulario" oculto = "N">
+
+    <VAR nombre="accion" valor=""/>
+    <VAR nombre="conectorAction" valor=""/>
+    <VAR nombre="casoDeUso" valor=""/>
+    <VAR nombre="errCodigo" valor=""/>
+    <VAR nombre="errDescripcion" valor=""/>
+    <VAR nombre="cerrar" valor=""/>
+	<VAR nombre="recupera" valor=""/>
+    
+    <VAR nombre="opcionMenu" valor=""/>
+    <VAR nombre="pais" valor=""/>
+    <VAR nombre="idioma" valor=""/>
+    <VAR nombre="oidControlAlmacen" valor=""/>
+    <VAR nombre="oidProducto" valor=""/>
+    <VAR nombre="activado" valor=""/>
+    <VAR nombre="oidAlmacen" valor=""/>
+
+    <VAR nombre="habilitaCanal" valor=""/>
+    <VAR nombre="habilitaAcceso" valor=""/>
+    <VAR nombre="habilitaSubacceso" valor=""/>
+    <VAR nombre="habilitaCodProd" valor=""/>
+    <VAR nombre="habilitaAlmacen" valor=""/>
+    <VAR nombre="habilitaSMinimo" valor=""/>
+    <VAR nombre="habilitaSMaximo" valor=""/>
+    <VAR nombre="habilitaSReposicion" valor=""/>
+    <VAR nombre="habilitaActivado" valor=""/>
+
+    <VAR nombre="hCanal" valor=""/>
+    <VAR nombre="hAcceso" valor=""/>
+    <VAR nombre="hSubacceso" valor=""/>
+    <VAR nombre="hStockMinimo" valor=""/>
+    <VAR nombre="hStockMaximo" valor=""/>
+    <VAR nombre="hStockReposicion" valor=""/>
+
+
+<CAPA nombre="capa1">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+    <fieldset><legend class="legend"><LABELC nombre="lblDatosControlAlmacen"  alto="13" filas="1" valor="" id="legend" cod="01034"/></legend>
+     <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+       <!---primera fila-->
+              <table width="499" border="0" align="left" cellspacing="0" cellpadding="0">
+               <tr> 
+                        <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                    </tr>
+               <tr>
+                         <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblCanal"  alto="13" filas="1" valor="" cod="7" id="datosTitle"/></td>                         
+                          <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblAcceso"  alto="13" filas="1" valor="" cod="10" id="datosTitle"/></td>                        
+                          <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblSubacceso"  alto="13" filas="1" valor="" cod="122" id="datosTitle"/></td>    
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+               </tr> 
+
+                     <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                         <td  nowrap="nowrap">
+                                <COMBO nombre="cbCanal" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onchange="onChangeCanal();" onshtab="focaliza('formulario.cbActivado');" >
+                                    <ROWSET>
+                                    </ROWSET>
+                                </COMBO> 
+                      </td>
+                         <td><IMG src="b.gif" width="25" height="8"/></td>
+                         <td  nowrap="nowrap">
+                                <COMBO nombre="cbAcceso" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onchange="onChangeAcceso();" >
+                                    <ROWSET>
+                                    </ROWSET>
+                                </COMBO> 
+                      </td>
+                         <td><IMG src="b.gif" width="25" height="8"/></td>
+                         <td  nowrap="nowrap">
+                                <COMBO nombre="cbSubacceso" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" >
+                                    <ROWSET>
+                                    </ROWSET>
+                                </COMBO> 
+                      </td>
+                           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+
+                     </table>             
+       <!---primera fila-->
+        </td></tr>                         
+          
+            <tr><td>
+       <!---segunda fila-->
+              <table width="499" border="0" align="left" cellspacing="0" cellpadding="0">
+               <tr> 
+                        <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                    </tr>
+               <tr>
+                          <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblAlmacen"  alto="13" filas="1" valor="" cod="797" id="datosTitle"/></td>            
+                         <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblProducto"  alto="13" filas="1" valor="" cod="574" id="datosTitle"/></td>        
+                         <td><IMG src="b.gif" width="25" height="8"/></td>
+                         <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+
+                     <tr>
+                         <td><IMG src="b.gif" width="8" height="8"/></td>
+                         <td  nowrap="nowrap">
+                                <COMBO nombre="cbAlmacen" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" >
+                                    <ROWSET>
+                                    </ROWSET>
+                                </COMBO> 
+                      </td>
+                        <td><IMG src="b.gif" width="25" height="8"/></td>
+                          <td nowrap="nowrap" valign="bottom"><CTEXTO nombre="txtCodigoProducto" id="datosCampos" max="15" tipo="" onchange="" req="S" size="15" valor="" validacion="" /></td>
+                          <td><IMG src="iconBuscar.gif" onclick="accionBuscarProducto()"/></td>
+                        <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+
+                     </table>             
+       <!---segunda fila-->
+        </td></tr>
+            
+            <tr><td>
+       <!---tercera fila-->
+              <table width="499" border="0" align="left" cellspacing="0" cellpadding="0">
+                      <tr> 
+                          <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                       </tr>
+                        <tr>
+                          <td><IMG src="b.gif" width="8" height="8"/></td>
+                    <td><LABELC nombre="lblStockMinimo"  alto="13" filas="1" valor="" cod="1593" id="datosTitle"/></td>        
+                          <td><IMG src="b.gif" width="25" height="8"/></td>
+                          <td><LABELC nombre="lblStockMaximo"  alto="13" filas="1" valor="" cod="1595" id="datosTitle"/></td>        
+                          <td><IMG src="b.gif" width="25" height="8"/></td>
+                    <td><LABELC nombre="lblStockReposicion"  alto="13" filas="1" valor="" cod="1594" id="datosTitle"/></td>        
+                          <td><IMG src="b.gif" width="25" height="8"/></td>
+                    <td ><LABELC nombre="lblActivado"  alto="13" filas="1" valor="" cod="242" id="datosTitle"/></td>    
+                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+               <tr>
+                          <td><IMG src="b.gif" width="8" height="8"/></td>
+                          <td nowrap="nowrap" valign="bottom"><CTEXTO nombre="txtStockMinimo" id="datosCampos" max="10" tipo="" req="N" size="10" valor="" validacion="" /></td>
+                          <td><IMG src="b.gif" width="25" height="8"/></td>
+                          <td nowrap="nowrap" valign="bottom"><CTEXTO nombre="txtStockMaximo" id="datosCampos" max="10" tipo="" onchange="" req="N" size="10" valor="" validacion="" /></td>
+                          <td><IMG src="b.gif" width="25" height="8"/></td>
+                          <td nowrap="nowrap" valign="bottom"><CTEXTO nombre="txtStockReposicion" id="datosCampos" max="10" tipo="" onchange="" req="N" size="10" valor="" validacion="" /></td>
+                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                          <td  nowrap="nowrap">
+                                <COMBO nombre="cbActivado" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" ontab="focaliza('formulario.cbCanal');" >
+                                    <ROWSET>
+                                        <ROW ID="1">
+                                                <CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="A"/>
+                                                <CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="Activo"/>
+                                        </ROW>
+                                        <ROW ID="2">
+                                                <CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="I"/>
+                                                <CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="Inactivo"/>
+                                        </ROW>
+                                    </ROWSET>
+                                </COMBO> 
+                       </td>
+                          <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                 </tr> 
+                <tr> 
+                         <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                     </tr>              
+                  </table>             
+       <!---tercera fila-->
+        </td></tr>
+         </table>
+        </fieldset>
+        
+<!--fin primer formulario-->
+
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr>
+           <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+         <td width="756" ><IMG src="b.gif"/></td>
+          <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+
+</FORMULARIO>
+</PAGINA>         

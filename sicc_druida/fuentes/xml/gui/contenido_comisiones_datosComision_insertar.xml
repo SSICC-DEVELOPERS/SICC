@@ -1,0 +1,1803 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_comisiones_datosComision_insertar.xml,v 1.2 2010/08/24 22:52:58 peextsapaza Exp $
+   prueba arbol 
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+<PAGINA nombre="contenido_comisiones_datosComision_insertar" cod="0515" titulo="Insertar comisiones" estilos="estilosB3.css" colorf="#F0F0F0" msgle="" onload="onLoadPag();" xml:lang="es">
+
+<!-- Barra Modificar comisiones cod="0520"
+     Barra Consultar comisiones cod="0510"
+     Barra Eliminar comisiones cod="0558" -->
+
+<JS src="sicc_util.js"></JS> 
+<JS src="PaginacionSicc.js"></JS>
+<JS src="DruidaTransactionMare.js"></JS>
+<JS src="i18NJS.js"/>     
+
+<JAVASCRIPT>
+<![CDATA[ 
+
+function cargarCampos(){	
+	//********************** Criterios de seleccion ************************
+	//Combo tipo comision
+	set( 'formulario.cbTipoComision', [get('formulario.hCBTipoComision')]);
+	//Concepto
+	set('formulario.atxtConcepto', get('formulario.hConcepto'));	
+
+
+
+	//****************************** Ventas ********************************
+	//Aplicar comision
+	set('formulario.cbAplicarComision', [get('formulario.hAplicarComision')]);
+	onChangeAplicarComision();
+
+	//Calcular incobrables
+	set('formulario.ckCalcularIncobrables', get('formulario.varCalcularIncobrables'));
+
+	var algo = get('formulario.ckCalcularIncobrables');
+	if(algo=="S") {
+		//Fecha
+		if(get('formulario.hFechaEmision') == 'S'){
+			set('formulario.rbFecha', 'S');
+		}
+		else{
+			set('formulario.rbFecha', 'N');
+		}
+	}
+	else {
+		onChangeCalcularIncobrables();
+	}
+	//Dias incobrables
+	set('formulario.txtDiasIncobrables', get('formulario.tempDiasIncobrables'));
+	//Formula	
+	set('formulario.cbFormula', [get('formulario.varFormula')]);
+	//Devoluciones
+	set('formulario.ckDevoluciones', get('formulario.varDevoluciones'));
+	//Anulaciones
+	set('formulario.ckAnulaciones', get('formulario.varAnulaciones'));
+	//Faltantes no anunciados
+	set('formulario.ckFaltantesNoAnunciados', get('formulario.varFaltantesNoAnunciados'));
+	//% Comision
+	set('formulario.txtPorcentaje', get('formulario.tempPorcentaje'));
+	//Importe fijo
+	set('formulario.txtImporteFijo', get('formulario.tempImporteFijo'));
+
+	//Comparativo
+	set('formulario.cbComparativo', [get('formulario.varComparativo')]);
+	onChangeComparativo();
+	//oids y descripciones de periodos
+	//Los oids de setean desde la LP
+	//txt_to('lblPeriodoInicialEvaluaciondt', get("formulario.desPeriodoInicial"));
+	//txt_to('lblPeriodoFinalEvaluaciondt', get("formulario.desPeriodoFinal"));
+	//Porcentaje incremento
+	//set('formulario.txtPorcentajeIncremento', get('formulario.tempPorcentajeIncremento'));
+	//Monto	
+	//set('formulario.txtMonto', get('formulario.tempMonto'));
+	//Devoluciones metas
+	//set('formulario.ckDevolucionesMetas', get('formulario.varDevolucionesEnMetas'));	
+	//Anulaciones metas
+	//set('formulario.ckAnulacionesMetas', get('formulario.varAnulacionesEnMetas'));	
+	
+	
+	
+	//Periodos
+	set('formulario.cbPeriodoEntradaVigor3', [get('formulario.hPeriodoEntradaEnVigor')]);
+	set('formulario.cbPeriodoEntradaVigor5', [get('formulario.hPeriodoEntradaEnVigor')]);	
+	//Observaciones
+	set('formulario.atxtObservaciones3', get('formulario.hObservaciones'));
+	set('formulario.atxtObservaciones52', get('formulario.hObservaciones'));
+
+
+
+	//****************************** Cobranza ********************************
+	//Los datos del marco cobranza se setean en su mayoria en variables ocultas desde la LP
+
+}
+
+function onLoadPag() {
+	configurarMenuSecundario("formulario");        
+	cargarCampos();
+
+	var tipo = get('formulario.hCBTipoComision');
+	mostrarCapas(tipo);
+
+	if(get('formulario.hHabilitarEstadoSolicitudAutorizada') == 'S'){
+		deshabilitarCamposEstadoSolicitudAceptada();
+	}
+
+	if(get('formulario.opcionMenu') == 'consultar'){
+		deshabilitarTodo();
+		var tipoCobranza = get('formulario.TIPO_COMISION_COBRANZA');
+		if( tipo == tipoCobranza ) {
+			focoComboTipoParticipante();
+		}		
+	}
+
+	var tipoPlan = get("formulario.oidTipoPlantilla");
+	if(tipoPlan!="") {
+		var arraySeteo = new Array();
+		arraySeteo[0] = tipoPlan;
+		set("formulario.cbTipoComision", arraySeteo);
+		document.getElementById("cbTipoComision").disabled = true;
+	}
+
+	if(get('formulario.opcionMenu') == 'insertar'){
+		if(get('formulario.valDefecto') == 'S') {
+			valoresPorDefecto();
+		}
+		
+		focoComboTipoComision();
+	}
+
+	if(get('formulario.opcionMenu') == 'modificar') {
+		btnProxy(2, '0');
+		btnProxy(3, '1');
+		btnProxy(7, '1');
+		btnProxy(8, '1');
+		btnProxy(9, '1');
+	}
+}
+
+function comboAplicarComision() {
+	var seteoAplicarComision = get("formulario.seteoAplicarComision");
+	if(seteoAplicarComision=="true") {
+		var arraySeteo = new Array();
+		arraySeteo[0] = get("formulario.valVentaTotal");
+		set("formulario.cbAplicarComision", arraySeteo);
+		document.getElementById("cbAplicarComision").disabled = true;
+	}
+
+	onChangeAplicarComision();
+}
+
+function valoresPorDefecto() {
+	set("formulario.ckCalcularIncobrables", "N");	
+	set("formulario.ckDevoluciones", "S");
+	set("formulario.ckAnulaciones", "S");
+	set("formulario.ckFaltantesNoAnunciados", "N");
+	set("formulario.txtPorcentaje", "");
+	set("formulario.txtImporteFijo", "");
+}
+
+function mostrarCapas(tipo){
+	var tipoVentas = get('formulario.TIPO_COMISION_VENTAS');
+	var tipoCobranza = get('formulario.TIPO_COMISION_COBRANZA');
+
+	if( tipo == tipoVentas ){ // Ventas
+		document.all["capa2"].style.visibility= "visible";
+		if(get('formulario.opcionMenu') == 'insertar'){
+			document.all["capa3"].style.visibility= "hidden";
+		}		
+		else {
+			document.all["capa3"].style.visibility= "visible";			
+		}
+		document.all["capa4"].style.visibility= "hidden";
+		document.all["capa5"].style.visibility= "hidden";
+
+	}
+	else if( tipo == tipoCobranza ){ // Cobranza
+		document.all["capa2"].style.visibility= "hidden";
+		document.all["capa3"].style.visibility= "hidden";
+		document.all["capa4"].style.visibility= "visible";
+		if(get('formulario.opcionMenu') == 'insertar'){
+			document.all["capa5"].style.visibility= "hidden";
+		}
+		else{
+			document.all["capa5"].style.visibility= "visible";
+		}		
+	}
+}
+
+function fLimpiar(){
+	onLoadPag();
+}
+
+function deshabilitarBotonAceptar(){
+	deshabilitarHabilitarBoton('botonContenido', 'btnAceptar', 'D');
+}
+
+function deshabilitarCamposEstadoSolicitudAceptada(){
+	//Se dejan habilitados solo los siguientes campos
+	//Porcentaje de Incremento,
+	//Monto de Incremento, 
+	//Porcentaje de Comisión, 
+	//Importe Fijo de la comisión. 
+	//Periodo entrada vigor
+	//Observaciones
+
+	accion('formulario.txtPorcentajeIncremento','.disabled=false');
+	accion('formulario.txtMonto','.disabled=false');
+	accion('formulario.txtPorcentaje','.disabled=false');
+	accion('formulario.txtImporteFijo','.disabled=false');
+	accion('formulario.cbPeriodoEntradaVigor3','.disabled=false');
+	accion('formulario.atxtObservaciones3','.disabled=false');
+	accion('formulario.cbPeriodoEntradaVigor5','.disabled=false');
+	accion('formulario.atxtObservaciones52','.disabled=false');
+
+	//El resto deshabilitados
+
+	accion('formulario.cbTipoComision','.disabled=true');
+	accion('formulario.atxtConcepto','.disabled=true');
+	accion('formulario.cbAplicarComision','.disabled=true');
+	accion('formulario.ckCalcularIncobrables','.disabled=true');
+	accion('formulario.rbFecha','.disabled=true');
+	accion('formulario.txtDiasIncobrables','.disabled=true');
+	accion('formulario.txtDiasIncobrables','.disabled=true');
+	accion('formulario.cbFormula','.disabled=true');
+	accion('formulario.ckDevoluciones','.disabled=true');
+	accion('formulario.ckAnulaciones','.disabled=true');
+	accion('formulario.ckFaltantesNoAnunciados','.disabled=true');
+	accion('formulario.cbComparativo','.disabled=true');
+	accion('formulario.ckDevolucionesMetas','.disabled=true');
+	accion('formulario.ckAnulacionesMetas','.disabled=true');
+
+	//se deshabilitan los radiob
+	var ii = document.all.tags('INPUT');
+	for(i = 0; i < ii.length; i++){
+		if(ii.item(i).type == 'radio'){
+			ii[i].disabled = true;
+		}
+	}
+}
+
+function deshabilitarTodo(){
+	accion('formulario.cbTipoComision','.disabled=true');
+	accion('formulario.atxtConcepto','.disabled=true');
+	accion('formulario.cbAplicarComision','.disabled=true');
+	accion('formulario.ckCalcularIncobrables','.disabled=true');
+	accion('formulario.rbFecha','.disabled=true');
+	accion('formulario.txtDiasIncobrables','.disabled=true');
+	accion('formulario.txtDiasIncobrables','.disabled=true');
+	accion('formulario.cbFormula','.disabled=true');
+	accion('formulario.ckDevoluciones','.disabled=true');
+	accion('formulario.ckAnulaciones','.disabled=true');
+	accion('formulario.ckFaltantesNoAnunciados','.disabled=true');
+	accion('formulario.txtPorcentaje','.disabled=true');
+	accion('formulario.txtImporteFijo','.disabled=true');
+	accion('formulario.cbComparativo','.disabled=true');
+	accion('formulario.txtPorcentajeIncremento','.disabled=true');
+	accion('formulario.txtMonto','.disabled=true');
+	accion('formulario.ckDevolucionesMetas','.disabled=true');
+	accion('formulario.ckAnulacionesMetas','.disabled=true');
+	accion('formulario.cbPeriodoEntradaVigor3','.disabled=true');
+	accion('formulario.cbPeriodoEntradaVigor5','.disabled=true');
+	accion('formulario.atxtObservaciones3','.disabled=true');
+	accion('formulario.atxtObservaciones52','.disabled=true');
+	deshabilitarHabilitarBoton('botonContenido', 'btnCalcularMetas', 'D');
+	deshabilitarHabilitarBoton('botonContenido', 'btnAceptar', 'D');
+
+	//se deshabilitan los radiob
+	var ii = document.all.tags('INPUT');
+	for(i = 0; i < ii.length; i++){
+		if(ii.item(i).type == 'radio'){
+			ii[i].disabled = true;
+		}
+	}
+}
+
+function focoComboTipoComision() {
+	if(document.all["cbTipoComision"].disabled!=true) {
+		focaliza("formulario.cbTipoComision");
+	}
+	else {
+		focaliza("formulario.atxtConcepto");
+	}
+}
+
+function reInicio() {
+	focoComboTipoComision();
+}
+
+function fErrorAlGuardar(){
+	focoComboTipoComision();
+}
+
+function fGuardar(){
+	//Se realizan todas las validaciones
+
+	//COMIENZAN VALIDACIONES
+
+	//Se valida que haya seleccionado un valor en el combo tipo comision
+	if(!sicc_validaciones_generales('grupoCriterios')){
+		return false;
+	}
+
+	var capa2 = document.all["capa2"].style.visibility;
+	var capa3 = document.all["capa3"].style.visibility;
+	var capa4 = document.all["capa4"].style.visibility;
+	var capa5 = document.all["capa5"].style.visibility;
+
+	//Venta
+	if(capa2!='hidden') {
+
+		//Se valida que se haya ingresado un valor para los combos 
+		//Aplicar comision y Formula
+		if(!sicc_validaciones_generales('grupoVentas'))
+			return false;
+
+		//Si el campo dias incobrables esta habilitado
+		//se valida que se ingrese un valor
+		if(document.getElementById("txtDiasIncobrables").disabled != true) {
+			if(!sicc_validaciones_generales('grupoVentasCalcular'))
+				return false;
+		}		
+
+		//Se valida que se ingrese un valor en Comision o Importe fijo
+		if(!sicc_validaciones_generales('grupoCalcularMetas')){
+			return false;
+		}
+	
+		//Si el combo comparativo esta habilitado 
+		//se valida que se eliga un valor en dicho combo
+		if(document.getElementById("cbComparativo").disabled!=true) {
+			if(!sicc_validaciones_generales('grupoVentasComparativo')){
+				return false;
+			}		
+		}		
+
+		var comision = get("formulario.txtPorcentaje");
+		var importe = get("formulario.txtImporteFijo");
+
+		//Si los campos porcentaje comision e importe fijo
+		//tienen valor, aparece el siguiente mensaje:
+		//Los campos Comision e Importe Fijo son excluyentes
+		if((comision!="") && (importe!="")) {		
+			GestionarMensaje('1542',null,null,null)
+			focoPorcentajeComision();
+			return false;
+		}
+
+		//Si los campos porcentaje comision e importe fijo
+		//no tienen valor, aparece el siguiente mensaje
+		//Debe ingresar un valor para Comision o Importe Fijo
+		if((comision=="") && (importe=="")) {		
+			GestionarMensaje('1541',null,null,null)
+			focoPorcentajeComision();
+			return false;
+		}
+
+		//Si los campos Porcentaje incremento y Monto
+		//incremento tienen valor, aparecera el siguiente menaje
+		//Los campos Porcentaje incremento y Monto incremento son excluyentes
+		var porIncremento = get("formulario.txtPorcentajeIncremento");
+		var monIncremento = get("formulario.txtMonto");
+		if((porIncremento!="") && (monIncremento!="")) {
+			GestionarMensaje('1576',null,null,null)
+			focaliza("formulario.txtPorcentajeIncremento");
+			return false;
+		}		
+		
+		//Se valida que los campos porcentaje incremento
+		//y monto incremento tengan valores numericos
+		if(!sicc_validaciones_generales('grupoVentaHistorica')){
+			return false;
+		}		
+	}
+
+	//Cobranza
+	if(capa4!='hidden') {
+
+		//Se valida que se haya ingresado una valor
+		//para el combo tipo participante
+		if(!sicc_validaciones_generales('grupoCobranza'))
+		return false;
+	}
+	//FIN VALIDACIONES
+
+	//Se asignan valores a las variables ocultas
+	asignarCamposAHiddens();
+
+	var datosClientes = get("formulario.datosPestanyaClientes");
+
+	var capa2 = document.all["capa2"].style.visibility;
+	var capa3 = document.all["capa3"].style.visibility;
+	var capa4 = document.all["capa4"].style.visibility;
+	var capa5 = document.all["capa5"].style.visibility;
+
+	if((capa2=='hidden') && (capa3=='hidden') && (capa4=='hidden') && (capa5=='hidden')) {
+		return false;
+	}
+
+	//Si el tipo de comision es venta...
+	if(capa2!='hidden') {
+		//Si no se ingresaron registros en la pestaña Clientes
+		//Aparece el siguiente mensaje
+		//La comisión está incompleta ¿desea grabarla en estado 'En creación' ?
+		if(datosClientes=="false") {
+			var resp = GestionarMensaje('1543',null,null,null);
+		
+			//Si el usuario presiona Aceptar, se manda a guardar
+			if(resp==true) {
+				set("formulario.conectorAction", "LPMantenimientoComisionesDatosCalculo");
+				set("formulario.accion", "guardar");
+				eval('formulario').oculto = 'S';
+				enviaSICC('formulario', '', '', 'N');
+			}
+			//Si presiona Cancelar, sale
+			else {
+				return false;
+			}
+		}
+		//Si el usuario habia ingresado registros en la pestaña Clientes
+		//Se envia a guardar sin mostrar ningun mensaje
+		else {
+			set("formulario.conectorAction", "LPMantenimientoComisionesDatosCalculo");
+			set("formulario.accion", "guardar");
+			eval('formulario').oculto = 'S';
+			enviaSICC('formulario', '', '', 'N');
+		}	
+	}
+
+	//Si el tipo de comision es cobranza...
+	if(capa4!='hidden') {
+		//Si el usuario no ingreso registros en la pestaña
+		//Clientes, aparece el siguiente mensaje
+		//La comisión está incompleta ¿desea grabarla en estado 'En creación' ?
+		if(datosClientes=="false") {
+			var resp = GestionarMensaje('1543',null,null,null);
+
+			//Si el usuario presiona Aceptar, se manda a guardar
+			if(resp==true) {
+				set("formulario.conectorAction", "LPMantenimientoComisionesDatosCalculo");
+				set("formulario.accion", "guardar");
+				eval('formulario').oculto = 'S';
+				enviaSICC('formulario', '', '', 'N');
+			}
+			//Si el usuario presiona Cancelar, sale
+			else {
+				return false;
+			}
+		}
+		//Si el usuario ingreso registros en la pestaña, se manda
+		//a guardar sin mostrar ningun mensaje
+		else {
+			//se debe validar que se haya ingresado dias tras facturacion en la ventana modal y
+			//que aunque sea se haya insertado una linea en datos de niveles
+
+			var part = get('formulario.cbTipoParticipante', 'V');
+
+			if(part == get('formulario.TIPO_PARTICIPANTE_CAPITAL')){
+				if ((get('formulario.hTramosComisionesCapital')=='')||(get('formulario.hDiasTrasFacturacionCapital')=='')){
+					GestionarMensaje('UICOM0010',null,null,null);
+					return false;
+				}
+			}
+			else if(part == get('formulario.TIPO_PARTICIPANTE_PROVINCIA')){
+				if ((get('formulario.hTramosComisionesProvincia')=='')||(get('formulario.hDiasTrasFacturacionProvincia')=='')){
+					GestionarMensaje('UICOM0010',null,null,null);
+					return false;
+				}
+			}
+			else if(part == get('formulario.TIPO_PARTICIPANTE_FRONTERA')){
+				if ((get('formulario.hTramosComisionesFrontera')=='')||(get('formulario.hDiasTrasFacturacionFrontera')=='')){
+					GestionarMensaje('UICOM0010',null,null,null);
+					return false;
+				}
+			}
+
+			set("formulario.conectorAction", "LPMantenimientoComisionesDatosCalculo");
+			set("formulario.accion", "guardar");
+			eval('formulario').oculto = 'S';
+			enviaSICC('formulario', '', '', 'N');
+		}	
+	}
+}
+
+function asignarCamposAHiddens(){
+	setMV('formulario.cbTipoParticipante', 'N');
+
+	//****************************** Parametros comunes ****************************
+	//1°Tipo de comision
+	set('formulario.hTipoComision', get('formulario.cbTipoComision', 'V'));
+
+	//2°Concepto
+	set('formulario.hConcepto', get('formulario.atxtConcepto'));
+
+	//*********************************** Ventas ***********************************
+	//1°Aplicar comision
+	set('formulario.hAplicarComision', get('formulario.cbAplicarComision'));
+
+	//2°Calcular incobrables
+	set('formulario.varCalcularIncobrables', get('formulario.ckCalcularIncobrables'));
+
+	//3°Fecha
+	var incTemp = get('formulario.ckCalcularIncobrables');
+	if(incTemp=="N") {
+		set('formulario.hFechaEmision', 'N');
+		set('formulario.hFechaVencimiento', 'N');
+	}
+	else {
+		if(get('formulario.rbFecha')=='S'){
+			set('formulario.hFechaEmision', 'S');
+			set('formulario.hFechaVencimiento', 'N');
+		}
+		else{
+			set('formulario.hFechaEmision', 'N');
+			set('formulario.hFechaVencimiento', 'S');
+		}	
+	}
+
+	//4°Dias incobrables
+	set('formulario.hDiasIncobrables', get('formulario.txtDiasIncobrables'));
+
+	//5°Formula
+	set('formulario.varFormula', get('formulario.cbFormula', 'V'));
+
+	//6°Devoluciones
+	set('formulario.varDevoluciones', get('formulario.ckDevoluciones'));
+
+	//7°Anulaciones
+	set('formulario.varAnulaciones', get('formulario.ckAnulaciones'));
+
+	//8°Faltantes no anunciados
+	set('formulario.varFaltantesNoAnunciados', get('formulario.ckFaltantesNoAnunciados'));
+
+	//9°Porcentaje comision
+	set('formulario.htxtPorcentaje', get('formulario.txtPorcentaje'));
+
+	//10°Importe fijo
+	set('formulario.htxtImporteFijo', get('formulario.txtImporteFijo'));
+
+	//11°Comparativo
+	set('formulario.varComparativo', get('formulario.cbComparativo', 'V'));
+
+	if(document.getElementById("txtPorcentajeIncremento").disabled == true) {
+		//12°oid periodo inicial
+		set('formulario.oidPeriodoInicialEval', "");
+
+		//13°oid periodo final
+		set('formulario.oidPeriodoFinalEval', "");
+	}	
+
+	//14°Pocentaje incremento
+	set('formulario.htxtPorcentajeIncremento', get('formulario.txtPorcentajeIncremento'));
+
+	//15°Monto incremento
+	set('formulario.htxtMonto', get('formulario.txtMonto'));
+
+	//16°Devoluciones en metas
+	set('formulario.varDevolucionesEnMetas', get('formulario.ckDevolucionesMetas'));
+
+	//17°Anulaciones en metas
+	set('formulario.varAnulacionesEnMetas', get('formulario.ckAnulacionesMetas'));
+
+	//******************************* Cobranzas ********************************************		
+	set('formulario.hTipoParticipante', get('formulario.cbTipoParticipante'));
+
+	//************** Datos de la modificacion ****** Ventas y cobranzas ********************
+
+	if(get('formulario.hTipoComision') == get('formulario.TIPO_COMISION_VENTAS')){
+		set('formulario.hPeriodoEntradaEnVigor', get('formulario.cbPeriodoEntradaVigor3'));
+		set('formulario.hObservaciones', get('formulario.atxtObservaciones3'));
+	}
+	else if(get('formulario.hTipoComision') == get('formulario.TIPO_COMISION_COBRANZA')){
+		set('formulario.hPeriodoEntradaEnVigor', get('formulario.cbPeriodoEntradaVigor5'));
+		set('formulario.hObservaciones', get('formulario.atxtObservaciones52'));
+	}
+}
+
+function onChangeAplicarComision() {
+	/* Si el combo TipoComisionVenta el OID == 1 "Venta Total" entonces desactivar los siguientes campos:
+		   * Comparativo	NO ACTIVADO
+		   * Período inicial evaluación	NO ACTIVADO
+		   * Período final evaluación	NO ACTIVADO
+		   * Porcentaje incremento	NO ACTIVADO
+		   * Monto incremento	NO ACTIVADO
+		   * Devoluciones en metas	NO ACTIVADO
+		   * Anulaciones en metas	NO ACTIVADO
+		
+		Sino Si el combo el OID de TipoComisionVenta == 2 "Incremento" entonces desactivar los siguientes campos:
+		   * Comparativo	        ACTIVADO
+		   * Período inicial evaluación	NO ACTIVADO
+		   * Período final evaluación	NO ACTIVADO
+		   * Porcentaje incremento	NO ACTIVADO
+		   * Monto incremento	NO ACTIVADO
+		   * Devoluciones en metas	NO ACTIVADO
+		   * Anulaciones en metas	NO ACTIVADO
+
+		Fin si*/
+	
+	var oidAplicarComision = get("formulario.cbAplicarComision");
+
+	if(oidAplicarComision=="1") {
+	    set("formulario.cbComparativo", "");
+		document.getElementById("cbComparativo").disabled = true;
+		txt_to('lblPeriodoInicialEvaluaciondt', "");
+		txt_to('lblPeriodoFinalEvaluaciondt', "");
+		document.getElementById("txtPorcentajeIncremento").disabled = true;
+		document.getElementById("txtMonto").disabled = true;
+		document.getElementById("ckDevolucionesMetas").disabled = true;
+		document.getElementById("ckAnulacionesMetas").disabled = true;
+		document.getElementById("txtImporteFijo").disabled = true;
+
+		set("formulario.ckDevolucionesMetas", "");
+		set("formulario.ckAnulacionesMetas", "");
+		set("formulario.txtPorcentajeIncremento", "");
+		set("formulario.txtImporteFijo", "");
+		set("formulario.txtMonto", "");
+	}
+	else if(oidAplicarComision=="2") {
+		document.getElementById("cbComparativo").disabled = false;
+		txt_to('lblPeriodoInicialEvaluaciondt', "");
+		txt_to('lblPeriodoFinalEvaluaciondt', "");
+		document.getElementById("txtPorcentajeIncremento").disabled = true;
+		document.getElementById("txtMonto").disabled = true;
+		document.getElementById("ckDevolucionesMetas").disabled = true;
+		document.getElementById("ckAnulacionesMetas").disabled = true;
+		set("formulario.txtImporteFijo", "");
+		document.getElementById("txtImporteFijo").disabled = false;
+	}
+	else {
+		document.getElementById("txtImporteFijo").disabled = false;
+	}
+}
+
+function onChangeCalcularIncobrables() {
+	/*
+	Si Checked="S" entonces habilitar
+    Radiobutton Fecha  con el valor por defecto="Emision"
+    Días para Incobrables con valor por defecto en blanco
+	
+	Si Checked="N" entonces deshabilitar
+    Radiobutton Fecha  dejar sin valor
+    Días para Incobrables con valor por defecto en blanco
+	*/
+
+	var calcular = get("formulario.ckCalcularIncobrables");
+	if(calcular=="S") {
+		document.all.rbFecha[0].disabled= false;
+	    document.all.rbFecha[1].disabled= false;
+		set("formulario.rbFecha", "S");
+
+		document.getElementById("txtDiasIncobrables").disabled = false;
+		set("formulario.txtDiasIncobrables", "");
+	}
+	else {
+		document.all.rbFecha[0].disabled= true;
+	    document.all.rbFecha[1].disabled= true;
+		set("formulario.rbFecha", "");
+
+		document.getElementById("txtDiasIncobrables").disabled = true;
+		set("formulario.txtDiasIncobrables", "");
+	}
+}
+
+function onChangeComparativo() {
+/* (1)Si el OID de la opción seleccionada = "Venta Historica" entonces 
+			(2)Si las variables ocultas  oidPeriodoInicialAnterior  y oidPeriodoFinallAnterior <> null Entonces 
+				Habilitar
+				* Período inicial evaluación	Mostrar los valores
+ 				* Período final evaluación	Mostrar los valores
+				* Porcentaje incremento	ACTIVAR Opcional
+				* Monto incremento	ACTIVAR Opcional			
+				(Estos dos campos son excluyentes, por lo que se debe validar que no se ingresen valores en estos dos campos a la vez)
+	 	        * Devoluciones en metas	ACTIVAR por defecto debe ser ="S"
+				* Anulaciones en metas	ACTIVAR por defecto debe ser ="S"
+
+			(2) Sino Mostrar el mensaje de error UICOM0005 - "La comisión no puede ser incremental de tipo venta 			histórica, porque no existe el periodo del año anterior"
+
+	   (1)Sino si el OID de la opción seleccion <> "Venta Historica" entonces deshabilitar y dejar en blanco 
+           * Período inicial evaluación	
+		   * Período final evaluación	
+		   * Porcentaje incremento	
+		   * Monto incremento	
+		   * Devoluciones en metas	
+		   * Anulaciones en metas	
+   (1)Fin si */
+
+	var arraySeteo = new Array();
+	arraySeteo[0] = ""
+
+	var comparativo = get("formulario.cbComparativo");
+
+	if(comparativo=="1") {
+		var temp1 = get("formulario.oidPeriodoInicialEval");
+		var temp2 = get("formulario.desPeriodoInicial");
+		var temp3 = get("formulario.oidPeriodoFinalEval");
+		var temp4 = get("formulario.desPeriodoFinal");
+
+		if(temp1!="" && temp3!="") {
+			txt_to('lblPeriodoInicialEvaluaciondt', get("formulario.desPeriodoInicial"));
+			txt_to('lblPeriodoFinalEvaluaciondt', get("formulario.desPeriodoFinal"));
+
+			document.getElementById("txtPorcentajeIncremento").disabled = false;
+			document.getElementById("txtMonto").disabled = false;
+			document.getElementById("ckDevolucionesMetas").disabled = false;
+			document.getElementById("ckAnulacionesMetas").disabled = false;
+
+			set("formulario.ckDevolucionesMetas", get("formulario.varDevolucionesEnMetas"));
+			set("formulario.ckAnulacionesMetas", get("formulario.varAnulacionesEnMetas"));
+			set("formulario.txtPorcentajeIncremento", get("formulario.tempPorcentajeIncremento"));
+			set("formulario.txtMonto", get("formulario.tempMonto"));
+		}
+		else {
+			GestionarMensaje('UICOM0005',null,null,null);
+			set("formulario.cbComparativo", arraySeteo);
+			
+			txt_to('lblPeriodoInicialEvaluaciondt', "");
+			txt_to('lblPeriodoFinalEvaluaciondt', "");
+	
+			document.getElementById("txtPorcentajeIncremento").disabled = true;
+			document.getElementById("txtMonto").disabled = true;
+			document.getElementById("ckDevolucionesMetas").disabled = true;
+			document.getElementById("ckAnulacionesMetas").disabled = true;
+
+			set("formulario.ckDevolucionesMetas", "");
+			set("formulario.ckAnulacionesMetas", "");
+			set("formulario.txtPorcentajeIncremento", "");
+			set("formulario.txtMonto", "");
+		}		
+	}
+	else {
+		txt_to('lblPeriodoInicialEvaluaciondt', "");
+		txt_to('lblPeriodoFinalEvaluaciondt', "");
+
+		document.getElementById("txtPorcentajeIncremento").disabled = true;
+		document.getElementById("txtMonto").disabled = true;
+		document.getElementById("ckDevolucionesMetas").disabled = true;
+		document.getElementById("ckAnulacionesMetas").disabled = true;
+
+		set("formulario.ckDevolucionesMetas", "");
+		set("formulario.ckAnulacionesMetas", "");
+		set("formulario.txtPorcentajeIncremento", "");
+		set("formulario.txtMonto", "");
+	}
+}
+
+function focoPorcentajeComision() {
+	focaliza("formulario.txtPorcentaje");
+}
+
+function btnAceptarOnClick() {
+	if(!sicc_validaciones_generales('grupoCriterios')){
+		return;
+	}
+
+	var tipo = get('formulario.cbTipoComision', 'V');
+	mostrarCapas(tipo);
+}
+
+function btnAceptarTipoParticipanteOnClick() {
+	/* -> Levantar ventana modal "contenido_comisiones_datosComision_Insertar_detalle" 
+	-> Recuperar arreglo de arreglos 
+	(1) Si en "cmbTipoParticipante" se selecciona "Capital" entonces 
+	-> guardar arreglo de arreglos en "tramosComisionesCapital" 
+	(1) Si no Si en "cmbTipoParticipante" se selecciona "Provincia" entonces 
+	-> guardar arreglo de arreglos en "tramosComisionesProvincia" 
+	(1) Si no Si en "cmbTipoParticipante" se selecciona "Frontera" entonces 
+	-> guardar arreglo de arreglos en "tramosComisionesFrontera" 
+	(1) Fin Si */
+
+	if(sicc_validaciones_generales('grupoCobranza')){
+		var parametros = new Object();
+
+		var tipoParticipante = get('formulario.cbTipoParticipante', 'V');
+		var tipoPartCapital = get('formulario.TIPO_PARTICIPANTE_CAPITAL');
+		var tipoPartProvincia = get('formulario.TIPO_PARTICIPANTE_PROVINCIA');
+		var tipoPartFrontera = get('formulario.TIPO_PARTICIPANTE_FRONTERA');
+		var tramosComisionesCapital = get('formulario.hTramosComisionesCapital');
+		var tramosComisionesProvincia = get('formulario.hTramosComisionesProvincia');
+		var tramosComisionesFrontera = get('formulario.hTramosComisionesFrontera');
+		var hDiasTrasFacturacionCapital = get('formulario.hDiasTrasFacturacionCapital');
+		var hDiasTrasFacturacionProvincia = get('formulario.hDiasTrasFacturacionProvincia');
+		var hDiasTrasFacturacionFrontera = get('formulario.hDiasTrasFacturacionFrontera');
+		var opcionMenu = get('formulario.opcionMenu');
+		var titulo = get('formulario.titulo');		
+
+		parametros.tipoParticipante = tipoParticipante;
+		parametros.tipoPartCapital = tipoPartCapital;
+		parametros.tipoPartProvincia = tipoPartProvincia;
+		parametros.tipoPartFrontera = tipoPartFrontera;
+		parametros.tramosComisionesCapital = tramosComisionesCapital;
+		parametros.tramosComisionesProvincia = tramosComisionesProvincia;
+		parametros.tramosComisionesFrontera = tramosComisionesFrontera;
+		parametros.hDiasTrasFacturacionCapital = hDiasTrasFacturacionCapital;
+		parametros.hDiasTrasFacturacionProvincia = hDiasTrasFacturacionProvincia;
+		parametros.hDiasTrasFacturacionFrontera = hDiasTrasFacturacionFrontera;
+		parametros.opcionMenu = opcionMenu;
+		parametros.titulo = titulo;		
+
+		var datos = mostrarModalSICC("LPMantenimientoComisionesDatosCalculo", "mostrarDetalleComisiones", parametros,800,600);
+
+		if(datos != null){
+			var part = get('formulario.cbTipoParticipante', 'V');
+			var datosTemp = datos.valor.split("?");
+			var datosLista = datosTemp[0];
+			var diasFacturacion = datosTemp[1];
+
+			if(part == get('formulario.TIPO_PARTICIPANTE_CAPITAL')){
+				set('formulario.hTramosComisionesCapital', datosLista);
+				set('formulario.hDiasTrasFacturacionCapital', diasFacturacion);
+			}
+			else if(part == get('formulario.TIPO_PARTICIPANTE_PROVINCIA')){
+				set('formulario.hTramosComisionesProvincia', datosLista);
+				set('formulario.hDiasTrasFacturacionProvincia', diasFacturacion);
+			}
+			else if(part == get('formulario.TIPO_PARTICIPANTE_FRONTERA')){
+				set('formulario.hTramosComisionesFrontera', datosLista);
+				set('formulario.hDiasTrasFacturacionFrontera', diasFacturacion);
+			}
+		}
+	}
+}
+
+function poneManito(nombre) {           
+	var nombre = document.getElementById(nombre);
+	nombre.style.cursor = "hand";
+}   
+
+function onClickPestanya(valor) {
+	//COMIENZAN VALIDACIONES
+
+	//Se valida que haya seleccionado un valor en el combo tipo comision
+	if(!sicc_validaciones_generales('grupoCriterios')){
+		return false;
+	}
+
+	var capa2 = document.all["capa2"].style.visibility;
+	var capa3 = document.all["capa3"].style.visibility;
+	var capa4 = document.all["capa4"].style.visibility;
+	var capa5 = document.all["capa5"].style.visibility;
+
+	//Venta
+	if(capa2!='hidden') {
+
+		//Se valida que se haya ingresado un valor para los combos 
+		//Aplicar comision y Formula
+		if(!sicc_validaciones_generales('grupoVentas'))
+			return false;
+
+		//Si el campo dias incobrables esta habilitado
+		//se valida que se ingrese un valor
+		if(document.getElementById("txtDiasIncobrables").disabled != true) {
+			if(!sicc_validaciones_generales('grupoVentasCalcular'))
+				return false;
+		}		
+
+		//Se valida que se ingrese un valor en Comision o Importe fijo
+		if(!sicc_validaciones_generales('grupoCalcularMetas')){
+			return false;
+		}
+	
+		//Si el combo comparativo esta habilitado 
+		//se valida que se eliga un valor en dicho combo
+		if(document.getElementById("cbComparativo").disabled!=true) {
+			if(!sicc_validaciones_generales('grupoVentasComparativo')){
+				return false;
+			}		
+		}		
+
+		var comision = get("formulario.txtPorcentaje");
+		var importe = get("formulario.txtImporteFijo");
+
+		//Si los campos porcentaje comision e importe fijo
+		//tienen valor, aparece el siguiente mensaje:
+		//Los campos Comision e Importe Fijo son excluyentes
+		if((comision!="") && (importe!="")) {		
+			GestionarMensaje('1542',null,null,null)
+			focoPorcentajeComision();
+			return false;
+		}
+
+		//Si los campos porcentaje comision e importe fijo
+		//no tienen valor, aparece el siguiente mensaje
+		//Debe ingresar un valor para Comision o Importe Fijo
+		if((comision=="") && (importe=="")) {		
+			GestionarMensaje('1541',null,null,null)
+			focoPorcentajeComision();
+			return false;
+		}
+
+		//Si los campos Porcentaje incremento y Monto
+		//incremento tienen valor, aparecera el siguiente menaje
+		//Los campos Porcentaje incremento y Monto incremento son excluyentes
+		var porIncremento = get("formulario.txtPorcentajeIncremento");
+		var monIncremento = get("formulario.txtMonto");
+		if((porIncremento!="") && (monIncremento!="")) {
+			GestionarMensaje('1576',null,null,null)
+			focaliza("formulario.txtPorcentajeIncremento");
+			return false;
+		}		
+		
+		//Se valida que los campos porcentaje incremento
+		//y monto incremento tengan valores numericos
+		if(!sicc_validaciones_generales('grupoVentaHistorica')){
+			return false;
+		}		
+	}
+
+	//Cobranza
+	if(capa4!='hidden') {
+
+		//Se valida que se haya ingresado una valor
+		//para el combo tipo participante
+		if(!sicc_validaciones_generales('grupoCobranza'))
+		return false;
+	}
+	//FIN VALIDACIONES
+
+
+	var estadoVentana = get("formulario.estadoVentana");
+	var titulo = get("formulario.titulo");
+	var opcionMenu = get("formulario.opcionMenu");
+	var tipo = get('formulario.cbTipoComision', 'V');
+	set('formulario.hTipoComision', tipo)
+
+	if(valor=="DatosGenerales") {
+		set("formulario.idPestanyaDest", "1");
+	}
+	else if(valor=="Productos") {
+		set("formulario.idPestanyaDest", "2");
+	}
+	else if(valor == 'Clientes'){
+		set("formulario.idPestanyaDest", "3");
+	}
+	else if(valor=="DatosCalculo") {
+		set("formulario.idPestanyaDest", "4");
+	}
+
+	asignarCamposAHiddens();
+
+	set("formulario.conectorAction", "LPMantenimientoComisionesDatosCalculo");
+	set("formulario.estadoVentana", estadoVentana);
+	set("formulario.accion", "almacenar");
+	set("formulario.oidTipoPlantilla", get("formulario.oidTipoPlantilla"));
+	set("formulario.titulo", titulo);
+	set("formulario.opcionMenu", opcionMenu);
+	enviaSICC('formulario', '', '', 'N');
+}
+
+function onTabBotonAceptarTipoParticipante() {
+	if(document.all["capa5"].style.visibility== "hidden") {
+		focoComboTipoComision();
+	}
+	else {
+		focoComboPeriodoEntradaVigorCobranza();
+	}
+}
+
+function focoComboPeriodoEntradaVigorCobranza() {
+	focaliza("formulario.cbPeriodoEntradaVigor5");
+}
+
+function focoComboTipoParticipante() {
+	focaliza("formulario.cbTipoParticipante");
+}
+
+function onShTabComboTipoParticipante() {
+	if(document.getElementById("btnAceptar").disabled==true) {
+		focoBotonAceptarTipoParticipante();
+	}
+	else {
+		focoBotonAceptarCriterios();
+	}	
+}
+
+function focoBotonAceptarTipoParticipante() {
+	focalizaBotonHTML('botonContenido','btnAceptar2');
+}
+
+function focoBotonAceptarCriterios() {
+	focalizaBotonHTML('botonContenido','btnAceptar');
+}
+
+function focoComboAplicarComision() {
+	if(document.getElementById("cbAplicarComision").disabled == true) {
+		focoCalcularIncobrables();
+	}
+	else {
+		focaliza("formulario.cbAplicarComision");
+	}	
+}
+
+function focoCalcularIncobrables() {
+	if(document.getElementById("ckCalcularIncobrables").disabled == true) {
+		focaliza("formulario.cbFormula");
+	}
+	else {
+		focaliza("formulario.ckCalcularIncobrables");
+	}
+}
+
+function focoComboTipoComision() {
+	if(document.getElementById("cbTipoComision").disabled != true) {
+		focaliza("formulario.cbTipoComision");
+	}
+	else {
+		focaliza("formulario.atxtConcepto");
+	}	
+}
+
+function onShTabTipoComision() {
+	var tipoVentas = get('formulario.TIPO_COMISION_VENTAS');
+	var tipoCobranza = get('formulario.TIPO_COMISION_COBRANZA');
+
+	if(get("formulario.cbTipoComision")==tipoVentas) {
+		if(get('formulario.opcionMenu') == 'insertar'){
+			focalizaBotonHTML('btnCalcularMetas','btnAceptar');	
+		}
+		else {
+			focoObservacionesVentas();
+		}
+	}
+	else if(get("formulario.cbTipoComision")==tipoCobranza) {
+		if(get('formulario.opcionMenu') == 'insertar'){
+			focoBotonAceptarTipoParticipante();
+		}
+		else {
+			focoObservacionesCobranzas();
+		}
+	}
+	else {
+		focoBotonAceptarCriterios();
+	}
+}
+
+function focoObservacionesVentas() {
+	focaliza("formulario.atxtObservaciones3");
+}
+
+function focoObservacionesCobranzas() {
+	focaliza("formulario.atxtObservaciones52");
+}
+
+function onTabCalcularMetas() {
+	if(get('formulario.opcionMenu') == 'insertar'){
+		focoComboTipoComision();
+	}
+	else {
+		focaliza("formulario.cbPeriodoEntradaVigor3");
+	}
+}
+
+function fVolver() {
+	if(get("formulario.estadoVentana")=="M") {
+		window.close();
+	}
+	else {
+		if(get("formulario.titulo")=="ConsultarComisiones") {
+			set("formulario.conectorAction", "LPConsultarComisiones");
+  			enviaSICC('formulario', '', '', 'N');
+		}
+		else {
+			set("formulario.conectorAction", "LPEliminarComisiones");
+  			enviaSICC('formulario', '', '', 'N');
+		}
+	}
+}
+   
+]]> 
+</JAVASCRIPT>
+
+<VALIDACION>
+<!-- Se valida el combo tipo comision -->
+<ELEMENTO name="cbTipoComision" group="grupoCriterios" required="true" cod="1794"/>
+
+<!-- Se validan los combos aplicar comision y formula -->
+<ELEMENTO name="cbAplicarComision" group="grupoVentas" required="true" cod="1733"/>
+<ELEMENTO name="cbFormula" group="grupoVentas" required="true" cod="885"/>
+
+<!-- Se valida el campo dias incobrables -->
+<ELEMENTO name="txtDiasIncobrables" group="grupoVentasCalcular" required="true" cod="1737" format="e" min="0" max="999"/>
+
+<!-- Se valida el combo comparativo -->
+<ELEMENTO name="cbComparativo" group="grupoVentasComparativo" required="true" cod="1699"/>
+
+<!-- Se validan los campos porcentaje comision e importe fijo -->
+<ELEMENTO name="txtPorcentaje" group="grupoCalcularMetas"  required="false" cod="1545" format="n" min="0" max="999.99"/>
+<ELEMENTO name="txtImporteFijo" group="grupoCalcularMetas" required="false" cod="1736" format="n" min="0" max="9999999999.99"/>
+
+<!-- Se validan los campos porcentaje incremento y monto incremento -->
+<ELEMENTO name="txtPorcentajeIncremento" group="grupoVentaHistorica"  required="false" cod="1848" format="n" min="0" max="999.99"/>
+<ELEMENTO name="txtMonto" group="grupoVentaHistorica" required="false" cod="1741" format="n" min="0" max="9999999999.99"/>
+
+<!-- Se valida el combo tipo participante -->
+<ELEMENTO name="cbTipoParticipante" group="grupoCobranza" required="true" cod="1728"/>
+</VALIDACION>
+
+<FORMULARIO nombre="formulario">
+
+<VAR nombre="oidTipoPlantilla" valor=""/>
+<VAR nombre="titulo" valor=""/>
+<VAR nombre="estadoVentana" valor=""/>
+
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="accion" valor=""/>
+<VAR nombre="errCodigo" valor=""/> 
+<VAR nombre="errDescripcion" valor=""/>
+
+<VAR nombre="varPais" valor=""/> 
+<VAR nombre="varIdioma" valor=""/>
+
+<VAR nombre="hAplicarComision" valor=""/>
+<VAR nombre="varCalcularIncobrables" valor=""/>
+<VAR nombre="varFormula" valor=""/>
+<VAR nombre="varDevoluciones" valor=""/>
+<VAR nombre="varAnulaciones" valor=""/>
+<VAR nombre="varFaltantesNoAnunciados" valor=""/>
+<VAR nombre="varComparativo" valor=""/>
+<VAR nombre="varDevolucionesEnMetas" valor=""/>
+<VAR nombre="varAnulacionesEnMetas" valor=""/>
+<VAR nombre="hDiasTrasFacturacionCapital" valor=""/>
+<VAR nombre="hDiasTrasFacturacionProvincia" valor=""/>
+<VAR nombre="hDiasTrasFacturacionFrontera" valor=""/>
+<VAR nombre="hCBTipoComision" valor=""/>
+<VAR nombre="hFechaEmision" valor=""/>
+<VAR nombre="hFechaVencimiento" valor=""/>
+<VAR nombre="hPeriodoInicialEvaluacion" valor=""/>
+<VAR nombre="hPeriodoFinalEvaluacion" valor=""/>
+<VAR nombre="hDiasFacturacion" valor=""/>
+
+<!-- Si el siguiente hidden vale "S" habilitar los siguientes campos:
+	 Porcentaje de Incremento y 
+	 Monto de Incremento, 
+	 Porcentaje de Comisión e 
+	 Importe Fijo de la comisión -->
+<VAR nombre="hHabilitarEstadoSolicitudAutorizada" valor=""/>
+
+<!-- Si el siguiente hidden vale "S" habilitar el boton "Calcular metas" -->
+<VAR nombre="hHabilitarCalcularMetas" valor=""/>
+<VAR nombre="hHabilitarBotonAceptar" valor=""/>
+
+<!--puede valer 'I', 'M' o 'C'-->
+<VAR nombre="hOpcionMenu" valor=""/>
+
+<!-- Si el siguiente hidden vale "S" deshabilitar todos los campos -->
+<VAR nombre="hDeshabilitarTodo" valor=""/>
+
+<!-- Estos hiddens representan listas de datos (sustituyen a las
+listas ocultas).
+Los datos se almacenan en estas variables con el formato:
+xx,xx,xx,xx|xx,xx,xx,xx|xx,xx,xx,xx|...
+Cada tramo de String entre pipes representa un array. -->
+<VAR nombre="hTramosComisionesCapital" valor=""/>
+<VAR nombre="hTramosComisionesProvincia" valor=""/>
+<VAR nombre="hTramosComisionesFrontera" valor=""/>
+
+<!--Constantes de tipo de participante-->
+<VAR nombre="TIPO_PARTICIPANTE_CAPITAL" valor=""/>
+<VAR nombre="TIPO_PARTICIPANTE_PROVINCIA" valor=""/>
+<VAR nombre="TIPO_PARTICIPANTE_FRONTERA" valor=""/>
+
+<VAR nombre="TIPO_COMISION_VENTAS" valor=""/>
+<VAR nombre="TIPO_COMISION_COBRANZA" valor=""/>
+
+<VAR nombre="hTPCapital" valor=""/>
+<VAR nombre="idPestanyaDest" valor=""/>
+<VAR nombre="opcionMenu" valor=""/>
+<VAR nombre="hPeriodoInicialEvaluaciondt" valor=""/>
+<VAR nombre="hPeriodoFinalEvaluaciondt" valor=""/>
+<VAR nombre="hTipoParticipante" valor=""/>
+<VAR nombre="hPeriodoEntradaEnVigor" valor=""/>
+<VAR nombre="hObservaciones" valor=""/>
+
+<VAR nombre="datosPestanyaClientes" valor=""/>
+<VAR nombre="datosPestanyaDatosCalculo" valor=""/>
+
+
+<VAR nombre="desPeriodoInicial" valor=""/>
+<VAR nombre="desPeriodoFinal" valor=""/>
+<VAR nombre="oidPeriodoInicialEval" valor=""/>
+<VAR nombre="oidPeriodoFinalEval" valor=""/>
+
+
+<!-- PARA DESHABILITAR O NO, EL COMBO APLICAR COMISION -->
+<VAR nombre="seteoAplicarComision" valor=""/>
+<!-- VALORES DE LOS OIDS PARA EL COMBO APLICAR COMISION -->
+<VAR nombre="valVentaTotal" valor=""/>
+<VAR nombre="valIncremento" valor=""/>
+<!-- PARAMETROS COMUNES -->
+<VAR nombre="hTipoComision" valor=""/>
+<VAR nombre="hConcepto" valor=""/>
+<!-- VENTAS --> 
+<VAR nombre="hDiasIncobrables" valor=""/>
+<VAR nombre="htxtPorcentaje" valor=""/>
+<VAR nombre="htxtImporteFijo" valor=""/>
+<VAR nombre="htxtPorcentajeIncremento" valor=""/>
+<VAR nombre="htxtMonto" valor=""/>
+<VAR nombre="tempDiasIncobrables" valor=""/>
+<VAR nombre="tempPorcentaje" valor=""/>
+<VAR nombre="tempImporteFijo" valor=""/>
+<VAR nombre="tempPorcentajeIncremento" valor=""/>
+<VAR nombre="tempMonto" valor=""/>
+
+<VAR nombre="valDefecto" valor=""/>
+
+<table width="100%" height="100%" border="0" align="center" cellpadding="0" cellspacing="0" class="menu4">
+  <tr> 
+    <td width="12" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="12" height="30"/></td>
+    <td nowrap="nowrap" class="menu5texto">&nbsp;</td>
+    <td width="10" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+   <td width="92" nowrap="nowrap" class="menu5texto">   
+   <table width="75" border="1" align="center" cellpadding="1" cellspacing="0" ID="DatosGenerales" 
+   bordercolor="#496A9A" onclick="onClickPestanya('DatosGenerales');" onmouseover="poneManito('DatosGenerales');" >
+        <tr align="center"> 
+          <td nowrap="nowrap"><LABELC nombre="lblDGC"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00543"/></td>
+        </tr>
+   </table>
+    </td>
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto">   
+    <table width="75" border="1" align="center" cellpadding="1" cellspacing="0" ID="Productos" 
+    bordercolor="#496A9A" onclick="onClickPestanya('Productos');" onmouseover="poneManito('Productos');" >
+        <tr align="center"> 
+          <td nowrap="nowrap" ><LABELC nombre="lblProductos"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="0094"/></td>
+        </tr>
+    </table>      
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto">
+    <table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onclick="onClickPestanya('Clientes');" onmouseover=" poneManito('Clientes');" ID="Clientes">
+        <tr align="center"> 
+          <td nowrap="nowrap" ><LABELC nombre="lblClientes"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="0026"/></td>
+        </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto">
+    <table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" ID="DatosCalculo" bgcolor="#496A9A">
+        <tr align="center"> 
+          <td nowrap="nowrap"  ><LABELC nombre="lblDatosC"  alto="13" filas="1" valor="" id="menu5textoblanca" cod="00544" /></td>
+        </tr>
+      </table>
+   </td>   
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto">
+    <table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" ID="DatosComisionEscalonada">
+        <tr align="center"> 
+          <td nowrap="nowrap"  ><LABELC nombre="lblDatosEscalonada"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="3462" /></td>
+        </tr>
+      </table>
+   </td>
+    <td width="16" class="menu5texto"><IMG src="b.gif" width="12" height="8"/></td>
+  </tr>
+</table>
+<!--*******************-->
+<CAPA nombre="capa1" >
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+	<fieldset><legend class="legend"><LABELC nombre="lblCriteriosSeleccion"  alto="13" filas="1" valor="" id="legend" cod="00275"/></legend> 
+	  <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+             <tr><td>
+          <!---primera fila-->
+              <table width="663" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td><LABELC nombre="lblTipoComision"  alto="13" filas="1" valor="" id="datosTitle" cod="1857"/></td>                   
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lblConcepto"  alto="13" filas="1" valor="" id="datosTitle" cod="1711"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td  nowrap="nowrap" valign="top">
+                    <COMBO nombre="cbTipoComision" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onshtab="onShTabTipoComision();">
+                      	<ROWSET>
+                      	</ROWSET>
+                    </COMBO>
+                   </td>  
+                   <td><IMG src="b.gif" width="25" height="8"/></td>  
+                   <td  nowrap="nowrap" >
+                   <AREATEXTO cols="50" id="datosCampos" msjreq="" nombre="atxtConcepto" readonly="N"
+                       req="N" rows="3" tabindex="2" valor="" max="125"/>
+                   </td>                 
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+       <!---fin primera fila-->
+	    </td></tr>
+          </table>
+        </fieldset>        
+      </td>      
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnAceptar" ID="botonContenido" tipo="html" accion="btnAceptarOnClick();" estado="false" cod="12" />
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+    </tr> 
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>            
+ </CAPA> 
+<!--**************************************** VENTAS ************************************************-->  
+ <CAPA nombre="capa2" alto="350" ancho="100%" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="hidden" contravsb="" x="0" y="157" zindex=""><!--y=127-->
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+         <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+         <td width="750" ><IMG src="b.gif"/></td>
+         <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+     <tr> 
+      <td><IMG src="b.gif"/></td>      
+      <td>
+         <fieldset><legend class="legend"><LABELC nombre="lblVentas"  alto="13" filas="1" valor="" id="legend" cod="00344"/></legend> 
+           <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+             <tr><td>
+                 <table width="663" border="0" align="left" cellspacing="0" cellpadding="0">
+                  <tr> 
+                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>                    
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>                     
+                     <td><LABELC nombre="lblAplicarComision"  alto="13" filas="1" valor="" id="datosTitle" cod="1733"/></td>   
+                     <td><IMG src="b.gif" width="25" height="8"/></td>                     
+                     <td><LABELC nombre="lblCalcularIncobrables"  alto="13" filas="1" valor="" id="datosTitle" cod="1734"/></td>                  
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td><LABELC nombre="lblFecha"  alto="13" filas="1" valor="" id="datosTitle" cod="188"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td><LABELC nombre="lblDiasIncobrables" alto="13" filas="1" valor="" id="datosTitle" cod="1737"/></td>
+                     <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr> 
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>                     
+                     <td  nowrap="nowrap">
+                      <COMBO nombre="cbAplicarComision" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onchange="onChangeAplicarComision();">
+                           <ROWSET> 
+                           </ROWSET>
+                      </COMBO>                      
+                     </td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>                     
+                     <td><CHECKBOX nombre="ckCalcularIncobrables" id="datosCampos" onclick="onChangeCalcularIncobrables();" check="N"/></td>        
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td nowrap="nowrap">
+                       <table width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td class="datosCampos" nowrap="nowrap">
+                  	 <RADIOB nombre="rbFecha" tipo="H" id="datosCampos">
+                           <RBINPUT valor="S" check="N" onfocus="" id="datosCampos" cod="392"></RBINPUT>
+                           <RBINPUT valor="N" check="S" onfocus="" id="datosCampos" cod="883"></RBINPUT>
+                         </RADIOB>
+                       </td></tr></table>
+                     </td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td nowrap="nowrap">
+                       <CTEXTO nombre="txtDiasIncobrables" id="datosCampos" max="3" tipo="" onchange="" req="S" size="3" valor="" validacion="" />
+                     </td>
+                     <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                  <tr>
+                     <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>                  
+                </table>
+           </td></tr>
+            <tr><td>                         
+                 <table width="663" border="0" align="left" cellspacing="0" cellpadding="0">
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>                     
+                     <td><LABELC nombre="lblFormula"  alto="13" filas="1" valor="" id="datosTitle" cod="885"/></td>   
+                     <td><IMG src="b.gif" width="25" height="8"/></td>                     
+                     <td><LABELC nombre="lblDevoluciones"  alto="13" filas="1" valor="" id="datosTitle" cod="1623"/></td>  
+                     <td><IMG src="b.gif" width="25" height="8"/></td>                     
+                     <td><LABELC nombre="lblAnulaciones" alto="13" filas="1" valor="" id="datosTitle" cod="1624"/></td>  
+                     <td><IMG src="b.gif" width="25" height="8"/></td>                     
+                     <td><LABELC nombre="lblFaltantesNoAnunciados"  alto="13" filas="1" valor="" id="datosTitle" cod="1625"/></td>                  
+                     <td><IMG src="b.gif" width="25" height="8"/></td>                     
+			                     <td><LABELC nombre="lblComision" alto="13" filas="1" valor="" id="datosTitle" cod="1545"/></td>   
+			                     <td><IMG src="b.gif" width="25" height="8"/></td>                     
+			                     <td><LABELC nombre="lblImporteFijo"  alto="13" filas="1" valor="" id="datosTitle" cod="1736"/></td>  
+		     <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr> 
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>                     
+                     <td  nowrap="nowrap">
+                      <COMBO nombre="cbFormula" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="">
+                           <ROWSET> 
+                           </ROWSET>
+                      </COMBO>                      
+                     </td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>                                    
+                     <td><CHECKBOX nombre="ckDevoluciones" id="datosCampos" onclick="" check="N"/></td> 
+                     <td><IMG src="b.gif" width="25" height="8"/></td>                     
+                     <td><CHECKBOX nombre="ckAnulaciones" id="datosCampos" onclick="" check="N"/></td>                
+                     <td><IMG src="b.gif" width="25" height="8"/></td>                     
+                     <td><CHECKBOX nombre="ckFaltantesNoAnunciados" id="datosCampos" onclick="" check="N"/></td>     
+                     <td><IMG src="b.gif" width="25" height="8"/></td>                     
+			                     <td  nowrap="nowrap" class="datosCampos">
+			                           <CTEXTO nombre="txtPorcentaje" id="datosCampos" max="6" tipo="" onchange="" req="N" size="6" valor="" validacion="" /> 
+			                     </td>
+			                     <td><IMG src="b.gif" width="25" height="8"/></td>                     
+			                     <td  nowrap="nowrap" valign="bottom">
+			                            <CTEXTO nombre="txtImporteFijo" id="datosCampos" max="16" tipo="" onchange="" req="N" size="19" valor="" validacion="" />
+			                     </td> 
+		     <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                  <tr>
+                     <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>                  
+                </table>
+            </td></tr>
+	    <tr><td>      
+                 <table width="663" border="0" align="left" cellspacing="0" cellpadding="0">
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>                     
+                     <td><LABELC nombre="lblComparativo" alto="13" filas="1" valor="" id="datosTitle" cod="1699"/></td>   
+                     <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr> 
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>                     
+                     <td  nowrap="nowrap">
+                      <COMBO nombre="cbComparativo" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onchange="onChangeComparativo();">
+                           <ROWSET>
+						   </ROWSET>
+                      </COMBO>
+                      
+                     </td>
+                     <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                  <tr>
+                     <td colspan="4"><IMG src="b.gif" width="8" height="12"/></td>
+                  </tr>                  
+                </table>
+            </td></tr>
+        <tr>
+          <td>     
+            <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+              <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>                  
+                <td width="100%">                      
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                    <tr>
+                      <td>
+                        <fieldset><legend class="legend"><LABELC nombre="lblVentaHistorica"  alto="13" filas="1" valor="" id="legend" cod="00350"/></legend> 
+                          <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          		    <tr>
+          		      <td>
+                                <table width="643" border="0" align="left" cellspacing="0" cellpadding="0">
+                                  <tr> 
+                                    <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                                  </tr>
+                                  <tr>
+                                    <td><IMG src="b.gif" width="8" height="8"/></td>
+                                    <td><LABELC nombre="lblPeriodoInicialEvaluacion"  alto="13" filas="1" valor="" id="datosTitle" cod="1674"/></td>
+                                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                                    <td><LABELC nombre="lblPeriodoFinalEvaluacion"  alto="13" filas="1" valor="" id="datosTitle" cod="1739"/></td>
+                                    <td><IMG src="b.gif" width="25" height="8"/></td>                     
+				    <td><LABELC nombre="lblPorcentaje" alto="13" filas="1" valor="" id="datosTitle" cod="1848"/></td>
+				    <td><IMG src="b.gif" width="25" height="8"/></td>
+				    <td><LABELC nombre="lblMonto"  alto="13" filas="1" valor="" id="datosTitle" cod="1741"/></td>
+			            <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                  </tr>
+                                  <tr>
+                                    <td><IMG src="b.gif" width="8" height="8"/></td>
+                                    <td><LABELC nombre="lblPeriodoInicialEvaluaciondt"  alto="13" filas="1" valor="" id="datosCampos"/></td>
+                                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                                    <td><LABELC nombre="lblPeriodoFinalEvaluaciondt"  alto="13" filas="1" valor="" id="datosCampos"/></td>
+                                    <td><IMG src="b.gif" width="25" height="8"/></td>                     
+				    <td nowrap="nowrap" class="datosCampos">
+				      <CTEXTO nombre="txtPorcentajeIncremento" id="datosCampos" max="6" tipo="" onchange="" req="N" size="6" valor="" validacion="" />
+				    </td>
+				    <td><IMG src="b.gif" width="25" height="8"/></td>
+				    <td nowrap="nowrap">
+				      <CTEXTO nombre="txtMonto" id="datosCampos" max="16" tipo="" onchange="" req="N" size="19" valor="" validacion="" />
+				    </td>
+				    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                  </tr>
+                                  <tr> 
+                                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                                  </tr>
+                                </table>
+                                </td>
+                                  </tr>
+                                  <tr>
+          		      <td>
+                                <table width="643" border="0" align="left" cellspacing="0" cellpadding="0">
+                                  <tr> 
+                                    <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                                  </tr>
+                                  <tr>
+                                    <td><IMG src="b.gif" width="8" height="8"/></td>
+                                    <td><LABELC nombre="lblDevolucionesMetas" alto="13" filas="1" valor="" id="datosTitle" cod="1742"/></td>
+				    <td><IMG src="b.gif" width="25" height="8"/></td>
+				    <td><LABELC nombre="lblAnulacionesMetas"  alto="13" filas="1" valor="" id="datosTitle" cod="1743"/></td>
+				    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                  </tr>
+                                  <tr>
+                                    <td><IMG src="b.gif" width="8" height="8"/></td>
+                                    <td><CHECKBOX nombre="ckDevolucionesMetas" id="datosCampos" onclick="" check="N"/></td> 
+                                    <td><IMG src="b.gif" width="25" height="8"/></td>                     
+                                    <td><CHECKBOX nombre="ckAnulacionesMetas" id="datosCampos" onclick="" check="N"/></td>        
+				    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                  </tr>
+                                  <tr> 
+                                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                                  </tr>
+                                </table>
+                                </td>
+                                  </tr>
+                              </table>
+                            </fieldset>
+                            
+                          </td>
+                        </tr>  
+                      </table>       
+                                     
+                    </td>                           
+                    <td><IMG src="b.gif" width="8" height="8"/></td>              
+                  </tr>
+                  <tr>
+                    <td colspan="4"><IMG src="b.gif" width="8" height="15"/></td>
+                  </tr>                                                      
+                </table>                  
+              </td>
+            </tr>
+          </table>                
+        </fieldset>         
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr>  
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750" ><IMG src="b.gif"/></td>
+      <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table> 
+</CAPA> 
+
+<CAPA nombre="capa3" alto="120" ancho="100%" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="hidden" contravsb="" x="0" y="452" zindex=""><!--y=447-->
+
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+	<fieldset><legend class="legend"><LABELC nombre="lblDatosModificacion3"  alto="13" filas="1" valor="" id="legend" cod="00547"/></legend> 
+	  <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+             <tr><td>
+          <!---primera fila-->
+              <table width="663" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td><LABELC nombre="lblPeriodoEntradaVigor3"  alto="13" filas="1" valor="" id="datosTitle" cod="1735"/></td>                   
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lblObservaciones3"  alto="13" filas="1" valor="" id="datosTitle" cod="169"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td  nowrap="nowrap" valign="top">
+                    <COMBO nombre="cbPeriodoEntradaVigor3" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                      	<ROWSET>
+                      	
+                      	</ROWSET>
+                    </COMBO>
+                   </td>  
+                   <td><IMG src="b.gif" width="25" height="8"/></td>  
+                   <td  nowrap="nowrap" >
+                   <AREATEXTO cols="50" id="datosCampos" msjreq="" nombre="atxtObservaciones3" readonly="N"
+                       req="N" rows="3" tabindex="2" valor="" max="125" ontab="focoComboTipoComision();"/>
+                   </td>                 
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+       <!---fin primera fila-->
+	    </td></tr>
+          </table>
+        </fieldset>        
+      </td>
+      
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+   
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>            
+ </CAPA>  
+<!--************************************* COBRANZA ******************************************--> 
+ 
+ <CAPA nombre="capa4" alto="200" ancho="100%" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="hidden" contravsb="" x="0" y="157" zindex=""><!--y=127-->
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr> 
+      <td><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif" width="1" height="1"/></td>
+      <td><IMG src="b.gif" width="12" height="12"/></td>
+    </tr>
+
+
+    <tr> 
+      <td width="12"><IMG src="b.gif" width="12" height="12"/></td>
+      <td>
+         <fieldset><legend class="legend"><LABELC nombre="lblCobranza" alto="13" filas="1" valor="" id="legend" cod="00345"/></legend>
+          <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+           <tr><td>
+            <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+             <tr> 
+                <td colspan="4"><IMG src="b.gif" width="12" height="8"/></td>
+             </tr>
+             <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td width="100%">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                    <tr>
+                      <td>
+                         <fieldset><legend class="legend"><LABELC nombre="lblDatosParticipante"  alto="13" filas="1" valor="" id="legend" cod="00365"/></legend>
+         		    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          		     <tr><td>
+		                <table width="643" border="0" align="left" cellspacing="0" cellpadding="0">
+		                  <tr> 
+		                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+		                  </tr>
+		                  <tr>
+		                     <td><IMG src="b.gif" width="8" height="8"/></td>                     
+		                     <td><LABELC nombre="lblTipoParticipante"  alto="13" filas="1" valor="" id="datosTitle" cod="1728"/></td>                     
+		                     <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+		                  </tr> 
+		                  <tr>
+		                     <td><IMG src="b.gif" width="8" height="8"/></td>                     
+		                     <td  nowrap="nowrap">
+		                      <COMBO nombre="cbTipoParticipante" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onshtab="onShTabComboTipoParticipante();">
+		                           <ROWSET>
+		                           </ROWSET>
+		                      </COMBO>
+		                     </td>                   
+		                     <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+		                  </tr>
+		                  <tr>
+		                     <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+		                  </tr>                  
+		                </table>
+		               </td></tr>
+                              </table>
+                           </fieldset>
+                      </td>
+                    </tr>                                                                                                      
+                  </table>
+                </td>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+             </tr> 
+             <tr> 
+	                <td><IMG src="b.gif"/></td>
+	                <td>
+	                  <fieldset>
+	                    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">         
+	                      <tr>
+	                         <td class="botonera" width="100%">
+	                           <BOTON nombre="btnAceptar2" ID="botonContenido" tipo="html" accion="btnAceptarTipoParticipanteOnClick();" estado="false" cod="12" ontab="onTabBotonAceptarTipoParticipante();"/>
+	                         </td>
+	                      </tr>    
+	                    </table>         
+	                  </fieldset>
+	                </td>
+	                <td><IMG src="b.gif" width="8" height="8"/></td>
+	    </tr>                              
+             <tr> 
+                <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+             </tr>
+           </table>
+        </td></tr>
+        <tr> 
+                <td colspan="3"><IMG src="b.gif" width="8" height="12"/></td>
+        </tr>
+                                         
+           
+         </table>
+        </fieldset>
+      </td>
+      
+      <td><IMG src="b.gif" width="12" height="12"/></td>
+    </tr>
+    
+                  
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750" ><IMG src="b.gif"/></td>
+      <td width="12" ><IMG src="b.gif" width="12" height="12"/></td>
+    </tr>
+  </table>
+  
+</CAPA>
+ 
+
+
+
+ <CAPA nombre="capa5" alto="100" ancho="100%" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="" contravsb="" x="0" y="305" zindex=""><!--y=275-->
+
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+	<fieldset><legend class="legend"><LABELC nombre="lblCriteriosModificacion5"  alto="13" filas="1" valor="" id="legend" cod="00547"/></legend> 
+	  <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+             <tr><td>
+          <!---primera fila-->
+              <table width="663" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td><LABELC nombre="lblPeriodoEntradaVigor5"  alto="13" filas="1" valor="" id="datosTitle" cod="1735"/></td>                   
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lblObservaciones5"  alto="13" filas="1" valor="" id="datosTitle" cod="169"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td  nowrap="nowrap" valign="top">
+                    <COMBO nombre="cbPeriodoEntradaVigor5" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                      	<ROWSET>
+                      	
+                      	</ROWSET>
+                    </COMBO>
+                   </td>  
+                   <td><IMG src="b.gif" width="25" height="8"/></td>  
+                   <td  nowrap="nowrap" >
+                   <AREATEXTO cols="50" id="datosCampos" msjreq="" nombre="atxtObservaciones52" readonly="N"
+                       req="N" rows="3" tabindex="2" valor="" max="125" ontab="focoComboTipoComision();"/>
+                   </td>                 
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+       <!---fin primera fila-->
+	    </td></tr>
+          </table>
+        </fieldset>        
+      </td>
+      
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+   
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>            
+ </CAPA>  
+ 
+ </FORMULARIO>
+</PAGINA> 

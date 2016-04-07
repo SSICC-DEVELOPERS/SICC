@@ -1,0 +1,472 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_carga_parametrizar.xml,v 1.2 2010/10/19 17:30:22 peextsapaza Exp $
+   BEL
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_carga_parametrizar" cod="0279" titulo="Parametrizar carga" estilos="estilosB3.css" colorf="#F0F0F0"
+        msgle="Parametrizar carga" onload="onLoadPag()" xml:lang="es" >
+
+<JS src="sicc_util.js"></JS>
+<JS src="DruidaTransactionMare.js"></JS>
+
+<JAVASCRIPT>
+  <![CDATA[ 
+
+  function onLoadPag()  {
+    configurarMenuSecundario("frmUnico");
+    fMostrarMensajeError();
+    //alert( get('frmUnico.hOidParametrizacionMAV') );
+    focaliza('frmUnico.textNRegistroProductosGenerados');
+    setearCampos();
+
+  }
+
+
+  function setearCampos()  {
+    set('frmUnico.rbAutorizacionEnvioPago', get('frmUnico.hRbAutorizacionEnvioPago') );
+
+    var seleccionCbEstrategia = new Array( [get('frmUnico.hCbEstrategia')] );
+    set('frmUnico.cbEstrategia',seleccionCbEstrategia);
+
+    var seleccionCbAlmacen = new Array( [get('frmUnico.hCbAlmacen')] );
+    set('frmUnico.cbAlmacen',seleccionCbAlmacen);
+
+	// sapaza -- PER-SiCC-2010-0606 -- 18/10/2010
+    var seleccionCbCatalogo = new Array( [get('frmUnico.hCbCatalogo')] );
+    set('frmUnico.cbCatalogo',seleccionCbCatalogo);
+    var seleccionCbCondicionPromocion = new Array( [get('frmUnico.hCbCondicionPromocion')] );
+    set('frmUnico.cbCondicionPromocion',seleccionCbCondicionPromocion);
+
+    var seleccionCbTipoCliente1 = new Array( [get('frmUnico.hCbTipoCliente1')] );
+    set('frmUnico.cbTipoCliente1',seleccionCbTipoCliente1);
+
+    var seleccionCbTipoCliente2 = new Array( [get('frmUnico.hCbTipoCliente2')] );
+    set('frmUnico.cbTipoCliente2',seleccionCbTipoCliente2);
+
+    var subtiposCliente = get('frmUnico.hCbSubtipoCliente1');
+    var listaValoresSTC = subtiposCliente.split("|");
+    set('frmUnico.cbSubtipoCliente1', listaValoresSTC );
+
+    subtiposCliente = get('frmUnico.hCbSubtipoCliente2');
+    listaValoresSTC = subtiposCliente.split("|");
+    set('frmUnico.cbSubtipoCliente2', listaValoresSTC );
+  }
+
+
+  function fLimpiar()  {
+    focaliza('frmUnico.textNRegistroProductosGenerados');
+    set('frmUnico.rbAutorizacionEnvioPago', get('frmUnico.hRbAutorizacionEnvioPago') );
+    var seleccionCbEstrategia = new Array( [get('frmUnico.hCbEstrategia')] );
+    set('frmUnico.cbEstrategia',seleccionCbEstrategia);
+    var seleccionCbAlmacen = new Array( [get('frmUnico.hCbAlmacen')] );
+    set('frmUnico.cbAlmacen',seleccionCbAlmacen);
+    var seleccionCbTipoCliente1 = new Array( [get('frmUnico.hCbTipoCliente1')] );
+    set('frmUnico.cbTipoCliente1',seleccionCbTipoCliente1);
+    var seleccionCbTipoCliente2 = new Array( [get('frmUnico.hCbTipoCliente2')] );
+    set('frmUnico.cbTipoCliente2',seleccionCbTipoCliente2);
+    recargarCombosSTCRegion();
+    recargarCombosSTCZona();
+  }
+
+
+  function recargarCombosSTCRegion()  {
+    var arr = new Array();
+    arr[arr.length] = new Array("oidIdioma",get('frmUnico.hOidIdioma'));
+    //alert( get('frmUnico.cbTipoCliente1') );
+    arr[arr.length] = new Array("oid", get('frmUnico.cbTipoCliente1') );
+    recargaCombo("frmUnico.cbSubtipoCliente1", "MAEobtenerSubtipos", "es.indra.sicc.util.DTOOID", arr, "setearSTCRegion(datos)" );
+  }
+
+  function recargarCombosSTCZona()  {
+    var arr = new Array();
+    arr[arr.length] = new Array("oidIdioma",get('frmUnico.hOidIdioma'));
+    //alert( get('frmUnico.cbTipoCliente2') );
+    arr[arr.length] = new Array("oid", get('frmUnico.cbTipoCliente2') );
+    recargaCombo("frmUnico.cbSubtipoCliente2", "MAEobtenerSubtipos", "es.indra.sicc.util.DTOOID", arr, "setearSTCZona(datos)" );
+  }
+
+  function setearSTCRegion(datos)  {
+    set_combo('frmUnico.cbSubtipoCliente1',[0]);
+    for(i=0;i<datos.length;i++) {
+      var stcRegion = new Array();
+      stcRegion = datos[i];
+      combo_add('frmUnico.cbSubtipoCliente1', stcRegion[0], stcRegion[1]);
+    }
+    if ( get('frmUnico.cbTipoCliente1') == get('frmUnico.hCbTipoCliente1') )  {
+      var subtiposCliente = get('frmUnico.hCbSubtipoCliente1');
+      var listaValoresSTC = subtiposCliente.split("|");
+      set('frmUnico.cbSubtipoCliente1', listaValoresSTC );
+    }
+  }
+
+  function setearSTCZona(datos)  {
+    set_combo('frmUnico.cbSubtipoCliente2',[0]);
+    for(i=0;i<datos.length;i++) {
+      var stcZona = new Array();
+      stcZona = datos[i];
+      combo_add('frmUnico.cbSubtipoCliente2', stcZona[0], stcZona[1]);
+    }
+    if ( get('frmUnico.cbTipoCliente2') == get('frmUnico.hCbTipoCliente2') )  {
+      var subtiposCliente = get('frmUnico.hCbSubtipoCliente2');
+      var listaValoresSTC = subtiposCliente.split("|");
+      set('frmUnico.cbSubtipoCliente2', listaValoresSTC );
+    }
+  }
+
+
+  function focalizar()  {
+    document.selection.empty( get('frmUnico.textNRegistroProductosGenerados') );
+    focaliza('frmUnico.cbSubtipoCliente2');
+  }
+
+
+  function fGuardar()  {
+    if (!sicc_validaciones_generales())  {
+      return;
+    }
+    if ( fValidarNatural(get('frmUnico.textNRegistroProductosGenerados'),'10','0','9999999999') !='OK' )  {
+      focaliza('frmUnico.textNRegistroProductosGenerados');
+      return;
+    }
+    if ( fValidarNatural(get('frmUnico.textLimitePrecio'),'10','0','9999999999') !='OK' )  {
+      focaliza('frmUnico.textLimitePrecio');
+      return;
+    }
+    set('frmUnico.accion','Guardar');
+    enviaSICC('frmUnico');
+  }
+
+
+  function muestraExito()
+  {
+		fMostrarMensajeExito();
+  }
+
+
+// VARIABLES:
+//textNRegistroProductosGenerados
+//textLimitePrecio
+//rbAutorizacionEnvioPago
+//cbEstrategia
+//cbAlmacen
+//textDireccionElectronica
+//cbTipoCliente1
+//cbSubtipoCliente1
+//cbTipoCliente2
+//cbSubtipoCliente2
+
+  ]]> 
+</JAVASCRIPT>
+
+<FORMULARIO nombre="frmUnico" oculto="S">
+
+
+<VAR nombre="conectorAction" valor="LPParametrizarCarga"/>
+
+<VAR nombre="hOidIdioma" valor=""/>
+<VAR nombre="casoDeUso" valor=""/>
+<VAR nombre="accion" valor=""/>
+
+<VAR nombre="hOidParametrizacionMAV" valor=""/>
+<VAR nombre="hRbAutorizacionEnvioPago" valor=""/>
+<VAR nombre="hCbEstrategia" valor=""/>
+<VAR nombre="hCbAlmacen" valor=""/>
+<VAR nombre="hCbTipoCliente1" valor=""/>
+<VAR nombre="hCbTipoCliente2" valor=""/>
+<VAR nombre="hCbSubtipoCliente1" valor=""/>
+<VAR nombre="hCbSubtipoCliente2" valor=""/>
+
+<VAR nombre="hCbCatalogo" valor=""/>
+<VAR nombre="hCbCondicionPromocion" valor=""/>
+
+<VAR nombre="exito" valor=""/>
+<VAR nombre="errCodigo" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>
+
+
+<VALIDACION>
+  <ELEMENTO name="textNRegistroProductosGenerados" required="true" cod="940" />
+	<ELEMENTO name="textLimitePrecio" required="true" cod="909" />
+	<ELEMENTO name="rbAutorizacionEnvioPago" required="true" cod="804" />
+	<ELEMENTO name="cbEstrategia" required="true" cod="478" />
+	<ELEMENTO name="cbAlmacen" required="true" cod="797" />
+	<ELEMENTO name="textDireccionElectronica" required="true" cod="850" />
+	<ELEMENTO name="cbTipoCliente1" required="true" cod="1301" />
+	<ELEMENTO name="cbSubtipoCliente1" required="true" cod="1302" />
+	<ELEMENTO name="cbTipoCliente2" required="true" cod="1301" />
+	<ELEMENTO name="cbSubtipoCliente2" required="true" cod="1302" />
+</VALIDACION>
+
+
+  <CAPA nombre="capaUnica" >
+    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+      <tr>
+        <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+        <td width="750"><IMG src="b.gif"/></td>
+        <td width="12"><IMG src="b.gif" width="12" height="12"/></td>
+      </tr>
+      <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset><legend class="legend"><LABELC nombre="lblTitDatosCarga" alto="13" filas="1" valor="" cod="00162" id="legend" /></legend>
+	   <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+           <tr><td>
+
+            <table width="642" border="0" align="left" cellspacing="0" cellpadding="0">
+              <tr> 
+                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr>
+              <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td><LABELC nombre="lblPais" alto="13" filas="1" valor="" id="datosTitle" cod="5"/></td>
+                <td><IMG src="b.gif" width="25" height="8"/></td>
+                <td><LABELC nombre="lblNRegistroProductosGenerados"  alto="13" filas="1" valor="" id="datosTitle" cod="940"/></td>
+                <td><IMG src="b.gif" width="25" height="8"/></td>
+                <td><LABELC nombre="lblLimitePrecio"  alto="13" filas="1" valor="" id="datosTitle" cod="909"/></td>                                              
+                <td><IMG src="b.gif" width="25" height="8"/></td>
+                <td><LABELC nombre="lblAutorizacionEnvioPago"  alto="13" filas="1" valor="" id="datosTitle" cod="804"/></td>                  
+                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr> 
+              <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td valign="bottom"><LABELC nombre="lblPaisActual" alto="13" filas="1" valor="" id="datosCampos" /></td>
+                <td><IMG src="b.gif" width="25" height="8"/></td>
+                <td nowrap="nowrap"><CTEXTO nombre="textNRegistroProductosGenerados" id="datosCampos" max="10" tipo="" onshtab="focalizar();" onchange="" req="S" size="10" valor="" validacion=""/></td>
+                <td><IMG src="b.gif" width="25" height="8"/></td>
+                <td nowrap="nowrap"><CTEXTO nombre="textLimitePrecio" id="datosCampos" max="10" tipo="" onchange="" req="S" size="10" valor="" validacion=""/></td>
+                <td><IMG src="b.gif" width="25" height="8"/></td>                
+	           <td class="datosCampos" valign="bottom">
+        	      <RADIOB nombre="rbAutorizacionEnvioPago" tipo="H" id="datosCampos" req="S">
+		        <RBINPUT valor="S" check="N" onfocus="" id="datosCampos" cod="117">yy</RBINPUT>
+		        <RBINPUT valor="N" check="N" onfocus="" id="datosCampos" cod="87">nn</RBINPUT>
+		      </RADIOB>
+		   </td> 
+                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td> 
+              </tr>
+              <tr> 
+                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr> 
+           </table> 
+         </td></tr>
+         <tr><td>  
+            <table width="642" border="0" align="left" cellspacing="0" cellpadding="0">
+              <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td><LABELC nombre="lblEstrategia"  alto="13" filas="1" valor="" id="datosTitle" cod="478"/></td>                  
+                <td><IMG src="b.gif" width="25" height="8"/></td>                
+                <td><LABELC nombre="lblAlmacen"  alto="13" filas="1" valor="" id="datosTitle" cod="797"/></td>  
+                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr> 
+              <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td nowrap="nowrap">
+                  <COMBO nombre="cbEstrategia" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="">
+                    <ROWSET>
+
+                    </ROWSET>
+                  </COMBO> 
+                </td>   
+                <td><IMG src="b.gif" width="25" height="8"/></td>
+                <td nowrap="nowrap">
+                  <COMBO nombre="cbAlmacen" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="">
+                    <ROWSET>
+                      <ROW>
+                         <CAMPO NOMBRE="cabecera" TIPO="STRING" VALOR="0"/>
+                         <CAMPO NOMBRE="contenido" TIPO="STRING" VALOR="almacenHC"/>
+                      </ROW>
+                    </ROWSET>
+                  </COMBO> 
+                </td>   
+                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td> 
+              </tr>
+              <tr> 
+                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr> 
+           </table>  
+         </td></tr>
+         <tr><td> 
+            <table width="642" border="0" align="left" cellspacing="0" cellpadding="0">
+              <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td><LABELC nombre="lblDireccionElectronica"  alto="13" filas="1" valor="" id="datosTitle" cod="850"/></td>                                                  
+                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr> 
+              <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td nowrap="nowrap"><CTEXTO nombre="textDireccionElectronica" id="datosCampos" max="50" tipo="" onchange="" req="S" size="50" valor="" validacion=""/></td>
+                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td> 
+              </tr>
+              <tr> 
+                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr> 
+           </table>  
+         </td></tr>
+         
+         <tr><td> 
+            <table width="642" border="0" align="left" cellspacing="0" cellpadding="0">
+              <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td><LABELC nombre="lblCatalogo" alto="13" filas="1" valor="" id="datosTitle" cod="516"/></td>                                                  
+                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr> 
+              <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td nowrap="nowrap">
+                  <COMBO nombre="cbCatalogo" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                   	<ROWSET>
+                   	</ROWSET>
+                  </COMBO>
+                </td>
+                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td> 
+              </tr>
+              <tr> 
+                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr> 
+           </table>  
+         </td></tr>
+
+         <tr><td> 
+            <table width="642" border="0" align="left" cellspacing="0" cellpadding="0">
+              <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td><LABELC nombre="lblCondicionPromocion" alto="13" filas="1" valor="" id="datosTitle" cod="607"/></td>                                                  
+                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr> 
+              <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td nowrap="nowrap">
+                  <COMBO nombre="cbCondicionPromocion" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+                   	<ROWSET>
+                   	</ROWSET>
+                  </COMBO>
+                </td>
+                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td> 
+              </tr>
+              <tr> 
+                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr> 
+           </table>  
+         </td></tr>
+         
+        </table>                                     
+       </fieldset>
+     </td>
+     <td><IMG src="b.gif" width="8" height="12"/></td>
+    </tr> 
+    <tr>
+        <td width="12" align="center"><IMG src="b.gif" width="12" height="15"/></td>
+        <td width="750"><IMG src="b.gif"/></td>
+        <td width="12"><IMG src="b.gif" width="12" height="15"/></td>
+      </tr>
+      <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset><legend class="legend"><LABELC nombre="lblTitGerentesRegion" alto="13" filas="1" valor="" cod="00160" id="legend" /></legend>
+	   <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+            <table width="642" border="0" align="left" cellspacing="0" cellpadding="0">
+              <tr> 
+                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr>
+              <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td><LABELC nombre="lblTipoCliente1" alto="13" filas="1" valor="" id="datosTitle" cod="1301"/></td>
+                <td><IMG src="b.gif" width="25" height="8"/></td>
+                <td><LABELC nombre="lblSubtipoCliente1" alto="13" filas="1" valor="" id="datosTitle" cod="1302"/></td>
+                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr> 
+              <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td nowrap="nowrap" valign="top">
+                  <COMBO nombre="cbTipoCliente1" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onchange="recargarCombosSTCRegion();">
+                    <ROWSET>
+
+                    </ROWSET>
+                  </COMBO> 
+                </td>   
+                <td><IMG src="b.gif" width="25" height="8"/></td>
+                <td nowrap="nowrap">
+                  <COMBO nombre="cbSubtipoCliente1" id="datosCampos" size="5" multiple="S" req="S" valorinicial="" textoinicial="">
+                    <ROWSET>
+
+                    </ROWSET>
+                  </COMBO> 
+                </td>                   
+                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td> 
+              </tr>
+              <tr> 
+                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr> 
+           </table> 
+          </td></tr>
+         </table>  
+        </fieldset>
+       </td>
+       <td><IMG src="b.gif" width="8" height="12"/></td>
+     </tr>       
+     <tr>
+        <td width="12" align="center"><IMG src="b.gif" width="12" height="15"/></td>
+        <td width="750"><IMG src="b.gif"/></td>
+        <td width="12"><IMG src="b.gif" width="12" height="15"/></td>
+      </tr>
+      <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset><legend class="legend"><LABELC nombre="lblTitGerentesZona" alto="13" filas="1" valor="" cod="00161" id="legend" /></legend>
+	   <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+            <table width="642" border="0" align="left" cellspacing="0" cellpadding="0">
+              <tr> 
+                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr>
+              <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td><LABELC nombre="lblTipoCliente2" alto="13" filas="1" valor="" id="datosTitle" cod="1301"/></td>
+                <td><IMG src="b.gif" width="25" height="8"/></td>
+                <td><LABELC nombre="lblSubtipoCliente2" alto="13" filas="1" valor="" id="datosTitle" cod="1302"/></td>
+                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr> 
+              <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td nowrap="nowrap" valign="top">
+                  <COMBO nombre="cbTipoCliente2" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onchange="recargarCombosSTCZona();">
+                    <ROWSET>
+
+                    </ROWSET>
+                  </COMBO> 
+                </td>   
+                <td><IMG src="b.gif" width="25" height="8"/></td>
+                <td nowrap="nowrap">
+                  <COMBO nombre="cbSubtipoCliente2" id="datosCampos" size="5" multiple="S" req="S" valorinicial="" textoinicial="" ontab="focaliza('frmUnico.textNRegistroProductosGenerados');">
+                    <ROWSET>
+
+                    </ROWSET>
+                  </COMBO> 
+                </td>                   
+                <td width="100%"><IMG src="b.gif" width="8" height="8"/></td> 
+              </tr>
+              <tr> 
+                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr> 
+           </table> 
+           </td></tr>
+           </table>  
+          </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>       
+      <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750"><IMG src="b.gif"/></td>
+      	<td width="12"><IMG src="b.gif" width="12" height="12"/></td>
+      </tr>
+    </table> 
+   </CAPA>
+</FORMULARIO>
+</PAGINA>

@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_comisiones_clasificar.xml,v 1.1 2009/12/03 18:46:05 pecbazalar Exp $
+   EDU
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_comisiones_clasificar" 
+        cod="0662" 
+        titulo="Clasificar Comisiones" 
+        estilos="estilosB3.css" 
+        colorf="#F0F0F0"
+        msgle="" 
+        onload="onLoadPag();" 
+        xml:lang="es">
+
+<JAVASCRIPT>
+  <![CDATA[ 
+
+var formName = "formulario";
+
+    function onLoadPag()   {
+        configurarMenuSecundario('formulario');
+        fMostrarMensajeError();
+        
+        cargaPaginaInicial();
+    }
+    	
+    function onClickAceptar()
+    {
+        if(sicc_validaciones_generales("g1")){
+            vMarca = get('formulario.cbMarca','V');
+            vCanal = get('formulario.cbCanal','V');
+            vPeriodo = get('formulario.cbPeriodo','V') ;
+        		vTipoCom = get('formulario.cbTipoComision') ;
+				vComEjec =  get('formulario.cbComisionAEjecutar') ;
+
+            set('formulario.hidOidMarca',   vMarca);
+            set('formulario.hidOidCanal',   vCanal);
+            set('formulario.hidOidPeriodo', vPeriodo);
+
+            set('formulario.hidOidTipoCom', vTipoCom);
+				set('formulario.hidOidComEjec', vComEjec);
+				
+            set('formulario.conectorAction', 'LPClasificarComisiones');
+            set('formulario.accion', 'clasificar');
+            enviaSICC('formulario');
+        }
+    }
+    
+    function marcaOnChange()
+    {
+        recargarPeriodo();
+    }
+     
+
+    function canalOnChange()
+    {
+        recargarPeriodo();
+    }
+    
+    function recargarPeriodo()
+    {
+        /*recargaCombo('periodo', 'CRAObtienePeriodos', 'DTOPeriodo', 
+        [
+           [ 'pais', get(pais de sesión) ], 
+           [ 'marca', get(marca) ], 
+           [ 'canal', get(canal) ]
+        ] );*/
+        
+        var pais = get("formulario.oidPais");
+        var marca = get("formulario.cbMarca");
+        var canal = get("formulario.cbCanal");
+        
+        if (get('formulario.cbMarca','V') != '' && get('formulario.cbCanal','V') != ''){
+
+		    accion('formulario.cbPeriodo', '.disabled=false');
+			
+            var arr = new Array();  
+            arr[arr.length]=new Array("pais", pais);
+            arr[arr.length]=new Array("marca", marca);
+            arr[arr.length]=new Array("canal", canal);
+         
+            recargaCombo(formName + ".cbPeriodo",
+            "CRAObtienePeriodos",
+            "es.indra.sicc.dtos.cra.DTOPeriodo",
+            arr,"");      
+        }
+        else
+        {
+            var datosNuevo = new Array();
+            datosNuevo[0] = ["",""];    
+            set_combo("formulario.cbPeriodo", datosNuevo); 
+			accion('formulario.cbPeriodo', '.disabled=true');
+        }
+    }
+    
+    function fLimpiar()
+    {
+        cargaPaginaInicial();
+    }
+    
+    function accionExitosa(){
+        cargaPaginaInicial();
+    }
+    
+    function accionError(){
+        focaliza('formulario.cbMarca');
+    }
+    
+    function cargaPaginaInicial()
+    {
+        focaliza("formulario.cbMarca");
+        marcaSeleccionDelUsuario('formulario.cbMarca', get("formulario.hidMarcaDef"));
+        marcaSeleccionDelUsuario('formulario.cbCanal', get("formulario.hidCanalDef"));
+        recargarPeriodo();
+    }
+    
+    
+    function marcaSeleccionDelUsuario(pControl, datos)
+	{
+		datos = datos.split(",");
+		var comb = pControl;
+		set(comb, datos);
+	}
+   
+    
+      ]]> 
+</JAVASCRIPT>        
+    <JS src="sicc_util.js"/>
+    <JS src="i18NJS.js"/>
+      <!-- Include para la recarga de combos -->
+	<JS src="DruidaTransactionMare.js"/>
+
+<VALIDACION>
+      <ELEMENTO name="cbMarca" required="true" cod="6" group="g1"/>
+      <ELEMENTO name="cbCanal" required="true" cod="7" group="g1"/>
+      <ELEMENTO name="cbPeriodo" required="true" cod="276" group="g1"/>
+		 <ELEMENTO name="cbTipoComision" required="true" cod="ComClasif.TipoCom.label" group="g1"/>
+		 <ELEMENTO name="cbComisionAEjecutar" required="true" cod="ComClasif.ComEjecutar.label" group="g1"/>
+</VALIDACION>
+
+<FORMULARIO nombre="formulario" oculto="S">
+    <VAR nombre="conectorAction" valor=""/>
+    <VAR nombre="accion" valor=""/>
+    <VAR nombre="oidPais" valor=""/>
+    <VAR nombre="errCodigo" valor=""/>
+    <VAR nombre="errDescripcion" valor=""/>
+    
+    <VAR nombre="hidOidMarca" valor=""/>
+    <VAR nombre="hidOidCanal" valor=""/>
+    <VAR nombre="hidOidPeriodo" valor=""/>
+    <VAR nombre="hidMarcaDef" valor=""/>
+    <VAR nombre="hidOidTipoCom" valor=""/>
+	 <VAR nombre="hidOidComEjec" valor=""/>
+	 
+    
+    
+    
+<CAPA nombre="capa1">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblSeleccionDatos"  alto="13" filas="1" valor="" id="legend" cod="0099"/></legend>
+	<table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+            <tr><td>
+      
+              <table width="635" border="0" align="left" cellspacing="0" cellpadding="0">
+                 <tr> 
+	            <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+	        </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblMarca"  alto="13" filas="1" valor="" id="datosTitle" cod="6"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblCanal"  alto="13" filas="1" valor="" id="datosTitle" cod="7"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblPeriodo" alto="13" filas="1" valor="" id="datosTitle" cod="276"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap">
+		     <COMBO nombre="cbMarca" id="datosCampos" size="1" multiple="N" req="S" 
+             valorinicial="" textoinicial="" onchange="marcaOnChange();"
+                ontab="focaliza('formulario.cbCanal')" 
+                onshtab="focalizaBotonHTML('botonContenido','btnAceptar')">
+		       <ROWSET>
+					         <ROW ID="1">
+                     				<CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="00"/>
+                     				<CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxxx1"/>
+                  		</ROW>
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td nowrap="nowrap">
+		     <COMBO nombre="cbCanal" id="datosCampos" size="1" multiple="N" req="S" 
+             valorinicial="" textoinicial="" onchange="canalOnChange();">
+		       <ROWSET>
+				 		         <ROW ID="1">
+                     				<CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="00"/>
+                     				<CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="xxxxxxxxxxxxxxxxxxxxxxxxx1"/>
+                  		</ROW>
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td nowrap="nowrap">
+		     <COMBO nombre="cbPeriodo" id="datosCampos" size="1" multiple="N" req="S" 
+             valorinicial="" textoinicial="">
+		       <ROWSET>
+				 		        <ROW ID="1">
+                     				<CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="00"/>
+                     				<CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="xxxxx1"/>
+                  		</ROW>
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+		   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+	         <tr> 
+	            <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+	        </tr>
+              </table>
+        
+           </td></tr>
+
+            <tr><td>
+      
+              <table width="635" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblTipoComision"  alto="13" filas="1" valor="" id="datosTitle" cod="ComClasif.TipoCom.label"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblComisionAEjecutar" alto="13" filas="1" valor="" id="datosTitle" cod="ComClasif.ComEjecutar.label"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap">
+						 		  <COMBO nombre="cbTipoComision" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" >
+									 <ROWSET>
+													<ROW ID="1">
+																<CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="00"/>
+																<CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="xxxxxxxx1"/>
+													</ROW>
+									 </ROWSET>
+								  </COMBO>
+		     
+		   </td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td nowrap="nowrap">
+				<COMBO nombre="cbComisionAEjecutar" id="datosCampos" size="1" multiple="N" req="S" 
+             valorinicial="" textoinicial="" 
+                ontab="focalizaBotonHTML('botonContenido','btnAceptar')"
+                onshtab="focaliza('formulario.cbTipoComision')" >
+		       <ROWSET>
+									<ROW ID="1">
+														<CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="00"/>
+														<CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="xxxx1"/>
+									</ROW>
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+		   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+	         <tr> 
+	            <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+	        </tr>
+              </table>
+        
+           </td></tr>
+
+          </table>
+     
+        </fieldset>
+        
+<!--fin primer formulario-->
+
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+        <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+	<fieldset>
+	  <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	    <tr>
+	      <td class="botonera">
+                <BOTON nombre="btnAceptar" ID="botonContenido" tipo="html"
+                accion="onClickAceptar();" 
+                cod="12" estado="false"
+                ontab="focaliza('formulario.cbMarca')" 
+                onshtab="focaliza('formulario.cbComisionAEjecutar')"/>
+              </td>
+	    </tr>    
+	  </table>        															 
+	</fieldset>
+      </td>
+      <td><IMG src="b.gif" width="8" height="12"/></td>
+    </tr>    
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+</FORMULARIO>
+</PAGINA>         

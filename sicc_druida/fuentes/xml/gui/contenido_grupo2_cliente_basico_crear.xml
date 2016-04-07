@@ -1,0 +1,645 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_grupo2_cliente_basico_crear.xml,v 1.1 2009/12/03 18:45:14 pecbazalar Exp $
+   BEL
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+<PAGINA nombre="contenido_grupo2_cliente_basico_crear" cod="" titulo="" estilos="estilosB3.css" colorf="#F0F0F0" 
+msgle="Insertar Cliente Básico" onload="onLoadPag()" xml:lang="es">
+
+ <JS src="sicc_util.js">
+  </JS>
+  <JS src="scripts_clientes.js"> </JS>
+  <VALIDACION>
+		<ELEMENTO name="textApellido1" required="false" cod="16"/>
+    <ELEMENTO name="textApellido2" required="false" cod="17"/>
+    <ELEMENTO name="textApellidoCasada" required="false" cod="18"/>
+    <ELEMENTO name="textNombre1" required="false" cod="93"/>
+    <ELEMENTO name="textNombre2" required="false" cod="94"/>
+    <ELEMENTO name="cbTratamiento" required="false" cod="757"/>
+    <ELEMENTO name="rbSexo" required="false" cod="1122"/>
+    <ELEMENTO name="cbFormaPago" required="false" cod="541"/>
+  </VALIDACION>
+
+  <JAVASCRIPT>
+    <![CDATA[         
+    	function onLoadPag(){
+    
+      	if(!ShowError()){
+    				configurarMenuSecundario("frmInsertarCliente");
+            seteaModificables();
+    				completarComboTipo();
+
+            if(get('frmInsertarCliente.MsjValidacion') !=""){
+    				   Mensajes();
+            }
+
+    				var div=document.getElementById("Pestanya1");
+    				//alert(get('frmInsertarCliente.back'));
+    				if(get('frmInsertarCliente.backP2')=="volver"){
+    				  refCombo("cbTratamiento");
+    				  refCombo("cbFormaPago");
+    				  set('frmInsertarCliente.rbSexo',get('frmInsertarCliente.h_rbSexo'));
+            }
+    	      eval (ON_RSZ);
+            //focaliza('frmInsertarCliente.textApellido1');
+            foco();
+            recargaCampos();	
+          
+    	  }
+    	
+    	}
+
+// -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      function validacion()
+		{
+			var retorno = validaRequeridos();
+			if (retorno) 
+			{
+					if( !sicc_validaciones_generales() )
+						  return false;
+		 			 else
+						 return true;
+			} else
+			{
+				return false;
+			}
+				   
+ 	    }
+// -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+function validaRequeridos()
+{
+	var oblig = get("frmInsertarCliente.obligatorio");
+	var retorno = true;
+	if (oblig != "")
+	{
+			oblig = oblig.split(",");
+			for (var i = 0; (i < oblig.length) && (retorno == true); i++)
+			{
+				var control = oblig[i];
+				var valor = get("frmInsertarCliente." + control);
+				//alert("Valor: " + valor);
+				if (valor == "")
+				{	
+						focaliza("frmInsertarCliente." + control, "");
+						GestionarMensaje("1419");
+						retorno = false;
+				}
+			}
+	}
+
+	return retorno;
+
+}
+
+// -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      function recargaCampos(){
+
+         set('frmInsertarCliente.cbTratamiento', new Array (get('frmInsertarCliente.h_cbTratamiento')));
+         set('frmInsertarCliente.cbFormaPago', new Array(get('frmInsertarCliente.h_cbFormaPago')));
+         set('frmInsertarCliente.rbSexo', get('frmInsertarCliente.h_rbSexo'));
+
+
+      }
+      
+    	function refCombo(combo){
+    		var cbtrat = document.getElementById(combo);
+    		var option =cbtrat.options;
+    		for(var i=0;i<option.length;i++){
+    			if(option.item(i).value==get('frmInsertarCliente.h_cbTratamiento'))
+    				option.item(i).selected=true;
+    		}
+    	}
+      
+    
+    	function ShowError(){
+         if (get('frmInsertarCliente.errDescripcion')!='') {
+    		     var wnd = fMostrarMensajeError(get('frmInsertarCliente.errCodigo'), get('frmInsertarCliente.errDescripcion'));
+        }
+                  
+      }
+    
+    	function Mensajes(){
+    	  		
+    			if(get('frmInsertarCliente.MsjValidacion') =='MAE-0006'){
+    				var msj06 = GestionarMensaje(1014);
+            var saldo = get('frmInsertarCliente.SaldoCastigado');
+    				 cdos_mostrarAlert(msj06 + ' ' + saldo) ;
+    			}else{
+    				var msj07 = GestionarMensaje(1046);
+    				 cdos_mostrarAlert(msj07);
+    			}
+    		
+    		set('frmInsertarCliente.MsjValidacion',"");
+        set('frmInsertarCliente.accion', '');
+        set('frmInsertarCliente.conectorAction', 'LPInsertarClienteBasico');
+        
+        enviaSICC('frmInsertarCliente','' ,'','N');
+    	}
+    
+    	 function completarComboTipo(){
+    		var sr = GestionarMensaje(1047);
+    		var sra = GestionarMensaje(1048);
+    		var srta = GestionarMensaje(1049);
+    		combo_add('frmInsertarCliente.cbTratamiento', "0", sr);
+    		combo_add('frmInsertarCliente.cbTratamiento', "1", sra);
+    		combo_add('frmInsertarCliente.cbTratamiento', "2", srta);
+      }
+    
+    	function realizarValidaciones(){
+    		for(var i=0;i<=7;i++){
+    			switch(i){
+    				case 0:
+    					if(get('frmInsertarCliente.h_textApellido1')!=""){
+    						if(get('frmInsertarCliente.textApellido1')==""){
+    							focaliza('frmInsertarCliente.textApellido1');
+    						}
+    					  fValidarCTEXT('frmInsertarCliente.textApellido1');
+    					}
+    					break;
+    				case 1:
+    					if(get('frmInsertarCliente.h_textApellido2')!=""){
+    						if(get('frmInsertarCliente.textApellido2')==""){
+    							focaliza('frmInsertarCliente.textApellido2');
+    						}
+    					  fValidarCTEXT('frmInsertarCliente.textApellido2');
+    					}
+    					break;
+    				case 2:
+    					if(get('frmInsertarCliente.h_textApellidoCasada')!=""){
+    						if(get('frmInsertarCliente.textApellidoCasada')==""){
+    							focaliza('frmInsertarCliente.textApellidoCasada');
+    						}
+    					  fValidarCTEXT('frmInsertarCliente.textApellidoCasada');
+    					}
+    					break;
+    				case 3:
+    					if(get('frmInsertarCliente.h_textNombre1')!=""){
+    						if(get('frmInsertarCliente.textNombre1')==""){
+    							focaliza(frmInsertarCliente.textNombre1);
+    						}
+    					  fValidarCTEXT('frmInsertarCliente.textNombre1'); 
+    					}
+    					break;
+    				case 4:
+    					if(get('frmInsertarCliente.h_textNombre2')!=""){
+    						if(get('frmInsertarCliente.textNombre2')==""){
+    							focaliza('frmInsertarCliente.textNombre2');
+    						}
+    					  fValidarCTEXT('frmInsertarCliente.textNombre2');
+    					}
+    					break;
+    				case 5:
+    					if(get('frmInsertarCliente.h_cbTratamiento')!=""){
+    						if(get('frmInsertarCliente.cbTratamiento')==""){
+    							focaliza('frmInsertarCliente.cbTratamiento');
+    						}
+    					  fValidarCOMBO('frmInsertarCliente.cbTratamiento');
+    					}
+    					break;
+    				case 6:
+    				if(get('frmInsertarCliente.h_cbFormaPago')!=""){
+    						if(get('frmInsertarCliente.cbFormaPago')==""){
+    							focaliza('frmInsertarCliente.cbFormaPago');
+    						}
+    					  fValidarCOMBO('frmInsertarCliente.cbFormaPago');
+    					}
+    					break;
+    				case 7:	
+    					if(get('frmInsertarCliente.h_rbSexo')!=""){
+    						if(get('frmInsertarCliente.rbSexo')==""){
+    							focaliza('frmInsertarCliente.rbSexo');
+    						}
+    					 break;
+    					}
+    			}
+    		}
+    	}
+    
+    	function P3(){
+    			validacion();
+    			//alert("realizo validaciones");
+    			set('frmInsertarCliente.accion','Siguiente3');
+    			set('frmInsertarCliente.conectorAction','LPInsertarClienteBasico');
+    			set('frmInsertarCliente.envia','Pag2');
+          var ComboTratamiento = document.getElementById("cbTratamiento");
+          var strTratamiento = ComboTratamiento.options[ComboTratamiento.selectedIndex].text;
+          set('frmInsertarCliente.strTratamiento', strTratamiento);
+          //alert(get('frmInsertarCliente.strTratamiento'));
+    			enviaSICC('frmInsertarCliente');
+    	}
+    
+    	function GoP3(){
+    		  if(validacion()){
+    			   //alert("realizo validaciones");
+    			   set('frmInsertarCliente.accion','Siguiente3');
+    			   set('frmInsertarCliente.conectorAction','LPInsertarClienteBasico');
+    			   set('frmInsertarCliente.envia','Pag2');
+             set('frmInsertarCliente.hidFocusPrimerComponente', 'true');
+/*             var ComboTratamiento = document.getElementById("cbTratamiento");
+             var strTratamiento = ComboTratamiento.options[ComboTratamiento.selectedIndex].text;*/
+			 var strTratamiento = get('frmInsertarCliente.cbTratamiento', 'T');
+             //alert('el tratramiento ' + strTratamiento);
+             set('frmInsertarCliente.strTratamiento', strTratamiento);
+             //alert(get('frmInsertarCliente.strTratamiento'));
+    			   enviaSICC('frmInsertarCliente');
+          }
+    	}
+    	function GoP1(){
+    		//set('frmInsertarCliente.accion',"BackPestanya1");
+        if(validacion()){
+           set('frmInsertarCliente.accion', 'Siguiente1');
+           set('frmInsertarCliente.hidFocusPrimerComponente', 'false');
+    		   set('frmInsertarCliente.conectorAction',"LPInsertarClienteBasico");
+          //set('frmInsertarCliente.envia','Pag2');
+    		   enviaSICC('frmInsertarCliente');
+        }
+    	}
+    
+      function fLimpiar(){
+         set('frmInsertarCliente.textNombre1','');
+         set('frmInsertarCliente.textNombre2','');
+         set('frmInsertarCliente.textApellido1','');
+         set('frmInsertarCliente.textApellido2','');
+         set('frmInsertarCliente.textApellidoCasada','');
+         set('frmInsertarCliente.cbTratamiento','');
+         set('frmInsertarCliente.cbFormaPago','');
+         focaliza('frmInsertarCliente.textApellido1');
+         
+      }
+
+      function foco(){
+         var foco = get('frmInsertarCliente.hidFocusPrimerComponente');
+         
+         if(foco == 'false'){
+            focalizaBotonHTML('botonContenido','btnSiguiente');
+         }else{
+            var campos = new Array();
+            var flag = false;
+            campos[0] = 'textApellido1';
+            campos[1] = 'textApellido2';
+            campos[2] = 'textApellidoCasada';
+            campos[3] = 'textNombre1';
+            campos[4] = 'textNombre2';
+            campos[5] = 'cbTratamiento';
+            campos[6] = 'rbSexo';
+            campos[7] = 'cbFormaPago';
+            
+            
+
+            for(var i=0;i<campos.length;i++){
+
+              try{
+                 focaliza('frmInsertarCliente.' + campos[i]);
+                 flag = true;
+                 break;
+              }catch (exception){
+               
+              }
+            }
+
+            if(flag == false){
+              focalizaBotonHTML('botonContenido','btnSiguiente');
+            }
+          
+         }
+      }
+
+     
+  function seteaModificables(){
+
+      if(get('frmInsertarCliente.hModtextApellido1') == 'S'){
+         accion('frmInsertarCliente.textApellido1', '.disabled=true');
+      }
+
+      if(get('frmInsertarCliente.hModtextApellido2') == 'S'){
+         accion('frmInsertarCliente.textApellido2', '.disabled=true');
+      }
+
+      if(get('frmInsertarCliente.hModtextApellidoCasada') == 'S'){
+         accion('frmInsertarCliente.textApellidoCasada', '.disabled=true');
+      }
+
+      if(get('frmInsertarCliente.hModtextNombre1') == 'S'){
+         accion('frmInsertarCliente.textNombre1', '.disabled=true');
+      }
+      
+      if(get('frmInsertarCliente.hModtextNombre2') == 'S'){
+         accion('frmInsertarCliente.textNombre2', '.disabled=true');
+      }
+
+      if(get('frmInsertarCliente.hModcbTratamiento') == 'S'){
+         accion('frmInsertarCliente.cbTratamiento', '.disabled=true');
+      }
+
+      if(get('frmInsertarCliente.hModrbSexo') == 'S'){
+         accion('frmInsertarCliente.rbSexo', '.disabled=true');
+      }
+
+      if(get('frmInsertarCliente.hModcbFormaPago') == 'S'){
+         accion('frmInsertarCliente.cbFormaPago', '.disabled=true');
+      } 
+ 
+  
+  }
+      ]]>
+  </JAVASCRIPT>
+  <FORMULARIO nombre="frmInsertarCliente">
+    <VAR nombre="accion" valor=""/>
+    <VAR nombre="conectorAction" valor=""/>
+    <VAR nombre="casoDeUso" valor=""/>
+    <VAR nombre="flag" valor=""/>
+    <VAR nombre="MsjValidacion" valor=""/>
+    <VAR nombre="SaldoCastigado" valor=""/>
+    <VAR nombre="h_textApellido1" valor=""/>
+    <VAR nombre="h_textApellido2" valor=""/>
+    <VAR nombre="h_textApellidoCasada" valor=""/>
+    <VAR nombre="h_textNombre1" valor=""/>
+    <VAR nombre="h_textNombre2" valor=""/>
+    <VAR nombre="h_cbTratamiento" valor=""/>
+    <VAR nombre="h_cbFormaPago" valor=""/>
+    <VAR nombre="h_fecha" valor=""/>
+    <VAR nombre="h_rbSexo" valor=""/>
+    <VAR nombre="elementosP2" valor=""/>
+    <VAR nombre="backP2" valor=""/>
+    <VAR nombre="envia" valor=""/>
+    <VAR nombre="errCodigo" valor=""/>
+    <VAR nombre="errDescripcion" valor=""/>
+    <VAR nombre="elementosExtra" valor=""/>
+    <VAR nombre="elementosP3Marca" valor=""/>
+    <VAR nombre="hidFocusPrimerComponente" valor=""/>
+    <!--estos var los uso para setar la modificabilidad de los campos, que NO SE PUEDE SETEAR DESDE LA LP-->
+    <VAR nombre="hModtextApellido1" valor=""/>
+    <VAR nombre="hModtextApellido2" valor=""/>
+    <VAR nombre="hModtextApellidoCasada" valor=""/>
+    <VAR nombre="hModtextNombre1" valor=""/>
+    <VAR nombre="hModtextNombre2" valor=""/>
+    <VAR nombre="hModcbTratamiento" valor=""/>
+    <VAR nombre="hModrbSexo" valor=""/>
+    <VAR nombre="hModcbFormaPago" valor=""/>
+    <VAR nombre="strTratamiento" valor=""/>
+
+	 <VAR nombre="obligatorio" valor=""/>
+
+
+	<VAR nombre="origen" valor=""/>
+	<VAR nombre="hidOidCliente" valor=""/>
+	<VAR nombre="hidCodigoCliente" valor=""/>
+	<VAR nombre="hidOitTipoCliente" valor=""/>
+    
+
+    <!---->
+
+
+<!-- oculto estas pestañas porque no son las originales -->
+<!--  
+   <table width="100%" height="100%" border="0" align="center" cellpadding="0" cellspacing="0" class="menu5">
+  <tr> 
+    <td width="12" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="12" height="10"/></td>
+    <td nowrap="nowrap" class="menu5texto">&nbsp;</td>
+    <td width="10" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="10" height="0"/></td>
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto">
+	<table width="75" border="0" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A">
+        <tr align="center"> 
+          <td nowrap="nowrap" class="menu5textonegrita">
+	    <a href="#">
+		<DIV ID="InsertarP1" onmouseover="manejarPestanas()" onmouseout="manejarPestanas2()" onclick="GoP1();" style="width:80px;border-style:solid; border-color:#496A9A;border-width:2px;position:relative;top:3px;text-align:center;color:#496A9A;font-family: Arial, Helvetica, sans-serif;font-size: 11px;font-weight: bold; visibility:hidden"></DIV>
+
+	    </a>
+	    </td>
+        </tr>
+      </table>
+   </td>     
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto">
+    <table width="75" border="0" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A">
+        <tr align="center"> 
+          <td nowrap="nowrap" class="menu5textonegrita">
+	    <DIV ID="InsertarP2"  style="width:80px;border-style:solid; border-color:#496A9A;border-width:2px;position:relative;top:3px;text-align:center;color:#496A9A;font-family: Arial, Helvetica, sans-serif;font-size: 11px;font-weight: bold; visibility:hidden"></DIV>
+	    </td>
+        </tr>
+      </table>
+   </td>
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto">
+    <table width="75" border="0" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A">
+        <tr align="center"> 
+          <td nowrap="nowrap" class="menu5textonegrita">
+         
+	    <DIV ID="InsertarP3" onmouseover="manejarPestanas()" onmouseout="manejarPestanas2()" onclick="GoP3();" style="width:80px;border-style:solid; border-color:#496A9A;border-width:2px;position:relative;top:3px;text-align:center;color:#496A9A;font-family: Arial, Helvetica, sans-serif;font-size: 11px;font-weight: bold; visibility:hidden"></DIV>
+	    </td>
+        </tr>
+      </table>
+   </td>   
+    
+    <td width="16" class="menu5texto"><IMG src="b.gif" width="12" height="8"/></td>
+  </tr>
+</table>
+-->
+
+<!-- inicio de las pestañas originales -->
+ <table width="100%" height="100%" border="0" align="center" cellpadding="0" cellspacing="0" class="menu4">
+  <tr> 
+    <td width="12" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="12" height="30"/></td>
+    <td nowrap="nowrap" class="menu5texto">&nbsp;</td>
+    <td width="10" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A">
+        <tr align="center"> 
+          <td nowrap="nowrap" onclick="GoP1();"><LABELC nombre="lblPes1" alto="13" filas="1" valor="Pestaña 1" id="menu5textonegrita" cod="00515"/></td>
+        </tr>
+      </table>
+    </td>
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" bgcolor="#496A9A">
+        <tr align="center"> 
+          <td nowrap="nowrap"><LABELC nombre="lblPes2" alto="13" filas="1" valor="Pestaña 1" id="menu5textoblanca" cod="00516"/></td>
+        </tr>
+      </table>
+   </td>
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A">
+        <tr align="center"> 
+          <td nowrap="nowrap" onclick="GoP3();"><LABELC nombre="lblPes3" alto="13" filas="1" valor="Pestaña 1" id="menu5textonegrita" cod="00517"/></td>
+        </tr>
+      </table>
+   </td>   
+    <td width="16" class="menu5texto"><IMG src="b.gif" width="12" height="8"/></td>
+  </tr>
+</table> 
+<!-- fin de las pestañas originales -->
+    
+    <!--DIV ID="InsertarP1" onmouseover="manejarPestanas()"
+         onmouseout="manejarPestanas2()" onclick="GoP1();"
+         style="width:80px;border-style:solid; border-color:#496A9A;
+  border-width:2px;position:absolute;left:632px;top:3px;text-align:center;color:#496A9A;
+  font-family: Arial, Helvetica, sans-serif;font-size: 11px;font-weight: bold; visibility:hidden;">Pestana 1</DIV>
+    <DIV ID="InsertarP2"
+         style="width:80px;border-style:solid; border-color:#496A9A;
+  border-width:2px;position:absolute;left:722px;top:3px;text-align:center;color:#ffffff;
+  font-family: Arial, Helvetica, sans-serif;font-size: 11px;font-weight: bold; visibility:hidden; background-color:#496A9A">Pestana 2</DIV>
+    <DIV ID="InsertarP3" onmouseover="manejarPestanas()"
+         onmouseout="manejarPestanas2()" onclick="GoP3();"
+         style="width:80px;border-style:solid; border-color:#496A9A;
+  border-width:2px;position:absolute;left:812px;top:3px;text-align:center;color:#496A9A;
+  font-family: Arial, Helvetica, sans-serif;font-size: 11px;font-weight: bold; visibility:hidden">Pestana 3</DIV-->
+   
+    <CAPA nombre="capaFormularios" alto="100%" ancho="100%">
+      <table width="100%" border="0" cellspacing="0" cellpadding="0">
+        <tr>
+          <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+          <td width="750"><IMG src="b.gif"/></td>
+          <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+        </tr>
+        <tr>
+          <td>
+            <IMG src="b.gif"/>
+          </td>
+          <td>
+            <fieldset>
+              <legend class="legend">
+                <LABELC nombre="lblTitDatosBasicos" alto="17" filas="1" valor="" cod="00142" id="legend"/>
+              </legend>
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                  <td><IMG src="b.gif" width="8" height="8"/></td>
+                  <td><LABELC nombre="lblApellido1" alto="13" filas="1" valor="" id="datosTitle" cod="16"/></td>
+                  <td><IMG src="b.gif" width="25" height="8"/></td>
+                  <td><LABELC nombre="lblApellido2" alto="13" filas="1" valor="" id="datosTitle" cod="17"/></td>
+                  <td><IMG src="b.gif" width="25" height="8"/></td>
+                  <td><LABELC nombre="lblApellidoCasada" alto="13" filas="1" valor="" id="datosTitle" cod="18"/></td>
+                  <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                  <td><IMG src="b.gif" width="8" height="8"/></td>
+                  <td nowrap="nowrap"><CTEXTO nombre="textApellido1" id="datosCampos" max="25"
+                            tipo="" onchange="" req="N" size="25" valor=""
+                            validacion="" onshtab="GoP1();" />
+                  </td>
+                  <td><IMG src="b.gif" width="25" height="8"/></td>
+                  <td nowrap="nowrap"><CTEXTO nombre="textApellido2" id="datosCampos" max="25"
+                            tipo="" onchange="" req="N" size="25" valor=""
+                            validacion=""/>
+                  </td>
+                  <td><IMG src="b.gif" width="25" height="8"/></td>
+                  <td nowrap="nowrap"><CTEXTO nombre="textApellidoCasada" id="datosCampos"
+                            max="25" tipo="" onchange="" req="N" size="25"
+                            valor="" validacion=""/>
+                  </td>
+                  <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+              </table>
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td><IMG src="b.gif" width="8" height="8"/></td>
+                  <td><LABELC nombre="lblNombre1" alto="13" filas="1" valor="" id="datosTitle" cod="93"/></td>
+                  <td><IMG src="b.gif" width="25" height="8"/></td>
+                  <td><LABELC nombre="lblNombre2" alto="13" filas="1" valor="" id="datosTitle" cod="94"/></td>
+                  <td><IMG src="b.gif" width="25" height="8"/></td>
+                  <td><LABELC nombre="lblTratamiento" alto="13" filas="1" valor="" id="datosTitle" cod="757"/></td>
+                  <td><IMG src="b.gif" width="25" height="8"/></td>
+                  <td><LABELC nombre="lblSexo" alto="13" filas="1" valor="" id="datosTitle" cod="1122"/></td>
+                  <td><IMG src="b.gif" width="25" height="8"/></td>
+                  <td><LABELC nombre="lblFormaPago" alto="13" filas="1" valor="" id="datosTitle" cod="541"/></td>
+                  <td><IMG src="b.gif" width="25" height="8"/></td>
+                  <td><LABELC nombre="lblFechaIngreso" alto="13" filas="1" valor="" id="datosTitle" cod="499"/></td>
+                  <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                  <td><IMG src="b.gif" width="8" height="8"/></td>
+                  <td nowrap="nowrap"><CTEXTO nombre="textNombre1" id="datosCampos" max="25"
+                            tipo="" onchange="" req="N" size="25" valor=""
+                            validacion=""/>
+                  </td>
+                  <td><IMG src="b.gif" width="25" height="8"/></td>
+                  <td nowrap="nowrap"><CTEXTO nombre="textNombre2" id="datosCampos" max="25"
+                            tipo="" onchange="" req="N" size="25" valor=""
+                            validacion=""/>
+                  </td>
+                  <td><IMG src="b.gif" width="25" height="8"/></td>
+                  <td nowrap="nowrap" valing="botton">
+                    <COMBO nombre="cbTratamiento" id="datosCampos" size="1"
+                           multiple="N" req="N" valorinicial="00">
+                      <ROWSET>
+                      </ROWSET>
+                    </COMBO>
+                  </td>
+                  <td><IMG src="b.gif" width="25" height="8"/></td>
+                  <td class="datosCampos" valing="botton">
+                    <RADIOB nombre="rbSexo" tipo="H" id="datosCampos">
+                      <RBINPUT valor="M" check="N" onfocus="" id="datosCampos"
+                               cod="1334">Masculino</RBINPUT>
+                      <RBINPUT valor="F" check="N" onfocus="" id="datosCampos"
+                               cod="1335">Femenino</RBINPUT>
+                    </RADIOB>
+                  </td>
+                  <td><IMG src="b.gif" width="25" height="8"/></td>
+                  <td nowrap="nowrap" valing="botton">
+                    <COMBO nombre="cbFormaPago" id="datosCampos" size="1"
+                           multiple="N" req="N" valorinicial="" textoinicial="">
+                      <ROWSET>
+                      </ROWSET>
+                    </COMBO>
+                  </td>
+                  <td><IMG src="b.gif" width="25" height="8"/></td>
+                  <td valing="botton"><LABELC nombre="lblFechaIngresoActual" alto="17" filas="1" valor="xxxxxxxxxx" id="datosCampos"/></td>
+                  <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+              </table>
+            </fieldset>
+          </td>
+          <td>
+            <IMG src="b.gif" width="8" height="12"/>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <IMG src="b.gif"/>
+          </td>
+          <td>
+            <fieldset>
+              <table width="100%" border="0" align="center" cellspacing="0"
+                     cellpadding="0">
+                <tr>
+                  <td class="botonera" align="right">
+                    <BOTON nombre="btnAnterior" ID="botonContenido" tipo="html"
+                           estado="false" cod="1649" accion="javascript:GoP1();"/>
+                    <BOTON nombre="btnSiguiente" ID="botonContenido" tipo="html"
+                           estado="false" cod="446" accion="javascript:GoP3();" ontab="javascript:GoP3();"/>
+                  </td>
+                </tr>
+              </table>
+            </fieldset>
+          </td>
+          <td>
+            <IMG src="b.gif" width="8" height="12"/>
+          </td>
+        </tr>
+        <tr>
+          <td width="12" align="center">
+            <IMG src="b.gif" width="12" height="12"/>
+          </td>
+          <td width="750">
+            <IMG src="b.gif"/>
+          </td>
+          <td width="12">
+            <IMG src="b.gif" width="12" height="12"/>
+          </td>
+        </tr>
+      </table>
+    </CAPA>
+  </FORMULARIO>
+</PAGINA>

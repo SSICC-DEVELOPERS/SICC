@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/PROY
+   $Id: contenido_consultoras_compromisopago_consultar.xml,v 1.1 2009/12/03 18:44:18 pecbazalar Exp $
+   DESC
+
+   DRUIDATARGET=/../../config/scripts/iniciales
+-->
+
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+
+<PAGINA nombre="contenido_consultoras_compromisoPago_consultar" cod="0228" titulo="" estilos="estilosB3.css" colorf="#F0F0F0" 
+	msgle="" onload="onLoadPag();" xml:lang="es">
+
+<JAVASCRIPT>
+ <![CDATA[    
+  
+  var listadoVisible = false;
+      
+	function onLoadPag()   
+	{
+        configurarMenuSecundario('frmContenido');
+	    DrdEnsanchaConMargenDcho('listado1',12);
+	    
+	    document.all["Cplistado1"].style.visibility='hidden';
+	    document.all["CpLin1listado1"].style.visibility='hidden';
+	    document.all["CpLin2listado1"].style.visibility='hidden';
+	    document.all["CpLin3listado1"].style.visibility='hidden';
+	    document.all["CpLin4listado1"].style.visibility='hidden';
+
+	    document.all["primera1Div"].style.visibility='hidden';
+	    document.all["ret1Div"].style.visibility='hidden';
+	    document.all["ava1Div"].style.visibility='hidden';
+	    document.all["separaDiv"].style.visibility='hidden';
+		if (get('frmContenido.accion') == 'clienteSeleccionado') {
+			set('frmContenido.txtCodigoUsuaro',get('frmContenido.hCodigoCliente'));
+		} 
+		focaliza('frmContenido.txtCodigoUsuaro','');
+	    eval (ON_RSZ);  
+	}
+  
+  /*
+  Documentation:  buscarClienteOnClick (), 
+  -> Abrimos una ventana modal, llamando a la 
+      "LPBusquedaRapidaCliente" con accion "" 
+  -> Recuperar el array de respuesta con los valores de la fila seleccionada 
+      (oid, codigo, nombre1, nombre2, apellido1, apellido2). 
+  -> Asignamos "oid" a la variable "oidCliente" y "codigo" al 
+      campo "codigoCliente"
+  */
+
+  function buscarClienteOnClick(){
+       var oid;
+       var obj = new Object();
+       var whnd = mostrarModalSICC('LPBusquedaRapidaCliente','',obj);
+       if(whnd==null){
+      
+       }else{
+           /* posicion N°
+            0 : oid del cliente
+            1 : codigo del cliente
+            2 : Nombre1 del cliente
+            3 : Nombre2 del cliente
+            4 : apellido1 del cliente
+            5 : apellido2 del cliente */
+         
+            var oid = whnd[0];
+            var cod = whnd[1];
+      
+
+            // asigno los valores a las variables y campos corresp.
+            set("frmContenido.hOidCliente", oid);
+            set("frmContenido.txtCodigoUsuaro", cod);
+           
+       }   
+  }
+  
+  /*
+    Documentation
+    configurarPaginado(mipgndo, "COBBuscarConsultorasPorCPago",
+    "ConectorBuscarConsultorasPorCPago", "DTOEBuscarConsultorasTelecobranza", 
+    [ ["pais", get(pais de sesión)], ["idioma", get(idioma de sesión)], 
+    ["codigoCliente", get(codigoCliente)], ["fechaPago", get(fechaPago)] );
+  */
+  function buscarOnClick(){
+  
+    if(!sicc_validaciones_generales()){
+        return false;
+    }    
+     configurarPaginado(mipgndo,"COBBuscarConsultorasPorCPago",
+        "ConectorBuscarConsultorasPorCPago",
+        "es.indra.sicc.dtos.cob.DTOEBuscarConsultorasTelecobranza",
+        [['oidPais',get('frmContenido.hOidPais')],
+         ['oidIdioma',get('frmContenido.hOidIdioma')],
+         ['codigoCliente',get('frmContenido.txtCodigoUsuaro')],
+         ['fechaPago',get('frmContenido.txtFechaPago')]] );
+  }
+  
+  /*
+   *  MANEJO TABULACION  
+   */ 
+  function ontab_Buscar(){
+        focaliza('frmContenido.txtCodigoUsuaro','');
+  }
+  
+  function onShifTab_txtCodigoUsuaro(){
+            focalizaBotonHTML('botonContenido', 'btnBuscar');
+  }
+ 
+  /*
+    FUNCIONES PARA VALIDAR LONGITUD COD CLIENTE
+   */   
+  function onchange_codCliente(){
+        if(!sicc_validaciones_generales("gr")){
+            return false;
+        }    
+
+        var codCliente = get('frmContenido.txtCodigoUsuaro');
+        if (codCliente.length != 0)  {    
+            codigoCompleto = validarLongCodCliene(codCliente);
+            set('frmContenido.txtCodigoUsuaro', codigoCompleto);
+        }
+  }
+  
+  function onchange_Fecha(){
+        if(!sicc_validaciones_generales("gr1")){
+            return false;
+        }    
+  }
+
+   function validarLongCodCliene(codCliente) {
+      var longiCod = get('frmContenido.hLongitudCodCliente');
+      var faltantes = longiCod -  codCliente.length;
+      var resultCod = new String("");
+      if(faltantes > 0){
+         for(var t = 0 ; t<faltantes; t++){
+            resultCod = resultCod + "0";
+         }
+         resultCod = resultCod + codCliente;
+         return resultCod;
+      }
+      return codCliente;
+   }
+
+   function muestraLista(ultima, rowset) {
+        var tamano = rowset.length;
+        if (tamano > 0) {
+			mostrarLista();
+			return true;
+        }else{
+			ocultarLista();
+			return false;
+        }
+	}   
+
+	function mostrarLista(){
+	    document.all["Cplistado1"].style.visibility='';
+	    document.all["CpLin1listado1"].style.visibility='';
+	    document.all["CpLin2listado1"].style.visibility='';
+	    document.all["CpLin3listado1"].style.visibility='';
+	    document.all["CpLin4listado1"].style.visibility='';
+
+	    document.all["primera1Div"].style.visibility='';
+	    document.all["ret1Div"].style.visibility='';
+	    document.all["ava1Div"].style.visibility='';
+	    document.all["separaDiv"].style.visibility='';
+        listadoVisible = true;
+	}
+
+	function ocultarLista(){
+	    document.all["Cplistado1"].style.visibility='hidden';
+	    document.all["CpLin1listado1"].style.visibility='hidden';
+	    document.all["CpLin2listado1"].style.visibility='hidden';
+	    document.all["CpLin3listado1"].style.visibility='hidden';
+	    document.all["CpLin4listado1"].style.visibility='hidden';
+
+	    document.all["primera1Div"].style.visibility='hidden';
+	    document.all["ret1Div"].style.visibility='hidden';
+	    document.all["ava1Div"].style.visibility='hidden';
+	    document.all["separaDiv"].style.visibility='hidden';
+        listadoVisible = false;
+	}
+    
+    function fLimpiar(){
+
+    }
+
+  ]]>
+  </JAVASCRIPT>
+ 
+<JS src="sicc_util.js" />			
+<JS src="PaginacionSicc.js"/>		
+<JS src="DruidaTransactionMare.js"/> 
+
+  <VALIDACION>
+	  <ELEMENTO name="txtCodigoUsuaro" required="false" cod="263" group="gr"   chars="a-z0-9"/>
+	  <ELEMENTO name="txtFechaPago" required="false" cod="654" group="gr1" format="F" />
+	</VALIDACION> 
+
+<FORMULARIO nombre="frmContenido">
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="accion" valor=""/>
+<VAR nombre="casoDeUso" valor=""/>
+<VAR nombre="errCodigo" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="hOidCliente" valor=""/>
+<VAR nombre="hOidPais" valor=""/>
+<VAR nombre="hOidIdioma" valor=""/>
+<VAR nombre="hLongitudCodCliente" valor=""/>
+<VAR nombre="hCodigoCliente" valor=""/>
+
+<CAPA nombre="capaContenido">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+     <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+	<fieldset><legend class="legend"><LABELC nombre="lblCriterios" alto="13" filas="1" valor="" id="legend" cod="0075"/></legend> 
+          <!---primera fila-->
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr> <td>
+                <table width="400" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td colspan="3"><LABELC nombre="lblCodCli" alto="13" filas="1" valor="" id="datosTitle" cod="263"/></td>                   
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lblFechaPago" alto="13" filas="1" valor="" id="datosTitle" cod="654"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td>
+                     <CTEXTO nombre="txtCodigoUsuaro" id="datosCampos" max="15" tipo="" onchange="onchange_codCliente()" req="N" size="19" valor="" validacion="" onshtab="onShifTab_txtCodigoUsuaro();"/>
+                   </td>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><IMG src="iconBuscar.gif" onclick="buscarClienteOnClick();"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>    
+                   <td>
+		    <CTEXTO nombre="txtFechaPago" id="datosCampos" max="10" tipo="" onchange="onchange_Fecha();" req="N" size="12" valor="" validacion=""/>
+                   </td>                 
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+              </td>
+                </tr>                
+              </table>
+       <!---fin primera fila-->
+        </fieldset>        
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnBuscar" ID="botonContenido" tipo="html" accion="buscarOnClick();" 
+             ontab="ontab_Buscar();" estado="false" cod="1"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+    </tr>        
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+ </CAPA>  
+
+    <LISTAEDITABLE nombre="listado1" ancho="404" alto="317" x="12" y="124" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+	<BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+	<BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+	<BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+      <LINEAS>
+	<GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="1" horizTitulo="1" horizBase="1"/> 
+	<COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00135" ID="datosTitle" />
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+       
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="150" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/>
+        <COL ancho="170" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <!--COL ancho="100" minimizable="S" minimizada="N" orden="numerico"/--> 
+	        <COL ancho="100" minimizable="S" minimizada="N"/>        
+      </COLUMNAS>
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+	
+	<COL colFondo="" ID="EstCab" cod="263"/>
+	<COL colFondo="" ID="EstCab" cod="943"/>
+        <COL colFondo="" ID="EstCab" cod="654"/>
+	<COL colFondo="" ID="EstCab" cod="670"/>
+	<COL colFondo="" ID="EstCab" cod="881"/>
+	<COL colFondo="" ID="EstCab" cod="617"/>
+	<COL colFondo="" ID="EstCab" cod="995"/>
+        <COL colFondo="" ID="EstCab" cod="169"/>   
+      </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+             coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+             onLoad="" colorSelecc="#D0D9E8">
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+      
+      </DATOS>
+      <ROWSET>
+      </ROWSET>
+      <PAGINADO nombre="mipgndo" ancho="404" sep="$" x="12" class="botonera" y="418" control="|" conector="conector_prototipo_2" rowset="" cargainicial="N" onload="procesarPaginado(mipgndo,msgError,ultima,rowset,'muestraLista(ultima,rowset)');">
+    	<BOTON nombre="ret1" x="37" y="422" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+    	<BOTON nombre="ava1" x="52" y="422" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>        
+      </PAGINADO>
+   </LISTAEDITABLE>
+
+    <BOTON nombre="primera1" x="20" y="422" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();"/>  
+    <BOTON nombre="separa" x="59" y="418" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />       
+
+ <CAPA nombre="capaEspacio" alto="12" ancho="50" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="441" zindex=""/>
+ 
+ </FORMULARIO>
+</PAGINA>    
+

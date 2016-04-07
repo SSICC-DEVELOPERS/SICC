@@ -1,0 +1,384 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?> 
+<!-- 
+/** 
+ * Copyright 2003 © por Indra Sistemas,S.A.. Todos los derechos reservados. 
+ * Avda. de Bruselas, 35 
+ * Parque Empresarial Arroyo de la Vega 
+ * 28108 Alcobendas, Madrid 
+ * España 
+ * 
+ * Privado y Confidencial. 
+ * La información contenida en este documento es propiedad de Indra sistemas. 
+ * Para uso exclusivo de empleados autorizados no permitiéndose 
+ * la distribución de este código sin permiso expreso. 
+ */ 
+--> 
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd"> 
+<PAGINA nombre="contenido_periodos_insertar"  
+         estilos="estilos.css" colorf="#F0F0F0" msgle="Insertar Periodos" 
+         onload="inicializacion();" xml:lang="es" cod="095"> 
+    <JS src="sicc_util.js"/> 
+    <ESTILO>
+                  #estcombo30F {width:355px}
+                  .botonCont2 {font-family: Arial, Helvetica, sans-serif; font-size: 12px; font-style: normal; font-weight: normal; color: #FFFFFF; background-color: #4A699C; border-color: #D0F7FD #333366 #4A699C #D0F7FD; border-style: outset; width: 10px}
+                  #botonCont2 {font-family: Arial, Helvetica, sans-serif; font-size: 12px; font-style: normal; font-weight: normal; color: #FFFFFF; background-color: #4A699C; border-color: #D0F7FD #333366 #4A699C #D0F7FD; border-style: outset; width: 215px}
+         </ESTILO> 
+    <JAVASCRIPT> 
+         <![CDATA[ 
+                      // Inicializacion de los parametros de la pantalla 
+         function inicializacion() {
+
+             //alert("CU: " + get('frmInsertarPeriodos.hCasoDeUso'));
+
+				configurarMenuSecundario("frmInsertarPeriodos");
+
+             var nombreBarra;
+             if(get('frmInsertarPeriodos.hCasoDeUso') == 'modificar'){ 
+                 // nombreBarra = 'barra_periodos_modificar';
+
+                  if(get('frmInsertarPeriodos.errCodigo')!='') { 
+                      GestionarMensaje(get('frmInsertarPeriodos.errCodigo'), 'frmConsultarPeriodos.txtDescripcion'); 
+                  }
+             } else {
+                  //nombreBarra = 'barra_periodos_insertar';
+             } 
+
+             /*if (get('frmInsertarPeriodos.hEnableSave') == 'enable' ) {
+
+                                                      
+                                    if (get('frmInsertarPeriodos.errCodigo')=='') { 
+                                             cargarBarra(nombreBarra, 'A');
+                                    } else {
+                                             cargarBarra(nombreBarra);
+                                    }
+             } else {
+                  //cargarBarra(nombreBarra);
+             }*/
+
+
+
+             accion('frmInsertarPeriodos.txtTodas','.disabled=true'); 
+             posicionarCombo(); 
+             set('frmInsertarPeriodos.txtAnio', get('frmInsertarPeriodos.hAnio')); 
+             if (get('frmInsertarPeriodos.errDescripcion')!='') { 
+                  var wnd = fMostrarMensajeError(get('frmInsertarPeriodos.errCodigo'), get('frmInsertarPeriodos.errDescripcion'));
+             }
+
+             if (get('frmInsertarPeriodos.hListadoDisponible') != '') { 
+                /*
+                accion('frmInsertarPeriodos.cbPaises','.disabled=true'); 
+                accion('frmInsertarPeriodos.cbCanales','.disabled=true'); 
+                accion('frmInsertarPeriodos.cbMarcas','.disabled=true'); 
+                accion('frmInsertarPeriodos.txtAnio','.disabled=true'); 
+
+                document.body.onkeydown  = inhabilitaTab;
+                */
+             } else {
+                  focaliza('frmInsertarPeriodos.cbPaises','');
+             }
+    } 
+ 
+// Se pulso el boton buscar                        
+function fBuscar() { 
+  if (fValidarCOMBO('frmInsertarPeriodos.cbPaises') && 
+           fValidarCTEXT('frmInsertarPeriodos.txtAnio') &&
+           fValidarCOMBO('frmInsertarPeriodos.cbMarcas') && 
+           fValidarCOMBO('frmInsertarPeriodos.cbCanales')){ 
+
+    obtenerPaisMarcaCanalAnio(); 
+
+    if(get('frmInsertarPeriodos.hCasoDeUso') == 'modificar'){
+      set('frmInsertarPeriodos.conectorAction', 'LPModificaPeriodo');
+    }
+
+    set('frmInsertarPeriodos.accion', 'buscar'); 
+    enviaSICC('frmInsertarPeriodos'); 
+  } 
+} 
+ 
+// Levanta los valores seleccionados para pais marca y canal 
+function obtenerPaisMarcaCanalAnio(){ 
+  set('frmInsertarPeriodos.hPais', get('frmInsertarPeriodos.cbPaises')); 
+  set('frmInsertarPeriodos.hCanal', get('frmInsertarPeriodos.cbCanales')); 
+  set('frmInsertarPeriodos.hMarca', get('frmInsertarPeriodos.cbMarcas')); 
+  set('frmInsertarPeriodos.hAnio', get('frmInsertarPeriodos.txtAnio')); 
+} 
+ 
+function posicionarCombo() { 
+  var iSeleccionadoP = new Array(); 
+  iSeleccionadoP[0] = get('frmInsertarPeriodos.hPais'); 
+  set('frmInsertarPeriodos.cbPaises',iSeleccionadoP); 
+
+  var iSeleccionadoM = new Array(); 
+  iSeleccionadoM[0] = get('frmInsertarPeriodos.hMarca'); 
+  set('frmInsertarPeriodos.cbMarcas',iSeleccionadoM); 
+
+  var iSeleccionado = new Array(); 
+  iSeleccionado[0] = get('frmInsertarPeriodos.hCanal'); 
+  set('frmInsertarPeriodos.cbCanales',iSeleccionado); 
+} 
+ 
+// Vacia todos los campos de la pantalla 
+function fLimpiar() { 
+  /*
+  document.body.onkeydown  = "";
+    accion('frmInsertarPeriodos.cbPaises','.disabled=false'); 
+    accion('frmInsertarPeriodos.cbCanales','.disabled=false'); 
+    accion('frmInsertarPeriodos.cbMarcas','.disabled=false'); 
+    accion('frmInsertarPeriodos.txtAnio','.disabled=false'); 
+  */
+  set('frmInsertarPeriodos.cbPaises', ''); 
+  set('frmInsertarPeriodos.cbCanales', ''); 
+  set('frmInsertarPeriodos.cbMarcas', ''); 
+  set('frmInsertarPeriodos.txtAnio', ''); 
+  set('frmInsertarPeriodos.hListadoDisponible', ''); 
+
+  //visibilidad('capaPeriodos','O');
+  //visibilidad('capaBotones','O');
+
+  focaliza('frmInsertarPeriodos.cbPaises','');
+
+} 
+ 
+// Envia el periodo seleccionado a modificar, por LPModificarPeriodo. 
+function modificarPeriodos() { 
+  obtenerPaisMarcaCanalAnio(); 
+
+  var periodoSeleccionado = listaDePeriodos.getSeleccion(); 
+  if (periodoSeleccionado == '') { 
+    GestionarMensaje('8');
+  } else {
+    if(get('frmInsertarPeriodos.hCasoDeUso')=='modificar'){
+      set('frmInsertarPeriodos.conectorAction', 'LPModificaPeriodo');
+    }
+
+    set('frmInsertarPeriodos.hPeriodoSeleccionado',listaDePeriodos.getSeleccion()); 
+
+    set('frmInsertarPeriodos.accion', 'modificarPeriodo'); 
+    enviaSICC('frmInsertarPeriodos'); 
+  }
+} 
+ 
+// Permite guardar los periodos para un anio 
+
+function fGuardar() {
+  setTimeout("grabar2()",100);
+}
+
+function grabar2() { 
+  if (get('frmInsertarPeriodos.hListadoDisponible') == '') { 
+    cdos_mostrarAlert("Debe buscar los periodos a insertar."); 
+    return; 
+  } 
+
+  if (fValidarCOMBO('frmInsertarPeriodos.cbPaises') && 
+    fValidarCOMBO('frmInsertarPeriodos.cbMarcas') && 
+    fValidarCOMBO('frmInsertarPeriodos.cbCanales') && 
+    fValidarCTEXT('frmInsertarPeriodos.txtAnio')){
+
+    obtenerPaisMarcaCanalAnio(); 
+
+  if(get('frmInsertarPeriodos.hCasoDeUso')=='modificar'){
+    set('frmInsertarPeriodos.conectorAction', 'LPModificaPeriodo');
+  }
+  set('frmInsertarPeriodos.accion', 'grabar');
+  enviaSICC('frmInsertarPeriodos'); 
+  } 
+} 
+ 
+// Recalculo de Periodos 
+function recalcularPosteriores() { 
+  obtenerPaisMarcaCanalAnio();
+  set('frmInsertarPeriodos.hCasoDeUso',get('frmInsertarPeriodos.hCasoDeUso'));
+  set('frmInsertarPeriodos.hPeriodoSeleccionado',listaDePeriodos.getSeleccion()); 
+  set('frmInsertarPeriodos.accion', 'recalculaPeriodos'); 
+  enviaSICC('frmInsertarPeriodos'); 
+} 
+]]> 
+    </JAVASCRIPT> 
+    <FORMULARIO nombre="frmInsertarPeriodos"> 
+         <VAR nombre="accion" valor=""/> 
+         <VAR nombre="hCasoDeUso" valor=""/> 
+         <VAR nombre="conectorAction" valor="LPInsertaPeriodo"/> 
+         <VAR nombre="errCodigo" valor=""/> 
+         <VAR nombre="errDescripcion" valor=""/> 
+         <VAR nombre="hPais" valor=""/> 
+         <VAR nombre="hMarca" valor=""/> 
+         <VAR nombre="hCanal" valor=""/> 
+         <VAR nombre="hAnio" valor=""/> 
+         <VAR nombre="hPeriodoSeleccionado" valor=""/> 
+         <VAR nombre="hListadoDisponible" valor=""/>
+         <VAR nombre="hEnableSave" valor=""/>
+
+         <CAPA nombre="capaPaisMarcaCanal" alto="225" ancho="100%" colorf="" 
+                borde="0" imagenf="" repeat="" padding="" visibilidad="visible" 
+                contravsb="" x="0" y="0" zindex=""> 
+ 
+                           <TABLE width="624" border="0" cellspacing="0" cellpadding="0" align="left">
+                                    <TR> 
+                                             <TD align="center" width="12"><IMG src="b.gif" width="12" height="8" /></TD>
+                                             <TD width="400"></TD>
+                                             <TD width="12"><IMG src="b.gif" width="12" height="1" /></TD>
+                                    </TR>
+                                    <TR> 
+                                             <TD align="center"></TD>
+                                             <TD>
+                                                      <TABLE width="100%" border="1" cellspacing="1" cellpadding="0" bordercolor="#CCCCCC">
+                                                                <TR> 
+                                                                         <TD>
+                                                                                  <TABLE width="98%" border="0" cellspacing="0" cellpadding="0" align="left" >
+                                                                                           <TR>
+                                                                                                    <TD class="datosCampos">
+                                                                                                             <LABELC id="datosTitleRight" nombre="lblYYY" ancho="60" alto="5" filas="1" cod=""/> 
+                                                                                                    </TD>
+                                                                                           </TR>
+                                                                                           <TR>
+                                                                                                    <TD width="120">
+                                                      <LABELC nombre="etiqueta1" ancho="60" alto="30" filas="1" id="datosTitleRight" cod="154" valor="" enviaroculto="N"/> 
+                                                  </TD> 
+                                                                                                    <TD width="1%">
+                                                                                                             <IMG src="b.gif" width="8" height="8"/>
+                                                                                                    </TD>
+                                                                                                    <TD width="98%">
+                                                      <COMBO nombre="cbPaises" size="1" multiple="N" req="N" valorinicial="" textoinicial="" id="estcombo30" onshtab="focaliza('frmInsertarPeriodos.cbCanales');" onchange=""> 
+                                                           <ROWSET> 
+                                                           </ROWSET> 
+                                                      </COMBO> 
+                                                  </TD>
+                                                                                           </TR>
+                                             <TR>
+                                                                                                    <TD width="120">
+                                                      <LABELC nombre="etiqueta2" ancho="60" alto="30" filas="1" id="datosTitleRight" cod="759" valor="" enviaroculto="N"/> 
+                                                  </TD> 
+                                                                                                    <TD width="1%">
+                                                                                                             <IMG src="b.gif" width="8" height="8"/>
+                                                                                                    </TD>
+                                                                                                    <TD width="98%">
+                                                      <CTEXTO nombre="txtAnio" class="datosCampos" id="txtAnio" max="4" tipo="" onchange="" size="4" valor="" req="N" validacion="fValidarNumero(valor,4,0,9999) "/> 
+                                                  </TD>
+                                                                                           </TR>
+                                                                                           <TR>
+                                                                                                    <TD width="120" valign="top">
+                                                                                                             <LABELC id="datosTitleRight" nombre="lblMarca" ancho="60" alto="30" filas="1" cod="165"/> 
+                                                  </TD> 
+                                                                                                    <TD width="1%">
+                                                                                                             <IMG src="b.gif" width="8" height="8"/>
+                                                                                                    </TD>
+                                                                                                    <TD width="98%">
+                                                      <COMBO nombre="cbMarcas" id="estcombo30" size="3" multiple="N" req="N" onchange=""> 
+                                                                                                                      <ROWSET> 
+                                                                                                                      </ROWSET> 
+                                                      </COMBO> 
+                                                  </TD> 
+                                             </TR> 
+                                             <TR>
+                                                                                                    <TD></TD>
+                                                                                                    <TD width="1%">
+                                                                                                             <IMG src="b.gif"
+                                                                                                                        witdh="8"
+                                                                                                                        height="8"/>
+                                                                                                    </TD>
+                                                                                                    <TD width="98%">
+                                                                                                             <TABLE bgcolor=""
+                                                                                                                          width="10%"
+                                                                                                                          border="0"
+                                                                                                                          cellspacing="0"
+                                                                                                                          cellpadding="0">
+                                                                                                                      <TR>
+                                                                                                                                <TD align="left">
+                                                                                                                                         <CHECKBOX nombre="txtTodas" id="txtTodas" max="1" tipo="" onchange="" req="N" size="1" validacion=""/> 
+                                                                                                                                </TD>
+                                                                                                                                <TD align="left">
+                                                                                                                                         <LABELC nombre="etiqueta13" ancho="120" alto="30" filas="1" id="datosTitleLeft" cod="777" valor="" enviaroculto="N"/> 
+                                                                                                                                </TD>
+                                                                                                                      </TR>
+                                                                                                             </TABLE>
+                                                                                                    </TD>
+                                                                                           </TR>
+                                                                                           <TR>
+                                                                                                    <TD width="120">
+                                                      <LABELC id="datosTitleRight" nombre="lblCanales" ancho="60" alto="30" filas="1" cod="166"/> 
+                                                  </TD> 
+                                                                                                    <TD width="1%">
+                                                                                                             <IMG src="b.gif" width="8" height="8"/>
+                                                                                                    </TD>
+                                                                                                    <TD width="98%">
+                                                      <COMBO nombre="cbCanales" id="estcombo30" size="1" multiple="N" req="N" valorinicial="" textoinicial="" ontab="focaliza('frmInsertarPeriodos.cbPaises');" onchange=""> 
+                                                           <ROWSET> 
+                                                           </ROWSET> 
+                                                      </COMBO>
+                                                                                                    </TD>
+                                                                                                    <TD><IMG src="b.gif" width="8" height="8" /></TD>
+                                                                                                    <TD><IMG src="b.gif" width="8" height="8" /></TD>
+                                                                                           </TR>
+                                                                                           <TR>
+                                                                                                    <TD class="datosCampos">
+                                                                                                             <LABELC id="datosTitleRight" nombre="lblXXX" ancho="60" alto="5" filas="1" cod=""/> 
+                                                                                                    </TD>
+                                                                                           </TR >
+                                                                                  </TABLE>
+                                                                         </TD>
+                                                                </TR>
+                                                                <TR> 
+                                                                         <TD bgcolor="#CCCCCC">
+                                                                                  <BOTON nombre="btnEnviar" ID="botonContenido" tipo="html" accion="fBuscar();" estado="true" cod="141"/> 					
+                                                                         </TD>
+                                                                </TR> 
+                                                      </TABLE>
+                                             </TD>
+                                    </TR>
+                           </TABLE>
+                  </CAPA>
+
+                  <CAPA nombre="capaPeriodos" alto="115" ancho="100%" colorf="" borde="0" 
+                imagenf="" repeat="" padding="" visibilidad="hidden" contravsb="" 
+                x="12" y="230" zindex=""> 
+
+                           <LISTA seleccion="boton" nombre="listaDePeriodos" ancho="600" alto="86" entradax="" entraday="" colorf="#EFEFEF" oncolor="" chkcolor="" visibilidad="hidden" incx="10" incy="10" nmin="" nmax="1" multisel="1" accion="" sep="|" imagenon="close_up.gif" imagenoff="close_no.gif" pixelsborde="1" colorborde="#CCCCCC" onSetDatos="" blockImg="" x="0" y="0"> 
+                      <CABECERA nombre="cab1" height="20" ancho="662" colorf="#CCCCCC"> 
+                                             <COL id="fondoCabecera" ancho="17" alto="15" valign="middle" >
+                                                      <LABELC nombre="columnaIconos" ancho="10" alto="20" filas="1" id="datosCamposCabecera" cod="" valor="" enviaroculto="N"/>
+                                             </COL>
+                      <COL id="fondoCabecera" ancho="120"> 
+                                                      <LABELC nombre="lblTipo" ancho="120" alto="20" filas="1" id="datosCamposCabecera" cod="26" valor="" enviaroculto="N"/> 
+                      </COL> 
+                      <COL id="fondoCabecera" ancho="205"> 
+                                                      <LABELC nombre="lblNombre" ancho="205" alto="20" filas="1" id="datosCamposCabecera" cod="617" valor="" enviaroculto="N"/> 
+                      </COL>
+                                             <COL id="fondoCabecera" ancho="50"> 
+                                                      <LABELC nombre="lblDuracion" ancho="50" alto="20" filas="1" id="datosCamposCabecera" cod="12" valor="" enviaroculto="N"/> 
+                      </COL> 
+                      <COL id="fondoCabecera" ancho="135"> 
+                                                      <LABELC nombre="lblFInicio" ancho="135" alto="20" filas="1" id="datosCamposCabecera" cod="1172" valor="" enviaroculto="N"/> 
+                      </COL> 
+                                             <COL id="fondoCabecera" ancho="135"> 
+                                                      <LABELC nombre="lblFFin" ancho="135" alto="20" filas="1" id="datosCamposCabecera" cod="1173" valor="" enviaroculto="N"/> 
+                                             </COL>
+                                             <COL id="fondoCabecera" ancho="17" alto="15" valign="middle" >
+                                                      <LABELC nombre="columnaIconos2" ancho="10" alto="20" filas="1" id="datosCamposCabecera" cod="" valor="" enviaroculto="N"/>
+                                             </COL>
+                                    </CABECERA> 
+                  <PRESENTACION ancho="662" filas="1" bloquesid="['datosCamposRightImpar','datosCamposCenterPar','datosCamposRightImpar','datosCamposCenterPar','datosCamposCenterImpar']"> 
+                                             <COL ancho="17"/>
+                                             <COL ancho="120"/>
+                                             <COL ancho="205"/>
+                                             <COL ancho="50"/>
+                                             <COL ancho="135"/>
+                                             <COL ancho="135"/>
+                                    </PRESENTACION>
+                                    <ROWSET> 
+                                    </ROWSET> 
+                           </LISTA>
+                  </CAPA>
+                  <CAPA  nombre="capaBotones" visibilidad="hidden" alto="30" ancho="600" borde="n" imagenf="" repeat="" padding="0"  contravsb="" x="12" y="316" zindex="">
+                           <TABLE width="100%" border="0" cellspacing="1" cellpadding="0" bordercolor="#CCCCCC" bgcolor="#CCCCCC">
+                                    <TR>
+                      <TD class="tablaTitle"> 
+                           <BOTON cod="1607" estado="false" accion="recalcularPosteriores();" tipo="html" ID="botonCont2" nombre="btnEjemploEnviar"/> 
+                           <BOTON cod="142" estado="false" accion="modificarPeriodos();" tipo="html" ID="botonContenido" nombre="btnModificar"/> 
+                      </TD> 
+                                    </TR>
+                           </TABLE>
+                  </CAPA>
+    </FORMULARIO>
+</PAGINA>

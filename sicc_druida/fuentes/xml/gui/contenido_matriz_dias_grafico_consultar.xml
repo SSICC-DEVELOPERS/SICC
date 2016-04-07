@@ -1,0 +1,625 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/PROY
+   $Id: contenido_matriz_dias_grafico_consultar.xml,v 1.1 2009/12/03 18:44:07 pecbazalar Exp $
+   DESC
+
+   DRUIDATARGET=/../../config/scripts/iniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_matriz_dias_grafico_consultar" titulo="" estilos="estilosB3.css" colorf="#F0F0F0" msgle="" 
+        onload="onLoadPag(); inicializacion();" xml:lang="es" cod="0665">
+
+<JS src="sicc_util.js"/>
+<JS src="DruidaTransactionMare.js"/> 
+
+  <JAVASCRIPT>
+
+  <![CDATA[ 
+
+	/*
+	* Carga el estado inicial
+	*/
+	function onLoadPag()   {  
+		try{
+			tdContenedor.onresize();
+		}catch(e){
+			;
+		}
+		try{
+			tdContenedorDos.onresize();
+		}catch(e){
+			;
+		}
+		configurarMenuSecundario("frmConsultarMatrizDias");
+		fMostrarMensajeError();
+		DrdEnsanchaConMargenDcho('lstFueraPeriodo',12);
+		DrdEnsanchaConMargenDcho('lstOtraCampana',12);
+
+		if (get('frmConsultarMatrizDias.hListaFueraPeriodoMostrar') == "SI") {
+			mostrarListaEditable();
+		} else {		
+			ocultarListaEditable();
+		}
+		eval (ON_RSZ);  
+		// deshabilitamos el manejo de requeridos por druida
+		setMV('frmConsultarMatrizDias.cbMarcas','N');
+		setMV('frmConsultarMatrizDias.cbCanales','N');
+	}
+
+
+	/*
+	* Inicializa la pagina
+	*/
+	function inicializacion() {		
+		txt_to('lblValorPais', get('frmConsultarMatrizDias.hPaisDescripcion')); 
+		posicionarCombo(); 
+		focaliza('frmConsultarMatrizDias.cbMarcas','');
+	}
+
+	/*
+	* Se llama a esta función javascript cuando se pulsa sobre el botón btnBuscar. 
+	* Llama a LPMantieneMatrizDias con accion = "consultar"
+	*/
+	function onClickBuscar() {
+		// validamos campos requeridos
+		if( ! sicc_validaciones_generales('grupoBuscar') ) {
+			return false;
+		}		
+
+		//tomamos valores seleccionados
+		obtenerMarcaCanalGrupos();
+
+		//ejecutamos la accion buscar
+		set('frmConsultarMatrizDias.accion', 'consultar');
+		enviaSICC('frmConsultarMatrizDias');
+	}
+
+
+	/*
+	* Este método se activa al seleccionar un valor en cbMarcas
+	*/
+	function onChangeMarca() {
+		cambiaFiltro();
+	}
+
+
+	/*
+	* Este método se activa al seleccionar un valor en cbCanales
+	*/
+	function onChangeCanal() {
+		cambiaFiltro();
+	}
+
+
+	/*
+	* Función javascript recarga el combo de cbGrupoDeZonas
+	*/
+	function cambiaFiltro() {
+		// si selecciono ambos filtros requeridos
+		if (seleccionoMarcaCanal()) {
+			// 1.- Recarga combo cbGrupoDeZonas
+			recargaCombo('frmConsultarMatrizDias.cbGrupoDeZonas', 'CRAObtieneGruposZonas', 'es.indra.sicc.dtos.cra.DTOGrupoZonas', armarArrayParametrosDTO());
+		}
+
+		// 2.- Si existe un valor seleccionado (no vacio) en cbMarcas y existe
+		// un valor seleccionado (no vacio) en cbCanales, habilitar btnBuscar sino deshabilitar btnBuscar.
+		// Lo manejamos con la validacion de campos requeridos
+	}
+
+
+	// Limpia combos
+	function fLimpiar() { 
+		//luego de fLimpiar generico, limpia cbGrupoDeZonas y focaliza en el primer combo
+		set_combo('frmConsultarMatrizDias.cbGrupoDeZonas', new Array() );
+		focaliza('frmConsultarMatrizDias.cbMarcas');
+	} 
+
+
+	// focaliza el cbMarcas desde el btnBuscar
+	function focalizaDesdeBusqueda() {  
+		document.selection.empty();
+		focaliza('frmConsultarMatrizDias.cbMarcas');
+	}
+
+
+	// focaliza shiftTab desde cbMarcas
+	function focalizaShift() {  
+		document.selection.empty();
+		//druida no se lo banca aca, que raro!!!
+		//focaliza('frmConsultarMatrizDias.btnBuscar');
+		document.all.btnBuscar.focus();
+	}
+
+
+	/*
+	* Al seleccionar una actividad en la matriz, guarda su idVista en hActividadSeleccionada.
+	* Luego se utiliza este valor para identificar que actividad se desea modificar o eliminar.
+	*/
+	function seleccionaActividad(idVistaActividad) {
+		// No tiene efecto en la consulta de matrizDias.
+		// La definimos porque esta definida para el cu insertar/modificar.
+	}
+
+
+	// Arma un array con idioma, pais, marca y canal para la recarga de combos.
+	function armarArrayParametrosDTO()  {
+		var array = new Array();
+		var i = 0;
+		array[i] = new Array('oidIdioma',get('frmConsultarMatrizDias.hIdioma'));
+
+		if (get('frmConsultarMatrizDias.hPais') != '')  {
+			i++;
+			array[i] = new Array('oidPais',get('frmConsultarMatrizDias.hPais'));
+		}
+		if (get('frmConsultarMatrizDias.cbMarcas') != '')  {
+			i++;
+			array[i] = new Array('oidMarca',get('frmConsultarMatrizDias.cbMarcas'));
+		}
+		if (get('frmConsultarMatrizDias.cbCanales') != '')  {
+			i++;
+			array[i] = new Array('oidCanal',get('frmConsultarMatrizDias.cbCanales'));
+		}
+		//alert(array);
+		return array;
+	}
+
+
+	// Retorna true si esta seleccionado una marca y un canal.
+	function seleccionoMarcaCanal() {
+		if ( (get('frmConsultarMatrizDias.cbMarcas') != null) && (get('frmConsultarMatrizDias.cbMarcas') != '') &&
+			 (get('frmConsultarMatrizDias.cbCanales') != null) && (get('frmConsultarMatrizDias.cbCanales') != '') ) {
+			return true;
+		}
+		return false;
+	}
+
+
+	// Levanta los valores seleccionados para marca, canal y grupoZonas
+	function obtenerMarcaCanalGrupos(){ 
+		set('frmConsultarMatrizDias.hCanal', get('frmConsultarMatrizDias.cbCanales')); 
+		set('frmConsultarMatrizDias.hMarca', get('frmConsultarMatrizDias.cbMarcas')); 
+		set('frmConsultarMatrizDias.hGruposZonas', get('frmConsultarMatrizDias.cbGrupoDeZonas')); 
+	} 
+
+
+	//Posicina los combos marca y canal segun el seleccionado
+	function posicionarCombo() { 
+		//combo marcas
+		var iSeleccionadoMarca = new Array(); 
+		iSeleccionadoMarca[0] = get('frmConsultarMatrizDias.hMarca'); 
+		set('frmConsultarMatrizDias.cbMarcas',iSeleccionadoMarca); 
+
+		//combo canales
+		var iSeleccionadoCanal = new Array(); 
+		iSeleccionadoCanal[0] = get('frmConsultarMatrizDias.hCanal'); 
+		set('frmConsultarMatrizDias.cbCanales',iSeleccionadoCanal); 
+
+		//combo gruposZonas multiple
+		var gruposZonas = get('frmConsultarMatrizDias.hGruposZonas');
+		iSeleccionadoGrupos = gruposZonas.split(",");
+		set('frmConsultarMatrizDias.cbGrupoDeZonas',iSeleccionadoGrupos);
+	}
+
+
+	//Muestra la lista editable
+	function mostrarListaEditable() {
+		//lista editable actividades fuera de periodo
+		document.all["CplstFueraPeriodo"].style.visibility='visible';
+		document.all["CpLin1lstFueraPeriodo"].style.visibility='visible';
+		document.all["CpLin2lstFueraPeriodo"].style.visibility='visible';
+		document.all["CpLin3lstFueraPeriodo"].style.visibility='visible';
+		document.all["CpLin4lstFueraPeriodo"].style.visibility='visible';
+		
+		document.all["primera2Div"].style.visibility='visible';
+		document.all["ret2Div"].style.visibility='visible';
+		document.all["ava2Div"].style.visibility='visible';
+		document.all["separa2Div"].style.visibility='visible';
+
+		//lista editable referencia otra campaña
+		document.all["CplstOtraCampana"].style.visibility='visible';
+		document.all["CpLin1lstOtraCampana"].style.visibility='visible';
+		document.all["CpLin2lstOtraCampana"].style.visibility='visible';
+		document.all["CpLin3lstOtraCampana"].style.visibility='visible';
+		document.all["CpLin4lstOtraCampana"].style.visibility='visible';
+		
+		document.all["primera3Div"].style.visibility='visible';
+		document.all["ret3Div"].style.visibility='visible';
+		document.all["ava3Div"].style.visibility='visible';
+		document.all["separa3Div"].style.visibility='visible';
+	}
+
+
+	//Oculta la lista editable
+	function ocultarListaEditable() {
+		//lista editable actividades fuera de periodo
+		document.all["CplstFueraPeriodo"].style.visibility='hidden';
+		document.all["CpLin1lstFueraPeriodo"].style.visibility='hidden';
+		document.all["CpLin2lstFueraPeriodo"].style.visibility='hidden';
+		document.all["CpLin3lstFueraPeriodo"].style.visibility='hidden';
+		document.all["CpLin4lstFueraPeriodo"].style.visibility='hidden';
+		
+		document.all["primera2Div"].style.visibility='hidden';
+		document.all["ret2Div"].style.visibility='hidden';
+		document.all["ava2Div"].style.visibility='hidden';
+		document.all["separa2Div"].style.visibility='hidden';
+
+		//lista editable referencia otra campaña
+		document.all["CplstOtraCampana"].style.visibility='hidden';
+		document.all["CpLin1lstOtraCampana"].style.visibility='hidden';
+		document.all["CpLin2lstOtraCampana"].style.visibility='hidden';
+		document.all["CpLin3lstOtraCampana"].style.visibility='hidden';
+		document.all["CpLin4lstOtraCampana"].style.visibility='hidden';
+		
+		document.all["primera3Div"].style.visibility='hidden';
+		document.all["ret3Div"].style.visibility='hidden';
+		document.all["ava3Div"].style.visibility='hidden';
+		document.all["separa3Div"].style.visibility='hidden';
+	}
+
+
+  ]]> 
+</JAVASCRIPT>
+
+<VALIDACION>
+	<!-- Primer Grupo -->
+	<ELEMENTO name="cbMarcas" required="true" cod="6" group="grupoBuscar"/>
+	<ELEMENTO name="cbCanales" required="true" cod="7" group="grupoBuscar"/>
+</VALIDACION>
+
+
+<FORMULARIO nombre="frmConsultarMatrizDias">
+
+	<VAR nombre="varTipo" valor=""/>
+	<VAR nombre="accion" valor=""/>
+	<VAR nombre="conectorAction" valor="LPMantieneMatrizDias"/>
+	<VAR nombre="errCodigo" valor=""/>
+	<VAR nombre="errDescripcion" valor=""/>
+	<VAR nombre="hIdioma" valor=""/>
+	<VAR nombre="hPais" valor=""/>
+	<VAR nombre="hPaisDescripcion" valor=""/> 
+	<VAR nombre="hMarca" valor=""/>
+	<VAR nombre="hCanal" valor=""/>
+	<VAR nombre="hGruposZonas" valor=""/>
+	<VAR nombre="hListaFueraPeriodoMostrar" valor=""/>
+
+
+<CAPA nombre="capaBusqueda" x="0" y="0">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>  
+<!--primero formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblCriteriosBusqueda" alto="13" filas="1" valor="" id="legend" cod="0075"/></legend>
+          <!---primera fila-->
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr><td>
+                <table width="705" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblPais" alto="13" filas="1" valor="" id="datosTitle" cod="5"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblMarca" alto="13" filas="1" valor="" id="datosTitle" cod="6"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblCanal" alto="13" filas="1" valor="" id="datosTitle" cod="7"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td valign="bottom"><LABELC nombre="lblValorPais" alto="13" filas="1" valor="" id="datosCampos"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap">
+		     <COMBO nombre="cbMarcas" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onchange="onChangeMarca();" onshtab="focalizaShift();">
+		       <ROWSET>
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap">
+		     <COMBO nombre="cbCanales" id="datosCampos" size="1"  multiple="N" req="S" valorinicial="" textoinicial="" onchange="onChangeCanal();">
+		       <ROWSET>
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+              </table>
+              </td></tr></table>
+       <!---fin primera fila-->
+       <!---segunda fila-->
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+              <tr><td>
+              <table width="705" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblGrupoDeZonas" alto="13" filas="1" valor="" id="datosTitle" cod="2195"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td>
+		     <COMBO nombre="cbGrupoDeZonas" id="datosCampos" size="5" multiple="S" req="N" valorinicial="" textoinicial="">
+		       <ROWSET>
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr> 
+                  <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+              </table></td></tr></table>
+       <!---fin segunda fila-->
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+	<fieldset>
+	  <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	    <tr>
+	      <td class="botonera">
+                <BOTON nombre="btnBuscar" ID="botonContenido" tipo="html" accion="onClickBuscar();" estado="false" cod="1" ontab="focalizaDesdeBusqueda();"/>
+              </td>
+	    </tr>    
+	  </table>        
+	</fieldset>
+      </td>
+      <td><IMG src="b.gif" width="8" height="12"/></td>
+    </tr>        
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+
+<!-- <REJILLA nombre="rejillaGrafica1" alto="317" ancho="708" x="12" y="209"/> -->
+
+
+<CAPA nombre="capaTablaGrafica"  borde="0" visibilidad="hidden" x="0" y="188">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="19"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primero formulario-->
+		  <!---primera fila-->
+			<fieldset>
+			  <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+
+					<!--- construccion -->	
+					<tr valign="top">
+						<td id="tdContenedor" style="border:1px solid #CECFCE" onresize="try{document.getElementById('miscroll').style.width=this.offsetWidth-0;
+									}catch(e){;}"> 
+							<REJILLA nombre="rejMatrizDias" alto="317" ancho="708" x="12" y="209"/>
+						</td>
+					</tr>
+					<!--- construccion   -->	
+
+					<tr>
+						<td>
+							<table width="705" border="0" align="left" cellspacing="0" cellpadding="0">
+								<tr> 
+									<td>
+										<IMG src="b.gif" width="8" height="291"/>
+									</td>
+								</tr>
+							</table>
+						</td>
+					</tr>
+					<tr bgcolor="#CECFCE">
+						<td width="790" height="26" >
+							<IMG src="b.gif" width="12" height="12"/>
+						</td>
+					</tr>
+
+			  </table>
+			</fieldset>
+	   <!---fin primera fila-->
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr>
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>      
+</CAPA>
+
+
+<LISTAEDITABLE nombre="lstFueraPeriodo" ancho="708" alto="317" x="12" y="551" colorFondo="#CECFCE" msgDebugJS="S">
+  <IMGBOTONES precarga="S" conROver="S">
+    <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+    <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+    <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+  </IMGBOTONES>
+  <LINEAS>
+    <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="1" horizTitulo="1" horizBase="1"/> 
+    <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+  </LINEAS>
+  <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="0046" ID="datosTitle" />
+  <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+  <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+    	<COL ancho="80" minimizable="S" minimizada="N"/>
+    	<COL ancho="60" minimizable="S" minimizada="N"/>
+        <COL ancho="170" minimizable="S" minimizada="N"/>
+        <COL ancho="100" minimizable="S" minimizada="N"/>
+        <COL ancho="120" minimizable="S" minimizada="N"/>
+        <COL ancho="80" minimizable="S" minimizada="N"/>
+        <COL ancho="100" minimizable="S" minimizada="N"/>
+        <COL ancho="120" minimizable="S" minimizada="N"/>
+  </COLUMNAS>
+  <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+    	<COL colFondo="" ID="EstCab" cod="2195"></COL> 
+    	<COL colFondo="" ID="EstCab" cod="261"></COL> 
+	<COL colFondo="" ID="EstCab" cod="192"></COL> 
+	<COL colFondo="" ID="EstCab" cod="151"></COL> 
+	<COL colFondo="" ID="EstCab" cod="174"></COL> 
+	<COL colFondo="" ID="EstCab" cod="193"></COL> 
+	<COL colFondo="" ID="EstCab" cod="194"></COL> 
+	<COL colFondo="" ID="EstCab" cod="293"></COL> 
+  </CABECERA>
+  <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+         coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" colorSelecc="#D0D9E8">
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+  </DATOS>
+  <ROWSET>
+      </ROWSET>
+  <PAGINADO nombre="mipgndo2" ancho="708" sep="$" x="12" class="botonera" y="845" control="|" conector="conector_prototipo_2" rowset="" cargainicial="N">
+    <BOTON nombre="ret2" x="37" y="849" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo2.retroceder();" /> 
+    <BOTON nombre="ava2" x="52" y="849" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo2.avanzar();"/>        
+  </PAGINADO>
+</LISTAEDITABLE>
+    <BOTON nombre="primera2" x="20" y="849" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo2.retrocederPrimeraPagina();"/>  
+    <BOTON nombre="separa2" x="59" y="845" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />      
+
+<!--Lista de Actividades con Referencia a Otra Campaña -->
+<LISTAEDITABLE nombre="lstOtraCampana" ancho="593" alto="317" x="12" y="892" colorFondo="#CECFCE" msgDebugJS="S">
+  <IMGBOTONES precarga="S" conROver="S">
+    <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+    <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+    <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+  </IMGBOTONES>
+  <LINEAS>
+    <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="1" horizTitulo="1" horizBase="1"/> 
+    <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+  </LINEAS>
+  <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00682" ID="datosTitle" />
+  <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+  <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+    	<COL ancho="80" minimizable="S" minimizada="N"/>
+    	<COL ancho="60" minimizable="S" minimizada="N"/>
+        <COL ancho="170" minimizable="S" minimizada="N"/>
+        <COL ancho="100" minimizable="S" minimizada="N"/>
+        <COL ancho="120" minimizable="S" minimizada="N"/>
+        <COL ancho="80" minimizable="S" minimizada="N"/>
+        <COL ancho="100" minimizable="S" minimizada="N"/>
+  </COLUMNAS>
+  <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+         <COL colFondo="" ID="EstCab" cod="2195"></COL>
+         <COL colFondo="" ID="EstCab" cod="151"></COL> 
+         <COL colFondo="" ID="EstCab" cod="174"></COL> 
+	 <COL colFondo="" ID="EstCab" cod="152"></COL> 
+         <COL colFondo="" ID="EstCab" cod="3206"></COL> 
+         <COL colFondo="" ID="EstCab" cod="3226"></COL> 
+         <COL colFondo="" ID="EstCab" cod="192"></COL>  
+
+
+  </CABECERA>
+  <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+         coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" colorSelecc="#D0D9E8">
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat"/> 
+  </DATOS>
+  <ROWSET>
+      </ROWSET>
+  <PAGINADO nombre="mipgndo3" ancho="593" sep="$" x="12" class="botonera" y="1155" control="|" conector="conector_prototipo_2" rowset="" cargainicial="N">
+    <BOTON nombre="ret3" x="37" y="1190" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo3.retroceder();" /> 
+    <BOTON nombre="ava3" x="52" y="1190" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo3.avanzar();"/>        
+  </PAGINADO>
+</LISTAEDITABLE>
+    <BOTON nombre="primera3" x="20" y="1190" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo3.retrocederPrimeraPagina();"/>  
+    <BOTON nombre="separa3" x="59" y="1186" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />      
+
+
+<!-- <REJILLA nombre="rejillaGrafica2" alto="317" ancho="708" x="12" y="893"/> -->
+
+<!--  
+100%
+-->
+
+<CAPA nombre="capaTablaNoGrafica" alto="752" ancho="100%" colorf="" borde="0" visibilidad="hidden" x="0" y="1219">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="19"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+
+	<tr> 
+	  <td><IMG src="b.gif"/></td>
+	  <td>
+<!--primero formulario-->
+			<fieldset>
+			  <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+					<!--- construccion -->	
+					<tr valign="top">
+						<td id="tdContenedorDos" style="border:1px solid #CECFCE" onresize="try{document.getElementById('miscrolldos').style.width=this.offsetWidth-0;}catch(e){;}"> 
+							<REJILLA nombre="rejMatrizDiasNoGrafica" alto="317" ancho="708" x="12" y="1240"/>
+						</td>
+					</tr>
+					<!--- construccion   -->	
+					<tr>
+						<td>
+							<table width="705" border="0" align="left" cellspacing="0" cellpadding="0">
+								<tr> 
+									<td>
+										<IMG src="b.gif" width="8" height="291"/>
+									</td>
+								</tr>
+							</table>
+						</td>
+					</tr>
+					<tr bgcolor="#CECFCE">
+						<td width="790" height="26" >
+							<IMG src="b.gif" width="12" height="12"/>
+						</td>
+					</tr>
+			  </table>
+			</fieldset>
+<!--fin primer formulario-->
+      </td>
+	  <td><IMG src="b.gif" /></td>		
+	</tr>
+
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+
+
+<CAPA nombre="capaEspacio2" alto="18" ancho="100" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="1210" zindex="">
+</CAPA>
+
+</FORMULARIO>
+</PAGINA>

@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_estados_insertar.xml,v 1.1 2009/12/03 18:46:20 pecbazalar Exp $
+   prueba arbol 
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+<PAGINA nombre="contenido_estados_insertar" cod="0415" titulo="Insertar estados" estilos="estilosB3.css" colorf="#F0F0F0" 
+	msgle="Insertar estados" onload="onLoadPag();" xml:lang="es">
+<!--  barra insertar 0415
+    Barra Modificar estados cod="0414"
+    Barra Eliminar estados cod="0416"
+    Barra Consultar estados cod="0415"-->
+<JS src="sicc_util.js"/>          
+<JS src="PaginacionSicc.js"/>    
+<JS src="i18NJS.js" />
+<JS src="DruidaTransactionMare.js"/>
+<JAVASCRIPT>
+  <![CDATA[ 
+function tab() 
+{
+  focaliza("frmInsertarActividades.txtDescripcionEstado");
+}
+
+
+      function validarAlfanumericoConEspeciales(valor) 
+           {
+
+    
+      var permitidos = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_- ";
+                           var c;
+                           
+                           for(var i=0; i<valor.length; i++) 
+                           {
+                                             c = valor.charAt(i);
+                                             if (permitidos.indexOf(c) == -1 ) 
+                                                      return false;
+                           }
+                           return true;
+            }
+
+
+function shtab() {
+document.selection.empty( get( "frmInsertarActividades.cbEstatus2" )); 
+focaliza("frmInsertarActividades.cbEstatus2");
+}
+
+function fVolver()
+{
+window.close();
+}
+function fGuardar()   
+{
+  if(!sicc_validaciones_generales()){
+              return false;
+    }
+
+  if (get ('frmInsertarActividades.casoDeUso')=='insertar')
+  {
+    if (fValidarCTEXT('frmInsertarActividades.txtDescripcionEstado') && 
+    fValidarCOMBO('frmInsertarActividades.cbEstatus1') &&
+    fValidarCOMBO('frmInsertarActividades.cbEstatus2'))
+    {
+      if (validarAlfanumericoConEspeciales(get('frmInsertarActividades.txtDescripcionEstado')))
+      {
+        set('frmInsertarActividades.conectorAction','LPMantenimientoEstadosMAV');
+        set('frmInsertarActividades.accion','guardar');
+        enviaSICC('frmInsertarActividades');
+      }
+      else
+      {
+        var wnd = GestionarMensaje("2558", null, null, null);
+      }
+    }  
+  }
+  if (get ('frmInsertarActividades.casoDeUso')=='modificar')
+  {
+    if (fValidarCOMBO('frmInsertarActividades.cbEstatus1') &&
+    fValidarCOMBO('frmInsertarActividades.cbEstatus2') &&
+    fValidarCTEXT('frmInsertarActividades.txtDescripcionEstado'))
+    { 
+      if (validarAlfanumericoConEspeciales(get('frmInsertarActividades.txtDescripcionEstado')))
+      {
+        set('frmInsertarActividades.conectorAction','LPMantenimientoEstadosMAV');
+        set('frmInsertarActividades.accion','guardar');
+        enviaSICC('frmInsertarActividades');
+        window.close();
+      }
+      else
+      {
+         var wnd = GestionarMensaje("2558", null, null, null);
+      }
+    }
+  }
+}
+
+function fLimpiar() {
+  var arr = new Array();
+  set("frmInsertarActividades.txtDescripcionEstado", "");
+  set("frmInsertarActividades.cbEstatus1", "");
+  set("frmInsertarActividades.cbEstatus2", "");  
+     
+  if (get('frmInsertarActividades.casoDeUso')=='modificar'){
+      
+      set("frmInsertarActividades.txtDescripcionEstado", get('frmInsertarActividades.CTEXTO'));
+      var aux =get("frmInsertarActividades.esta1")
+      
+      var arr = aux.split("|");
+      
+      set("frmInsertarActividades.cbEstatus1",arr);
+
+      var arr2 =new Array();
+      arr2[0]=get("frmInsertarActividades.esta2");
+      if (get("frmInsertarActividades.esta2")=="01"){
+      arr2[0]="1";
+      }
+       if (get("frmInsertarActividades.esta2")=="10"){
+      arr2[0]="0";
+      }
+      if (get("frmInsertarActividades.esta2")=="11"){
+      arr2[0]="0";
+      arr2[1]="1";
+      }
+      set("frmInsertarActividades.cbEstatus2",arr2);
+
+   }
+  focaliza("frmInsertarActividades.txtDescripcionEstado"); 
+}
+
+
+
+  function onLoadPag()   
+  { 
+    configurarMenuSecundario("frmInsertarActividades");
+    
+    mostrarCodigoError();
+    focaliza("frmInsertarActividades.txtDescripcionEstado");  
+    fLimpiar();
+    
+      
+
+    if (get('frmInsertarActividades.casoDeUso')=='consultar'){
+      
+      
+      accion('frmInsertarActividades.txtDescripcionEstado','.disabled=true');
+      accion('frmInsertarActividades.cbEstatus1','.disabled=true');
+      accion('frmInsertarActividades.cbEstatus2','.disabled=true');
+      
+      set("frmInsertarActividades.txtDescripcionEstado", get('frmInsertarActividades.CTEXTO'));
+      var aux =get("frmInsertarActividades.esta1")
+      
+      var arr = aux.split("|");
+      
+      set("frmInsertarActividades.cbEstatus1",arr);
+      var arr2 =new Array();
+      //alert (get("frmInsertarActividades.esta2"));
+            var arr2 =new Array();
+      arr2[0]=get("frmInsertarActividades.esta2");
+      if (get("frmInsertarActividades.esta2")=="01"){
+      arr2[0]="1";
+      }
+       if (get("frmInsertarActividades.esta2")=="10"){
+      arr2[0]="0";
+      }
+      if (get("frmInsertarActividades.esta2")=="11"){
+      arr2[0]="0";
+      arr2[1]="1";
+      }
+      set("frmInsertarActividades.cbEstatus2",arr2);
+
+   }
+    if (get('frmInsertarActividades.casoDeUso')=='modificar'){
+      
+      set("frmInsertarActividades.txtDescripcionEstado", get('frmInsertarActividades.CTEXTO'));
+      var aux =get("frmInsertarActividades.esta1")
+      
+      var arr = aux.split("|");
+      
+      set("frmInsertarActividades.cbEstatus1",arr);
+      var arr2 =new Array();
+      arr2[0]=get("frmInsertarActividades.esta2");
+      if (get("frmInsertarActividades.esta2")=="01"){
+      arr2[0]="1";
+      }
+       if (get("frmInsertarActividades.esta2")=="10"){
+      arr2[0]="0";
+      }
+      if (get("frmInsertarActividades.esta2")=="11"){
+      arr2[0]="0";
+      arr2[1]="1";
+      }
+      set("frmInsertarActividades.cbEstatus2",arr2);
+
+
+   }
+  }
+
+
+  function mostrarCodigoError()
+  {
+    var vErrCodigo = get('frmInsertarActividades.errCodigo');
+    var vErrDescrip = get('frmInsertarActividades.errDescripcion');
+    if (get('frmInsertarActividades.errDescripcion')!='')
+    {
+      var wnd = fMostrarMensajeError( vErrCodigo,vErrDescrip);
+    }
+    
+  }
+
+  
+          
+  ]]> 
+</JAVASCRIPT>
+    
+    
+    
+  <VALIDACION>
+      <ELEMENTO name="txtDescripcionEstado" required="true" cod="1293" />
+      <ELEMENTO name="cbEstatus1" required="true" cod="551" />
+      <ELEMENTO name="cbEstatus2" required="true" cod="552" />
+	</VALIDACION>    
+    
+<FORMULARIO nombre="frmInsertarActividades">
+<VAR nombre="accion" valor=""/>
+<VAR nombre="casoDeUso" valor=""/>
+<VAR nombre="errCodigo" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="idioma" valor=""/>
+<VAR nombre="esta1" valor=""/>
+<VAR nombre="esta2" valor=""/>
+<VAR nombre="CTEXTO" valor=""/>
+<VAR nombre="detalle" valor=""/>
+<CAPA nombre="capa">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+<!--**************************-->
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblDatosPrincipales"  alto="13" filas="1" cod="00172" id="legend" /></legend>
+          <!---primera fila-->
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblDescripcionEstado"  alto="13" filas="1" valor="" id="datosTitle" cod="1293"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"><CTEXTO nombre="txtDescripcionEstado" id="datosCampos" max="40" tipo="" onchange="" req="S" size="40" valor="" onshtab="shtab();"  validacion="" />
+                   <IMG src="iconmultidioma.gif" width="21" height="15"  onclick="levantarI18N('frmInsertarActividades','1');"/>
+                   </td>
+                  <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+       <!---fin primera fila-->
+       <!---segunda fila-->
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+             
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblEstatus1"  alto="13" filas="1" valor="" id="datosTitle" cod="551"/></td>
+                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblEstatus2" alto="13" filas="1" valor="" id="datosTitle" cod="552"/></td>
+                  <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                    <td><IMG src="b.gif" width="8" height="8"/></td>
+                    <td nowrap="nowrap" ><COMBO nombre="cbEstatus1" id="datosCampos" size="5" multiple="S" req="S" valorinicial="" textoinicial="">
+                      <ROWSET>
+                      		<ROW ID="1">
+                     			<CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="00"/>
+                     			<CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR=""/>
+                  		</ROW>
+                  		<ROW ID="2">
+                     			<CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="00"/>
+                     			<CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR=""/>
+                  		</ROW>
+                  		<ROW ID="3">
+                     			<CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="00"/>
+                     			<CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR=""/>
+                  		</ROW>
+                  		<ROW ID="4">
+                     			<CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="00"/>
+                     			<CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR=""/>
+                  		</ROW>
+                  		<ROW ID="5">
+                     			<CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="00"/>
+                     			<CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR=""/>
+                  		</ROW>
+                  		<ROW ID="6">
+                     			<CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="00"/>
+                     			<CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR=""/>
+                  		</ROW>
+                      </ROWSET>
+                    </COMBO> </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" valign="top"><COMBO nombre="cbEstatus2" id="datosCampos" size="2" multiple="S" req="S" valorinicial="" ontab="tab();"  textoinicial="">
+                      <ROWSET>
+                      <ROW ID="1">
+                     			<CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="1"/>
+                     			<CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="Activo"/>
+                  		</ROW>
+                  		<ROW ID="2">
+                     			<CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="0"/>
+                     			<CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="No activo"/>
+                  		</ROW>
+                  		
+                      </ROWSET>
+                    </COMBO> </td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+	        <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+              </table>
+      
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+  
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA> 
+ </FORMULARIO>
+</PAGINA> 

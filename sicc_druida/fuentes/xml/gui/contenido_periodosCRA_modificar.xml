@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+/**
+ * Copyright 2003 © por Indra Sistemas,S.A.. Todos los derechos reservados.
+ * Avda. de Bruselas, 35
+ * Parque Empresarial Arroyo de la Vega
+ * 28108 Alcobendas, Madrid
+ * España
+ *
+ * Privado y Confidencial.
+ * La información contenida en este documento es propiedad de Indra sistemas.
+ * Para uso exclusivo de empleados autorizados no permitiéndose
+ * la distribución de este código sin permiso expreso.
+ */
+-->
+<!--
+   INDRA/CAR/PROY
+   $Id: contenido_periodosCRA_modificar.xml,v 1.1 2009/12/03 18:43:58 pecbazalar Exp $
+   DESC
+
+   DRUIDATARGET=/../../config/scripts/iniciales
+-->
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+<PAGINA nombre="contenido_periodosCRA_modificar" 
+          estilos="estilos.css" colorf="#F0F0F0" msgle="Modificar Periodos"
+          onload="inicializacion();" xml:lang="es" cod="096">
+    <JS src="sicc_util.js"/>
+    <JAVASCRIPT>
+          <![CDATA[
+
+                    function fLimpiar(){   
+
+                         set('frmModificarPeriodos.txtTipoPeriodo', get('frmModificarPeriodos.hTipoPeriodo'));
+                         set('frmModificarPeriodos.txtNombrePeriodo', get('frmModificarPeriodos.hNombrePeriodo'));
+                         set('frmModificarPeriodos.txtDuracionPeriodo', get('frmModificarPeriodos.hDuracionPeriodo'));
+                         set('frmModificarPeriodos.txtFinicio', get('frmModificarPeriodos.hfInicio'));
+                         set('frmModificarPeriodos.txtFfin', get('frmModificarPeriodos.hfFin'));
+
+                         var casoDeUso = get('frmModificarPeriodos.hCasoDeUso');
+                         if (casoDeUso == 'insertar') {
+                              focaliza('frmModificarPeriodos.txtDuracionPeriodo','');
+                         } else {
+                              focaliza('frmModificarPeriodos.txtNombrePeriodo','');
+                         }
+                    }
+
+                    function inicializacion(){
+
+                         //cargarBarra('barra_periodosCRA_modificar');
+									
+								 configurarMenuSecundario("frmModificarPeriodos");
+
+                         set('frmModificarPeriodos.txtTipoPeriodo', get('frmModificarPeriodos.hTipoPeriodo'));
+                         set('frmModificarPeriodos.txtNombrePeriodo', get('frmModificarPeriodos.hNombrePeriodo'));
+                         set('frmModificarPeriodos.txtDuracionPeriodo', get('frmModificarPeriodos.hDuracionPeriodo'));
+                         set('frmModificarPeriodos.txtFinicio', get('frmModificarPeriodos.hfInicio'));
+                         set('frmModificarPeriodos.txtFfin', get('frmModificarPeriodos.hfFin'));
+
+                         accion('frmModificarPeriodos.txtTipoPeriodo','.disabled=true');
+
+                         var casoDeUso = get('frmModificarPeriodos.hCasoDeUso');
+                         if (casoDeUso == 'insertar') {
+                              accion('frmModificarPeriodos.txtNombrePeriodo','.disabled=true');
+                              focaliza('frmModificarPeriodos.txtDuracionPeriodo','');
+                         } else {
+                              focaliza('frmModificarPeriodos.txtNombrePeriodo','');
+                         }
+
+                         mostrarCodigoError();
+                    }
+
+                    function mostrarCodigoError(){
+                      var parametros = new Object();
+                      parametros.errCodigo = get('frmModificarPeriodos.errCodigo');
+                      parametros.errDescripcion = get('frmModificarPeriodos.errDescripcion');
+
+                      if (get('frmModificarPeriodos.errDescripcion')!='') {
+                         var wnd = fMostrarMensajeError(get('frmModificarPeriodos.errCodigo'),
+                                                                  get('frmModificarPeriodos.errDescripcion'));
+                         if (wnd == 0)
+                              reintentar();
+                         else
+                              cancelar();
+                      }     
+                    } 
+
+function fGuardar() {
+	setTimeout("aplicarCambios2()",100);
+}
+
+function aplicarCambios2() {
+	if (fValidarCTEXT('frmModificarPeriodos.txtNombrePeriodo') &&
+		fValidarCTEXT('frmModificarPeriodos.txtDuracionPeriodo') &&
+		fValidarCTEXT('frmModificarPeriodos.txtFinicio') &&
+		fValidarCTEXT('frmModificarPeriodos.txtFfin')) {
+
+		set('frmModificarPeriodos.hTipoPeriodo', get('frmModificarPeriodos.txtTipoPeriodo'));
+		set('frmModificarPeriodos.hNombrePeriodo', get('frmModificarPeriodos.txtNombrePeriodo'));
+		set('frmModificarPeriodos.hDuracionPeriodo', get('frmModificarPeriodos.txtDuracionPeriodo'));
+		set('frmModificarPeriodos.hfInicio', get('frmModificarPeriodos.txtFinicio'));
+		set('frmModificarPeriodos.hfFin', get('frmModificarPeriodos.txtFfin'));
+		var msgValida = get('frmModificarPeriodos.msgValidaDatos');
+		if ( msgValida == '') {
+			set('frmModificarPeriodos.accion', 'aplicarCambios');
+			enviaSICC('frmModificarPeriodos');
+		} else {
+			cdos_mostrarAlert(msgValida);
+		}
+
+	}
+}
+
+                    // El campo Fecha de Inicio perdio el foco. Posiblemente ha
+                    // cambiado. Hay que validarlo, y ajustar duración.
+                    function cambioFechaInicio() {
+                         if ((get('frmModificarPeriodos.errorValidaDatos') == '')||
+                              (get('frmModificarPeriodos.errorValidaDatos') == 'errorFechaInicio')) {
+                              var fechaInicio = get('frmModificarPeriodos.txtFinicio');
+                              var fechaFin = get('frmModificarPeriodos.txtFfin');
+
+                              var msgValidaFecha = ValidaFecha(fechaInicio,'Y-M-D',fechaInicio,fechaFin);
+
+                              if (msgValidaFecha != 'OK') {
+                                    set('frmModificarPeriodos.errorValidaDatos', 'errorFechaInicio');
+                                    set('frmModificarPeriodos.msgValidaDatos', msgValidaFecha);
+                                    cdos_mostrarAlert(msgValidaFecha);
+                                    foco('frmModificarPeriodos.txtFinicio');
+                                    return;
+                              }
+
+                              // Ajusto Duracion
+                              var dif = DiferenciaFechas(fechaInicio,fechaFin,'Y-M-D') + 1;
+                              set('frmModificarPeriodos.txtDuracionPeriodo', dif);
+                              set('frmModificarPeriodos.msgValidaDatos', '');
+                              set('frmModificarPeriodos.errorValidaDatos', '');
+                         }
+                    }
+
+                    // El campo Fecha de Fin perdio el foco. Posiblemente ha
+                    // cambiado. Hay que validarlo, y ajustar duración.
+                    function cambioFechaFin() {
+                         if ((get('frmModificarPeriodos.errorValidaDatos') == '')||
+                              (get('frmModificarPeriodos.errorValidaDatos') == 'errorFechaFin')){
+                              var fechaInicio = get('frmModificarPeriodos.txtFinicio');
+                              var fechaFin = get('frmModificarPeriodos.txtFfin');
+
+                              var msgValidaFecha = ValidaFecha(fechaFin,'Y-M-D',fechaInicio,fechaFin);
+
+                              if (msgValidaFecha != 'OK') {
+                                    set('frmModificarPeriodos.msgValidaDatos', msgValidaFecha);
+                                    set('frmModificarPeriodos.errorValidaDatos', 'errorFechaFin');
+                                    cdos_mostrarAlert(msgValidaFecha);
+                                    foco('frmModificarPeriodos.txtFfin');
+                                    return;
+                              }
+
+                              // Ajusto Duracion
+                              var dif = DiferenciaFechas(fechaInicio,fechaFin,'Y-M-D') + 1;
+                              set('frmModificarPeriodos.txtDuracionPeriodo', dif);
+                              set('frmModificarPeriodos.msgValidaDatos', '');
+                              set('frmModificarPeriodos.errorValidaDatos', '');
+                         }
+                    }
+
+                    // Calcula la fecha de fin para la duracion modificada
+                    function cambioDuracion() {
+                         var nuevaDuracion = get('frmModificarPeriodos.txtDuracionPeriodo');
+
+                         if (nuevaDuracion != '') {
+                              if ((get('frmModificarPeriodos.errorValidaDatos') == '')||
+                                    (get('frmModificarPeriodos.errorValidaDatos') == 'errorDuracion')) {
+
+                                    var msgValidaDurac = ValidaNum(nuevaDuracion);
+                                    if (msgValidaDurac != 'OK') {
+                                         set('frmModificarPeriodos.msgValidaDatos', msgValidaDurac);
+                                         set('frmModificarPeriodos.errorValidaDatos', 'errorDuracion');
+                                         cdos_mostrarAlert(msgValidaDurac);
+                                         foco('frmModificarPeriodos.txtDuracionPeriodo');
+                                         return;
+                                    }
+
+                                    var fecha1 = get('frmModificarPeriodos.txtFinicio');
+                                    var formato = 'Y-M-D';
+                                    var f1;
+                                    var d1,d2;
+                                    var dias = 0;
+                                    var f1 = FormateaFecha(fecha1,formato); if (f1.length != 3) {return f1;}
+                                    d1 = new Date(f1[2],f1[1]-1,f1[0]);
+                                    dias = (nuevaDuracion-1) * 86400000;
+                                    d2 = dias + d1.getTime(); // milisegundos
+                                    var fecha2 = new Date();
+                                    fecha2.setTime(d2);
+
+                                    var anio = fecha2.getFullYear();
+                                    var m0   = fecha2.getMonth() + 1; // meses de 0..11
+                                    var mes  = (m0 < 10)?('0'+m0):m0;
+                                    var dia  = (fecha2.getDate() < 10) ? ('0'+fecha2.getDate()) : fecha2.getDate();
+
+                                    set('frmModificarPeriodos.txtFfin', anio+'-'+mes+'-'+dia );
+                                    set('frmModificarPeriodos.msgValidaDatos', '');
+                                    set('frmModificarPeriodos.errorValidaDatos', '');
+                              }
+                         } else {
+                              GestionarMensaje('77');
+                              set('frmModificarPeriodos.msgValidaDatos', 'errorDuracion');
+                              set('frmModificarPeriodos.errorValidaDatos', 'errorDuracion');
+                              foco('frmModificarPeriodos.txtDuracionPeriodo');
+                         }
+                    }
+
+                    function fVolverSinCambios() {
+                         set('frmModificarPeriodos.accion', 'volver');
+                         enviaSICC('frmModificarPeriodos');
+                    }
+
+                    // tab
+                    function focalizarSiguiente() {
+                         var casoDeUso = get('frmModificarPeriodos.hCasoDeUso');
+                         if (casoDeUso == 'insertar') {
+                              focaliza('frmModificarPeriodos.txtDuracionPeriodo','');
+                         } else {
+                              focaliza('frmModificarPeriodos.txtNombrePeriodo','');
+                         }
+                    }
+
+                    // shift tab
+                    function focalizarAnterior() {
+                         var casoDeUso = get('frmModificarPeriodos.hCasoDeUso');
+                         if (casoDeUso == 'insertar') {
+                              focaliza('frmModificarPeriodos.txtFfin','');
+                         } else {
+                              focaliza('frmModificarPeriodos.txtNombrePeriodo','');
+                         }
+                    }
+
+          ]]>
+    </JAVASCRIPT>
+    <FORMULARIO nombre="frmModificarPeriodos">
+          <VAR nombre="accion" valor=""/>
+          <VAR nombre="conectorAction" valor="LPModificaPeriodoCRA"/>
+          <VAR nombre="errCodigo" valor=""/>
+          <VAR nombre="errDescripcion" valor=""/>
+          <VAR nombre="hPais" valor=""/>
+          <VAR nombre="hPaisDescripcion" valor=""/> 
+          <VAR nombre="hMarca" valor=""/>
+          <VAR nombre="hCanal" valor=""/>
+                    <VAR nombre="hCasoDeUso" valor=""/>
+          <VAR nombre="hTipoPeriodo" valor=""/>
+          <VAR nombre="hNombrePeriodo" valor=""/>
+          <VAR nombre="hDuracionPeriodo" valor=""/>
+          <VAR nombre="hfInicio" valor=""/>
+          <VAR nombre="hfFin" valor=""/>
+          <VAR nombre="msgValidaDatos" valor=""/>
+          <VAR nombre="errorValidaDatos" valor=""/>
+
+
+                              <TABLE width="624" border="0" cellspacing="0" cellpadding="0" align="left">
+                                         <TR> 
+                                                   <TD align="center" width="12"><IMG src="b.gif" width="12" height="8" /></TD>
+                                                   <TD width="400"></TD>
+                                                   <TD width="12"><IMG src="b.gif" width="12" height="1" /></TD>
+                                         </TR>
+                                         <TR> 
+                                                   <TD align="center"></TD>
+                                                   <TD>
+                                                             <TABLE width="100%" border="1" cellspacing="1" cellpadding="0" bordercolor="#CCCCCC">
+                                                                         <TR> 
+                                                                                   <TD>
+                                                                                             <TABLE width="98%" border="0" cellspacing="0" cellpadding="0" align="left" >
+                                                                                                        <TR>
+                                                                                                                  <TD class="datosCampos">
+                                                                                                                            <LABELC id="datosTitleRight" nombre="lblYYY" ancho="60" alto="5" filas="1" cod=""/> 
+                                                                                                                  </TD>
+                                                                                                        </TR>
+                                                                                                        <TR>
+                                                                                                                  <TD width="120">
+                                                                                                                            <LABELC nombre="etiqueta2" ancho="120" alto="30" filas="1" id="datosTitle" cod="51" valor="" enviaroculto="N"/>
+                                                                                                                  </TD>
+                                                                                                                  <TD width="1%">
+                                                                                                                            <IMG src="b.gif" width="8" height="8"/>
+                                                                                                                  </TD>
+                                                                                                                  <TD width="98%">
+                                                                                                                            <CTEXTO nombre="txtTipoPeriodo" id="datosCampos" size="2" max="2" req="N" valor="" onblur="" onfocus="" onchange=""/>
+                                                                                                                  </TD>
+                                                                                                        </TR>
+                                                                                                        <TR>
+                                                                                                                  <TD width="120">
+                                                                                                                            <LABELC nombre="etiqueta42" ancho="120" alto="30" filas="1" id="datosTitle" cod="49" valor="" enviaroculto="N"/>
+                                                                                                                  </TD>
+                                                                                                                  <TD width="1%">
+                                                                                                                            <IMG src="b.gif" width="8" height="8"/>
+                                                                                                                  </TD>
+                                                                                                                  <TD width="98%">
+                                                                                                                            <CTEXTO nombre="txtNombrePeriodo" id="datosCampos" size="34" max="20" req="N" valor="" onblur="" onfocus="" ontab="foco('frmModificarPeriodos.txtDuracionPeriodo');" onshtab="foco('frmModificarPeriodos.txtFfin');" onchange=""/>
+                                                                                                                  </TD>
+                                                                                                        </TR>
+                                                                                                        <TR>
+                                                                                                                  <TD width="120">
+                                                                                                                            <LABELC nombre="etiqueta3" ancho="120" alto="30" filas="1" id="datosTitleRight" cod="1171" valor="" enviaroculto="N"/>
+                                                                                                                  </TD>
+                                                                                                                  <TD width="1%">
+                                                                                                                            <IMG src="b.gif" width="8" height="8"/>
+                                                                                                                  </TD>
+                                                                                                                  <TD width="98%">
+                                                                                                                            <CTEXTO nombre="txtDuracionPeriodo" id="datosCampos" size="1" max="2" req="N" valor="" onblur="cambioDuracion();" onfocus="" ontab="foco('frmModificarPeriodos.txtFinicio');" onshtab="focalizarAnterior();" onchange=""/>
+                                                                                                                  </TD>
+                                                                                                        </TR>
+                                                                                                        <TR>
+                                                                                                                  <TD width="120">
+                                                                                                                            <LABELC nombre="etiqueta33" ancho="120" alto="30" filas="1" id="datosTitleRight" cod="1172" valor="" enviaroculto="N"/>
+                                                                                                                  </TD>
+                                                                                                                  <TD width="1%">
+                                                                                                                            <IMG src="b.gif" width="8" height="8"/>
+                                                                                                                  </TD>
+                                                                                                                  <TD width="98%">
+                                                                                                                            <CTEXTO nombre="txtFinicio" id="datosCampos" size="9" max="10" req="N" valor="" onblur="cambioFechaInicio();" onfocus="" ontab="foco('frmModificarPeriodos.txtFfin');" onshtab="foco('frmModificarPeriodos.txtDuracionPeriodo');" onchange=""/>
+                                                                                                                  </TD>
+                                                                                                        </TR>
+                                                                                                        <TR>
+                                                                                                                  <TD width="120">
+                                                                                                                            <LABELC nombre="etiqueta34" ancho="120" alto="30" filas="1" id="datosTitleRight" cod="1173" valor="" enviaroculto="N"/>
+                                                                                                                  </TD>
+                                                                                                                  <TD width="1%">
+                                                                                                                            <IMG src="b.gif" width="8" height="8"/>
+                                                                                                                  </TD>
+                                                                                                                  <TD width="98%">
+                                                                                                                            <CTEXTO nombre="txtFfin" id="datosCampos" size="9" max="10" req="N" valor="" onblur="cambioFechaFin();" onfocus="" ontab="focalizarSiguiente();" onshtab="foco('frmModificarPeriodos.txtFinicio');"/>
+                                                                                                                  </TD>
+                                                                                                                  <TD><IMG src="b.gif" width="8" height="8" /></TD>
+                                                                                                                  <TD><IMG src="b.gif" width="8" height="8" /></TD>
+                                                                                                        </TR>
+                                                                                                        <TR>
+                                                                                                                  <TD class="datosCampos">
+                                                                                                                            <LABELC id="datosTitleRight" nombre="lblXXX" ancho="60" alto="5" filas="1" cod=""/> 
+                                                                                                                  </TD>
+                                                                                                        </TR >
+                                                                                             </TABLE>
+                                                                                   </TD>
+                                                                         </TR>
+                                                             </TABLE>
+                                                   </TD>
+                                         </TR>
+                              </TABLE>
+    </FORMULARIO>
+</PAGINA>

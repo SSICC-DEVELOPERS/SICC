@@ -1,0 +1,532 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: PruebaPantalla.xml,v 1.1 2009/12/03 18:44:46 pecbazalar Exp $
+   PRE
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_ofertas_modificar" cod="0154" titulo="Modificar Ofertas" estilos="estilosB3.css" colorf="#F0F0F0"
+        msgle="Modificar Ofertas" onload="onLoadPag();" xml:lang="es">
+<!-- Caso de uso Consultar ofertas: cod="0182" -->
+
+<JAVASCRIPT>
+  <![CDATA[ 
+
+  function onLoadPag()   {
+     configurarMenuSecundario("frmFormulario");     
+     showError();     
+ 
+     metodoListaEditable();
+     
+     DrdEnsanchaConMargenDcho('listado1',12);
+     DrdEnsanchaConMargenDcho('listado2',12);
+     //DrdEnsanchaConMargenDcho('listado3',36);
+     //DrdEnsanchaConMargenDcho('listado4',36);
+     DrdEnsanchaConMargenDcho('listado5',36);
+
+     document.all["primera1Div"].style.visibility='hidden';
+     document.all["ret1Div"].style.visibility='hidden';
+     document.all["ava1Div"].style.visibility='hidden';
+     document.all["primera2Div"].style.visibility='hidden';
+     document.all["ret2Div"].style.visibility='hidden';
+     document.all["ava2Div"].style.visibility='hidden';
+     document.all["Buscar2Div"].style.visibility='hidden'
+    
+    /* document.all["primera3Div"].style.visibility='hidden';
+     document.all["ret3Div"].style.visibility='hidden';
+     document.all["ava3Div"].style.visibility='hidden';
+     */
+    /* document.all["primera4Div"].style.visibility='hidden';
+     document.all["ret4Div"].style.visibility='hidden';
+     document.all["ava4Div"].style.visibility='hidden';
+     */
+     document.all["primera5Div"].style.visibility='hidden';
+     document.all["ret5Div"].style.visibility='hidden';
+     document.all["ava5Div"].style.visibility='hidden';
+     eval (ON_RSZ);  
+     
+
+     //seteo los datos generales 
+     set('frmFormulario.rbCondicionCondicionantes', get('frmFormulario.hidRBCondicionCondicionantes')); 
+     set('frmFormulario.rbCondicionCondicionados', get('frmFormulario.hidRBCondicionCondicionados'));
+     //alert(get('frmFormulario.hidCKDespachoCompleto'));
+    set('frmFormulario.ckDespachoCompleto', get('frmFormulario.hidCKDespachoCompleto')); 
+    set('frmFormulario.ckDespachoAutomatico', get('frmFormulario.hidCKDespachoAutomatico'));
+    if(get('frmFormulario.hDeshabilitaTodo') == 'S'){
+        deshabilitaTodo();
+     }
+     configuraPantalla();
+     posicionaCombos();
+   }
+
+   function metodoListaEditable(){   
+        alert(get('frmFormulario.hNombreListas'));
+        var arrayNomListas = get('frmFormulario.hNombreListas').split("|"); 
+        for ( i = 0 ; i < arrayNomListas.length; i++) {            
+            DrdEnsanchaConMargenDcho(arrayNomListas[i],12);           
+        }
+	  
+   }
+
+   function showError(){
+        if (get('frmFormulario.errCodigo') != ''){
+            fMostrarMensajeError();
+        }
+        else if (get('frmFormulario.hValorError') == 'PRE0014'){
+           GestionarMensaje('PRE0014'); 
+        }
+   }
+   function fBorrar(){
+              if (listado2.numSelecc()>0){
+                  accionEliminarProductos();              
+              } else if (listado5.numSelecc()>0){
+                  accionEliminarVentaExclusiva();
+              } else {
+                  GestionarMensaje(4);
+              }
+           }
+
+	function accionEliminarOferta()
+	{
+      set("frmFormulario.conectorAction", "LPModificarOferta");
+      set("frmFormulario.accion", "eliminarOferta");
+      enviaSICC("frmFormulario");
+	}
+   
+	function accionBuscarProducto()
+	{
+      set("frmFormulario.conectorAction", "LPModificarOferta");
+      set("frmFormulario.accion", "buscarProducto");
+      enviaSICC("frmFormulario");
+	}
+
+	function accionEliminarProductos()
+	{
+      if (listado2.numSelecc()>0){
+          if(GestionarMensaje("5")){
+              set('frmContenido.accion','eliminarProductos');
+              set("frmFormulario.conectorAction", "LPModificarOferta");
+              set('frmContenido.elemSelecc',listado2.codSeleccionados());
+              enviaSICC('frmContenido');
+          }
+      }
+	}
+
+	function accionModificarGrupo()
+	{
+      set("frmFormulario.conectorAction", "LPModificarOferta");
+      set("frmFormulario.accion", "modificarGrupo");
+      enviaSICC("frmFormulario");
+	}
+
+	function accionAniadirGrupo()
+	{
+      set("frmFormulario.accion", "aniadirGrupo");
+      enviaSICC("frmFormulario");
+	}
+
+	function accionAniadirCondicion()
+	{
+      set("frmFormulario.conectorAction", "LPModificarOferta");
+      set("frmFormulario.accion", "AnadirCondicion");
+      enviaSICC("frmFormulario");
+	}
+
+	function accionModificarCondicion()
+	{
+      set("frmFormulario.conectorAction", "LPModificarOferta");
+      set("frmFormulario.accion", "ModificarCondicion");
+      enviaSICC("frmFormulario");
+	}
+
+	function accionEliminarCondicion(boton)
+	{   
+        alert(eval(boton).codigo);
+        set("frmFormulario.conectorAction", "LPModificarOferta");
+        set("frmFormulario.accion", "EliminarCondicion");
+        set("frmFormulario.hOidCondicion", eval(boton).codigo);
+        enviaSICC("frmFormulario");
+	}
+
+
+	function accionAniadirVentaExclusiva()
+	{
+      
+      if (fValidarCOMBO("frmFormulario.cbTipoCliente")&&
+          fValidarCOMBO("frmFormulario.cbSubtipoCliente")&&
+          fValidarCOMBO("frmFormulario.cbTipoClasificacion")&&
+          fValidarCOMBO("frmFormulario.cbEstatusCliente")&&
+          fValidarCTEXT("frmFormulario.txtEstatus2")){
+            set('frmFormulario.hDesTipoCliente',get('frmFormulario.cbTipoCliente','T'));
+            set('frmFormulario.hDesSubtipoCliente',get('frmFormulario.cbSubtipoCliente','T'));
+            set('frmFormulario.hDesTipoClasificacion',get('frmFormulario.cbTipoClasificacion','T'));
+            set('frmFormulario.hDesClasificacion',get('frmFormulario.cbClasificacion','T'));
+            set('frmFormulario.hDesEstatusCliente',get('frmFormulario.cbEstatusCliente','T'));
+            set("frmFormulario.conectorAction", "LPModificarOferta");      
+            set('frmFormulario.accion','aniadirVentaExclusiva');
+            enviaSICC('frmFormulario');
+      }  
+	}
+
+	function accionEliminarVentaExclusiva(){
+      if (listado5.numSelecc()>0){
+          if(GestionarMensaje("5")){
+              set("frmFormulario.conectorAction", "LPModificarOferta");
+              set("frmFormulario.accion", "eliminarVentaExclusiva");
+              set('frmContenido.frmFormulario',listado5.codSeleccionados());
+              enviaSICC('frmFormulario');
+          }
+      } 
+  }
+
+	
+
+
+	
+	function deshabilitaTodo()
+	{   
+		/*
+        accion('frmFormulario.cbArgumentoVenta'.'disabled=true');
+				accion('frmFormulario.txtNumeroOrden'.'disabled=true');
+				accion('frmFormulario.primera1'.'disabled=true');
+				accion('frmFormulario.ava1'.'disabled=true');
+				accion('frmFormulario.ret1'.'disabled=true');
+				accion('frmFormulario.Buscar'.'disabled=true');
+				accion('frmFormulario.txtNumeroGrupos'.'disabled=true');
+				accion('frmFormulario.txtNumeroPaquetes'.'disabled=true');
+				accion('frmFormulario.cbIndicadorCuadre'.'disabled=true');
+				accion('frmFormulario.txtNumeroGruposCondicionantes'.'disabled=true');
+				accion('frmFormulario.rbCondicionCondicionantes'.'disabled=true');
+				accion('frmFormulario.txtNumeroGruposCondicionados'.'disabled=true');
+				accion('frmFormulario.rbCondicionCondicionados'.'disabled=true');
+				accion('frmFormulario.cbFormasPago'.'disabled=true');
+				accion('frmFormulario.ckDespachoCompleto'.'disabled=true');
+				accion('frmFormulario.ckDespachoAutomatico'.'disabled=true');
+				accion('frmFormulario.btnEliminar'.'disabled=true');
+				accion('frmFormulario.btnAnadir'.'disabled=true');
+				accion('frmFormulario.primera3'.'disabled=true');
+				accion('frmFormulario.ava3'.'disabled=true');
+				accion('frmFormulario.ret3'.'disabled=true');
+				accion('frmFormulario.Modificar3'.'disabled=true');
+				accion('frmFormulario.btnEliminar2'.'disabled=true');
+				accion('frmFormulario.cbTipoGrupo2'.'disabled=true');
+				accion('frmFormulario.btnAnadir2'.'disabled=true');
+				accion('frmFormulario.primera4'.'disabled=true');
+				accion('frmFormulario.ava4'.'disabled=true');
+				accion('frmFormulario.ret4'.'disabled=true');
+				accion('frmFormulario.Modificar4'.'disabled=true');
+				accion('frmFormulario.ckVentaExclusiva4'.'disabled=true');
+				accion('frmFormulario.cbTipoCliente'.'disabled=true');
+				accion('frmFormulario.cbSubTipoCliente'.'disabled=true');
+				accion('frmFormulario.cbTipoClasificacionCliente'.'disabled=true');
+				accion('frmFormulario.cbClasificacionCliente'.'disabled=true');
+				accion('frmFormulario.cbEstatusCliente'.'disabled=true');
+				accion('frmFormulario.txtEstatus2'.'disabled=true');
+				accion('frmFormulario.btnAnadir5'.'disabled=true');
+				accion('frmFormulario.primera5'.'disabled=true');
+				accion('frmFormulario.ava5'.'disabled=true');
+				accion('frmFormulario.ret5'.'disabled=true');
+				accion('frmFormulario.btnEliminarOferta'.'disabled=true');
+        */	
+		}
+          function tipoClienteOnChange(){
+              accion('frmFormulario.cbSubtipoCliente','.disabled=false');
+              recargaCombo('frmFormulario.cbSubtipoCliente', 'MAEobtenerSubtipos', 
+                           'es.indra.sicc.util.DTOOID', makeParameter('oid',get('frmFormulario.cbTipoCliente')));
+           }
+           
+           function subtipoClienteOnChange(){
+              //accion('frmFormulario.cbTipoClasificacion','.disabled=false');
+              recargaCombo('frmFormulario.cbTipoClasificacion', 'MAEobtenerTipoClasificacion', 
+                           'es.indra.sicc.util.DTOOID', makeParameter('oid',get('frmFormulario.cbSubtipoCliente')));
+           }
+           
+           function tipoClasificacionOnChange(){
+              //accion('frmFormulario.cbClasificacion','.disabled=false');
+              recargaCombo('frmFormulario.cbClasificacion', 'MAEobtenerClasificacionesPorTipo', 
+                           'es.indra.sicc.util.DTOOID', makeParameter('oid',get('frmFormulario.cbTipoClasificacion')));
+           }
+           
+           function posicionaCombos(){
+                array = new Array();
+                array[0] = get('frmFormulario.hFormaPago');
+                set('frmFormulario.cbFormasPago',array);
+                array = new Array();
+                array[0] = get('frmFormulario.hIndCuadre');
+                set('frmFormulario.cbIndicadorCuadre',array);
+                array = new Array();
+                array[0] = get('frmFormulario.hidOidArgVenta');
+                set('frmFormulario.cbArgumentoVenta',array);
+                
+           }
+
+           function posicionaRadioButtons(){
+              /*  set('frmFormulario.rbCondicionantes',get('frmFormulario.hrbCondicionantes'));
+                set('frmFormulario.rbCondicionados',get('frmFormulario.hrbCondicionados'));
+                set('frmFormulario.rbDespachoCompleto',get('frmFormulario.hrbDespachoCompleto'));
+                set('frmFormulario.rbDespachoAutomatico',get('frmFormulario.hrbDespachoAutomatico'));
+                set('frmFormulario.rbRecObligPedido',get('frmFormulario.hrbRecObligPedido'));*/
+           }
+           
+           function configuraPantalla(){
+              accion('frmFormulario.txtNumeroGrupos','.disabled=true');
+              accion('frmFormulario.txtNumeroGruposCondicionantes','.disabled=true');
+              accion('frmFormulario.txtNumeroGruposCondicionados','.disabled=true');
+              accion('frmFormulario.txtNumeroPaquetes','.disabled=true');
+
+     
+              if (get('frmFormulario.hidHabilitaIndicadorCuadre')=='N'){
+                  accion('frmFormulario.cbIndicadorCuadre','.disabled=true');  
+              }
+              
+             // inhabilito si la estrategia no es de tipo condicionada
+              if (get('frmFormulario.hidECondicionada')=='N'){
+                  accion('frmFormulario.txtNumeroGruposCondicionantes','.disabled=true');  
+                  accion('frmFormulario.txtNumeroGruposCondicionados','.disabled=true');
+                  accion('frmFormulario.rbCondicionCondicionantes','.disabled=true');
+                  accion('frmFormulario.rbCondicionCondicionados','.disabled=true');
+              }
+
+            //para las esrtategias de tipo Vs
+              if (get('frmFormulario.hidEstrategiaVS')=='N'){
+                  accion('frmFormulario.rbCondicionCondicionantes','.disabled=true');
+                  accion('frmFormulario.rbCondicionCondicionados','.disabled=true');  
+              }
+
+             if (get('frmFormulario.hidHabiDesAutomatico')=='N'){
+                  accion('frmFormulario.ckDespachoAutomatico','.disabled=true');
+             }
+              
+              //alert('btnBPAsoc' + get('frmFormulario.btnBPAsoc'));
+              if (get('frmFormulario.btnBPAsoc')=='true'){
+                  document.all["Buscar2Div"].style.visibility='visible'
+              }
+            /*  accion('frmFormulario.cbSubtipoCliente','.disabled=true');
+              accion('frmFormulario.cbTipoClasificacion','.disabled=true');
+              accion('frmFormulario.cbClasificacion','.disabled=true');*/
+           }
+
+           function fGuardar(){
+               /* if (fValidarCOMBO("frmFormulario.cbArgumentoVenta")){
+                    if (get('frmFormulario.numGrupos')=='true'){
+                        if (!fValidarCTEXT('frmFormulario.txtNGrupos')){
+                            return;
+                        }
+                        if(get('frmFormulario.maxGrupo')<get('frmFormulario.txtNGrupos')){
+                            GestionarMensaje('716');
+                            return;
+                        }
+                    }
+                    if (get('frmFormulario.numPaqu')=='true'){
+                        if (!fValidarCTEXT('frmFormulario.txtNPaquetes')){
+                            return;
+                        }
+                        if(get('frmFormulario.maxGrupo')<get('frmFormulario.txtNPaquetes')){
+                            GestionarMensaje('717');
+                            return;
+                        }
+                    }
+                    if (get('frmFormulario.numGrupCondtes')=='true' &&
+                        get('frmFormulario.numGrupCondos')=='true'){
+                        if(!fValidarCTEXT('frmFormulario.txtNGrupCondicionantes')||
+                           !fValidarCTEXT('frmFormulario.txtNGrupCondicionados')){
+                            return;
+                        }
+                        if (get('frmFormulario.txtNGrupCondicionantes')>
+                            get('frmFormulario.maxGruposCondicionantes')){
+                            GestionarMensaje('718');
+                            return;
+                        }
+                        if (get('frmFormulario.txtNGrupCondicionados')>
+                            get('frmFormulario.maxGruposCondicionados')){
+                            GestionarMensaje('719');
+                            return;
+                        }
+                        if ((get('frmFormulario.txtNGrupCondicionados')+get('frmFormulario.txtNGrupCondicionantes'))>
+                            get('frmFormulario.maxGrupo')){
+                            GestionarMensaje('234');
+                            return;
+                        }
+                    }
+                    if (get('frmFormulario.condCondtes')=='true'){
+                        if (get('frmFormulario.rbCondicionantes')==""){
+                            GestionarMensaje('721');
+                            return;
+                        }
+                    }
+                    if (get('frmFormulario.condCondos')=='true'){
+                        if (get('frmFormulario.rbCondicionados')==""){
+                            GestionarMensaje('722');
+                            return;
+                        }
+                    }
+                    if (get('frmFormulario.btnBPPpal')=='true'){//Valido que haya Porducto principal
+                        if (listado1.datos.length<1){
+                            GestionarMensaje('235');
+                            return;
+                        }
+                    }
+                    if (get('frmFormulario.btnBPAsoc')=='true'){//Valido que haya Porducto asociado
+                        if (listado2.datos.length<1){
+                            GestionarMensaje('720');
+                            return;
+                        }
+                    }
+                    if (!fValidarCOMBO('frmFormulario.cbFormaPago')){return;}
+                    if (get('frmFormulario.rbVentaExclusiva')=='S'){//verifico que haya al menos una venta exclusiva
+                        if (listado3.datos.length<1){
+                            GestionarMensaje('2524');
+                            return;
+                        }
+                    }
+                 
+                  set("frmFormulario.conectorAction", "LPModificarOferta");
+                  set("frmFormulario.accion", "guardarOferta");
+                  enviaSICC("frmFormulario");
+	            }*/
+           }
+           
+           function recargaCombo(combo, idBusiness, dto, parametros) {
+                asignar([['COMBO', combo, 'ConectorDruidaTransactionQuery', 'dtoSalida.resultado_ROWSET',
+                  formarCadena(idBusiness, dto, parametros)]]);
+           }
+           function formarCadena(idBusiness , dto, parametros) {
+                var cadena = idBusiness + "|" + dto + "|"; 
+                for(i=0;i<parametros.length;i++) {
+                    cadena += parametros[i][0] + "=" + parametros[i][1];
+                    if (i!= parametros.length-1) {
+                        cadena += "&";
+                     }
+                }
+               return cadena;
+          }
+          
+          function makeParameter(nombre, oid){
+              var array = new Array();
+              var i=0;
+              array[i] = new Array('oidPais','1');
+              i++;
+              array[i] = new Array('oidIdioma','1');
+              i++;
+              array[i] = new Array(nombre,oid)
+              return array;
+          }
+	
+
+  ]]> 
+</JAVASCRIPT>
+ <JS src="sicc_util.js"/>
+<JS src="DruidaTransactionMare.js"/>
+
+<FORMULARIO nombre="frmFormulario">
+<VAR nombre="accion" valor=""/>
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="oidOferta" valor=""/>
+<VAR nombre="cadenaLineaPromocion" valor=""/>
+<VAR nombre="cadenaProductosGrupo" valor=""/>
+<VAR nombre="cadenaVentaExclusiva" valor=""/>
+<VAR nombre="cadenaProductoPrincipal" valor=""/>
+<VAR nombre="deshabilitar" valor=""/>
+<VAR nombre="hidOidCabeceraMF" valor=""/>
+<VAR nombre="btnBPAsoc" valor=""/>
+<VAR nombre="hDesTipoCliente" valor=""/>
+<VAR nombre="hDesSubtipoCliente" valor=""/>
+<VAR nombre="hDesTipoClasificacion" valor=""/>
+<VAR nombre="hDesClasificacion" valor=""/>
+<VAR nombre="hDesEstatusCliente" valor=""/>
+<VAR nombre="hidOidArgVenta" valor=""/>
+<VAR nombre="hIndCuadre" valor=""/>
+<VAR nombre="hFormaPago" valor=""/>
+<VAR nombre="hidCKDespachoAutomatico" valor=""/>
+<VAR nombre="hidCKDespachoCompleto" valor=""/>
+<VAR nombre="hidRBCondicionCondicionantes" valor=""/>
+<VAR nombre="hidRBCondicionCondicionados" valor=""/>
+<VAR nombre="hOidCondicion" valor=""/>
+<VAR nombre="hNombreListas" valor=""/>
+<VAR nombre="hDeshabilitaTodo" valor=""/>
+<VAR nombre="hValorError" valor=""/>
+<VAR nombre="hidHabilitaIndicadorCuadre" valor=""/>
+<VAR nombre="hidECondicionada" valor=""/>
+<VAR nombre="hidEstrategiaVS" valor=""/>
+<VAR nombre="hidHabiDesAutomatico" valor=""/>
+<table><tr><td><CAPA nombre="capaGrupos" alto="100%" ancho="100%" colorf="" borde="0" imagenf="" repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="970" zindex=""><table width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td><IMG src="b.gif" width="12" height="12" /></td><td width="100%"><IMG src="b.gif" width="1" height="1" /></td><td><IMG src="b.gif" width="12" height="12" /></td></tr><tr><td><IMG src="b.gif" width="12" height="12" /></td><td><fieldset><legend class="legend"><LABELC nombre="lblGrupos" ancho="50" alto="13" filas="1" valor="" id="legend" cod="545" /></legend><table width="100%" border="0" align="center" cellspacing="0" cellpadding="0"><tr><td colspan="3"><IMG src="b.gif" width="12" height="12" /></td></tr><tr><td><IMG src="b.gif" width="8" height="8" /></td><td width="100%"><table width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td><fieldset><table width="100%" border="0" cellspacing="0" align="center" cellpadding="0"><tr><td colspan="4"><IMG src="b.gif" width="8" height="8" /></td></tr><tr><td><IMG src="b.gif" width="8" height="8" /></td><td><LABELC nombre="lblNumeroCondicion123" ancho="110" alto="17" filas="1" valor="" id="datosTitle" cod="004" /></td><td><IMG src="b.gif" width="25" height="8" /></td><td><LABELC nombre="lblIndicadorCuadre123" ancho="110" alto="17" filas="1" valor="" id="datosTitle" cod="005" /></td><td><IMG src="b.gif" width="25" height="8" /></td><td><LABELC nombre="lblFactorCuadre123" ancho="120" alto="17" filas="1" valor="" id="datosTitle" cod="006" /></td><td><IMG src="b.gif" width="25" height="8" /></td><td><LABELC nombre="lblTipoGrupo1" ancho="130" alto="17" filas="1" valor="" id="datosTitle" cod="479" /></td><td width="88"><IMG src="b.gif" width="81" height="8" /></td><td width="100%"><IMG src="b.gif" width="8" height="8" /></td></tr><tr><td><IMG src="b.gif" width="8" height="8" /></td><td><LABEL nombre="lblNumeroCondicionXX23" ancho="60" alto="17" filas="1" valor="1" id="datosCampos" /></td><td><IMG src="b.gif" width="25" height="8" /></td><td><LABEL nombre="lblIndicadorCuadreXX23" ancho="90" alto="17" filas="1" valor="" id="datosCampos" /></td><td><IMG src="b.gif" width="25" height="8" /></td><td><LABEL nombre="lblFactorCuadreXX23" ancho="130" alto="17" filas="1" valor="" id="datosCampos" /></td><td><IMG src="b.gif" width="25" height="8" /></td><td><LABEL nombre="lblTipoGrupoXX1" ancho="130" alto="17" filas="1" valor="Grupo Condicionante" id="datosCampos" /></td><td width="1"><IMG src="b.gif" width="8" height="8" /></td><td width="100%"><IMG src="b.gif" width="8" height="8" /></td></tr><tr><td colspan="4"><IMG src="b.gif" width="8" height="310" /></td></tr></table></fieldset></td></tr></table></td><td><IMG src="b.gif" width="12" height="12" /></td></tr><tr><td><IMG src="b.gif" width="0" height="0" /></td><td><fieldset><table width="100%" border="0" align="center" cellspacing="0" cellpadding="0"><tr><td class="botonera" width="100%"><BOTON nombre="btnEliminar" ID="botonContenido" tipo="html" accion="accionEliminarGrupo();" estado="false" cod="1254" /></td></tr></table></fieldset></td><td><IMG src="b.gif" width="12" height="12" /></td></tr><tr><td colspan="3"><IMG src="b.gif" width="12" height="12" /></td></tr><tr><td><IMG src="b.gif" width="12" height="12" /></td><td><LABELC nombre="lblTipoGrupo2" ancho="110" alto="17" filas="1" valor="" id="datosTitle" cod="479" /></td><td width="100%"><IMG src="b.gif" width="8" height="8" /></td></tr><tr><td><IMG src="b.gif" width="8" height="8" /></td><td><COMBO nombre="cbTipoGrupo2_0" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="Condicionado"><ROWSET /><ROWSET><ROW ID="1"><CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="00" /><CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="Condicionante" /></ROW></ROWSET></COMBO></td><td width="100%"><IMG src="b.gif" width="8" height="8" /></td></tr><tr><td colspan="3"><IMG src="b.gif" width="12" height="12" /></td></tr></table><table width="100%" border="0" align="center" cellspacing="0" cellpadding="0"><tr><td colspan="3"><IMG src="b.gif" width="12" height="12" /></td></tr><tr><td><IMG src="b.gif" width="8" height="8" /></td><td width="100%"><table width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td><fieldset><table width="100%" border="0" cellspacing="0" align="center" cellpadding="0"><tr><td colspan="4"><IMG src="b.gif" width="8" height="8" /></td></tr><tr><td><IMG src="b.gif" width="8" height="8" /></td><td><LABELC nombre="lblNumeroCondicion123" ancho="110" alto="17" filas="1" valor="" id="datosTitle" cod="004" /></td><td><IMG src="b.gif" width="25" height="8" /></td><td><LABELC nombre="lblIndicadorCuadre123" ancho="110" alto="17" filas="1" valor="" id="datosTitle" cod="005" /></td><td><IMG src="b.gif" width="25" height="8" /></td><td><LABELC nombre="lblFactorCuadre123" ancho="120" alto="17" filas="1" valor="" id="datosTitle" cod="006" /></td><td><IMG src="b.gif" width="25" height="8" /></td><td><LABELC nombre="lblTipoGrupo1" ancho="130" alto="17" filas="1" valor="" id="datosTitle" cod="479" /></td><td width="88"><IMG src="b.gif" width="81" height="8" /></td><td width="100%"><IMG src="b.gif" width="8" height="8" /></td></tr><tr><td><IMG src="b.gif" width="8" height="8" /></td><td><LABEL nombre="lblNumeroCondicionXX23" ancho="60" alto="17" filas="1" valor="1" id="datosCampos" /></td><td><IMG src="b.gif" width="25" height="8" /></td><td><LABEL nombre="lblIndicadorCuadreXX23" ancho="90" alto="17" filas="1" valor="" id="datosCampos" /></td><td><IMG src="b.gif" width="25" height="8" /></td><td><LABEL nombre="lblFactorCuadreXX23" ancho="130" alto="17" filas="1" valor="" id="datosCampos" /></td><td><IMG src="b.gif" width="25" height="8" /></td><td><LABEL nombre="lblTipoGrupoXX1" ancho="130" alto="17" filas="1" valor="Grupo Condicionado" id="datosCampos" /></td><td width="1"><IMG src="b.gif" width="8" height="8" /></td><td width="100%"><IMG src="b.gif" width="8" height="8" /></td></tr><tr><td colspan="4"><IMG src="b.gif" width="8" height="310" /></td></tr></table></fieldset></td></tr></table></td><td><IMG src="b.gif" width="12" height="12" /></td></tr><tr><td><IMG src="b.gif" width="0" height="0" /></td><td><fieldset><table width="100%" border="0" align="center" cellspacing="0" cellpadding="0"><tr><td class="botonera" width="100%"><BOTON nombre="btnEliminar" ID="botonContenido" tipo="html" accion="accionEliminarGrupo();" estado="false" cod="1254" /></td></tr></table></fieldset></td><td><IMG src="b.gif" width="12" height="12" /></td></tr><tr><td colspan="3"><IMG src="b.gif" width="12" height="12" /></td></tr><tr><td><IMG src="b.gif" width="12" height="12" /></td><td><LABELC nombre="lblTipoGrupo2" ancho="110" alto="17" filas="1" valor="" id="datosTitle" cod="479" /></td><td width="100%"><IMG src="b.gif" width="8" height="8" /></td></tr><tr><td><IMG src="b.gif" width="8" height="8" /></td><td><COMBO nombre="cbTipoGrupo2_1" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="Condicionado"><ROWSET /><ROWSET><ROW ID="1"><CAMPO NOMBRE="CODIGO" TIPO="STRING" VALOR="00" /><CAMPO NOMBRE="DESCRIPCION" TIPO="STRING" VALOR="Condicionante" /></ROW></ROWSET></COMBO></td><td width="100%"><IMG src="b.gif" width="8" height="8" /></td></tr><tr><td colspan="3"><IMG src="b.gif" width="12" height="12" /></td></tr></table></fieldset></td><td><IMG src="b.gif" width="12" height="12" /></td></tr><tr><td><IMG src="b.gif" width="0" height="0" /></td><td><fieldset><table width="100%" align="center" border="0" cellspacing="0" cellpadding="0"><tr><td class="botonera" width="100%"><BOTON nombre="btnAnadir2" ID="botonContenido" tipo="html" accion="accionAniadirGrupo();" estado="false" cod="404" /></td></tr></table></fieldset></td><td><IMG src="b.gif" width="12" height="12" /></td></tr><tr><td width="12" align="center"><IMG src="b.gif" width="12" height="12" /></td><td width="750"><IMG src="b.gif" width="0" height="0" /></td><td width="12"><IMG src="b.gif" width="12" height="12" /></td></tr></table></CAPA></td></tr><tr><td><LISTAEDITABLE msgDebugJS="S" colorFondo="#CECFCE" y="1060" x="32" alto="290" ancho="800" nombre="listado40">
+<IMGBOTONES conROver="S" precarga="S">
+<BTNSELECCION desactivado="btnLista2D.gif" seleccionado="btnLista2M.gif" rollOver="btnLista2S.gif" normal="btnLista2N.gif" />
+<BTNMINIMIZAR maximROver="bot_despliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" minimizar="bot_pliega_columna_on.gif" />
+</IMGBOTONES>
+<LINEAS>
+<GROSOR vertical="0" horizCabecera="1" horizDatos="1" borde="1" />
+<COLOR horizCabecera="#999999" horizDatos="#999999" vertDatos="#999999" vertCabecera="#999999" borde="#999999" />
+</LINEAS>
+<COLUMNAS AnchoMinimizadas="20" sinSaltoLinea="S" blancosAInsertar="1" permiteOrdenar="S" ajustarMinimo="S">
+<COL minimizada="N" minimizable="S" ancho="100" />
+<COL minimizada="N" minimizable="S" ancho="100" />
+<COL minimizada="N" minimizable="S" ancho="100" />
+<COL minimizada="N" minimizable="S" ancho="100" />
+<COL minimizada="N" minimizable="S" ancho="100" />
+<COL minimizada="N" minimizable="S" ancho="100" />
+<COL minimizada="N" minimizable="S" ancho="100" />
+</COLUMNAS>
+<CABECERA colFondo="#CCCCCC" imgFondo="" IDScroll="EstCab" alto="20">
+<COL cod="8" align="center" ID="EstCab" colFondo="" />
+<COL cod="9" align="center" ID="EstCab" colFondo="" />
+<COL cod="529" align="center" ID="EstCab" colFondo="" />
+<COL cod="530" align="center" ID="EstCab" colFondo="" />
+<COL cod="481" align="center" ID="EstCab" colFondo="" />
+<COL cod="482" align="center" ID="EstCab" colFondo="" />
+<COL cod="483" align="center" ID="EstCab" colFondo="" />
+</CABECERA>
+<DATOS colorSelecc="#D0D9E8" onLoad="" coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" msgErrMaxSel="" maxSel="-1" formaEnvio="xml" tipoEnvio="edicion" accion="" alto="22">
+<COL tipo="texto" ID="EstDat" />
+<COL tipo="texto" ID="EstDat2" />
+<COL tipo="texto" ID="EstDat" />
+<COL tipo="texto" ID="EstDat2" />
+<COL tipo="texto" ID="EstDat" />
+<COL tipo="texto" ID="EstDat2" />
+<COL tipo="texto" ID="EstDat" />
+</DATOS>
+<ROWSET />
+</LISTAEDITABLE></td></tr><tr><td><LISTAEDITABLE msgDebugJS="S" colorFondo="#CECFCE" y="1500" x="32" alto="290" ancho="800" nombre="listado41">
+<IMGBOTONES conROver="S" precarga="S">
+<BTNSELECCION desactivado="btnLista2D.gif" seleccionado="btnLista2M.gif" rollOver="btnLista2S.gif" normal="btnLista2N.gif" />
+<BTNMINIMIZAR maximROver="bot_despliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" minimizar="bot_pliega_columna_on.gif" />
+</IMGBOTONES>
+<LINEAS>
+<GROSOR vertical="0" horizCabecera="1" horizDatos="1" borde="1" />
+<COLOR horizCabecera="#999999" horizDatos="#999999" vertDatos="#999999" vertCabecera="#999999" borde="#999999" />
+</LINEAS>
+<COLUMNAS AnchoMinimizadas="20" sinSaltoLinea="S" blancosAInsertar="1" permiteOrdenar="S" ajustarMinimo="S">
+<COL minimizada="N" minimizable="S" ancho="100" />
+<COL minimizada="N" minimizable="S" ancho="100" />
+<COL minimizada="N" minimizable="S" ancho="100" />
+<COL minimizada="N" minimizable="S" ancho="100" />
+<COL minimizada="N" minimizable="S" ancho="100" />
+<COL minimizada="N" minimizable="S" ancho="100" />
+<COL minimizada="N" minimizable="S" ancho="100" />
+</COLUMNAS>
+<CABECERA colFondo="#CCCCCC" imgFondo="" IDScroll="EstCab" alto="20">
+<COL cod="8" align="center" ID="EstCab" colFondo="" />
+<COL cod="9" align="center" ID="EstCab" colFondo="" />
+<COL cod="529" align="center" ID="EstCab" colFondo="" />
+<COL cod="530" align="center" ID="EstCab" colFondo="" />
+<COL cod="481" align="center" ID="EstCab" colFondo="" />
+<COL cod="482" align="center" ID="EstCab" colFondo="" />
+<COL cod="483" align="center" ID="EstCab" colFondo="" />
+</CABECERA>
+<DATOS colorSelecc="#D0D9E8" onLoad="" coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" msgErrMaxSel="" maxSel="-1" formaEnvio="xml" tipoEnvio="edicion" accion="" alto="22">
+<COL tipo="texto" ID="EstDat" />
+<COL tipo="texto" ID="EstDat2" />
+<COL tipo="texto" ID="EstDat" />
+<COL tipo="texto" ID="EstDat2" />
+<COL tipo="texto" ID="EstDat" />
+<COL tipo="texto" ID="EstDat2" />
+<COL tipo="texto" ID="EstDat" />
+</DATOS>
+<ROWSET />
+</LISTAEDITABLE></td></tr></table>
+</FORMULARIO>
+</PAGINA>           

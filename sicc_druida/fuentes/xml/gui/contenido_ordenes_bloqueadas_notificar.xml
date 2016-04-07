@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/PROY
+   $Id: contenido_ordenes_bloqueadas_notificar.xml,v 1.1 2009/12/03 18:45:51 pecbazalar Exp $
+   DESC
+
+   DRUIDATARGET=/../../config/scripts/iniciales
+-->
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+
+<PAGINA nombre="contenido_ordenes_bloqueadas_notificar" 
+        cod="0277"
+        titulo="" 
+        estilos="estilosB3.css" 
+        colorf="#F0F0F0" 
+        msgle="" 
+        onload="onLoadPag();" 
+        xml:lang="es">
+        
+ 
+ <JAVASCRIPT>
+ <![CDATA[ 
+
+    function onLoadPag()   {
+  
+        DrdEnsanchaConMargenDcho('listado1',12);
+        
+        document.all["Cplistado1"].style.visibility='';
+        document.all["CpLin1listado1"].style.visibility='';
+        document.all["CpLin2listado1"].style.visibility='';
+        document.all["CpLin3listado1"].style.visibility='';
+        document.all["CpLin4listado1"].style.visibility='';
+        
+        document.all["primera1Div"].style.visibility='hidden';
+        document.all["ret1Div"].style.visibility='hidden';
+        document.all["ava1Div"].style.visibility='hidden';
+        document.all["separaDiv"].style.visibility='hidden';
+        
+        eval (ON_RSZ);  
+        fMostrarMensajeError();
+        
+        //configurarPaginado(lstSolicitudes, "CARCargaOrdenesNotificar", 
+        //"ConectorCargaOrdenesNotificar", "DTOBelcorp", [ ["pais", get(país de la sesión)], 
+        //["idioma", get(idioma de la sesión)] );
+   
+        configurarPaginado(mipgndo,'CARCargaOrdenesNotificar','ConectorCargaOrdenesNotificar',
+            'es.indra.sicc.cmn.negocio.auditoria.DTOSiccPaginacion',armaArray());
+      
+        configurarMenuSecundario("frmContenido");
+        focalizaBotonHTML_XY('Notificar');
+        btnProxy(2,0);
+        btnProxy(3,1);
+        btnProxy(7,1);
+        btnProxy(8,1);
+        btnProxy(9,1);
+        btnProxy(10,1);
+    }
+
+    function armaArray(){ 
+        var arrDatos = new Array();
+        var i=0;
+        
+        arrDatos[i] = new Array('oidPais',get('frmContenido.hidPais'));
+		i++;
+		arrDatos[i] = new Array('oidIdioma',get('frmContenido.hidIdioma'));
+		i++;
+        
+		return arrDatos;
+    }
+
+    function onClickNotificar()
+    {
+        //Cuando se pulsa el botón btnNotificar, si hay alguna fila seleccionada 
+        //en lstSolicitudes se invoca con un EnviarOculto LPNotificarOrdenesBloqueadas 
+        //con accion = "Notificar"
+        var listadoSeleccionado="";
+        listadoSeleccionado = listado2String();
+        
+        var codigo = listado1.codSeleccionados();
+
+		if(codigo!='') {
+
+			var vSalir = 1;
+			var vCom = 0;
+			var vEmail = get('frmContenido.hidConstanteMAEEmail');
+							  
+			var i=0;
+			while (vSalir == 1 && i < codigo.length) 
+			{
+				vCom = listado1.extraeDato(codigo[i], 12);
+				if (vCom != vEmail)
+				{
+					vSalir = 0;
+				}
+				i++;
+			}
+			 
+			
+			if (vSalir == 0)
+			{
+				var obj = new Object();        
+				obj.hidDetalleSolicitudes = listadoSeleccionado;				
+				var whnd = mostrarModalSICC('LPNotificarOrdenesBloqueadas','Notificar',obj,
+					null, 570);
+			
+				configurarPaginado(mipgndo,'CARCargaOrdenesNotificar','ConectorCargaOrdenesNotificar',
+				'es.indra.sicc.cmn.negocio.auditoria.DTOSiccPaginacion',armaArray());   
+			}
+			else
+			{
+				eval('frmContenido').oculto = 'S';
+				set('frmContenido.hidDetalleSolicitudes', listadoSeleccionado);
+				set('frmContenido.conectorAction','LPNotificarOrdenesBloqueadas');   
+				set('frmContenido.accion','Notificar');
+				enviaSICC('frmContenido');
+			}
+
+		}else{		
+		    // No hay registros seleccionados
+			GestionarMensaje('4', null, null, null);		
+		}
+    }
+    
+    function listado2String()
+    {
+        var codigo = listado1.codSeleccionados();
+        var total = "";
+
+        for(var a = 0; a < codigo.length ; a++){
+            var toAdd = "";
+            
+            toAdd = "oid:"+ codigo[a];
+//Se concatenan de acuerdo a como se esperan en la siguiente maqueta. CVA
+
+            if(listado1.extraeDato(codigo[a], 0)!= null && listado1.extraeDato(codigo[a], 0)!="")
+                toAdd = toAdd + "|" + "cc:" + listado1.extraeDato(codigo[a], 0);    //Cod Cliente.
+            if(listado1.extraeDato(codigo[a], 13)!= null && listado1.extraeDato(codigo[a], 13)!="")
+                toAdd = toAdd + "|" + "mc:"  + listado1.extraeDato(codigo[a], 13);    //Medio Comunicacion
+            if(listado1.extraeDato(codigo[a], 14)!= null && listado1.extraeDato(codigo[a], 14)!="")
+                toAdd = toAdd + "|" + "co:"  + listado1.extraeDato(codigo[a], 14);    //Comunicacion 
+                
+            if(listado1.extraeDato(codigo[a], 1)!= null && listado1.extraeDato(codigo[a], 1)!="")
+                toAdd = toAdd + "|" + "gs:"  + listado1.extraeDato(codigo[a], 1);    //Grupo solicitud 
+            if(listado1.extraeDato(codigo[a], 2)!= null && listado1.extraeDato(codigo[a], 2)!="")
+                toAdd = toAdd + "|" + "es:"  + listado1.extraeDato(codigo[a], 2);    //Estatus
+
+            if(listado1.extraeDato(codigo[a], 3)!= null && listado1.extraeDato(codigo[a], 3)!="")
+                toAdd = toAdd + "|" + "ns:" + listado1.extraeDato(codigo[a], 3);    //Nº solicitud entrega
+            if(listado1.extraeDato(codigo[a], 4)!= null && listado1.extraeDato(codigo[a], 4)!="")
+                toAdd = toAdd + "|" + "mo:"  + listado1.extraeDato(codigo[a], 4);    //Monto orden
+            if(listado1.extraeDato(codigo[a], 5)!= null && listado1.extraeDato(codigo[a], 5)!="")
+                toAdd = toAdd + "|" + "md:"  + listado1.extraeDato(codigo[a], 5);    //Monto deuda vencida 
+
+            if(listado1.extraeDato(codigo[a], 6)!= null && listado1.extraeDato(codigo[a], 6)!="")
+                toAdd = toAdd + "|" + "r1:" + listado1.extraeDato(codigo[a], 6);    //Resultado 1
+            if(listado1.extraeDato(codigo[a], 7)!= null && listado1.extraeDato(codigo[a], 7)!="")
+                toAdd = toAdd + "|" + "r2:"  + listado1.extraeDato(codigo[a], 7);    //Resultado 2
+            if(listado1.extraeDato(codigo[a], 8)!= null && listado1.extraeDato(codigo[a], 8)!="")
+                toAdd = toAdd + "|" + "r3:"  + listado1.extraeDato(codigo[a], 8);    //Resultado 3
+            if(listado1.extraeDato(codigo[a], 9)!= null && listado1.extraeDato(codigo[a], 9)!="")            
+                toAdd = toAdd + "|" + "r4:" + listado1.extraeDato(codigo[a], 9);    //Resultado 4
+            
+            if(listado1.extraeDato(codigo[a], 10)!= null && listado1.extraeDato(codigo[a], 10)!="")
+                toAdd = toAdd + "|" + "gz:"  + listado1.extraeDato(codigo[a], 10);    //Gerente zona
+            
+            if(listado1.extraeDato(codigo[a], 12)!= null && listado1.extraeDato(codigo[a], 12)!="")
+                toAdd = toAdd + "|" + "cm:"  + listado1.extraeDato(codigo[a], 12);    //CodigoMedioComunicacion  
+                
+            if(listado1.extraeDato(codigo[a], 11)!= null && listado1.extraeDato(codigo[a], 11)!="")
+                toAdd = toAdd + "|" + "no:" + listado1.extraeDato(codigo[a], 11);    //Notificado
+                           
+
+            total = total + "$" + toAdd;          
+            
+        }
+        return total;
+    }
+    
+    function accionMensajeDeExito()
+    {
+        configurarPaginado(mipgndo,'CARCargaOrdenesNotificar','ConectorCargaOrdenesNotificar',
+            'es.indra.sicc.cmn.negocio.auditoria.DTOSiccPaginacion',armaArray());   
+    }
+    
+    function accionError()
+    {
+		focalizaBotonHTML_XY('Notificar');
+    }
+    
+    
+    function onSeleccionaSolicitud(fila){
+     
+// INC 11818
+//Si la fila seleccionada tiene la columna notificado == ConstantesCMN.VAL_TRUE (ya está
+//notificada)
+//Se deselecciona ya que el usuario sólo puede seleccionar las filas que aún no están notificadas.
+//Si no
+//   Si la fila seleccionada tiene la columna comunicacion == null
+//      Se deselecciona y se muestra el mensaje de error UICAR012 ("El cliente no tiene asociado medio
+//      de comunicación, no se puede generar la notificación.").
+//   Fin del Si
+//Fin del Si
+        
+        var seleccion=listado1.codigos();
+        var vNotificado = listado1.extraeDato(seleccion[fila], 15);
+        var vComunicacion = listado1.extraeDato(seleccion[fila], 14);
+
+        if (vNotificado == get('frmContenido.hidConstanteCmnTRUE'))
+                listado1.deselecciona(fila);    
+        else 
+        {
+            if (vComunicacion == '')
+            {
+                listado1.deselecciona(fila);
+                GestionarMensaje('1454');
+            }
+        }
+    }
+    
+  ]]> 
+  </JAVASCRIPT>  
+    <JS src="sicc_util.js" />
+    <JS src="PaginacionSicc.js"/>
+
+<FORMULARIO nombre="frmContenido">
+    <VAR nombre="conectorAction" valor=""/>
+    <VAR nombre="accion" valor=""/>
+    <VAR nombre="errCodigo" valor=""/>
+    <VAR nombre="errDescripcion" valor=""/>
+
+    <VAR nombre="hidPais" valor=""/>
+    <VAR nombre="hidIdioma" valor=""/>
+    <VAR nombre="hidDetalleSolicitudes" valor=""/>
+    <VAR nombre="hidConstanteCmnTRUE" valor=""/>
+    <VAR nombre="hidConstanteMAEEmail" valor=""/>
+    
+  <CAPA nombre="capaTitulo">
+    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">     
+      <tr>
+       	<td><IMG src="b.gif" width="424" height="1"/></td>
+      </tr>
+    </table>
+  </CAPA>
+
+    <LISTAEDITABLE nombre="listado1" ancho="400" alto="317" x="12" y="12" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+	<BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+	<BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+	<BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+      <LINEAS>
+	<GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="1" horizTitulo="1" horizBase="1"/> 
+	<COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00463" ID="datosTitle" />
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+        <COL ancho="100" minimizable="S" minimizada="N"/>
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="160" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/>
+        <COL ancho="150" minimizable="S" minimizada="N"/> 
+        <COL ancho="150" minimizable="S" minimizada="N"/> 
+        <COL ancho="150" minimizable="S" minimizada="N"/> 
+        <COL ancho="150" minimizable="S" minimizada="N"/> 
+        <COL ancho="150" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N" oculta="S"/> 
+        <COL ancho="100" minimizable="S" minimizada="N" oculta="S"/> 
+        <COL ancho="100" minimizable="S" minimizada="N" oculta="S"/> 
+        <COL ancho="100" minimizable="S" minimizada="N" oculta="S"/> 
+      </COLUMNAS>
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+	<COL colFondo="" ID="EstCab" cod="263">Cód. cliente</COL> 
+	<COL colFondo="" ID="EstCab" cod="888">Grupo solicitud</COL> 
+	<COL colFondo="" ID="EstCab" cod="596">Estatus</COL> 
+	<COL colFondo="" ID="EstCab" cod="1167">Nº solicitud entrega</COL> 
+        <COL colFondo="" ID="EstCab" cod="1165">Monto orden</COL>
+	<COL colFondo="" ID="EstCab" cod="1166">Monto deuda vencida</COL> 
+	<COL colFondo="" ID="EstCab" cod="1160">Resultado validación 1</COL> 
+	<COL colFondo="" ID="EstCab" cod="1161">Resultado validación 2</COL> 
+	<COL colFondo="" ID="EstCab" cod="1162">Resultado validación 3</COL> 
+        <COL colFondo="" ID="EstCab" cod="1163">Resultado validación 4</COL>
+        <COL colFondo="" ID="EstCab" cod="1164">Gerente zona</COL>   
+        <COL colFondo="" ID="EstCab" cod="2251">Notificado</COL>    
+        <COL colFondo="" ID="EstCab">oidMedioComunicacion</COL>   
+        <COL colFondo="" ID="EstCab">MedioComunicacion</COL>   
+        <COL colFondo="" ID="EstCab">Comunicacion</COL>         
+        <COL colFondo="" ID="EstCab">Valor Notificado</COL>    
+      </CABECERA>
+      <DATOS alto="22" accion="onSeleccionaSolicitud(FILAEVENTO);" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+             coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+             onLoad="" colorSelecc="#D0D9E8">
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/>
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+      
+      </DATOS>
+      <ROWSET>
+      </ROWSET>
+  <PAGINADO nombre="mipgndo" ancho="400" sep="$" x="12" class="botonera" y="306" control="|" conector="" rowset="" cargainicial="N">
+    <BOTON nombre="ret1" x="37" y="310" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+    <BOTON nombre="ava1" x="52" y="310" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>        
+  </PAGINADO>
+</LISTAEDITABLE>
+
+    <BOTON nombre="primera1" x="20" y="310" ID="botonContenido" img="primera_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();"/>  
+    <BOTON nombre="separa" x="59" y="306" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />      
+    <BOTON nombre="Notificar" x="13" y="307" ID="botonContenido" tipo="html" estado="false" cod="1168" 
+    accion="onClickNotificar();" onshtab="focalizaBotonHTML_XY('Notificar');" ontab="focalizaBotonHTML_XY('Notificar');"/> 
+    
+<CAPA nombre="capaEspacio" alto="18" ancho="100" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="329" zindex="">
+</CAPA>
+
+</FORMULARIO>
+</PAGINA>

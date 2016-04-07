@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_informe_cronograma_actividad_generar.xml,v 1.1 2009/12/03 18:45:32 pecbazalar Exp $
+   contenido CCC
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_informe_cronograma_actividad_generar" cod="0766" titulo="Generar informe cronograma total de actividad" estilos="estilosB3.css" colorf="#F0F0F0" 
+	msgle="" onload="onLoad();" xml:lang="es">
+<JS src="sicc_util.js"/>   
+   <JS src="PaginacionSicc.js"/>    
+   <JS src="DruidaTransactionMare.js"/>
+
+
+<JAVASCRIPT>
+  <![CDATA[ 
+   
+   function onLoad(){
+      configurarMenuSecundario('Formulario');
+      fMostrarMensajeError();
+      set('Formulario.txtAno', get('Formulario.anioDefault'));
+      focaliza('Formulario.txtAno');
+   }
+//------------------------------------------------------------------------------   
+   function generar(){
+      
+      if(sicc_validaciones_generales()){
+         if(validarAnio()){
+            /*recolectarParametros();
+      
+            set('Formulario.conectorAction', 'CRACronoTotalActi');           
+            set('Formulario.accion', 'generar');
+      
+            enviaSICC('Formulario');*/
+            var a = new Object();
+            a.accion = 'generar';
+            a.anio = get('Formulario.txtAno');
+            a.marca = get('Formulario.cbMarca');  
+            a.canal = get('Formulario.cbCanal');
+            a.actividad = get('Formulario.cbActividad');
+            a.grupoZona = quitarItemVacio(get('Formulario.cbGrupoZona'));
+            
+            mostrarModalSICC('CRACronoTotalActi','generar', a);
+            
+         }
+      }
+
+   }
+
+//------------------------------------------------------------------------------   
+   function recolectarParametros(){
+      
+      
+      set('Formulario.anio', get('Formulario.txtAno'));
+      set('Formulario.marca', get('Formulario.cbMarca') );  
+      set('Formulario.canal', get('Formulario.cbCanal'));
+      set('Formulario.actividad', get('Formulario.cbActividad') );
+      set('Formulario.grupoZona', quitarItemVacio(get('Formulario.cbGrupoZona')));
+      
+          
+      
+  
+   }
+ 
+   
+//------------------------------------------------------------------------------      
+
+   function fLimpiar(){
+      var aCombo = new Array(new Array("",""));
+      set_combo('Formulario.cbActividad', aCombo, []);
+      set_combo('Formulario.cbGrupoZona', aCombo, []);
+      focaliza('Formulario.txtAno');
+ 
+   }
+   
+//------------------------------------------------------------------------------       
+    function onchangeMarcaCanal(){
+       
+       marca  = get('Formulario.cbMarca');
+       canal  = get('Formulario.cbCanal');
+       pais   = get('Formulario.pais');
+       idioma = get('Formulario.idioma')
+       
+       if(marca != '' && canal != ''){
+       
+          var arr = new Array();
+
+
+          arr[arr.length] = ['oidMarca', marca];
+          arr[arr.length] = ['oidCanal', canal];
+          arr[arr.length] = ['oidPais', pais];
+          arr[arr.length] = ['oidIdioma', idioma];
+          
+                    
+       
+          recargaCombo("Formulario.cbActividad","CRAObtieneActividad", "es.indra.sicc.dtos.cra.DTOActividad", arr); 
+          recargaCombo("Formulario.cbGrupoZona","CRAObtieneGruposZonas", "es.indra.sicc.dtos.cra.DTOGrupoZonas",arr);
+          
+       
+       }
+   
+    }  
+
+//------------------------------------------------------------------------------          
+    
+     function validarAnio(){
+    
+       var anio = get('Formulario.txtAno') ;
+       
+       if(fValidarNumero(anio, 200, 0, 9999999)!='OK'){
+          GestionarMensaje('405'); 
+          focaliza('Formulario.txtAno');
+          return  false;
+       }else{
+          return true;
+       }
+  
+    }
+    
+//******************************************************************************
+
+   function quitarItemVacio(elemento){
+      var elementoADevolver = new Array();
+     
+      for(var k=0;k<elemento.length;k++) {
+         if (elemento[k] != ''){
+            elementoADevolver[elementoADevolver.length] = elemento[k];
+         }
+      }
+        
+      return elementoADevolver;
+      
+   }
+
+  ]]> 
+</JAVASCRIPT>
+
+<VALIDACION>
+    <ELEMENTO name="txtAno" required="true" cod="171"/>
+    <ELEMENTO name="cbCanal" required="true" cod="7"/>
+    <ELEMENTO name="cbMarca" required="true" cod="6"/>
+    <ELEMENTO name="cbActividad" required="true" cod="173"/>
+    
+    
+
+   
+</VALIDACION>
+
+
+<FORMULARIO nombre="Formulario">
+<VAR nombre="accion" valor="" />
+<VAR nombre="conectorAction" valor="" />
+<VAR nombre="casoDeUso" valor=""/>
+<VAR nombre="errCodigo" valor="" />
+<VAR nombre="errDescripcion" valor="" />
+<VAR nombre="idioma" valor="" />
+
+<VAR nombre="pais" valor="" />
+<VAR nombre="anio" valor="" />
+<VAR nombre="marca" valor="" />
+<VAR nombre="canal" valor="" />
+<VAR nombre="grupoZona" valor="" />
+<VAR nombre="actividad" valor="" />
+
+
+<VAR nombre="anioDefault" valor="" />
+
+<CAPA nombre="capa">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblCriteriosSeleccion"  alto="13" filas="1" valor="" id="legend" cod="00275"/></legend>
+          <!---primera fila-->
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblAno"  alto="13" filas="1" id="datosTitle" cod="171" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblCanal"  alto="13" filas="1" id="datosTitle" cod="7" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblMarca"  alto="13" filas="1" id="datosTitle" cod="6" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap" ><CTEXTO nombre="txtAno" id="datosCampos" max="4" tipo="" onchange="" req="S" size="4" valor="" validacion="" onshtab="focalizaBotonHTML('botonContenido','btnGenerarInforme')"/></td>                
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbCanal" size="1" multiple="N" valorinicial="" textoinicial="" id="datosCampos" req="S" onchange="onchangeMarcaCanal();">
+                		<ROWSET>
+                  			
+			              		
+                  	 	</ROWSET>	
+	                </COMBO> 
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbMarca" size="1" multiple="N" valorinicial="" textoinicial="" id="datosCampos" req="S" onchange="onchangeMarcaCanal();">
+                		<ROWSET>
+                  			
+                  	 	</ROWSET>	
+	                </COMBO> 
+                   </td>
+	           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>
+            
+             <tr><td>
+
+              <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblActividad"  alto="13" filas="1" id="datosTitle" cod="173" /></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblGrupoZonas"  alto="13" filas="1" id="datosTitle" cod="180" /></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap"  valign="top"><COMBO nombre="cbActividad" size="1" multiple="N" valorinicial="" textoinicial="" id="datosCampos" req="S">
+                		<ROWSET>
+                  					
+                  	 	</ROWSET>	
+	                </COMBO> 
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap"><COMBO nombre="cbGrupoZona" size="5" multiple="S" valorinicial="" textoinicial="" id="datosCampos" req="N">
+                		<ROWSET>
+                  			
+			                
+			              				
+                  	 	</ROWSET>	
+	                </COMBO> 
+                   </td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+              </table>
+            </td></tr>
+             
+            
+          
+           </table>
+       <!---fin primera fila-->
+         
+        
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnGenerarInforme" ID="botonContenido" tipo="html" accion="generar();" estado="false" cod="2495" ontab="focaliza('Formulario.txtAno')"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>       
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+ </CAPA>                                                                                                                                                           
+</FORMULARIO>
+</PAGINA>  

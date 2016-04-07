@@ -1,0 +1,587 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/PROY
+   $Id: contenido_actividades_buscar.xml,v 1.1 2009/12/03 18:46:02 pecbazalar Exp $
+   DESC
+
+   DRUIDATARGET=/../../config/scripts/iniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+<PAGINA nombre="contenido_actividades_buscar" titulo="Consultar Actividades" 
+        estilos="estilosB3.css" colorf="#F0F0F0" msgle="Consultar Actividades" 
+        onload="LoadBar();" xml:lang="es" cod="092">
+
+<!--Eliminar actividades   cod="093"-->
+<!--Consultar actividades   cod="092"-->
+
+  <!--Eliminar actividades   cod="093"-->  
+ <!--Consultar actividades   cod="092"--> 
+ <JS src="sicc_util.js"/>             
+ <JS src="PaginacionSicc.js"/>       
+ <JS src="DruidaTransactionMare.js"/>       
+    
+  <JAVASCRIPT>   
+  <![CDATA[    
+    
+ function muestraLista( ultima, rowset){   
+   var tamano = rowset.length;   
+   if (tamano > 0) {   
+       mostrarLista();
+       if (get('frmConsultarActividades.hCasoDeUso')=='eliminar'){
+          btnProxy(4,1);
+       }
+       eval (ON_RSZ);   
+       focaliza("frmConsultarActividades.cbMarcas");    
+       cambiarDiasLaborables(rowset);   
+       return true;   
+   }else{   
+       ocultarLista(); 
+       btnProxy(4,0);
+       focaliza("frmConsultarActividades.cbMarcas");    
+       return false;   
+   }   
+ }   
+
+    function defecto(){
+        iSeleccionado = new Array();    
+        iSeleccionado[0] = get('frmConsultarActividades.valueMarca')==""?"0":get('frmConsultarActividades.valueMarca');   
+        set('frmConsultarActividades.cbMarcas',iSeleccionado);   
+    
+        iSeleccionado = new Array();    
+        iSeleccionado[0] = get('frmConsultarActividades.valueCanal')==""?"0":get('frmConsultarActividades.valueCanal');   
+        set('frmConsultarActividades.cbCanales',iSeleccionado);   
+    }
+
+
+ function LoadBar(){     
+    configurarMenuSecundario("frmConsultarActividades");   
+    ocultarLista();      
+    btnProxy(4,0);
+    DrdEnsanchaConMargenDcho('Lista1',12);
+    defecto();
+    cargarActividad();
+    focaliza("frmConsultarActividades.cbMarcas");    
+ }   
+
+ 
+ function fLimpiar(){   
+    set_combo ('frmConsultarActividades.cbActiv', new Array());
+    defecto();
+    cargarActividad();
+    focaliza("frmConsultarActividades.cbMarcas");    
+ }   
+
+	
+ function fBorrar() {    
+    if (Lista1.numSelecc()== 0) {   
+      GestionarMensaje('1021',null,null,null);      
+      return false;      
+    }        
+        
+    eliminarFilas(Lista1.codSeleccionados(),"CRAEliminarActividades", mipgndo);/*, 'resultadoOperacionPropio(datos)');*/      
+ }    
+
+
+ //funcion ejecutada por callback en eliminar filas   
+ /*function resultadoOperacionPropio(datos) {   
+	// Seteo en true para que muestre el mensaje de exito   
+	boolResultadoEliminacionSICC = true;   
+
+	//Si hemos recibido un mensaje como resultado de la operación lo mostramos   
+	var mensajeError = "";   
+	if(datos != null && (typeof(datos)).toUpperCase() == "OBJECT"){   
+			mensajeError  = datos[0];   
+	}else if(datos != null && (typeof(datos)).toUpperCase() == "STRING"){   
+			mensajeError = datos;   
+	}   
+	if(mensajeError==""){   
+			if(boolResultadoEliminacionSICC){   
+					 cdos_mostrarConfirm(GestionarMensaje("989"));   
+			}   
+	}else{   
+			mostrarErrorSubsistema(mensajeError );   
+			return false;   
+	}   
+
+	// necesito tiempo de recarga de paginado   
+	setTimeout("fantasma()",100);   
+
+	// recargo la lista y el combo de actividades
+    cargarLista();
+	cargarActividad();
+
+	return true;   
+ }   */
+
+	
+ function cambiarDiasLaborables(rowset){   
+    
+   var i;   
+   var dias = 13;   
+    
+   var laborables = GestionarMensaje(2564);   
+   var continuos = GestionarMensaje(2565);   
+    
+   for( i = 0; i < rowset.length; i++ ){   
+       
+         
+     if( rowset[i][dias] == 0)   
+         rowset[i][dias] = laborables;   
+     else   
+          rowset[i][dias] = continuos;   
+        
+   }   
+    
+   return true;   
+ }   
+    
+    
+ function cargarActividad(){   
+             
+    if ((get('frmConsultarActividades.cbMarcas')!='') && (get('frmConsultarActividades.cbCanales')!='')){   
+       recargaCombo('frmConsultarActividades.cbActiv','CRAObtieneActividad','es.indra.sicc.dtos.cra.DTOActividad',makeParameter());   
+    }else{
+        set_combo('frmConsultarActividades.cbActiv',new Array());
+    }
+ } 
+
+	
+ function makeParameter(){   
+    
+    var marca = get( 'frmConsultarActividades.cbMarcas');   
+    var canal = get( 'frmConsultarActividades.cbCanales');   
+    var pais = get( 'frmConsultarActividades.hPais');   
+    var idioma = get( 'frmConsultarActividades.hIdioma');   
+    var programa = get( 'frmConsultarActividades.hPrograma');   
+    var IPCliente = get( 'frmConsultarActividades.hIPCliente');   
+    var array = new Array();   
+    var i=0;   
+    
+    array[i] = new Array('oidMarca', marca);   
+    i++;   
+               
+    array[i] = new Array('oidCanal', canal);   
+    i++;   
+    
+    array[i] = new Array('oidPais', pais);   
+    i++;   
+               
+    array[i] = new Array('oidIdioma', idioma);   
+    i++;   
+    
+    array[i] = new Array('programa', programa);   
+    i++;   
+    
+    array[i] = new Array('ipCliente', IPCliente);   
+    return array;   
+ }   
+
+ function cargarLista(){   
+     //Si se presiona buscar primero limpia la lista   
+             
+    var codigos = Lista1.codigos();   
+    var longitud = codigos.length;   
+
+    for(var i=0;i<longitud;i++){   
+       Lista1.deselecciona(i);       
+    }         
+    //mostrarLista();   
+    
+    var arrDatos = new Array();   
+    arrDatos = armarArray();   
+    
+    configurarPaginado(mipgndo, "CRAConsultarActividades", "ConectorConsultarActividades", "es.indra.sicc.dtos.cra.DTOActividad", arrDatos);   
+                                                                                              
+ }
+
+	
+ function mostrarLista(){   
+    document.all["CpLista1"].style.visibility='visible';    
+    //document.all["capaTitulo"].style.visibility='visible';   
+    document.all["prim1Div"].style.visibility='visible';    
+    document.all["ret1Div"].style.visibility='visible';    
+    document.all["ava1Div"].style.visibility='visible';   
+    document.all["CpLin1Lista1"].style.visibility='visible'    
+    document.all["CpLin2Lista1"].style.visibility='visible'    
+    document.all["CpLin3Lista1"].style.visibility='visible'    
+    document.all["CpLin4Lista1"].style.visibility='visible'   
+
+    if(get("frmConsultarActividades.hCasoDeUso")=="modificar"){   
+        document.all["ModificarDiv"].style.visibility='visible';   
+    }   
+    
+    if(get("frmConsultarActividades.hCasoDeUso")=="consultar"){   
+       document.all["DetalleDiv"].style.visibility='visible';   
+    }   
+ } 
+
+	
+ function armarArray(){   
+    var arrDatos = new Array();   
+    var i=0;   
+    var marca = get( 'frmConsultarActividades.cbMarcas');   
+    var canal = get( 'frmConsultarActividades.cbCanales');   
+    var actividad = get('frmConsultarActividades.cbActiv');   
+    var pais = get( 'frmConsultarActividades.hPais');   
+    var idioma = get( 'frmConsultarActividades.hIdioma');   
+
+    arrDatos[i] = new Array('oidIdioma',get('frmConsultarActividades.hIdioma'));   
+    
+    if (get('frmConsultarActividades.cbMarcas')!=''){   
+       i++;   
+       arrDatos[i] = new Array('oidMarca',marca);                   
+    }   
+                
+    if (get('frmConsultarActividades.cbCanales')!=''){   
+       i++;   
+       arrDatos[i] = new Array('oidCanal',canal);                   
+    }   
+    
+    if (get('frmConsultarActividades.cbActiv')!=''){   
+       i++;   
+       arrDatos[i] = new Array('oid',actividad);                
+    }   
+
+    return arrDatos;   
+ }
+
+  
+ function ocultarLista() {   
+   
+   //Al principio se debe ocultar la lista   
+   document.all["CpLista1"].style.visibility='hidden';    
+   document.all["prim1Div"].style.visibility='hidden';    
+   document.all["ret1Div"].style.visibility='hidden';    
+   document.all["ava1Div"].style.visibility='hidden';      
+   document.all["ModificarDiv"].style.visibility='hidden';    
+   document.all["DetalleDiv"].style.visibility='hidden';   
+   document.all["separaDiv"].style.visibility='hidden';   
+   document.all["CpLin1Lista1"].style.visibility='hidden'    
+   document.all["CpLin2Lista1"].style.visibility='hidden'    
+   document.all["CpLin3Lista1"].style.visibility='hidden'    
+   document.all["CpLin4Lista1"].style.visibility='hidden'   
+      
+ }
+
+	
+ function modificar(){   
+   seleccion = new Vector();   
+   seleccion  =Lista1.codSeleccionados()   
+      
+    
+   if (Lista1.numSelecc()== 1){      
+       var arrAux = new Array();   
+       arrAux = Lista1.codSeleccionados();   
+       var posicion = obtenerPosicionListaEditable(Lista1.codSeleccionados(),Lista1);   
+       var obj = new Object();   
+    
+       obj.oid = Lista1.datos[posicion][0];   
+       obj.strMarca = get('frmConsultarActividades.cbMarcas','T');   
+       obj.strCanal = get('frmConsultarActividades.cbCanales','T');   
+    
+       obj.valueMarca = get('frmConsultarActividades.cbMarcas','V');   
+       obj.valueCanal = get('frmConsultarActividades.cbCanales','V');   
+    
+          
+       obj.marca = get('frmConsultarActividades.cbMarcas');   
+       obj.canal = get('frmConsultarActividades.cbCanales');   
+             
+       obj.pais = get('frmConsultarActividades.hPais')   
+       obj.idioma = get('frmConsultarActividades.hIdioma')    
+       set('frmConsultarActividades.oid',obj.oid);   
+        
+     }else{   
+    
+       GestionarMensaje('50');   
+       return;   
+     }    
+      
+     if(get('frmConsultarActividades.hCasoDeUso')=='modificar'){   
+          obj.accion='modificar';   
+          set('frmConsultarActividades.accion','modificar');   
+          set('frmConsultarActividades.hCasoDeUso','modificar');   
+          mostrarModalSICC('LPMantieneActividades','modificar',obj,700,360);   
+         cargarLista();   
+        
+     }else if(get('frmConsultarActividades.hCasoDeUso')=='consultar'){   
+          obj.accion='consultar';  
+          set('frmConsultarActividades.accion','consultar');   
+          set('frmConsultarActividades.marca',obj.marca);   
+          set('frmConsultarActividades.canal',obj.canal);   
+          set('frmConsultarActividades.valueMarca',obj.valueMarca);   
+          set('frmConsultarActividades.valueCanal',obj.valueCanal);   
+          set('frmConsultarActividades.hCasoDeUso','consultar');   
+          mostrarModalSICC('LPMantieneActividades','consultar',obj,700,360);   
+     }   
+ } 
+
+  ]]>
+
+  
+  </JAVASCRIPT>	  
+  
+<FORMULARIO nombre="frmConsultarActividades">
+
+<VAR nombre="conectorAction" valor="LPMantieneActividades"/>
+<VAR nombre="hCasoDeUso" valor=""/>
+<VAR nombre="hIdioma" valor=""/>
+<VAR nombre="hPais" valor=""/>
+<VAR nombre="hPrograma" valor=""/>
+<VAR nombre="hIPCliente" valor=""/>
+<VAR nombre="accion" valor=""/>
+<VAR nombre="oid" valor=""/>
+<VAR nombre="errCodigo" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>
+
+<VAR nombre="marca" valor=""/>
+<VAR nombre="canal" valor=""/>
+
+<VAR nombre="strMarca" valor=""/>
+<VAR nombre="strCanal" valor=""/>
+
+<VAR nombre="valueMarca" valor=""/>
+<VAR nombre="valueCanal" valor=""/>
+
+<VAR nombre="oidClaseActividad" valor=""/>
+<VAR nombre="codigoTipoActividad" valor=""/>
+<VAR nombre="areaResponsable" valor=""/>
+<VAR nombre="tipoDireccionOid" valor=""/>
+<VAR nombre="ClaseActividad" valor=""/>
+<VAR nombre="nombreActividad" valor=""/>
+<VAR nombre="tipoActividad" valor=""/>
+<VAR nombre="actividadOrigen" valor=""/>
+
+<VAR nombre="ebelNoticia" valor=""/>
+<VAR nombre="tipoDireccion" valor=""/>
+<VAR nombre="campanasAntelacion" valor=""/>
+<VAR nombre="procesosAsignado" valor=""/>
+<VAR nombre="procesosDisponible" valor=""/>
+<VAR nombre="diasDesplazamiento" valor=""/>
+<VAR nombre="campDesplazamiento" valor=""/>
+<VAR nombre="diaLaborable" valor=""/>
+
+<VAR nombre="codigoActividad" valor=""/>
+<VAR nombre="codigoActividadOrigen" valor=""/>
+
+<VAR nombre="areaResponsable" valor=""/>
+<VAR nombre="accesoOid" valor=""/>
+
+<VAR nombre="indEbel" valor=""/>
+<VAR nombre="indFestivo" valor=""/>
+<VAR nombre="actividadOrigenDescripcion" valor=""/>
+<VAR nombre="descripcionLarga" valor=""/>
+
+
+
+
+
+<CAPA nombre="capaContenido" colorf="#F0F0F0"  borde="0" imagenf="" repeat="" padding="" visibilidad="" contravsb="" x="0" y="0" zindex="">
+
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+
+     <tr> 
+      <td><IMG src="b.gif"/></td>
+      
+      <td>
+	<fieldset><legend class="legend"><LABELC nombre="lblCriterios" alto="13" filas="1" valor="Datos Búsqueda" id="legend" cod="0075"/></legend> 
+          <!---primera fila-->
+          <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+              <table width="661" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td><LABELC nombre="lblPais" alto="13" filas="1" valor="" id="datosTitle" cod="5"/></td>                   
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lblMarca" alto="13" filas="1" valor="" id="datosTitle" cod="6"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lblCanal" alto="13" filas="1" valor="" id="datosTitle" cod="7"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td  nowrap="nowrap">
+                    <LABELC nombre="lblPaisActual" alto="13" filas="1" valor="" id="datosCampos" codi="5"/>  
+                   </td>  
+                   <td><IMG src="b.gif" width="25" height="8"/></td>  
+                   <td  nowrap="nowrap">
+                    <COMBO nombre="cbMarcas" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" onchange="cargarActividad();" onshtab="document.all.btnBuscar.focus();" >
+                      	<ROWSET>
+                      	</ROWSET>
+                    </COMBO>
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>  
+                   <td  nowrap="nowrap">
+                    <COMBO nombre="cbCanales" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" onchange="cargarActividad();" >
+                      	<ROWSET>
+                      	</ROWSET>
+                    </COMBO>
+                   </td>                    
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+           </td></tr>
+       <!---fin primera fila-->
+           <tr><td>
+       
+               <table width="661" border="0" align="left" cellspacing="0" cellpadding="0">
+
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td><LABELC nombre="lblActiv" alto="13" filas="1" valor="" id="datosTitle" cod="173"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td  nowrap="nowrap">
+                      <COMBO nombre="cbActiv" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" >
+                      	<ROWSET>
+                      	</ROWSET>
+                      </COMBO>
+                   </td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+       
+       
+	</td></tr></table>
+
+        </fieldset>        
+      </td>
+      
+      <td><IMG src="b.gif" /></td>
+      
+    </tr> 
+
+
+
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnBuscar" ID="botonContenido" tipo="html" accion="cargarLista();" estado="false" cod="1" ontab="focaliza('frmConsultarActividades.cbMarcas'); "/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+    </tr>      
+    
+    
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+  
+  
+    <LISTAEDITABLE nombre="Lista1" ancho="664" alto="317" x="12" y="162" colorFondo="#CECFCE" msgDebugJS="S">
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00135" ID="datosTitle"/>
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+      <IMGBOTONES precarga="S" conROver="S">
+        <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+        <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+        <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>
+      </IMGBOTONES>
+      <LINEAS>
+	<GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="1" horizTitulo="1" horizBase="1"/> 
+	<COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+        <COL ancho="100" minimizable="S" minimizada="N"/>
+        <COL ancho="100" minimizable="S" minimizada="N"/>
+        <COL ancho="120" minimizable="S" minimizada="N"/>
+        <COL ancho="100" minimizable="S" minimizada="N" orden="alfanumerico"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="120" minimizable="S" minimizada="N"/> 
+        <COL ancho="120" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N" orden="alfanumerico"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/>
+        <COL ancho="130" minimizable="S" minimizada="N" orden="alfanumerico"/> 
+        <COL ancho="150" minimizable="S" minimizada="N"/> 
+        <COL ancho="150" minimizable="S" minimizada="N"/> 
+        <COL ancho="150" minimizable="S" minimizada="N"/> 
+        <COL ancho="150" minimizable="S" minimizada="N"/>
+       
+      </COLUMNAS>
+      <CABECERA alto="25" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+	<COL colFondo="" ID="EstCab" align="center" cod="2191">Clase actividad</COL>
+	<COL colFondo="" ID="EstCab" cod="151">codigo actividad</COL> 	
+	<COL colFondo="" ID="EstCab" align="center" cod="174">nombre actividad</COL> 
+	<COL colFondo="" ID="EstCab" cod="152">Tipo actividad</COL> 
+	<COL colFondo="" ID="EstCab" cod="3206">Campañas Desplazamiento</COL> 
+	<COL colFondo="" ID="EstCab" cod="155">Actividad origen</COL> 
+	<COL colFondo="" ID="EstCab" cod="156">Area responsable</COL> 
+        <COL colFondo="" ID="EstCab" cod="157">Ebel Noticias</COL>
+	<COL colFondo="" ID="EstCab" align="center" cod="159">Tipo Direccion</COL> 
+	<COL colFondo="" ID="EstCab" cod="158">Campanas Antelacion</COL> 
+	<COL colFondo="" ID="EstCab" cod="164">Procesos Asignados</COL> 
+	<COL colFondo="" ID="EstCab" cod="165">Procesos Disponibles</COL> 
+	<COL colFondo="" ID="EstCab" cod="1281">Indicador Dias</COL> 
+	<COL colFondo="" ID="EstCab" cod="250">Dias Desplazamiento</COL>
+        
+      </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+             coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+             onLoad="" colorSelecc="#D0D9E8">
+       <COL tipo="texto" ID="EstDat"/>
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>    
+      </DATOS>
+      <ROWSET>
+	
+	  
+      </ROWSET>
+     <!--Comienzo del paginado y botones de listas-->
+      <PAGINADO nombre="mipgndo" ancho="664" sep="$" x="12" class="botonera" y="456" control="|" conector="" rowset="" cargainicial="N"
+      onload="procesarPaginado(mipgndo,msgError, ultima, rowset, 'muestraLista(ultima, rowset)')">        
+        <BOTON nombre="ret1" x="37" y="460" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+        <BOTON nombre="ava1" x="52" y="460" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();" /> 
+        
+    </PAGINADO>
+    	 
+    
+    </LISTAEDITABLE>
+    	<BOTON nombre="Modificar" x="80" y="457" ID="botonContenido" tipo="html" estado="false" cod="2" accion ="modificar();" ontab="focaliza('frmConsultarActividades.cbMarcas'); "/>
+    	<BOTON nombre="Detalle" x="80" y="457" ID="botonContenido" tipo="html" estado="false" cod="3" accion ="modificar();" ontab="focaliza('frmConsultarActividades.cbMarcas'); "/>
+    	<BOTON nombre="prim1" x="20" y="460" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();" />
+    	<BOTON nombre="separa" x="59" y="456" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" /> 
+  
+ </CAPA>
+
+
+
+ 
+ 
+ </FORMULARIO>
+</PAGINA>     

@@ -1,0 +1,520 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_mantenimiento_gerente_congelado_consultar" cod="ComConge.query.label" titulo="" estilos="estilosB3.css" colorf="#F0F0F0"
+        msgle="" onload="onLoadPag();" xml:lang="es">
+		
+
+
+<JS src="sicc_util.js"></JS> 
+<JS src="PaginacionSicc.js"></JS>
+<JS src="DruidaTransactionMare.js"></JS>
+
+<JAVASCRIPT>
+ <![CDATA[
+
+		function onLoadPag(){
+			
+			configurarMenuSecundario('formulario');
+			ocultarLista();
+
+		}
+
+		function validarBuscarOnClick()
+		{
+			if(sicc_validaciones_generales()){
+				buscarOnClick();	
+			}
+		}
+		
+		function detalleOnClick (){
+			if (listado1.numSelecc()== 1) {
+				
+				var oid = listado1.codSeleccionados();			
+				var obj = new Object();
+
+				obj.oidCongelado = oid;  
+				obj.codigoCliente=listado1.extraeDato(oid, 0);
+				obj.fechaDesde=listado1.extraeDato(oid, 1);
+				obj.fechaHasta=listado1.extraeDato(oid, 2);
+				obj.importe=listado1.extraeDato(oid, 3);
+				obj.descongelacionAutomatica=listado1.extraeDato(oid, 4);
+				obj.oidCliente=listado1.extraeDato(oid, 5);
+				mostrarModalSICC('LPMantenimientoGerenteCongelado','consulta',obj);
+
+			}else{
+				GestionarMensaje('4');
+			}
+		}
+
+		function agregaBoton(style)
+		{
+			    document.all["btnDetalleDiv"].style.visibility=style;
+		}
+
+		/*function armarArray(){		
+
+			var vig;
+			var descAuto;
+			var fechaD, fechaH;
+			var importeFormatoDruida;
+			var  importeFormatoJava; 
+
+
+			if(get('formulario.ckVigentes')=="S")
+				vig= true;
+			else
+				vig= false;
+			
+			if(get('formulario.ckDescongelacionAutomatica')=="S")
+				descAuto= true;
+			else
+				descAuto= false;			
+
+			fechaD= get('formulario.txtFechaDesde');
+			fechaH= get('formulario.txtFechaHasta');
+			
+			importeFormatoDruida= get('formulario.txtImporte');
+			if (importeFormatoDruida != "" &&		importeFormatoDruida !=  null 	){
+				importeFormatoJava = numeroDeFormatoSICC(importeFormatoDruida); 
+			 }
+
+			if(get('formulario.txtFechaDesde')!="")	
+				fechaD= obtenerFormatoFecha(get('formulario.txtFechaDesde'));
+
+			if(get('formulario.txtFechaHasta')!="")
+				fechaH= obtenerFormatoFecha(get('formulario.txtFechaHasta'));
+
+
+			var arr = [ ['oidPais', get('formulario.varPais')], 
+				['oidIdioma', get('formulario.varIdioma')],                                  
+				['fechaDesde', fechaD], 
+				['fechaHasta', fechaH], 
+				['importe', importeFormatoJava], 
+				['codigoCliente', get('formulario.txtCodCliente')], 
+				['descongelacion', descAuto], 
+				['vigente', vig],
+				['oidCliente', get('formulario.oidCliente')] ];
+			
+			return arr;		
+			
+		}							  */
+
+		
+		function onchange_codCliente(){
+		
+			if (get("frmClientesAnteriores.txtClienteNuevo") != ""){
+				campo = validarLongCodCliente(get("frmClientesAnteriores.txtClienteNuevo"));      
+				set("frmClientesAnteriores.txtClienteNuevo", campo); 
+			}  
+		}
+		
+		function onchange_codClienteAnt(){
+			if(get("frmClientesAnteriores.txtClienteAntiguo") != ""){
+				campo = validarLongCodCliente(get("frmClientesAnteriores.txtClienteAntiguo"));                  
+			}  
+		}
+		function validarLongCodCliente(codCliente) {
+			var longiCod = get('frmClientesAnteriores.hLongitudCodCliente');
+			var faltantes = longiCod -  codCliente.length;
+			var resultCod = new String("");
+			if(faltantes > 0){
+				for(var t = 0 ; t<faltantes; t++){
+					resultCod = resultCod + "0";
+				}
+				resultCod = resultCod + codCliente;
+				return resultCod;
+			}
+			return codCliente;
+		}
+
+function buscarClienteOnClick (){
+			var obj = new Object();
+			var whnd = mostrarModalSICC('LPBusquedaRapidaCliente','',obj);
+			if(whnd!=null){
+				var oid = whnd[0];
+				var cod = whnd[1];
+				set("formulario.txtCodCliente", cod);
+				set("formulario.codigoCliente", cod);
+				set("formulario.oidCliente", oid);
+			}
+		}
+
+function buscarOnClick (){
+		
+		 if(sicc_validaciones_generales()){
+			if (get('formulario.txtCodCliente') != get('formulario.codigoCliente')){					
+				set('formulario.codigoCliente', get('formulario.txtCodCliente'));
+				set('formulario.oidCliente','');
+			}
+			
+			var arr = armarArray();
+			
+			configurarPaginado(mipgndo, "COMBuscarGerenteCongelado",	
+										"ConectorBuscarGerentesCongelados", 
+										"es.indra.sicc.dtos.com.DTODatosGerenteCongelacion",arr); 						
+	}
+}
+
+function onChangeCodigoCliente() {
+    set('formulario.oidCliente','');
+    var codigo = get('formulario.txtCodCliente');
+    var longitudMax = get('frmClientesAnteriores.hLongitudCodCliente');
+    var longitud =  codigo.length
+    alert("codigo " + codigo);
+    alert("longitudMax " + longitudMax);
+    alert("longitud " + longitud);
+    set('formulario.txtCodCliente', rellenaCeros(codigo, longitudMax, longitud));
+}
+
+function armarArray(){        
+
+    var descAuto;
+	var vig= true;
+
+    if (get('formulario.tieneVigentes')=="S") {
+        	if(get('formulario.ckVigentes')=="S"){
+				vig= true;
+			}else{
+				vig= false;
+			}
+    }
+
+    if(get('formulario.ckDescongelacionAutomatica')=="S") {
+        descAuto= true;
+    }else{
+        descAuto= false;
+    }
+
+   /* var arr = [ ['oidPais', get('formulario.varPais')], 
+        ['oidIdioma', get('formulario.varIdioma')],                                  
+        ['fechaDesde', obtenerFormatoFecha(get('formulario.txtFechaDesde'))], 
+        ['fechaHasta', obtenerFormatoFecha(get('formulario.txtFechaHasta'))], 
+        ['importe', transformarImporte(get('formulario.txtImporte'))], 
+        ['codigoCliente', get('formulario.txtCodCliente')], 
+        ['descongelacion', descAuto], 
+        ['vigente', 'true'],    
+        ['oidCliente', get('formulario.oidCliente')] ];						*/
+    
+    var arrDatos = new Array();
+	var i=0;
+
+	arrDatos[i] = new Array('oidPais',get('formulario.varPais'));
+	i++;
+
+	arrDatos[i] = new Array('oidIdioma',get('formulario.varIdioma'));
+ 		
+		//arrDatos[i] = new Array('oidIdioma',"1");
+     i++;																																																				 
+
+	 if (get('formulario.txtFechaDesde')!=''){
+           var fechaD=obtenerFormatoFecha(get('formulario.txtFechaDesde'));
+	
+			arrDatos[i] = new Array('fechaDesde',fechaD);
+            i++;
+      }
+
+	if (get('formulario.txtFechaHasta')!=''){
+				var fechaH= obtenerFormatoFecha(get('formulario.txtFechaHasta'));
+            arrDatos[i] = new Array('fechaHasta',fechaH);
+            i++;
+      }
+
+	if (get('formulario.txtImporte')!=''){				
+				var	 importe1 =  get('formulario.txtImporte');
+				
+				var importe2= numeroDeFormatoSICC(importe1); 
+            
+				arrDatos[i] = new Array('importe',importe2);
+            i++;
+     }
+
+	if (get('formulario.txtCodCliente')!=''){
+            arrDatos[i] = new Array('codigoCliente',get('formulario.txtCodCliente'));
+            i++;
+     }
+     
+	arrDatos[i] = new Array('descongelacion',descAuto);
+	i++;
+	
+	arrDatos[i] = new Array('vigente',vig);
+	i++;
+
+	if (get('formulario.oidCliente')!=''){
+		arrDatos[i] = new Array('oidCliente',get('formulario.oidCliente'));
+		
+  }
+	
+    return arrDatos;        
+  }
+
+function mostrarLista(){
+    DrdEnsanchaConMargenDcho('listado1',12);
+    document.all["Cplistado1"].style.visibility='visible';
+    document.all["CpLin1listado1"].style.visibility='visible';
+    document.all["CpLin2listado1"].style.visibility='visible';
+    document.all["CpLin3listado1"].style.visibility='visible';
+    document.all["CpLin4listado1"].style.visibility='visible';
+    document.all["primera1Div"].style.visibility='visible';
+    document.all["ret1Div"].style.visibility='visible';
+    document.all["ava1Div"].style.visibility='visible';
+    document.all["separaDiv"].style.visibility='visible';
+	agregaBoton('visible');
+    eval (ON_RSZ);
+}
+
+function ocultarLista() {
+    document.all["Cplistado1"].style.visibility='hidden';
+    document.all["CpLin1listado1"].style.visibility='hidden';
+    document.all["CpLin2listado1" ].style.visibility='hidden';
+    document.all["CpLin3listado1"].style.visibility='hidden';
+    document.all["CpLin4listado1"].style.visibility='hidden';
+    document.all["primera1Div"].style.visibility='hidden';
+    document.all["ret1Div"].style.visibility='hidden';
+    document.all["ava1Div"].style.visibility='hidden';
+    document.all["separaDiv"].style.visibility='hidden';
+	agregaBoton('hidden');
+}
+
+function muestraLista( ultima, rowset){                                                        
+                                                                                                    
+         var tamano = rowset.length;                                                           
+    if (tamano > 0) {                                                                      
+         mostrarLista();                                                              
+         return true;                                                                  
+    } else {                                                                                 
+         ocultarLista();                                                              
+         // No se ha encontrado ningún elemento con los criterios especificados
+         //Control del foco                                                                     
+         //focaliza(FORMULARIO + ".txtNatencion");                             
+         return false;                                                                        
+    }                                                                                        
+}
+
+function transformarImporte(importe){
+	var index;
+	var pEnt;
+
+	index= importe.indexOf(",");
+	if(index > 0)
+	{ 
+		pEnt= importe.substring(0,index)+ importe.substring(index+1, importe.length);	
+		return pEnt;
+	}
+	return importe;
+}
+
+  ]]> 
+</JAVASCRIPT>
+
+<VALIDACION>
+       <ELEMENTO name="txtFechaDesde" format="f" required="false" cod="ComConge.fecDesd.label"/>	
+		 <ELEMENTO name="txtFechaHasta" format="f" required="false" cod="ComConge.fecHast.label"/>	
+		 <ELEMENTO name="txtImporte" format="m" required="false" cod="ComConge.impCong.label"/>	
+</VALIDACION>
+ 
+<FORMULARIO nombre="formulario">
+
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="accion" valor=""/>
+<VAR nombre="errCodigo" valor=""/> 
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="varPais" valor=""/> 
+<VAR nombre="varIdioma" valor=""/>
+<VAR nombre="oidCliente" valor=""/>
+<VAR nombre="casoDeUso" valor="consulta"/>
+<VAR nombre="codigoCliente" valor=""/>
+ <VAR nombre="tieneVigentes" valor="S"/>
+
+
+
+<VAR nombre="oidCongelado" valor=""/>
+<VAR nombre="fechaDesde" valor=""/>
+<VAR nombre="fechaHasta" valor=""/>
+<VAR nombre="importe" valor=""/>
+<VAR nombre="descongelacionAutomatica" valor=""/>
+<VAR nombre="vigente" valor=""/>
+
+
+
+
+
+<CAPA nombre="capa1" >
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+	   <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+  <fieldset><legend class="legend"><LABELC nombre="lblCriteriosBusqueda"  alto="13" filas="1" valor="" id="legend" cod="0075"/></legend>
+	 <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+       <!---segunda fila-->
+              <table width="499" border="0" align="left" cellspacing="0" cellpadding="0">
+               <tr> 
+						<td colspan="2"><IMG src="b.gif" width="8" height="8"/></td>
+					</tr>
+               <tr>
+						 <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td colspan="2"><LABELC nombre="lblCodCliente"  alto="13" filas="1" valor="" cod="263" id="datosTitle"/></td>						 
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+						 <td nowrap="nowrap"><CTEXTO nombre="txtCodCliente" id="datosCampos" max="15" tipo="" onchange="onChangeCodigoCliente();" req="N" size="22" valor="" validacion="" onshtab="onshtab_txtCodCliente();"/></td>
+                   <td><IMG src="iconBuscar.gif" onclick="buscarClienteOnClick ();"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+               <tr> 
+						<td colspan="2"><IMG src="b.gif" width="8" height="8"/></td>
+					</tr>
+              
+				  </table>             
+       <!---segunda fila-->
+        </td></tr>
+          <tr><td>
+          <!---primera fila-->
+              <table width="499" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblFechaDesde"  alto="13" filas="1" valor="" id="datosTitle" cod="ComConge.fecDesd.label"/></td>
+						<td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblFechaHasta"  alto="13" filas="1" valor="" id="datosTitle" cod="ComConge.fecHast.label"/></td>
+						<td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap" valign="bottom"><CTEXTO nombre="txtFechaDesde" id="datosCampos" max="15" tipo="" onchange="" req="N" size="15" valor="" validacion="" /></td>
+					    <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td nowrap="nowrap" valign="bottom"><CTEXTO nombre="txtFechaHasta" id="datosCampos" max="15" tipo="" onchange="" req="N" size="15" valor="" validacion=""  /></td>
+						<td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+               <tr> 
+	          <td colspan="2"><IMG src="b.gif" width="8" height="8"/></td>
+	       </tr>
+              </table>
+       <!---fin primera fila-->
+       </td></tr>
+           <tr><td>
+       <!---segunda fila-->
+              <table width="499" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr>
+						 <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblImporte"  alto="13" filas="1" valor="" id="datosTitle" cod="ComConge.impCong.label"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblDescongelacionAutomatica"  alto="13" filas="1" valor="" id="datosTitle" cod="ComConge.indDescAuto.label"/></td>		   
+						  <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblVigentes"  alto="13" filas="1" valor="" id="datosTitle" cod="ComConge.Vigentes.label"/></td>		   
+						 <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+						 <td nowrap="nowrap" valign="bottom"><CTEXTO nombre="txtImporte" id="datosCampos" max="13" tipo="" onchange="" req="N" size="13" valor="" validacion=""/></td>
+					    <td><IMG src="b.gif" width="25" height="8"/></td>
+						 <td nowrap="nowrap" valign="bottom"><CHECKBOX nombre="ckDescongelacionAutomatica" id="datosCampos" onclick="" check="N" req="N"/></td>			
+						 <td><IMG src="b.gif" width="25" height="8"/></td>
+						 <td nowrap="nowrap" valign="bottom"><CHECKBOX nombre="ckVigentes" id="datosCampos" onclick="" check="N" req="N" ontab="ontab_ckVigentes();"/></td>						
+					    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr> 
+	           <td colspan="2"><IMG src="b.gif" width="8" height="8"/></td>
+	        </tr>
+              </table>             
+       <!---segunda fila-->
+          </td></tr>
+           </table>
+        </fieldset>
+        
+<!--fin primer formulario-->
+
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+
+	  <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+			<fieldset>
+				<table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+				<tr>
+					<td class="botonera">
+						<BOTON nombre="btnBuscar" ID="botonContenido" tipo="html" cod="1" estado="false" ontab="ontab_btnBuscar();"  accion="validarBuscarOnClick();"/> 
+              </td>
+				</tr>    
+				</table>        
+			</fieldset>
+      </td>
+      <td><IMG src="b.gif" width="8" height="12"/></td>
+    </tr>
+    
+	 <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	   <td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+ 
+  <LISTAEDITABLE nombre="listado1" ancho="690" alto="317" x="12" y="202" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+        <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+        <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+        <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+      <LINEAS>
+        <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="0" horizTitulo="1" horizBase="1"/> 
+        <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00135" ID="datosTitle" />
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/>
+        <COL ancho="100" minimizable="S" minimizada="N"/>
+        <COL ancho="100" minimizable="S" minimizada="N"/> 
+        <COL ancho="100" minimizable="S" minimizada="N"/>     
+      </COLUMNAS>
+
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+			<COL colFondo="" ID="EstCab" cod="263"></COL> 
+			<COL colFondo="" ID="EstCab" cod="ComConge.fecDesd.label"></COL> 
+			<COL colFondo="" ID="EstCab" cod="ComConge.fecHast.label"></COL> 
+			<COL colFondo="" ID="EstCab" cod="ComConge.impCong.label"></COL> 
+			<COL colFondo="" ID="EstCab" cod="ComConge.indDescAuto.label"></COL> 
+      </CABECERA>
+
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+             coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+             onLoad="" colorSelecc="#D0D9E8">
+			<COL tipo="texto" ID="EstDat"/> 
+			<COL tipo="texto" ID="EstDat2"/>
+			<COL tipo="texto" ID="EstDat"/> 
+			<COL tipo="texto" ID="EstDat2"/>
+			<COL tipo="texto" ID="EstDat"/> 		
+      </DATOS>
+
+      <ROWSET></ROWSET>
+      <PAGINADO nombre="mipgndo" ancho="690" sep="$" x="12" class="botonera" y="496" control="|" conector="ConectorBuscarGerentesCongelados" rowset="" cargainicial="N" 
+	  onload="procesarPaginado(mipgndo,msgError, ultima, rowset, 'muestraLista(ultima, rowset);');" > 
+	 
+        <BOTON nombre="ret1" x="37" y="500" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+        <BOTON nombre="ava1" x="52" y="500" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>
+        
+    </PAGINADO>
+  </LISTAEDITABLE>
+  <BOTON nombre="primera1" x="20" y="500" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();" />      
+  <BOTON nombre="separa" x="59" y="496" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />      
+  <BOTON nombre="btnDetalle" x="80" y="497" ID="botonContenido" tipo="html" estado="false" cod="3" accion="detalleOnClick ();"   />  
+ 	
+	<CAPA nombre="capaEspacio" alto="12" ancho="100%" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="519" zindex="">
+  </CAPA>  
+
+</FORMULARIO>
+</PAGINA>         

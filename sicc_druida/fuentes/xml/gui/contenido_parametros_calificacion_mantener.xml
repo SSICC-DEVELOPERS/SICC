@@ -1,0 +1,655 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_parametros_calificacion_mantener" cod="0491" titulo="Crear concurso" estilos="estilosB3.css" colorf="#F0F0F0" msgle="" onload="onLoadPag();" xml:lang="es" >
+
+<JS src="sicc_util.js"></JS> 
+<JS src="PaginacionSicc.js"></JS>
+<JS src="DruidaTransactionMare.js"></JS>
+<JS src="i18NJS.js"/>     
+<JS src="pestanyas_concurso_inc.js"/>
+<JS src="validaciones_sicc.js"/>
+<JS src="contenido_parametros_calificacion_mantener.js"/>
+
+<JAVASCRIPT>
+  <![CDATA[ 
+
+  ]]> 
+</JAVASCRIPT>         
+
+<VALIDACION>
+	<ELEMENTO name="cbFormaCalculo" required="true" cod="1671" group="FormaCalculo"/>
+
+	<ELEMENTO name="cbTipoIncremento" required="true" cod="1963" group="tipoIncremento"/>
+    
+	<ELEMENTO name="cbPeriodoEvaluacionDesde" required="true" cod="1958" group="periodos"/>
+    <ELEMENTO name="cbPeriodoEvaluacionHasta" required="true" cod="1959" group="periodos"/>
+    
+	<ELEMENTO name="cbTipoDeterminacionMetas" required="true" cod="1962" group="tipoDetMetas"/>
+    
+	<ELEMENTO name="cbTipoVentaIncremental" required="true" cod="2443" group="tipoVentaIncremental" />
+    
+	<ELEMENTO name="txtDesde" required="true" cod="555" group="rangoIncremento" format="n" min="0" max="9999999999.99"/> 
+    <ELEMENTO name="txtHasta" required="true" cod="145" group="rangoIncremento" format="n" min="0" max="9999999999.99"/> 
+    
+	<ELEMENTO name="txtIncremento" required="true" cod="1740" group="rangoIncrementoPorcentaje" format="n" min="1" max="999"/>          
+	<ELEMENTO name="txtIncremento" required="true" cod="1740" group="rangoIncrementoNOPorcentaje" format="n" min="0" max="9999999999.99"/> 
+</VALIDACION>
+
+<FORMULARIO nombre="formulario" oculto="N">
+
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="accion" valor=""/>
+<VAR nombre="errCodigo" valor=""/> 
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="idPestanyaDest" valor=""/>
+<VAR nombre="opcionMenu" valor=""/>
+<VAR nombre="datosObligatorios" valor=""/>
+<VAR nombre="oidParamCalificacion" valor=""/>
+<VAR nombre="oidDirigidoA" valor=""/>
+<VAR nombre="hDescDirigidoA" valor=""/>
+<VAR nombre="oidTipoVentaCalificacion" valor=""/>
+<VAR nombre="indMetasBloqueadas" valor=""/>
+
+<!--
+  listaCalificacionParticipantes~listaParticipantes~lstEstatusVenta
+  y cada lista tiene el siguiente formato: xx,xx,xx|xx,xx,xx|...
+  Particularmente, lstEstatusVenta se compone de los siguientes campos;
+  oidEstatusVenta,oidEstatusVentaMAE,oidPeriodoDesde,oidPeriodoHasta,
+  desEstatusVentaMae,desPeriodoDesde,desPeriodoHasta|... (cada reg. se separa con un pipe
+  y corresponde a un DTOEstatusVenta).
+-->
+<VAR nombre="listasCalificacion" valor=""/>
+<VAR nombre="cteOidTipoVtaCalifProyectada" valor=""/>
+<VAR nombre="cteOidTipoVtaCalifHistorica" valor=""/>
+
+<!--las siguientes son listas-->
+<VAR nombre="listaVariablesVentaProyectada" valor=""/>
+<VAR nombre="listaMetasVentaProyectada" valor=""/>
+<VAR nombre="listaMetasTipoVenta" valor=""/>
+<VAR nombre="listaIncrementosPorRango" valor=""/>
+
+<!--Reciben los valores de los labels-->
+<VAR nombre="descTipoVentaCalificacion" valor=""/>
+
+<!--varirables de combos-->
+<VAR nombre="hPeriodoEvaluacionDesde" valor=""/>
+<VAR nombre="hPeriodoEvaluacionHasta" valor=""/>
+<VAR nombre="hTipoVentaIncremental" valor=""/>
+<VAR nombre="hTipoVentaHistorica" valor=""/>
+<VAR nombre="hTipoDeterminacionMetas" valor=""/>
+<VAR nombre="hFormaCalculo" valor=""/>
+<VAR nombre="hTipoIncremento" valor=""/>
+
+<!--variables de checks-->
+<VAR nombre="hBloquearMetas" valor=""/>
+<VAR nombre="hMetasModificables" valor=""/>
+<VAR nombre="hComunicaciones" valor=""/>
+<VAR nombre="hDevoluciones" valor=""/>
+<VAR nombre="hAnulaciones" valor=""/>
+<VAR nombre="hFaltantesNoAnunciados" valor=""/>
+
+<!--Flags para habilitar / deshabilitar campos-->
+<!--S == habilitado-->
+<!--COMBOS-->
+<VAR nombre="hEstadoCbPeriodoEvaluacionDesde" valor="S"/>
+<VAR nombre="hEstadoCbPeriodoEvaluacionHasta" valor="S"/>
+<VAR nombre="hEstadoCbTipoVentaIncremental" valor="S"/>
+<VAR nombre="hEstadoCbTipoVentaHistorica" valor="S"/>
+<VAR nombre="hEstadoCbTipoDeterminacionMetas" valor="S"/>
+<VAR nombre="hEstadoCbFormaCalculo" valor="S"/>
+<VAR nombre="hEstadoCbTipoIncremento" valor="S"/>
+<!--CHECKS-->
+<VAR nombre="hEstadoCkBloquearMetas" valor="S"/>
+<VAR nombre="hEstadoCkMetasModificables" valor="S"/>
+<VAR nombre="hEstadoCkComunicaciones" valor="S"/>
+<VAR nombre="hEstadoCkDevolucines" valor="S"/>
+<VAR nombre="hEstadoCkAnulaciones" valor="S"/>
+<VAR nombre="hEstadoCkFaltantesNoAnunciados" valor="S"/>
+<!--CTEXTO-->
+<VAR nombre="hEstadoTxtMensaje" valor="S"/>
+<VAR nombre="hEstadoTxtDesde" valor="S"/>
+<VAR nombre="hEstadoTxtHasta" valor="S"/>
+<VAR nombre="hEstadoTxtIncremento" valor="S"/>
+<VAR nombre="hEstadoTxtValorIncremento" valor="S"/>
+
+<!--
+  //deshabilitarHabilitarBoton('botonContenido', 'btnAnadir', 'D');
+  //btnAnadir botonContenido
+  //btnProductosCalificar   botonContenido
+  //btnEliminar   botonContenido
+-->
+<!--BOTONES-->
+<VAR nombre="hEstadoBtnAnadir" valor="S"/>
+<VAR nombre="hEstadoBtnProductosCalificar" valor="S"/>
+<VAR nombre="hEstadoBtnEliminar" valor="S"/>
+<VAR nombre="hEstadoBtnCalcularMetas" valor="S"/>
+<VAR nombre="hEstadoBtnMantenerMetas" valor=""/><!-- Cleal - 22259-->
+<!-- INC 21057-->
+<!-- Se agrega esta variable, cuyo valor se cambiará a N desde la LP si corresponde deshabilitar el botón btnDefinirVentaProyectada -->
+<VAR nombre="hEstadoBtnDefinirVentaProyectada" valor="S"/>
+
+<VAR nombre="hEstadoBtnConsultarMetasTipoVenta" valor="N"/> 
+<VAR nombre="hEstadoBtnConsultarMetasVentaProyectada" valor="N"/> 
+
+
+<!--CONSTANTES-->
+<VAR nombre="OID_TIPO_VTA_INC_INCREMENTAL_NIVELES" valor=""/>
+<VAR nombre="OID_TIPO_VTA_INC_INCREMENTAL" valor=""/>
+
+<!--FLAGS DE ESTADO DE PESTANYAS-->
+<!--"S" == habilitado-->
+<VAR nombre="hIndEstadoProductos" valor=""/>
+<VAR nombre="hIndEstadoAmbitoGeografico" valor=""/>
+<VAR nombre="hIndEstadoCalificion" valor=""/>
+<VAR nombre="hIndEstadoGerentes" valor=""/>
+<VAR nombre="hIndEstadoConsultoras" valor=""/>
+<VAR nombre="hIndEstadoProgramaNuevas" valor=""/>
+<VAR nombre="hIndEstadoMultinivel" valor=""/>
+<VAR nombre="valorMenu" valor=""/>
+
+<!--FLAG DE ESTADO DE CAPA-->
+<!--"S" == visible-->
+<VAR nombre="hIndEstadoCapaIncrementos" valor="N"/>
+
+<!-- ESTAS VARIABLES SE UTILIZAN AL PRESIONAR EL BOTON CALCULAR METAS
+TANTO SI TIPO VENTA CALIFICACION ES PROYECTADA O HISTORICA -->
+<VAR nombre="oidPerDesde" valor=""/>
+<VAR nombre="oidPerHasta" valor=""/>
+<VAR nombre="oidFormaCal" valor=""/>
+<VAR nombre="valIncremento" valor=""/>
+<VAR nombre="tipoIncremento" valor=""/>
+
+<!-- ESTA VARIABLE SE UTILIZA PARA VALIDAR QUE EL USUARIO HAYA SELECCIONADO
+UNA AGRUPACION AL PRESIONAR EL BOTON CALCULAR METAS -->
+<VAR nombre="sOidAgrupacion" valor=""/>
+
+<!-- VARIABLES QUE SE UTILIZAN AL PRESIONAR EL BOTON MANTENER METAS-->
+<VAR nombre="tempCkActivas" valor=""/>
+<VAR nombre="tempCkIngreso" valor=""/>
+<VAR nombre="tempCkReingreso" valor=""/>
+<VAR nombre="tempCkEgresos" valor=""/>
+<VAR nombre="tempCkEntregadas" valor=""/>
+<VAR nombre="tempCkRecibidas" valor=""/>
+<VAR nombre="tempCkCapitalizacion" valor=""/>
+<VAR nombre="tempCkActivasFinales" valor=""/>
+<VAR nombre="tempCkActividad" valor=""/>
+<VAR nombre="tempCkNumpedidos" valor=""/>
+<VAR nombre="tempCkPrecioPromedioUnitario" valor=""/>
+<VAR nombre="tempCkPromedioVentaPedido" valor=""/>
+<VAR nombre="tempCkPromedioUnidadesPedido" valor=""/>
+<VAR nombre="tempCkPromedioOrdenesPedido" valor=""/>
+<VAR nombre="tempCkRetencion" valor=""/>
+<VAR nombre="tempCkVentaEstadisticable" valor=""/>
+<!-- dmaneiro - Inc. 22116 -->
+<VAR nombre="variablesVentaProyectada" valor=""/>
+
+<VAR nombre="tempOidTipoVentaIncremental" valor=""/>
+
+<VAR nombre="incrementoPorcentaje" valor=""/>
+<VAR nombre="incrementoCantidad" valor=""/>
+
+<VAR nombre="hEstadoValorIncremento" valor=""/>
+<!-- Cleal -->
+<VAR nombre="hidLstEstatusVta" valor=""/>
+
+<!--cvalenzu-->
+<VAR nombre="hFormatoDef" valor=""/>
+
+<VAR nombre="cteOidDirigidoAConsultora" valor=""/>
+
+<VAR nombre="tieneCalificacionParticipantes" valor=""/>
+<VAR nombre="tieneEstatusDeVenta" valor=""/>
+
+<!-- DEFINICION DE PESTANYAS -->
+ <table width="100%" height="100%" border="0" align="center" cellpadding="0" cellspacing="0" class="menu4">
+  <tr> 
+    <td width="12" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="12" height="30"/></td>
+    <td nowrap="nowrap" class="menu5texto">&nbsp;</td>
+    <td width="10" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="92" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="activarPuntero('formulario', 1, 'lblParametrosGenerales');" onclick="onClickPestanyaPagina(1, 'formulario', 'LPMantenerParametrosCalificacion');">
+         <tr align="center"> 
+           <td nowrap="nowrap"><LABELC nombre="lblParametrosGenerales"  alto="13" filas="1" valor=""  id="menu5textonegrita" cod="00393"/></td>
+         </tr>
+      </table>
+    </td>
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="activarPuntero('formulario', 5, 'lblProductos');" onclick="onClickPestanyaPagina(5, 'formulario', 'LPMantenerParametrosCalificacion');">
+         <tr align="center"> 
+           <td nowrap="nowrap" ><LABELC nombre="lblProductos"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="0094"/></td>
+         </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="activarPuntero('formulario', 6, 'lblPremios');" onclick="onClickPestanyaPagina(6, 'formulario', 'LPMantenerParametrosCalificacion');">
+         <tr align="center"> 
+           <td nowrap="nowrap" ><LABELC nombre="lblPremios"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00394"/></td>
+         </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="activarPuntero('formulario', 7, 'lblRequisitos');" onclick="onClickPestanyaPagina(7, 'formulario', 'LPMantenerParametrosCalificacion');">
+         <tr align="center"> 
+           <td nowrap="nowrap"  ><LABELC nombre="lblRequisitos"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00395"/></td>
+         </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="activarPuntero('formulario', 4, 'lblObtencionPuntos');" onclick="onClickPestanyaPagina(4, 'formulario', 'LPMantenerParametrosCalificacion');">
+         <tr align="center"> 
+           <td nowrap="nowrap" ><LABELC nombre="lblObtencionPuntos"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00396"/></td>
+         </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="activarPuntero('formulario', 8, 'lblDespachoPremios');" onclick="onClickPestanyaPagina(8, 'formulario', 'LPMantenerParametrosCalificacion');">
+         <tr align="center"> 
+           <td nowrap="nowrap" ><LABELC nombre="lblDespachoPremios"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00397"/></td>
+         </tr>
+      </table>
+   </td>
+  
+    <td width="16" class="menu5texto"><IMG src="b.gif" width="12" height="8"/></td>
+  </tr>
+</table>         
+ <table width="100%" height="100%" border="0" align="center" cellpadding="0" cellspacing="0" class="menu4">
+  <tr> 
+    <td width="12" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="12" height="30"/></td>
+    <td nowrap="nowrap" class="menu5texto">&nbsp;</td>
+    <td width="10" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+     <td width="70" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="activarPuntero('formulario', 3, 'lblAmbitoGeografico');" onclick="onClickPestanyaPagina(3, 'formulario', 'LPMantenerParametrosCalificacion');">
+         <tr align="center"> 
+           <td nowrap="nowrap" ><LABELC nombre="lblAmbitoGeografico"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="2801"/></td>
+         </tr>
+      </table>
+    </td>
+    <td width="10" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+     <td width="70" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" bgcolor="#496A9A">
+         <tr align="center"> 
+           <td nowrap="nowrap" ><LABELC nombre="lblCalificacion"  alto="13" filas="1" valor="" id="menu5textoblanca" cod="00398"/></td>
+         </tr>
+      </table>
+    </td>
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="activarPuntero('formulario', 10, 'lblGerentes');" onclick="onClickPestanyaPagina(10, 'formulario', 'LPMantenerParametrosCalificacion');">
+         <tr align="center"> 
+           <td nowrap="nowrap" ><LABELC nombre="lblGerentes"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00399"/></td>
+         </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+   <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onmouseover="activarPuntero('formulario', 11, 'lblConsultoras');" onclick="onClickPestanyaPagina(11, 'formulario', 'LPMantenerParametrosCalificacion');">
+         <tr align="center"> 
+           <td nowrap="nowrap" ><LABELC nombre="lblConsultoras"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00401"/></td>
+         </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+         <td width="20" nowrap="nowrap" class="menu5texto">
+   <table width="75" border="1" align="center" cellpadding="1" cellspacing="0" ID="DatosGenerales" 
+        bordercolor="#496A9A" onclick="onClickPestanyaPagina(2, 'formulario', 'LPMantenerParametrosCalificacion');" onmouseover="activarPuntero('formulario', 2, 'lblProgramaNuevas');">
+         <tr align="center"> 
+           <td nowrap="nowrap"><LABELC nombre="lblProgramaNuevas"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00590"/></td>
+         </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onclick="onClickPestanyaPagina(12, 'formulario', 'LPMantenerParametrosCalificacion');" onmouseover="activarPuntero('formulario', 12, 'lblMultinivel');">
+         <tr align="center"> 
+           <td nowrap="nowrap"><LABELC nombre="lblMultinivel"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00400"/></td>
+         </tr>
+      </table>
+   </td>
+    <td width="16" class="menu5texto"><IMG src="b.gif" width="12" height="8"/></td>
+  </tr>
+</table>                                                                                                             
+<!-- FIN DEFINICION DE PESTANYAS -->
+
+<CAPA nombre="capaEspacio1" x="0" y="60"><!--y="0"-->
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primero formulario-->
+         <fieldset><legend class="legend"><LABELC nombre="lblParametrosCalificacion"  alto="13" filas="1" valor="" id="legend" cod="00383"/></legend>
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+           <tr><td>
+           <!---primera fila-->
+                <table width="666" border="0" align="left" cellspacing="0" cellpadding="0">
+                  <tr> 
+                    <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td><LABELC nombre="lblTipoVentaCalificacion"  alto="13" filas="1" valor="" id="datosTitle" cod="1960"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td><LABELC nombre="lblPeriodoEvaluacionDesde" alto="13" filas="1" valor="" id="datosTitle" cod="1958"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td><LABELC nombre="lblPeriodoEvaluacionHasta"  alto="13" filas="1" valor="P" id="datosTitle" cod="1959"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td><LABELC nombre="lblDirigidoa"  alto="13" filas="1" valor="" id="datosTitle" cod="1626"/></td>
+                     
+                     <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr> 
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td><LABELC nombre="lbldtTipoVentaCalificacion"  alto="13" filas="1" valor="" id="datosCampos" /></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                    <td  nowrap="nowrap"><COMBO nombre="cbPeriodoEvaluacionDesde" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" ontab="setTabFocus('cbPeriodoEvaluacionDesde')" onshtab="setSHTabFocus('cbPeriodoEvaluacionDesde')">
+                                            <ROWSET>
+                                            </ROWSET>
+                                     </COMBO> 
+                                 </td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td  nowrap="nowrap" ><COMBO nombre="cbPeriodoEvaluacionHasta" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" ontab="setTabFocus('cbPeriodoEvaluacionHasta')" onshtab="setSHTabFocus('cbPeriodoEvaluacionHasta')">
+                                            <ROWSET>
+                                            </ROWSET>
+                                     </COMBO> 
+                                 </td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td><LABELC nombre="lblDirigidoadt"  alto="13" filas="1" valor="" id="datosCampos"/></td>
+                    
+                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr> 
+                  <tr>
+                     <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                </table>
+          </td></tr>
+            <tr><td>
+                    <table width="666" border="0" align="left" cellspacing="0" cellpadding="0">
+                         
+                           <tr>
+                              <td><IMG src="b.gif" width="8" height="8"/></td>
+                              <td><LABELC nombre="lblBloquearMetas"  alto="13" filas="1" valor="" id="datosTitle" cod="1898"/></td>
+                              <td><IMG src="b.gif" width="25" height="8"/></td>
+                              <td><LABELC nombre="lblMetasModificables"  alto="13" filas="1" valor="" id="datosTitle" cod="1902"/></td>
+                              <td><IMG src="b.gif" width="25" height="8"/></td>
+                              <td><LABELC nombre="lblComunicacion" alto="13" filas="1" valor="" id="datosTitle" cod="1812"/></td>
+                              <td><IMG src="b.gif" width="25" height="8"/></td>
+                              <td><LABELC nombre="lblMensaje"  alto="13" filas="1" valor="" id="datosTitle" cod="531"/></td>
+                              <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                           </tr> 
+                           <tr>
+                              <td><IMG src="b.gif" width="8" height="8"/></td>
+                              <td ><CHECKBOX nombre="ckBloquearMetas" id="datosCampos" onclick="onChangeBloquearMetas();" check="N" readonly="N" ontab="setTabFocus('ckBloquearMetas')" onshtab="setSHTabFocus('ckBloquearMetas')"/></td>
+                              <td><IMG src="b.gif" width="25" height="8"/></td>
+                    	   <td ><CHECKBOX nombre="ckMetasModificables" id="datosCampos" onclick="onChangeMetasModificables();" check="N" ontab="setTabFocus('ckMetasModificables')" onshtab="setSHTabFocus('ckMetasModificables')"/></td>
+                    	   <td><IMG src="b.gif" width="25" height="8"/></td>
+                              <td ><CHECKBOX nombre="ckComunicaciones" id="datosCampos" onclick="onChangeComunicacion();" check="N" ontab="setTabFocus('ckComunicaciones')" onshtab="setSHTabFocus('ckComunicaciones')"/></td>
+                              <td><IMG src="b.gif" width="25" height="8"/></td>
+                             <td ><CTEXTO nombre="txtMensaje" id="datosCampos" max="5" tipo="" onchange="" req="N" size="5" valor="" validacion="" ontab="setTabFocus('txtMensaje')" onshtab="setSHTabFocus('txtMensaje')"/></td>
+                             <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                           </tr> 
+                           <tr>
+                              <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                           </tr>
+                         </table>
+                 </td></tr>
+                 <tr><td>
+                	        <table width="666" border="0" align="left" cellspacing="0" cellpadding="0">
+                         
+                           <tr>
+                              <td><IMG src="b.gif" width="8" height="8"/></td>
+                              <td><LABELC nombre="lblTipoVentaHistorica"  alto="13" filas="1" valor="" id="datosTitle" cod="1961" /></td>
+                              <td><IMG src="b.gif" width="25" height="8"/></td>
+                              <td><LABELC nombre="lblTipoVentaIncremental"  alto="13" filas="1" valor="" id="datosTitle" cod="2443" /></td>
+                              <td><IMG src="b.gif" width="25" height="8"/></td>
+                              <td><LABELC nombre="lblTipoDeterminacionMetas"  alto="13" filas="1" valor="" id="datosTitle" cod="1962"/></td>
+                              <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                           </tr> 
+                           <tr>
+                              <td><IMG src="b.gif" width="8" height="8"/></td>
+                                <td valign="bottom" nowrap="nowrap"><COMBO nombre="cbTipoVentaHistorica" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" ontab="setTabFocus('cbTipoVentaHistorica')" onshtab="setSHTabFocus('cbTipoVentaHistorica')">
+                                            <ROWSET>                   
+                                            </ROWSET>
+                                     </COMBO> 
+                                 </td>
+                              <td><IMG src="b.gif" width="25" height="8"/></td>
+                              <td valign="bottom" nowrap="nowrap"><COMBO nombre="cbTipoVentaIncremental" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial=""  ontab="setTabFocus('cbTipoVentaIncremental')" onshtab="setSHTabFocus('cbTipoVentaIncremental')">
+                                            <ROWSET>			                     
+                                            </ROWSET>
+                                     </COMBO> 
+                                 </td>
+                              <td><IMG src="b.gif" width="25" height="8"/></td>
+                             <td  nowrap="nowrap"><COMBO nombre="cbTipoDeterminacionMetas" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" ontab="setTabFocus('cbTipoDeterminacionMetas')" onshtab="setSHTabFocus('cbTipoDeterminacionMetas')">
+                                            <ROWSET>			                    
+                                            </ROWSET>
+                                     </COMBO> 
+                                 </td>
+                              <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                           </tr> 
+                           <tr>
+                              <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                           </tr>
+                         </table>
+                  </td></tr>
+            <tr><td>
+                        <table width="666" border="0" align="left" cellspacing="0" cellpadding="0">
+                         
+                           <tr>
+                              <td><IMG src="b.gif" width="8" height="8"/></td>
+                              <td><LABELC nombre="lblDevoluciones" alto="13" filas="1" valor="" id="datosTitle" cod="1623"/></td>
+                              <td><IMG src="b.gif" width="25" height="8"/></td>
+                              <td><LABELC nombre="lblAnulaciones" alto="13" filas="1" valor="" id="datosTitle" cod="1624"/></td>
+                              <td><IMG src="b.gif" width="25" height="8"/></td>
+                              <td><LABELC nombre="lblFaltantesNoAnunciados" alto="13" filas="1" valor="" id="datosTitle" cod="1625"/></td>
+                              <td><IMG src="b.gif" width="25" height="8"/></td>
+                              <td><LABELC nombre="lblFormaCalculo"  alto="13" filas="1" valor="" id="datosTitle" cod="1671"/></td>
+                              <td><IMG src="b.gif" width="25" height="8"/></td>
+                              <td><LABELC nombre="lblTipoIncremento"  alto="13" filas="1" valor="" id="datosTitle" cod="1963"/></td>                              
+                              <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                           </tr> 
+                           <tr>
+                              <td><IMG src="b.gif" width="8" height="8"/></td>
+                              <td ><CHECKBOX nombre="ckDevolucines" id="datosCampos" onclick="" check="N" ontab="setTabFocus('ckDevolucines')" onshtab="setSHTabFocus('ckDevolucines')"/></td>
+                              <td><IMG src="b.gif" width="25" height="8"/></td>
+                             <td ><CHECKBOX nombre="ckAnulaciones" id="datosCampos" onclick="" check="N" ontab="setTabFocus('ckAnulaciones')" onshtab="setSHTabFocus('ckAnulaciones')"/></td>
+                              <td><IMG src="b.gif" width="25" height="8"/></td>
+                             <td ><CHECKBOX nombre="ckFaltantesNoAnunciados" id="datosCampos" onclick="" check="N" ontab="setTabFocus('ckFaltantesNoAnunciados')" onshtab="setSHTabFocus('ckFaltantesNoAnunciados')"/></td>
+                              <td><IMG src="b.gif" width="25" height="8"/></td>
+                                <td  nowrap="nowrap"><COMBO nombre="cbFormaCalculo" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" ontab="setTabFocus('cbFormaCalculo')" onshtab="setSHTabFocus('cbFormaCalculo')">
+                                            <ROWSET>			                   
+                                            </ROWSET>
+                                     </COMBO> 
+                                 </td>
+                              <td><IMG src="b.gif" width="25" height="8"/></td>
+                              <td  nowrap="nowrap" valign="bottom"><COMBO nombre="cbTipoIncremento" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" ontab="setTabFocus('cbTipoIncremento')" onshtab="setSHTabFocus('cbTipoIncremento')">
+                                            <ROWSET>			                   
+                                            </ROWSET>
+                                     </COMBO> 
+                                 </td>                                
+                                 <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                           </tr>
+                           <tr>
+                              <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                           </tr>
+                         </table>
+                </td></tr>
+            <tr><td>
+                         <table width="100%" align="left"  border="0" cellspacing="0" cellpadding="0">
+                      <tr>
+                         <td width="8" align="center"><IMG src="b.gif" width="8" height="12"/></td>
+                         <td width="750"><IMG src="b.gif"/></td>
+                         <td width="8"><IMG src="b.gif" width="8" height="1"/></td>
+                      </tr>
+                      <tr id='capaIncremento'> 
+                         <td><IMG src="b.gif"/></td>
+                         <td>
+                  <!--capa-->
+                           <fieldset><legend class="legend"><LABELC nombre="lblDatosIncremento"  alto="13" filas="1" valor="" id="legend" cod="00384"/></legend>
+                              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                                <tr><td>
+                                  <table width="100%" border="0" align="left" cellspacing="0" cellpadding="0">
+                                    <tr>
+                                           <td width="8" align="center"><IMG src="b.gif" width="8" height="12"/></td>
+                                           <td width="750"><IMG src="b.gif"/></td>
+                                           <td width="8"><IMG src="b.gif" width="8" height="1"/></td>
+                                         </tr>
+                                     <tr> 
+                                           <td ><IMG src="b.gif" /></td>
+                                           <td>
+                                    
+                                             <fieldset><legend class="legend"><LABELC nombre="lblDatosAnadir"  alto="13" filas="1" valor="" id="legend" cod="00280"/></legend>
+                                              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                                                  <tr><td>
+                                                    <table width="644" border="0" align="left" cellspacing="0" cellpadding="0">
+                                                    	<tr> 
+                                                         <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                                                      </tr>
+                                                      <tr>
+                                                          <td><IMG src="b.gif" width="8" height="8"/></td>
+                                                          <td><LABELC nombre="lblDesde"  alto="13" filas="1" valor="" id="datosTitle" cod="555"/></td>
+                                                          <td><IMG src="b.gif" width="25" height="8"/></td>
+                                                          <td><LABELC nombre="lblHasta"  alto="13" filas="1" valor="" id="datosTitle" cod="145"/></td>
+                                                          <td><IMG src="b.gif" width="25" height="8"/></td>
+                                                          <td><LABELC nombre="lblIncremento"  alto="13" filas="1" valor="" id="datosTitle" cod="1740"/></td>
+                                                          <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                                      </tr> 
+                                                      <tr>
+                                                          <td><IMG src="b.gif" width="8" height="8"/></td>
+                                                          <td ><CTEXTO nombre="txtDesde" id="datosCampos" max="13" tipo="" onchange="" req="N" size="16" valor="" validacion="" ontab="setTabFocus('txtDesde')" onshtab="setSHTabFocus('txtDesde')"/></td>
+                                                          <td><IMG src="b.gif" width="25" height="8"/></td>
+                                                          <td ><CTEXTO nombre="txtHasta" id="datosCampos" max="13" tipo="" onchange="" req="N" size="16" valor="" validacion="" ontab="setTabFocus('txtHasta')" onshtab="setSHTabFocus('txtHasta')"/></td>
+                                                          <td><IMG src="b.gif" width="25" height="8"/></td>
+                                                         <td ><CTEXTO nombre="txtIncremento" id="datosCampos" max="13" tipo="" onchange="" req="N" size="16" valor="" validacion="" ontab="setTabFocus('txtIncremento')" onshtab="setSHTabFocus('txtIncremento')"/></td>
+                                                         <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                                      </tr> 
+                                                      <tr> 
+                                                         <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                                                      </tr>
+                                                      
+                                                    </table>
+                                                 </td></tr>
+                                              </table>
+                                            </fieldset>
+                                          </td>
+                                          <td><IMG src="b.gif"  /></td>
+                                      </tr>
+                                        <tr> 
+                                             <td><IMG src="b.gif"/></td>
+                                             <td>
+                                                <fieldset>
+                                                  <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">         
+                                                    <tr>
+                                                      <td class="botonera">
+                                                         <BOTON nombre="btnAnadir" ID="botonContenido" tipo="html" accion="accionAnyadir()" estado="false" cod="404" ontab="setTabFocus('btnAnadir')" onshtab="setSHTabFocus('btnAnadir')"/>
+                                                      </td>
+                                                    </tr>    
+                                                  </table>         
+                                                </fieldset>
+                                             </td>
+                                             <td><IMG src="b.gif" width="8" height="12"/></td>
+                                           </tr>   
+                                      <tr> 
+                                            <td colspan="3"><IMG src="b.gif" width="8" height="336"/></td>
+                                      </tr>
+                                  </table>
+                                </td></tr>
+                             </table>
+                           </fieldset>
+                  
+                         </td>
+                         <td><IMG src="b.gif" /></td>
+                      </tr>
+                      
+                      <tr>
+                          	<td width="8" align="center"><IMG src="b.gif" width="8" height="12"/></td>
+                        	<td width="756" ><IMG src="b.gif"/></td>
+                         	<td width="8" ><IMG src="b.gif" width="8" height="1"/></td>
+                      </tr>
+                    </table>
+              </td></tr>
+            </table>
+         </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr>
+    <tr> 
+          <td><IMG src="b.gif"/></td>
+          <td>
+           <fieldset>
+             <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">         
+                <tr>
+                  <td class="botonera">
+                                             <BOTON nombre="btnProductosCalificar" ID="botonContenido" tipo="html" accion="accionProductosCalificar();" estado="false" cod="1964" ontab="setTabFocus('btnProductosCalificar')" onshtab="setSHTabFocus('btnProductosCalificar')"/>
+                                             <BOTON nombre="btnDefinirVentaProyectada" ID="botonContenido" tipo="html" accion="accionDefinirVentaProyectada();" estado="false" cod="1966" ontab="setTabFocus('btnDefinirVentaProyectada')" onshtab="setSHTabFocus('btnDefinirVentaProyectada')"/>
+                                             <BOTON nombre="btnParticipantes" ID="botonContenido" tipo="html" accion="accionParticipantes();" estado="false" cod="745" ontab="setTabFocus('btnParticipantes')" onshtab="setSHTabFocus('btnParticipantes')"/>
+                                             <BOTON nombre="btnCalcularMetas" ID="botonContenido" tipo="html" accion="accionCalcularMetas();" estado="false" cod="1732" ontab="setTabFocus('btnCalcularMetas')" onshtab="setSHTabFocus('btnCalcularMetas')"/>
+                                             <BOTON nombre="btnMantenerMetas" ID="botonContenido" tipo="html" accion="accionMantenerMetas();" estado="false" cod="2858" ontab="setTabFocus('btnMantenerMetas')" onshtab="setSHTabFocus('btnMantenerMetas')"/>
+                                             <BOTON nombre="btnConsultarMetasTipoVenta" ID="botonContenido" tipo="html" accion="accionConsultarMetasTipoVenta();" estado="false" cod="0546" ontab="" onshtab=""/>
+                        </td>			
+                           </tr>   
+                           <tr>
+                             <td class="botonera">
+                                <BOTON nombre="btnConsultarMetasVentaProyectada" ID="botonContenido" tipo="html" accion="accionConsultarMetasVentaProyectada();" estado="false" cod="0545" ontab="" onshtab=""/>			  
+            </td>             
+                           </tr>   
+             </table>         
+           </fieldset>
+          </td>
+          <td><IMG src="b.gif" width="8" height="12"/></td>
+    </tr>  
+     
+    <tr>
+         <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+         <td width="756" ><IMG src="b.gif"/></td>
+         <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+
+  <LISTAEDITABLE nombre="listado3" ancho="647" alto="299" x="32" y="395" colorFondo="#CECFCE" msgDebugJS="S"><!--y="345"-->
+      <IMGBOTONES precarga="S" conROver="S">
+         <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+         <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+        <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+      <LINEAS>
+         <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="0" horizTitulo="1" horizBase="1"/> 
+         <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00385" ID="datosTitle" />
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+          <COL ancho="5" minimizable="S" minimizada="N"/>
+          <COL ancho="10" minimizable="S" minimizada="N"/>
+          <COL ancho="10" minimizable="S" minimizada="N"/>
+      </COLUMNAS>
+      
+                  <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+          <COL colFondo="" ID="EstCab" cod="555">Desde</COL> 
+                           <COL colFondo="" ID="EstCab" cod="145">Hasta</COL> 
+                           <COL colFondo="" ID="EstCab" cod="1740">Incremento</COL> 	
+      </CABECERA>
+
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+              coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+              onLoad="" colorSelecc="#D0D9E8">
+                           <COL tipo="texto" ID="EstDat"/> 
+                           <COL tipo="texto" ID="EstDat2"/>
+                           <COL tipo="texto" ID="EstDat"/> 
+      </DATOS>
+      <ROWSET>
+      </ROWSET>
+      <PAGINADO nombre="mipgndo3" ancho="615" sep="$" x="32" class="botonera" y="671" control="|" conector="conectorSandra2" rowset="" cargainicial="N"><!--y="621"-->
+         
+         <BOTON nombre="ret3" x="57" y="675" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo3.retroceder();" /> <!--y="625"-->
+         <BOTON nombre="ava3" x="72" y="675" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo3.avanzar();"/><!--y="625"-->
+         
+    </PAGINADO>
+  </LISTAEDITABLE>
+  <BOTON nombre="primera3" x="40" y="675" ID="botonContenido" img="primera_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo3.retrocederPrimeraPagina();" />      <!--y="625"-->
+  <BOTON nombre="separa3" x="79" y="671" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />      <!--y="621"-->
+  <BOTON nombre="btnEliminar" x="33" y="672" ID="botonContenido" tipo="html" estado="false" cod="1254" accion="accionEliminar()" ontab="setTabFocus('btnEliminar')" onshtab="setSHTabFocus('btnEliminar')"/> <!--y="622"-->
+  </FORMULARIO>
+</PAGINA>        
+

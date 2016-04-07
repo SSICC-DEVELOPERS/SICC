@@ -1,0 +1,662 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_comisiones_escalonada_insertar.xml,v 1.1 2010/08/24 22:52:57 peextsapaza Exp $
+   prueba arbol 
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+<PAGINA nombre="contenido_comisiones_datosComision_insertar_detalle" cod="0515" titulo="Insertar comisiones" estilos="estilosB3.css" colorf="#F0F0F0" msgle="" onload="onLoadPag();" xml:lang="es">
+	<!-- Barra Modificar comisiones cod="0520"
+     Barra Consultar comisiones cod="0510"
+     Barra Eliminar comisiones cod="0558"-->
+
+<JS src="sicc_util.js"></JS> 
+<JS src="PaginacionSicc.js"></JS>
+<JS src="DruidaTransactionMare.js"></JS>
+<JS src="i18NJS.js"/>     
+
+<JAVASCRIPT>
+<![CDATA[ 
+
+function onLoadPag(){
+	configurarMenuSecundario("formulario");        
+	muestraLista();	
+
+	cargarLista();
+	var valor = get('formulario.opcionMenu');
+
+	if(get('formulario.opcionMenu') == 'consultar'){
+		deshabilitarTodo();
+	}
+
+	focoDiasTrasFacturacion();
+}
+
+function muestraLista() {
+	DrdEnsanchaConMargenDcho('listado1',24);
+    document.all["Cplistado1"].style.visibility='';
+    document.all["CpLin1listado1"].style.visibility='';
+    document.all["CpLin2listado1"].style.visibility='';
+    document.all["CpLin3listado1"].style.visibility='';
+    document.all["CpLin4listado1"].style.visibility='';
+    document.all["separaDiv"].style.visibility='hidden';
+    document.all["primera1Div"].style.visibility='hidden';
+    document.all["ret1Div"].style.visibility='hidden';
+    document.all["ava1Div"].style.visibility='hidden';
+    document.all["EliminarDiv"].style.visibility='';
+    eval (ON_RSZ);
+}
+
+function deshabilitarTodo(){
+	accion('formulario.txtDiasFacturacion','.disabled=true');
+	
+	accion('formulario.txtNumDiasRecuperacion','.disabled=true');
+	accion('formulario.txtNumDiasComision','.disabled=true');
+	accion('formulario.txtPorcentajeRecuperacionInicial','.disabled=true');
+	accion('formulario.txtPorcentajeRecuperacionFinal','.disabled=true');
+	accion('formulario.txtPorcentajeComision','.disabled=true');
+	accion('formulario.txtBono','.disabled=true');
+
+	deshabilitarHabilitarBoton('botonContenido', 'btnAnadir', 'D');
+	deshabilitarHabilitarBoton('botonContenido', 'Eliminar', 'D');
+}
+
+function cargarLista(){
+	var tramosComisionesCapital = get('formulario.hTramosComisionesCapital');
+	var hDiasTrasFacturacionCapital = get('formulario.hDiasTrasFacturacionCapital');
+
+	pasarDatosLista(tramosComisionesCapital);
+	set("formulario.txtDiasFacturacion", hDiasTrasFacturacionCapital);
+}
+
+function pasarDatosLista(datos){
+	var ar;
+	var ar2;
+
+	if(datos.length > 0){
+		ar = datos.split('|');
+
+		for(var i = 0; i < ar.length; i++){
+			var s = ar[i];
+			ar2 = s.split('#');
+			listado1.insertar(ar2);
+		}
+	}
+}
+
+function btnAnyadirOnClick() {
+	/*	Si se han completado los campos del formulario: 
+	N° Días Comision
+	Porcentaje recuperación
+	Porcentaje Comisión
+
+	Validar que "N° Días Comisión" no sea igual a otro nivel de tramo ya ingresado
+	Si no es igual a otro nivel de tramo, se añade una línea con sus valores a la lista "tramos" 
+	Si es igual, se debe presentar el mensaje de error :
+	UICOM0008	(Número de días para comisión no puede ser igual para dos niveles de tramo) */
+
+	var numDiasRecuperacionn = get('formulario.txtNumDiasRecuperacion');
+	var numDiasComision = get('formulario.txtNumDiasComision');
+	var porcentajeRecuperacionInicial = get('formulario.txtPorcentajeRecuperacionInicial');
+	var porcentajeRecuperacionFinal = get('formulario.txtPorcentajeRecuperacionFinal');
+	var porcentajeComision = get('formulario.txtPorcentajeComision');
+	var bono = get('formulario.txtBono');
+	
+	//1° Validar que se haya ingresado Numero de dias comision, porcentaje recuperacion y comision
+	if(sicc_validaciones_generales('grupoAnadir')){
+
+		//2° Validar que el valor de Numero de dias comision, no sea igual a otro registro ya ingresado
+		/*var datos = listado1.datos;
+		for(var i=0; i<datos.length; i++) {
+			var temp = datos[i][2];
+			if(temp==numDiasComision) {
+				GestionarMensaje('UICOM0008',null,null,null);
+				focoDiasComision();
+				return;
+			}
+		}*/
+		
+		if(porcentajeComision == "" && bono == "") {
+			GestionarMensaje('COM056',null,null,null);
+			focaliza("formulario.txtPorcentajeComision");
+			return false;
+		}
+		
+		if(porcentajeComision=="") porcentajeComision=" ";
+		if(bono=="") bono=" ";
+		
+		var dat = new Array();
+
+		//Obtener el ultimo oid insertado
+		var a = listado1.datos;
+		var oid;
+
+		if(a != null && a.length > 0){
+			var ind = a.length;
+			var ind2 = ind - 1;
+			var arr = a[ind2];
+			oid = eval(arr[0]) + 1;
+		}else{
+			oid = 1;
+		}
+
+		dat[0] = oid; //oid, oculto(secuencial)
+		dat[1] = oid; //Nivel tramo (secuencial)
+		dat[2] = numDiasRecuperacionn;
+		dat[3] = numDiasComision;
+		dat[4] = porcentajeRecuperacionInicial;
+		dat[5] = porcentajeRecuperacionFinal;
+		dat[6] = porcentajeComision;
+		dat[7] = bono;
+
+		listado1.insertar(dat);
+
+		//Se limpian los campos
+		set('formulario.txtNumDiasRecuperacion', '');
+		set('formulario.txtNumDiasComision', '');
+		set('formulario.txtPorcentajeRecuperacionInicial', '');
+		set('formulario.txtPorcentajeRecuperacionFinal', '');
+		set('formulario.txtPorcentajeComision', '');
+		set('formulario.txtBono', '');
+
+		focoDiasRecuperacion();
+	}
+}
+
+function btnEliminarOnClick() {
+	/*	Se eliminan las líneas de "tramos" que halla seleccionado el usuario,
+	renumerando las que hayan quedado de arriba a abajo y numerando desde 1 a n	*/
+
+	if (listado1.numSelecc()== 0) {
+		GestionarMensaje('1021',null,null,null);
+		return;
+    }
+
+	listado1.eliminarSelecc();
+
+	var datos = listado1.datos;
+	var linea;
+	var j;
+
+	if(datos != null && datos.length > 0){
+		for(j = 0; j < datos.length; j++){
+			linea = datos[j];
+			if(linea != null && linea.length > 0){
+				var num = j + 1;
+				linea[0] = num.toString();
+				linea[1] = num.toString();
+			}
+		}
+		listado1.setDatos(datos);
+	}
+}
+
+function btnAceptarOnClick() {
+	var diasFacturacion = get('formulario.txtDiasFacturacion');
+	var o = new Object();
+	var datos = listado1.datos;
+	var datoTemp;
+	var sDatoTemp = '';
+	var i;
+
+	//1° Se valida que se haya ingresado un valor para Dias tras facturacion
+	if(sicc_validaciones_generales('grupoAceptar')){
+
+		//2° Se valida que haya al menos un registro en la lista
+		if(datos=="") {
+			GestionarMensaje('UICOM0009',null,null,null);
+			focoDiasComision();
+			return;
+		}
+
+		for(i = 0; i < datos.length; i++){
+			datoTemp = datos[i];
+			if(i > 0){
+				sDatoTemp += '|';
+			}
+			sDatoTemp += datoTemp.toString();
+		}
+
+		sDatoTemp = sDatoTemp + "?" + diasFacturacion;
+		o.valor = sDatoTemp;
+
+		window.returnValue = o;
+		window.close();
+	}
+}
+
+function onTabBotonAnadir() {
+	focalizaBotonHTML('botonContenido','Eliminar');
+}
+
+function onTabBotonEliminar() {
+	focalizaBotonHTML('botonContenido','btnAceptar');
+}
+
+function onShTabBotonEliminar() {
+	focalizaBotonHTML('botonContenido','btnAnadir');
+}
+
+function fVolver(){
+	window.close();
+}
+
+function fLimpiar(){
+	focoDiasTrasFacturacion();
+	var arrayVacio = new Array();
+	listado1.setDatos(arrayVacio);
+}
+
+function focoDiasTrasFacturacion() {
+	focaliza("formulario.txtDiasFacturacion");
+}
+
+function focoDiasRecuperacion() {
+	focaliza("formulario.txtNumDiasRecuperacion");
+}
+
+function focoDiasComision() {
+	focaliza("formulario.txtNumDiasComision");
+}
+
+function onClickPestanya(valor) {
+	var diasFacturacion = get('formulario.txtDiasFacturacion');
+	var datos = listado1.datos;
+	var datoTemp;
+	var sDatoTemp = '';
+	var i;
+
+	//1° Se valida que se haya ingresado un valor para Dias tras facturacion
+	if(sicc_validaciones_generales('grupoAceptar')){
+
+		//2° Se valida que haya al menos un registro en la lista
+		if(datos=="") {
+			GestionarMensaje('UICOM0009',null,null,null);
+			focoDiasRecuperacion();
+			return;
+		}
+
+		for(i = 0; i < datos.length; i++){
+			datoTemp = datos[i];
+			if(i > 0){
+				sDatoTemp += '|';
+			}
+			sDatoTemp += datoTemp.toString();
+		}
+
+		set('formulario.hTramosComisionesCapital', sDatoTemp);
+		set('formulario.hDiasTrasFacturacionCapital', diasFacturacion);
+	}
+	else { return false; }   
+	
+	if(valor=="DatosGenerales") {
+		set("formulario.idPestanyaDest", "1");
+	}
+	else if(valor=="Productos") {
+		set("formulario.idPestanyaDest", "2");
+	}
+	else if(valor == 'Clientes'){
+		set("formulario.idPestanyaDest", "3");
+	}
+	else if(valor=="DatosCalculo") {
+		set("formulario.idPestanyaDest", "4");
+	}
+	
+	var opcionMenu = get('formulario.opcionMenu');
+	var estadoVentana = get("formulario.estadoVentana");
+
+	set("formulario.conectorAction", "LPMantenimientoComisionesEscalonada");
+ 	set("formulario.titulo", get("formulario.titulo"));
+	set("formulario.oidTipoPlantilla", get("formulario.oidTipoPlantilla"));
+	set("formulario.accion", "almacenar");
+  	set("formulario.opcionMenu", opcionMenu);
+  	set("formulario.estadoVentana", estadoVentana);
+	enviaSICC("formulario");     
+}
+
+function fGuardar(){
+	var diasFacturacion = get('formulario.txtDiasFacturacion');
+	var datos = listado1.datos;
+	var datoTemp;
+	var sDatoTemp = '';
+	var i;
+
+	//1° Se valida que se haya ingresado un valor para Dias tras facturacion
+	if(sicc_validaciones_generales('grupoAceptar')){
+
+		//2° Se valida que haya al menos un registro en la lista
+		if(datos=="") {
+			GestionarMensaje('UICOM0009',null,null,null);
+			focoDiasComision();
+			return;
+		}
+
+		for(i = 0; i < datos.length; i++){
+			datoTemp = datos[i];
+			if(i > 0){
+				sDatoTemp += '|';
+			}
+			sDatoTemp += datoTemp.toString();
+		}
+
+		set('formulario.hTramosComisionesCapital', sDatoTemp);
+		set('formulario.hDiasTrasFacturacionCapital', diasFacturacion);
+	}
+	else { return false; }   
+	
+	var opcionMenu = get('formulario.opcionMenu');
+	var estadoVentana = get("formulario.estadoVentana");
+
+	set("formulario.conectorAction", "LPMantenimientoComisionesEscalonada");
+ 	set("formulario.titulo", get("formulario.titulo"));
+	set("formulario.oidTipoPlantilla", get("formulario.oidTipoPlantilla"));
+	set("formulario.accion", "guardar");
+  	set("formulario.opcionMenu", opcionMenu);
+  	set("formulario.estadoVentana", estadoVentana);
+	enviaSICC("formulario");     
+}
+   
+function poneManito(nombre) {           
+	var nombre = document.getElementById(nombre);
+	nombre.style.cursor = "hand";
+}   
+
+function borrarBono() {
+	set('formulario.txtBono', '');
+}
+
+function borrarComision() {
+	set('formulario.txtPorcentajeComision', '');   
+}
+]]> 
+
+</JAVASCRIPT>
+
+<VALIDACION>
+<ELEMENTO name="txtDiasFacturacion" required="true" group="grupoAceptar" cod="1729" format="e" min="0" max="999"/>
+<ELEMENTO name="txtNumDiasRecuperacion" required="true" group="grupoAnadir" cod="3463" format="e" min="0" max="999"/>
+<ELEMENTO name="txtNumDiasComision" required="true" group="grupoAnadir" cod="1730" format="e" min="0" max="999"/>
+<ELEMENTO name="txtPorcentajeRecuperacionInicial" required="true" group="grupoAnadir" cod="3464" format="n" min="0" max="999.99"/>
+<ELEMENTO name="txtPorcentajeRecuperacionFinal" required="true" group="grupoAnadir" cod="3465" format="n" min="0" max="999.99"/>
+<ELEMENTO name="txtPorcentajeComision" required="false" group="grupoAnadir" cod="3466" format="n" min="0" max="999.99"/>
+<ELEMENTO name="txtPorcentajeBono" required="false" group="grupoAnadir" cod="3467" format="n" min="0" max="999.99"/>
+</VALIDACION>
+
+<FORMULARIO nombre="formulario">
+<VAR nombre="titulo" valor=""/>
+
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="accion" valor=""/>
+<VAR nombre="opcionMenu" valor=""/>
+<VAR nombre="errCodigo" valor=""/> 
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="varPais" valor=""/> 
+<VAR nombre="varIdioma" valor=""/>
+
+<VAR nombre="oidTipoPlantilla" valor=""/>
+<VAR nombre="estadoVentana" valor=""/>
+<VAR nombre="idPestanyaDest" valor=""/>
+
+<!--
+Estos hiddens representan listas de datos (sustituyen a las
+listas ocultas).
+Los datos se almacenan en estas variables con el formato:
+xx,xx,xx,xx|xx,xx,xx,xx|xx,xx,xx,xx|...
+Cada tramo de String entre pipes representa un array.
+-->
+<VAR nombre="hTramosComisionesCapital" valor=""/>
+<VAR nombre="hDiasTrasFacturacionCapital" valor=""/>
+<VAR nombre="tituloFrame" valor=""/>
+
+<table width="100%" height="100%" border="0" align="center" cellpadding="0" cellspacing="0" class="menu4">
+  <tr> 
+    <td width="12" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="12" height="30"/></td>
+    <td nowrap="nowrap" class="menu5texto">&nbsp;</td>
+    <td width="10" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+   <td width="92" nowrap="nowrap" class="menu5texto">   
+   <table width="75" border="1" align="center" cellpadding="1" cellspacing="0" ID="DatosGenerales" 
+   bordercolor="#496A9A" onclick="onClickPestanya('DatosGenerales');" onmouseover="poneManito('DatosGenerales');" >
+        <tr align="center"> 
+          <td nowrap="nowrap"><LABELC nombre="lblDGC"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00543"/></td>
+        </tr>
+   </table>
+    </td>
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto">   
+    <table width="75" border="1" align="center" cellpadding="1" cellspacing="0" ID="Productos" 
+    bordercolor="#496A9A" onclick="onClickPestanya('Productos');" onmouseover="poneManito('Productos');" >
+        <tr align="center"> 
+          <td nowrap="nowrap" ><LABELC nombre="lblProductos"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="0094"/></td>
+        </tr>
+    </table>      
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto">
+    <table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" onclick="onClickPestanya('Clientes');" onmouseover=" poneManito('Clientes');" ID="Clientes">
+        <tr align="center"> 
+          <td nowrap="nowrap" ><LABELC nombre="lblClientes"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="0026"/></td>
+        </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto">
+    <table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" ID="DatosCalculo">
+        <tr align="center"> 
+          <td nowrap="nowrap"  ><LABELC nombre="lblDatosC"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="00544" /></td>
+        </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto">
+    <table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" ID="DatosComisionEscalonada" bgcolor="#496A9A">
+        <tr align="center"> 
+          <td nowrap="nowrap"  ><LABELC nombre="lblDatosEscalonada"  alto="13" filas="1" valor="" id="menu5textonegrita" cod="3462" /></td>
+        </tr>
+      </table>
+   </td>
+    <td width="16" class="menu5texto"><IMG src="b.gif" width="12" height="8"/></td>
+  </tr>
+</table>
+
+<CAPA nombre="capa1">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr> 
+      <td><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif" width="1" height="1"/></td>
+      <td><IMG src="b.gif" width="12" height="12"/></td>
+    </tr>
+
+
+    <tr> 
+      <td width="12"><IMG src="b.gif" width="12" height="12"/></td>
+      <td>
+        <fieldset><legend class="legend"></legend>
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+        
+              <table width="587" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                  <td><IMG src="b.gif" width="8" height="8"/></td>
+                  <td><LABELC nombre="lblDiasFacturacion"  alto="13" filas="1" valor="" id="datosTitle" cod="1729"/></td>
+                  <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                  <td><IMG src="b.gif" width="8" height="8"/></td>
+                  <td nowrap="nowrap">
+                       	<CTEXTO nombre="txtDiasFacturacion" id="datosCampos" max="3" tipo="" onchange="" req="S" size="3" valor="" validacion="" onshtab="onTabBotonEliminar();" />
+                  </td>
+                </tr>  
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+           </td></tr>
+           
+           <tr><td>   
+       	       <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                
+                   <td width="100%">			
+	                <table width="100%" border="0" cellspacing="0" cellpadding="0">
+	                  <tr>
+	                    <td>
+		              <fieldset><legend class="legend"><LABELC nombre="lblDatosAnadir"  alto="13" filas="1" valor="" id="legend" cod="00280"/></legend> 
+		                <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          			<tr><td>
+			                <table width="575" border="0" align="left" cellspacing="0" cellpadding="0">
+			                  <tr> 
+			                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+			                  </tr>
+				          <tr>
+			                    <td><IMG src="b.gif" width="8" height="8"/></td>
+			                    <td><LABELC nombre="lblNumDiasRecuperacion" alto="13" filas="1" valor="" id="datosTitle" cod="3463"/></td>
+			                    <td><IMG src="b.gif" width="8" height="8"/></td>
+			                    <td><LABELC nombre="lblNumDiasComision" alto="13" filas="1" valor="" id="datosTitle" cod="1730"/></td>
+			                    <td><IMG src="b.gif" width="25" height="8"/></td>
+			                    <td><LABELC nombre="lblPorcentajeRecuperacionInicial"  alto="13" filas="1" valor="" id="datosTitle" cod="3464"/></td>
+			                    <td><IMG src="b.gif" width="25" height="8"/></td>
+			                    <td><LABELC nombre="lblPorcentajeRecuperacionFinal"  alto="13" filas="1" valor="" id="datosTitle" cod="3465"/></td>
+								<td><IMG src="b.gif" width="25" height="8"/></td>
+			                    <td><LABELC nombre="lblPorcentajeComision"  alto="13" filas="1" valor="" id="datosTitle" cod="3466"/></td>
+								<td><IMG src="b.gif" width="25" height="8"/></td>
+			                    <td><LABELC nombre="lblPorcentajeBono"  alto="13" filas="1" valor="" id="datosTitle" cod="3467"/></td>
+			                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+			                  </tr>
+			                  <tr>
+			                    <td><IMG src="b.gif" width="8" height="8"/></td>
+			                    <td nowrap="nowrap">
+			                       	<CTEXTO nombre="txtNumDiasRecuperacion" id="datosCampos" max="3" tipo="" onchange="" req="S" size="3" valor="" validacion="" />
+			                  </td>
+			                    <td><IMG src="b.gif" width="8" height="8"/></td>
+			                    <td nowrap="nowrap">
+			                       	<CTEXTO nombre="txtNumDiasComision" id="datosCampos" max="3" tipo="" onchange="" req="S" size="3" valor="" validacion="" />
+			                  </td>
+			                    <td><IMG src="b.gif" width="25" height="8"/></td>
+			                    <td nowrap="nowrap">
+				                       	<CTEXTO nombre="txtPorcentajeRecuperacionInicial" id="datosCampos" max="6" tipo="" onchange="" req="S" size="6" valor="" validacion="" />
+				            </td>
+				            <td><IMG src="b.gif" width="25" height="8"/></td>
+			                    <td nowrap="nowrap">
+				                       	<CTEXTO nombre="txtPorcentajeRecuperacionFinal" id="datosCampos" max="6" tipo="" onchange="" req="S" size="6" valor="" validacion="" />
+				            </td>
+							 <td><IMG src="b.gif" width="25" height="8"/></td>
+			                    <td nowrap="nowrap">
+				                       	<CTEXTO nombre="txtPorcentajeComision" id="datosCampos" max="10" tipo="" onchange="borrarBono();" req="N" size="10" valor="" validacion="" />
+				                       	
+				            </td>
+							 <td><IMG src="b.gif" width="25" height="8"/></td>
+			                    <td nowrap="nowrap">
+				                       	<CTEXTO nombre="txtBono" id="datosCampos" max="10" tipo="" onchange="borrarComision();" req="N" size="10" valor="" validacion="" />
+				                       	
+				            </td>
+			                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+			                  </tr>
+			                  <tr> 
+			                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+			                  </tr>
+			                </table>
+			             </td></tr>
+           			     
+          			 </table>
+		              </fieldset>
+		            </td>
+	                  </tr>  
+	                </table>                    
+                   </td>			
+                   <td><IMG src="b.gif" width="8" height="8"/></td>		
+                </tr>
+                <tr> 
+		      <td><IMG src="b.gif"/></td>
+		      <td>
+		        <fieldset>
+			  <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+			    <tr>
+			      <td class="botonera" width="100%">
+				<BOTON nombre="btnAnadir" ID="botonContenido" tipo="html" accion="btnAnyadirOnClick();" estado="false" cod="404" ontab="onTabBotonAnadir();"/>
+			      </td>
+			    </tr>    
+			  </table>        
+			</fieldset>
+		      </td>
+		      <td><IMG src="b.gif" width="12" height="12"/></td>
+		      
+	    	</tr> 
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="339"/></td>
+                </tr>                                                
+              </table>  
+            </td></tr>
+           </table>
+        </fieldset>
+      </td>
+      
+      <td><IMG src="b.gif" width="12" height="12"/></td>
+    </tr>
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750" ><IMG src="b.gif"/></td>
+      <td width="12" ><IMG src="b.gif" width="12" height="12"/></td>
+    </tr>
+  </table>
+</CAPA>  
+
+<LISTAEDITABLE nombre="listado1" ancho="600" alto="300" x="24" y="226" colorFondo="#CECFCE" msgDebugJS="S">
+<IMGBOTONES precarga="S" conROver="S">
+	<BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+	<BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+    <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+</IMGBOTONES>
+<LINEAS>
+	<GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="0" horizTitulo="1" horizBase="1"/> 
+    <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+</LINEAS>
+<TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00346" ID="datosTitle" />
+<BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+
+<COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+	<COL ancho="20" minimizable="S" minimizada="N"/>
+    <COL ancho="30" minimizable="S" minimizada="N" /> 
+    <COL ancho="60" minimizable="S" minimizada="N" /> 
+    <COL ancho="50" minimizable="S" minimizada="N" /> 
+	<COL ancho="50" minimizable="S" minimizada="N" /> 
+	<COL ancho="50" minimizable="S" minimizada="N" />
+	<COL ancho="50" minimizable="S" minimizada="N" />	
+</COLUMNAS>
+<CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+	<COL colFondo="" ID="EstCab" align="center" cod="357"></COL> 
+	<COL colFondo="" ID="EstCab" cod="3463"></COL> 
+	<COL colFondo="" ID="EstCab" cod="1730"></COL> 
+	<COL colFondo="" ID="EstCab" cod="3464"></COL> 
+	<COL colFondo="" ID="EstCab" cod="3465"></COL> 
+	<COL colFondo="" ID="EstCab" cod="3466"></COL>
+	<COL colFondo="" ID="EstCab" cod="3467"></COL>	
+</CABECERA>
+<DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+	coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+    onLoad="" colorSelecc="#D0D9E8">
+	<COL tipo="texto" ID="EstDat"/> 
+	<COL tipo="texto" ID="EstDat2"/>
+	<COL tipo="texto" ID="EstDat"/> 
+	<COL tipo="texto" ID="EstDat2"/>
+	<COL tipo="texto" ID="EstDat"/> 
+	<COL tipo="texto" ID="EstDat2"/>
+	<COL tipo="texto" ID="EstDat"/>	
+</DATOS>
+<ROWSET> 
+</ROWSET>
+<PAGINADO nombre="mipgndo" ancho="600" sep="$" x="12" class="botonera" y="503" control="|" conector="" rowset="" cargainicial="N">       
+	<BOTON nombre="ret1" x="37" y="507" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+    <BOTON nombre="ava1" x="52" y="507" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>      
+</PAGINADO>
+</LISTAEDITABLE>
+	<BOTON nombre="primera1" x="20" y="507" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();" />      
+	<BOTON nombre="separa" x="59" y="503" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />      
+	<BOTON nombre="Eliminar" x="24" y="504" ID="botonContenido" img="separa_base" tipo="html" estado="false" cod="1254" accion="btnEliminarOnClick();" ontab="onTabBotonEliminar();" onshtab="onShTabBotonEliminar();"/>                                                                                     
+</FORMULARIO>
+</PAGINA>         

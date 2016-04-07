@@ -1,0 +1,634 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_patron_crear.xml,v 1.1 2009/12/03 18:46:20 pecbazalar Exp $
+   contenido MSG
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_patron_crear" cod="0248" titulo="Crear patrón"  estilos="estilosB3.css" colorf="#F0F0F0" 
+	msgle="Crear patrón" onload="onload();" xml:lang="es">
+<!-- Barra Modificar patrón cod="0275"-->
+
+<VALIDACION>
+    <ELEMENTO name="txtCodPatron" required="true" cod="823" />
+    <ELEMENTO name="txtDescripcion" required="true" cod="9" />
+    <ELEMENTO name="cmbFormulario" required="true" cod="2285" />
+    <ELEMENTO name="comboMedioEnvio" required="true" cod="913" />
+</VALIDACION>
+
+<JAVASCRIPT>
+<![CDATA[ 
+
+var oidPatron;
+var oidPatronOrigen;
+var oidPeriodo;
+var oidPatronPeriodo;
+var copiarPatron;
+var codigoCopiarPatron;
+var casoDeUso;
+var varNoLimpiarSICC = true;
+
+function onload(){
+	configurarMenuSecundario('frmFormulario');
+	//fMostrarMensajeError();
+	oidPatron = get('frmFormulario.hOidPatron');
+	oidPatronOrigen = get('frmFormulario.hOidPatronOrigen');
+	oidPeriodo = get('frmFormulario.hOidPeriodo');
+	oidPatronPeriodo = get('frmFormulario.hOidPatronPeriodo');
+	copiarPatron = get('frmFormulario.hCopiarPatron');
+	codigoCopiarPatron = get('frmFormulario.hCodigoCopiarPatron');
+	cargarDatosIniciales();
+	recargaComboSecciones();
+	fMostrarMensajeError();
+}
+
+
+function cargarDatosIniciales(){
+
+	set('frmFormulario.txtCodPatron',get('frmFormulario.hCodigoPatron'));
+	set('frmFormulario.txtDescripcion',get('frmFormulario.hDescripcionPatron'));
+
+	var iSeleccionado = new Array(); 
+	iSeleccionado[0] = get('frmFormulario.hOidFormulario');
+	set('frmFormulario.cmbFormulario',iSeleccionado);
+	
+	var iSeleccionado = new Array(); 
+	iSeleccionado[0] = get('frmFormulario.hOidMedioEnvio'); 
+	set('frmFormulario.comboMedioEnvio',iSeleccionado);
+
+	if (get('frmFormulario.hPatronPeriodo') == 'true')
+		set('frmFormulario.chIndicadorPatronPeriodo', 'S');
+	else deshabilitarHabilitarBoton('botonContenido','btnDefinirPeriodo','D');
+
+	if (get('frmFormulario.hActivo') == 'true')
+		set('frmFormulario.rbActivo', 'S');
+	else if (get('frmFormulario.hActivo') == 'false')
+		set('frmFormulario.rbActivo', 'N');
+
+
+	if (get('frmFormulario.hCodigoPatronHabilitado') == 'false'){
+		accion( 'frmFormulario.txtCodPatron', '.disabled=true' );
+		focaliza('frmFormulario.txtDescripcion','');
+	}else{
+		focaliza('frmFormulario.txtCodPatron','');
+	}
+
+	if (get('frmFormulario.hMedioEnvioHabilitado') == 'false')
+		accion( 'frmFormulario.comboMedioEnvio', '.disabled=true' );		
+	
+	if (get('frmFormulario.hCopiarPatronHabilitado') == 'false')
+		deshabilitarHabilitarBoton('botonContenido','btnCopiarPatron','D');
+
+	if (get('frmFormulario.hVerPatronHabilitado') == 'false')
+		deshabilitarHabilitarBoton('botonContenido','btnVerPatron','D');
+
+	if (get('frmFormulario.hAnadirSeccionHabilitado') == 'false')
+		deshabilitarHabilitarBoton('botonContenido','btnSeccion','D');
+
+	if (get('frmFormulario.hModificarSeccionHabilitado') == 'false')
+		deshabilitarHabilitarBoton('botonContenido','btnModificarSeccion','D');
+
+	if (get('frmFormulario.hEliminarSeccionHabilitado') == 'false')
+		deshabilitarHabilitarBoton('botonContenido','btnEliminarSeccion','D');
+}
+
+
+
+function fLimpiar(){
+	if (get('frmFormulario.opcionMenu') == 'Modificar patron')  {
+		cargarDatosIniciales();
+	} else {
+		var arrCheck = document.all["rbActivo"];
+		for(var i=0; i< arrCheck.length; i++){
+			if(arrCheck[i].type && arrCheck[i].type.toUpperCase() == "RADIO"){
+				document.all["rbActivo"][i].checked = false;
+			}
+		}
+		var arrayCmb = new Array();
+		arrayCmb[arrayCmb.length] =  '';
+		set('frmFormulario.chIndicadorPatronPeriodo', 'N');
+		set('frmFormulario.txtDescripcion','');
+		set('frmFormulario.cmbFormulario',arrayCmb);
+		set('frmFormulario.comboMedioEnvio',arrayCmb);
+		set('frmFormulario.txtCodPatron', '');
+		accion( 'frmFormulario.txtCodPatron', '.disabled=false' );		
+		set('frmFormulario.hCodigoPatronHabilitado','true');
+		set_combo('frmFormulario.comboSeccion', new Array(new Array("","")));
+		limpiarHidden();
+		oidPatron = '';
+		oidPatronOrigen = '';
+		oidPeriodo = '';
+		oidPatronPeriodo = '';
+		copiarPatron = '';
+		codigoCopiarPatron = '';
+		deshabilitarHabilitarBoton('botonContenido','btnCopiarPatron','A');
+		deshabilitarHabilitarBoton('botonContenido','btnVerPatron','D');
+		deshabilitarHabilitarBoton('botonContenido','btnSeccion','A');
+		deshabilitarHabilitarBoton('botonContenido','btnModificarSeccion','D');
+		deshabilitarHabilitarBoton('botonContenido','btnEliminarSeccion','D');
+		focaliza('frmFormulario.txtCodPatron','');
+	}
+}
+
+function accionDefinirPeriodo(){
+	var estado = get('frmFormulario.chIndicadorPatronPeriodo');
+
+	if (estado == 'S')  {
+		var oid;
+		var obj = new Object();
+		obj.hCodigoPatron = get('frmFormulario.txtCodPatron') + ' ' + get('frmFormulario.txtDescripcion');
+		obj.esCopiar = get('frmFormulario.esCopiar');
+		obj.oidPatronOrigen = get('frmFormulario.hOidPatronOrigen');
+		var whnd = mostrarModalSICC('LPMantenimientoPatrones','Cargar pagina PGAsignarPeriodo',obj, '795', '210');
+		if (whnd != null)  {
+			oidPeriodo =  whnd[0];
+			oidPatronOrigen = whnd[1];
+			set('frmFormulario.hOidPeriodo', oidPeriodo);
+			set('frmFormulario.hOidPatronOrigen', oidPatronOrigen);				
+			set('frmFormulario.chIndicadorPatronPeriodo', 'S');
+		} else {
+			set('frmFormulario.chIndicadorPatronPeriodo', 'N');
+			deshabilitarHabilitarBoton('botonContenido','btnDefinirPeriodo','D');
+		}		
+	}
+}
+
+function accionAnadirSeccion(){
+	if(get('frmFormulario.chIndicadorPatronPeriodo')=='S'&& get('frmFormulario.hOidPeriodo')=='')
+			return GestionarMensaje("MSG014");
+
+	var correcto = comprobarDatosCabecera();
+	var elementos = document.getElementById('comboSeccion');
+	casoDeUso = 'Crear Seccion';
+
+	if (correcto == 'true')  {
+		var numeroSecciones = elementos.length - 1;
+		var numeroSeccion = numeroSecciones + 1;
+		var seccion = null;
+		mostrarDatosSeccion(seccion, numeroSeccion, numeroSecciones) 
+	}//else GestionarMensaje("MSG-0001");
+}
+
+function comprobarDatosCabecera(){
+	if (sicc_validaciones_generales())  {
+		var codigoPatron = get('frmFormulario.txtCodPatron');
+		if (codigoPatron == codigoCopiarPatron)
+			GestionarMensaje('1425');
+		return 'true';
+	} else {
+		return 'false';
+	}
+}
+
+function accionModificarSeccion(){
+	if(get('frmFormulario.chIndicadorPatronPeriodo')=='S'&& get('frmFormulario.hOidPatron')=='')
+			return GestionarMensaje("MSG014");
+
+	var seccion = get('frmFormulario.comboSeccion');
+	var correcto = comprobarDatosCabecera();
+	casoDeUso = 'Modificar Seccion';
+
+	if (correcto == "true")  {
+		if (seccion != '')  {
+			var elementoSecciones = document.getElementById('comboSeccion');
+			var numeroSecciones = elementoSecciones.length - 1;
+			var numeroSeccion = elementoSecciones.selectedIndex;
+			mostrarDatosSeccion(seccion, numeroSeccion, numeroSecciones) 			
+		}			
+	}//else GestionarMensaje("MSG-0001");
+}
+
+function mostrarDatosSeccion (oidSeccion, numeroSeccion, numeroSecciones){
+
+	var obj = new Object();
+	obj.casoDeUso = casoDeUso;
+	obj.oidPatron = oidPatron;
+	obj.oidSeccion = oidSeccion;
+	obj.oidPeriodo = oidPeriodo;
+	obj.oidPatronOrigen = oidPatronOrigen;
+	obj.oidPatronPeriodo = oidPatronPeriodo;
+	obj.numeroSeccion = numeroSeccion;
+	obj.numeroSecciones = numeroSecciones;
+	obj.codigoPatron = get('frmFormulario.txtCodPatron');
+	obj.descripcionPatron = get('frmFormulario.txtDescripcion');
+	obj.oidMedioEnvio = get('frmFormulario.comboMedioEnvio');
+	obj.oidFormulario = get('frmFormulario.cmbFormulario');
+	obj.activo = get('frmFormulario.rbActivo');
+	obj.patronPeriodo = get('frmFormulario.chIndicadorPatronPeriodo');
+	var whnd = mostrarModalSICC('LPDatosSeccion','', obj);
+
+	if (whnd != null){
+		oidPatron = whnd[0];
+		oidPatronPeriodo = whnd[1];
+		if (oidPatronPeriodo == null){
+				oidPatronPeriodo = '';
+		}
+
+		
+		set('frmFormulario.hOidPatron', oidPatron);
+		set('frmFormulario.hOidPatronPeriodo', oidPatronPeriodo);
+	}
+	recargaComboSecciones();
+	configurarPagina();
+}
+
+function recargaComboSecciones(){
+
+	if (oidPatron != '')  {
+		var arr = new Array();
+		arr[arr.length] = new Array("oid", oidPatron);
+		recargaCombo('frmFormulario.comboSeccion','MSGSGObtenerSecciones',
+					'es.indra.sicc.util.DTOOID',arr, 'configurarSeccion(datos)');
+	}	
+}
+
+
+function configurarSeccion(datos){
+	var  arr = new Array();
+
+	arr[arr.length] = new Array([''],['']);
+	for (var i=0 ;i< datos.length ; i++)  {
+		arr[arr.length] = datos[i];
+	}
+	set_combo('frmFormulario.comboSeccion', arr);
+	configurarPagina();
+}
+
+function accionEliminarSeccion(){
+	var oidSeccion = get('frmFormulario.comboSeccion');
+	if (oidSeccion != '')  {
+		setearHidden();
+		set('frmFormulario.hOidSeccion', oidSeccion);
+		set('frmFormulario.accion', 'Eliminar seccion');
+		enviaSICC('frmFormulario','','','N');
+	}
+}
+
+function fGuardar(){
+	if(get('frmFormulario.chIndicadorPatronPeriodo')=='S'&& get('frmFormulario.hOidPeriodo')=='')
+			return GestionarMensaje("MSG014");
+	accionGuardar();
+}
+
+function accionGuardar(){
+	var cantSecciones = document.getElementById('comboSeccion').length - 1;
+
+	if ((oidPatron != '') && (cantSecciones > 0)) {
+		setearHidden();
+		set('frmFormulario.accion', 'Guardar patron');
+		eval('frmFormulario').oculto = 'S';
+		enviaSICC('frmFormulario');
+	}else{
+		GestionarMensaje('1422');
+	}	
+}
+
+function setearHidden(){
+	set('frmFormulario.hDescripcionPatron', get('frmFormulario.txtDescripcion'));
+	set('frmFormulario.hCodigoPatron', get('frmFormulario.txtCodPatron'));
+	set('frmFormulario.hOidFormulario', get('frmFormulario.cmbFormulario'));
+	set('frmFormulario.hActivo', get('frmFormulario.rbActivo'));
+	set('frmFormulario.hOidMedioEnvio', get('frmFormulario.comboMedioEnvio'));
+	set('frmFormulario.hPatronPeriodo', get('frmFormulario.chIndicadorPatronPeriodo'));
+}
+
+function guardarOK(){
+	eval('frmFormulario').oculto = 'N';
+	accion( 'frmFormulario.txtCodPatron', '.disabled=false' );
+	set('frmFormulario.hCodigoPatronHabilitado','true');
+	set_combo('frmFormulario.comboSeccion', new Array(new Array("","")));
+	limpiarHidden();
+	oidPatron = '';
+	oidPatronOrigen = '';
+	oidPeriodo = '';
+	oidPatronPeriodo = '';
+	copiarPatron = '';
+	codigoCopiarPatron = '';
+	deshabilitarHabilitarBoton('botonContenido','btnCopiarPatron','A');
+	deshabilitarHabilitarBoton('botonContenido','btnVerPatron','D');
+	deshabilitarHabilitarBoton('botonContenido','btnSeccion','A');
+	deshabilitarHabilitarBoton('botonContenido','btnModificarSeccion','D');
+	deshabilitarHabilitarBoton('botonContenido','btnEliminarSeccion','D');
+	fLimpiar();
+}
+
+function limpiarHidden(){
+
+	set('frmFormulario.hOidPatron','');
+	set('frmFormulario.hOidPeriodo','');
+	set('frmFormulario.hOidPatronOrigen','');
+	set('frmFormulario.hOidPatronPeriodo','');
+	set('frmFormulario.hCodigoPatron','');
+	set('frmFormulario.hDescripcionPatron','');
+	set('frmFormulario.hOidFormulario','');
+	set('frmFormulario.hOidMedioEnvio','');
+	set('frmFormulario.hActivo','');
+	set('frmFormulario.hPatronPeriodo','');
+	set('frmFormulario.hCodigoCopiarPatron','');
+	set('frmFormulario.hCopiarPatron','');
+	set('frmFormulario.hOidSeccion','');
+}
+
+function guardarKO(){
+}
+
+function configurarPagina(){
+	var cantSecciones = document.getElementById('comboSeccion').length - 1;
+	if (cantSecciones > 0)  {
+		deshabilitarHabilitarBoton('botonContenido','btnModificarSeccion','A');
+		deshabilitarHabilitarBoton('botonContenido','btnVerPatron','A');
+		deshabilitarHabilitarBoton('botonContenido','btnEliminarSeccion','A');
+	} else {
+		deshabilitarHabilitarBoton('botonContenido','btnModificarSeccion','D');
+		deshabilitarHabilitarBoton('botonContenido','btnVerPatron','D');
+		deshabilitarHabilitarBoton('botonContenido','btnEliminarSeccion','D');
+	}
+
+	if (oidPatron != '')
+		accion( 'frmFormulario.txtCodPatron', '.disabled=true' );
+		set('frmFormulario.hCodigoPatronHabilitado','false');
+}
+
+function accionCopiarPatron(){
+	tomarValoresActuales();
+	set('frmFormulario.accion', 'Mostrar lista patrones');
+	enviaSICC('frmFormulario','','','N');
+}
+
+function tomarValoresActuales(){
+	var arr = new Array();
+	if(get('frmFormulario.txtCodPatron')!="")
+		arr[0] = ['codPatron',get('frmFormulario.txtCodPatron')];
+   else arr[0] = ['codPatron',"NAN"];
+	if(get('frmFormulario.txtDescripcion')!="")
+		arr[1] = ['descripcion',get('frmFormulario.txtDescripcion')];
+   else  arr[1] = ['descripcion',"NAN"];
+	if(get('frmFormulario.cmbFormulario')!="")
+		arr[2] = ['formulario',get('frmFormulario.cmbFormulario')];
+   else arr[2] = ['formulario',"NAN"];
+	if(get('frmFormulario.comboMedioEnvio')!="")
+		arr[3] = ['medioEnvio',get('frmFormulario.comboMedioEnvio')];
+   else arr[3] = ['medioEnvio',"NAN"];
+	if(get('frmFormulario.rbActivo')!="")
+		arr[4] = ['activo',get('frmFormulario.rbActivo')];
+   else arr[4] = ['activo',"NAN"];
+	arr[5] = ['periodo',get('frmFormulario.chIndicadorPatronPeriodo')];
+	set('frmFormulario.valores',arr);
+}
+
+function fVolver(){
+	window.close();
+}
+
+function accionVerPatron(){
+	var correcto = comprobarDatosCabecera() ;
+	
+	if (correcto == 'true')  {
+		var cantSecciones = document.getElementById('comboSeccion').length - 1;
+		if (cantSecciones > 0)  {
+			var obj = new Object();
+			obj.hOidPatron = get('frmFormulario.hOidPatron');
+			var whnd = mostrarModalSICC('LPMantenimientoPatrones','Mostrar detalle patron',obj);
+		} else {
+			GestionarMensaje('1424');
+		}
+
+	}	
+}
+
+function onshtab_CodPatron(){
+	var cantSecciones = document.getElementById('comboSeccion').length - 1;
+	if (cantSecciones > 0)  {
+		focalizaBotonHTML('botonContenido', 'btnEliminarSeccion');
+	} else {
+		focaliza('frmFormulario.comboSeccion');
+	}
+}
+
+function onshtab_Descripcion(){
+	if (oidPatron != '') {
+		var cantSecciones = document.getElementById('comboSeccion').length - 1;
+		if (cantSecciones > 0)  {
+			focalizaBotonHTML('botonContenido', 'btnEliminarSeccion');
+		} else {
+			focaliza('frmFormulario.comboSeccion');
+		}
+	} else {
+		focaliza('frmFormulario.txtCodPatron');
+	}
+}
+
+function ontab_Secciones(){
+	var cantSecciones = document.getElementById('comboSeccion').length - 1;
+	if (cantSecciones > 0)  {
+		focalizaBotonHTML('botonContenido', 'btnModificarSeccion');
+	} else {
+		focaliza('frmFormulario.txtCodPatron');
+	}
+
+}
+
+function ontab_Eliminar(){
+	if (oidPatron != '') {
+		focaliza('frmFormulario.txtDescripcion');
+	} else {
+		focaliza('frmFormulario.txtCodPatron');
+	}
+}
+
+function verificarPeriodo(){
+	if(get('frmFormulario.chIndicadorPatronPeriodo')=='S')
+		deshabilitarHabilitarBoton('botonContenido','btnDefinirPeriodo','A');
+	else 	if(get('frmFormulario.chIndicadorPatronPeriodo')=='N')
+					deshabilitarHabilitarBoton('botonContenido','btnDefinirPeriodo','D');
+}
+
+]]> 
+</JAVASCRIPT>
+
+<JS src="sicc_util.js" />
+<JS src="PaginacionSicc.js"/>
+<JS src="DruidaTransactionMare.js"/>    
+
+<FORMULARIO nombre="frmFormulario">
+
+<VAR nombre="accion" valor=""/>
+<VAR nombre="casoDeUso" valor=""/>
+<VAR nombre="opcionMenu" valor=""/>
+<VAR nombre="conectorAction" valor="LPMantenimientoPatrones"/>
+<VAR nombre="errCodigo" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="hPais" valor=""/>
+<VAR nombre="hIdioma" valor=""/>
+
+<VAR nombre="hCopiarPatronHabilitado" valor=""/>
+<VAR nombre="hVerPatronHabilitado" valor=""/>
+<VAR nombre="hAnadirSeccionHabilitado" valor=""/>
+<VAR nombre="hModificarSeccionHabilitado" valor=""/>
+<VAR nombre="hEliminarSeccionHabilitado" valor=""/>
+<VAR nombre="hOidPatron" valor=""/>
+<VAR nombre="hOidPeriodo" valor=""/>
+<VAR nombre="hOidPatronOrigen" valor=""/>
+<VAR nombre="hOidPatronPeriodo" valor=""/>
+<VAR nombre="hCodigoPatron" valor=""/>
+<VAR nombre="hDescripcionPatron" valor=""/>
+<VAR nombre="hOidFormulario" valor=""/>
+<VAR nombre="hOidMedioEnvio" valor=""/>
+<VAR nombre="hActivo" valor=""/>
+<VAR nombre="hPatronPeriodo" valor=""/>
+<VAR nombre="hCodigoCopiarPatron" valor=""/>
+<VAR nombre="hCopiarPatron" valor=""/>
+<VAR nombre="hOidSeccion" valor=""/>
+
+<VAR nombre="hCodigoPatronHabilitado" valor=""/>
+<VAR nombre="hMedioEnvioHabilitado" valor=""/>
+
+<VAR nombre="valores" valor=""/>
+
+<VAR nombre="esCopiar" valor=""/>
+
+<CAPA nombre="capaPrototipo">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr > 
+      <td><IMG src="b.gif"/></td>
+      <td >
+      
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="Alta"  alto="13" filas="1" valor="" id="legend" cod="00127"/></legend>
+	
+          <!---primera fila-->
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+             <table width="636" border="0" align="left" cellspacing="0" cellpadding="0">
+	                  <tr> 
+		            <td colspan="8"><IMG src="b.gif" width="8" height="8"/></td>
+		          </tr>
+		          <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td><LABELC nombre="lblCodigoPatron"  alto="13" filas="1" valor="" id="datosTitle" cod="823"/></td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td><LABELC nombre="lblDesc"  alto="13" filas="1" valor="" id="datosTitle" cod="9"/></td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td><LABELC nombre="lblFormulario"  alto="13" filas="1" valor="" id="datosTitle" cod="2285"/></td>
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td nowrap="nowrap"><CTEXTO nombre="txtCodPatron" id="datosCampos" max="4" tipo="" onchange="" req="S" size="4" valor="" validacion="" onshtab="onshtab_CodPatron();"/></td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td nowrap="nowrap"><CTEXTO nombre="txtDescripcion" id="datosCampos" max="40" tipo="" onchange="" req="S" size="40" valor="" validacion="" onshtab="onshtab_Descripcion();"/></td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td nowrap="nowrap"><COMBO nombre="cmbFormulario" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="">
+			               <ROWSET>
+			                      	
+			               </ROWSET>
+			         </COMBO>
+			        
+			    </td>
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr> 
+	                    <td colspan="9"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	            </table>
+	     </td></tr>
+       <!---fin primera fila-->
+      	    <tr><td>
+            	 <table width="636" border="0" align="left" cellspacing="0" cellpadding="0">
+	                 
+		          <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td><LABELC nombre="lblMedioEnvio"  alto="13" filas="1" valor="" id="datosTitle" cod="913"/></td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td><LABELC nombre="lblActivo"  alto="13" filas="1" valor="" id="datosTitle" cod="795"/></td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td><LABELC nombre="lblIndicadorPatronPeriodo"  alto="13" filas="1" valor="" id="datosTitle" cod="965"/></td>
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td nowrap="nowrap" ><COMBO nombre="comboMedioEnvio" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="">
+			               <ROWSET>			                      	
+			               </ROWSET>
+			         </COMBO>
+			        
+			    </td>
+			    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td valign="bottom"> <table width="100%" border="0" cellspacing="0" cellpadding="0">
+		              		<tr>
+		               		 <td class="datosCampos">
+	        	        	  <RADIOB nombre="rbActivo" tipo="H" id="datosCampos">
+			   		   <RBINPUT valor="S" check="N" onfocus="" id="datosCampos" cod="117">yy</RBINPUT>
+					    <RBINPUT valor="N" check="N" onfocus="" id="datosCampos" cod="87">nn</RBINPUT>
+			        	  </RADIOB>
+			       		</td>
+			     		 </tr>
+			   	 </table>
+			   </td>
+			   <td><IMG src="b.gif" width="25" height="8"/></td>
+	                   <td valign="bottom"><CHECKBOX nombre="chIndicadorPatronPeriodo" id="datosCampos"  onclick="verificarPeriodo();" check="N"/></td>
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr> 
+	                    <td colspan="9"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	            </table>
+	     </td></tr>
+	       
+          </table>
+        </fieldset>
+          
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td >
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0" >        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnCopiarPatron" ID="botonContenido" tipo="html" accion="accionCopiarPatron();" estado="false"  cod="834"/>
+		  <BOTON nombre="btnVerPatron" ID="botonContenido" tipo="html" accion="accionVerPatron();" estado="false"  cod="2273"/>
+            	  <BOTON nombre="btnSeccion" ID="botonContenido" tipo="html" accion="accionAnadirSeccion();" estado="false"  cod="798" />
+            	  <IMG src="b.gif" width="8" height="8"/>
+            	  <COMBO nombre="comboSeccion" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" ontab="ontab_Secciones();">
+			               <ROWSET>
+			                      	
+			               </ROWSET>
+		   </COMBO>
+            	  <BOTON nombre="btnModificarSeccion" ID="botonContenido" tipo="html" accion="accionModificarSeccion();" estado="false"  cod="2274"/>
+            	  <BOTON nombre="btnEliminarSeccion" ID="botonContenido" tipo="html" accion="accionEliminarSeccion();" estado="false"  cod="2275" ontab="ontab_Eliminar();" />
+            	   <BOTON nombre="btnDefinirPeriodo" ID="botonContenido" tipo="html" accion="accionDefinirPeriodo();" estado="false"  cod="2852" />
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif"/></td>
+      </tr> 
+       <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+
+
+  
+</FORMULARIO>
+
+
+</PAGINA>
+

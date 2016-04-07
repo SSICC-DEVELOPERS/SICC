@@ -1,0 +1,1458 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+
+<!--
+   INDRA/CDOS/SICC
+   $Id: contenido_busqueda_materiales.xml,v 1.1 2009/12/03 18:44:18 pecbazalar Exp $
+   DESC
+
+   DRUIDATARGET=/../../config/scripts/iniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_consultar_modificar_materiales" 
+			   titulo="Modificar Materiales" 
+			   estilos="estilos.css" 
+			   colorf="#F0F0F0"
+			   msgle="Modificar Materiales"
+			   onload=""
+			   xml:lang="es">
+
+<JS src="sicc_util.js"></JS>
+
+<ESTILO> 
+    #estMiCombo30F { width:355px} 
+    #estMiCombo40F { width:465px} 
+</ESTILO>
+
+<JAVASCRIPT>
+  <![CDATA[
+
+	var pantalla = '';
+
+	function setComboDefault(hid, cb){
+		 iSeleccionado = new Array(); 
+		 iSeleccionado[0] = get(hid);
+		 set(cb,iSeleccionado);
+	}
+
+	// Se llama para limpiar los campos desde la pantalla en el modo modifcar
+	function CleanModificar() {
+		//Hay que setear los valores anteriores
+		set('frmMateriales.rdbLote',get('frmMateriales.hidLote'));
+		setComboDefault('frmMateriales.hidUdDeMedidaDimensiones', 'frmMateriales.cbUdDeMedidaDimensiones');
+		setComboDefault('frmMateriales.hidUdMedidaPeso', 'frmMateriales.cbUnidadMedidaPeso');		
+		set('frmMateriales.txtUdDentroPedido',get('frmMateriales.hidUdDentroPedido'));		
+		set('frmMateriales.txtUnidadesPorCaja',get('frmMateriales.hidUdCaja'));		
+		setComboDefault('frmMateriales.hidUdMedidaVenta', 'frmMateriales.cbUnidadMedidaVenta');		
+		set('frmMateriales.txtCosteEstandar',get('frmMateriales.hidCosteEstandar'));		
+		set('frmMateriales.txtPrecioPosicionamiento',get('frmMateriales.hidPrecioPosicionamiento'));
+		set('frmMateriales.rdbSituacion',get('frmMateriales.hidSituacion'));				
+		set('frmMateriales.rdbIndicadorDentroDeCaja',get('frmMateriales.hidIndicadorDentroDeCaja'));
+		set('frmMateriales.txtCodigoPagoFraccionado',get('frmMateriales.hidCodPagoFraccionado'));		
+		set('frmMateriales.txtCodigoImpuesto',get('frmMateriales.hidCodImpuesto'));
+		setTimeout('focaliza(\'frmMateriales.rdbLote\',\'\',0)', 100);
+	}
+	
+	function Clean() {
+		iSeleccionado = new Array ();
+		iSeleccionado[0] = "0";
+		//Se limpian los campos de texto
+		set('frmMateriales.txtCodigoSAP','');
+		set('frmMateriales.txtCodigoAntiguo','');
+		set('frmMateriales.txtDescripcionSAP','');
+		set('frmMateriales.txtDescripcionCorta','');
+		set('frmMateriales.rdbLote','');
+		set('frmMateriales.rdbTipo','');
+		set('frmMateriales.cbMarca','');
+		set('frmMateriales.cbUnidadDeNegocio','');
+		set('frmMateriales.cbNegocio','');
+		set('frmMateriales.cbGenerico','');
+		set('frmMateriales.cbSupergenerico','');
+		set('frmMateriales.txtJerarquia1','');
+		set('frmMateriales.txtJerarquia2','');
+		set('frmMateriales.txtJerarquia3','');
+		set('frmMateriales.cbLinea','');
+		set('frmMateriales.txtAtributo1','');
+		set('frmMateriales.txtAtributo2','');
+		set('frmMateriales.txtAtributo3','');
+		set('frmMateriales.txtAlto','');
+		set('frmMateriales.txtLargo','');
+		set('frmMateriales.txtAncho','');
+		set('frmMateriales.cbUdDeMedidaDimensiones','');
+		set('frmMateriales.txtVolumen','');
+		set('frmMateriales.txtPeso','');
+		set('frmMateriales.cbUnidadMedidaPeso','');
+		set('frmMateriales.txtUdDentroPedido','');
+		set('frmMateriales.txtUnidadesPorCaja','');
+		set('frmMateriales.cbUnidadMedidaVenta','');
+		set('frmMateriales.txtCosteEstandar','');
+		set('frmMateriales.txtPrecioPosicionamiento','');
+		set('frmMateriales.rdbSituacion','');
+		set('frmMateriales.cbEstatusDelProducto','');
+		set('frmMateriales.rdbIndicadorDentroDeCaja','');
+		set('frmMateriales.txtCodigoPagoFraccionado','');
+		set('frmMateriales.txtCodigoImpuesto','');
+		set('frmMateriales.txtPrecioCatalogo','');
+		set('frmMateriales.txtPrecioContable','');
+		setTimeout ('focaliza(\'frmMateriales.txtCodigoSAP\',\'\')', 100);
+	}
+
+	function inicializacion() {
+		//Cargo la pantalla en la que se encuentra
+		pantalla = get('frmMateriales.hidPantalla');
+
+		cargarBarra(document.all.barra.value);
+		cargarValoresPorDefecto();
+		mostrarCodigoError();
+		//Si es caso de uso de modificar, hay que deshabilitar los campos que no sean modificables ....
+		if ( pantalla == 'modificar' ) {
+			deshabilitarControlesModificar();
+			if (get('frmMateriales.hidLote') == 'SI') {
+				document.all.rdbLote[0].focus();
+			}
+			else {
+				document.all.rdbLote[1].focus();
+			}
+			setTimeout('focaliza(\'frmMateriales.rdbLote\',\'\',0)', 100);
+		}
+		else {
+			focaliza ('frmMateriales.txtCodigoSAP', '');
+		}
+	}
+
+	function deshabilitarControles() {
+		//Se deshabilitan los controles para modificar
+		deshabilitarControlesModificar();
+		//Y los que son modificables
+		document.all.rdbLote[0].disabled = true;
+		document.all.rdbLote[1].disabled = true;
+		accion('frmMateriales.cbUdDeMedidaDimensiones','.disabled=true');
+		accion('frmMateriales.cbUnidadMedidaPeso','.disabled=true');
+		accion('frmMateriales.txtUdDentroPedido','.disabled=true');
+		accion('frmMateriales.txtUnidadesPorCaja','.disabled=true');
+		accion('frmMateriales.cbUnidadMedidaVenta','.disabled=true');
+		accion('frmMateriales.txtCosteEstandar','.disabled=true');
+		accion('frmMateriales.txtPrecioPosicionamiento','.disabled=true');
+		document.all.rdbSituacion[0].disabled=true;
+		document.all.rdbSituacion[1].disabled=true;
+		accion('frmMateriales.cbEstatusDelProducto','.disabled=true');
+		document.all.rdbIndicadorDentroDeCaja[0].disabled=true;
+		document.all.rdbIndicadorDentroDeCaja[1].disabled=true;
+		accion('frmMateriales.rdbSituacion','.disabled=true');
+		accion('frmMateriales.txtCodigoPagoFraccionado','.disabled=true');
+		accion('frmMateriales.txtCodigoImpuesto','.disabled=true');
+		//Se deshabilitan los controles
+	}
+
+	function deshabilitarControlesModificar() {
+		accion('frmMateriales.txtCodigoSAP','.disabled=true');
+		accion('frmMateriales.txtCodigoAntiguo','.disabled=true');
+		accion('frmMateriales.txtDescripcionSAP' , '.disabled=true');
+		accion('frmMateriales.txtDescripcionCorta','.disabled=true');
+		document.all.rdbTipo[0].disabled = true;
+		document.all.rdbTipo[1].disabled = true;
+		accion('frmMateriales.cbMarca', '.disabled=true');
+		accion('frmMateriales.cbUnidadDeNegocio','.disabled=true');
+		accion('frmMateriales.cbNegocio','.disabled=true');
+		accion('frmMateriales.cbGenerico','.disabled=true');
+		accion('frmMateriales.cbSupergenerico', '.disabled=true');
+		accion('frmMateriales.txtJerarquia1','.disabled=true');
+		accion('frmMateriales.txtJerarquia2','.disabled=true');
+		accion('frmMateriales.txtJerarquia3','.disabled=true');
+		accion('frmMateriales.cbLinea', '.disabled=true');
+		accion('frmMateriales.txtAtributo1','.disabled=true');
+		accion('frmMateriales.txtAtributo2','.disabled=true');
+		accion('frmMateriales.txtAtributo3','.disabled=true');
+		accion('frmMateriales.txtAlto','.disabled=true');
+		accion('frmMateriales.txtLargo','.disabled=true');
+		accion('frmMateriales.txtAncho','.disabled=true');
+		accion('frmMateriales.txtVolumen','.disabled=true');
+		accion('frmMateriales.txtPeso','.disabled=true');
+		accion('frmMateriales.cbEstatusDelProducto', '.disabled=true');
+		accion('frmMateriales.txtPrecioCatalogo','.disabled=true');
+		accion('frmMateriales.txtPrecioContable','.disabled=true');
+	}
+
+	//Carga los combos con los valores que estaban asignados anteriormente
+	function cargarValoresPorDefecto() {
+		set('frmMateriales.txtCodigoSAP',get('frmMateriales.hidCodigoSAP'));
+		set('frmMateriales.txtCodigoAntiguo',get('frmMateriales.hidCodigoAntiguo'));
+		set('frmMateriales.txtDescripcionSAP',get('frmMateriales.hidDescripcionSAP'));
+		set('frmMateriales.txtDescripcionCorta',get('frmMateriales.hidDescripcionCorta'));
+		set('frmMateriales.rdbLote',get('frmMateriales.hidLote'));
+		set('frmMateriales.rdbTipo',get('frmMateriales.hidTipo'));
+		setComboDefault('frmMateriales.hidMarca', 'frmMateriales.cbMarca');
+		setComboDefault('frmMateriales.hidUnidadDeNegocio', 'frmMateriales.cbUnidadDeNegocio');
+		setComboDefault('frmMateriales.hidNegocio', 'frmMateriales.cbNegocio');
+		setComboDefault('frmMateriales.hidGenerico', 'frmMateriales.cbGenerico');
+		setComboDefault('frmMateriales.hidSupergenerico', 'frmMateriales.cbSupergenerico');
+		set('frmMateriales.txtJerarquia1',get('frmMateriales.hidJerarquia1'));
+		set('frmMateriales.txtJerarquia2',get('frmMateriales.hidJerarquia2'));
+		set('frmMateriales.txtJerarquia3',get('frmMateriales.hidJerarquia3'));
+		setComboDefault('frmMateriales.hidLinea', 'frmMateriales.cbLinea');
+		set('frmMateriales.txtAtributo1',get('frmMateriales.hidAtributo1'));
+		set('frmMateriales.txtAtributo2',get('frmMateriales.hidAtributo2'));
+		set('frmMateriales.txtAtributo3',get('frmMateriales.hidAtributo3'));
+		set('frmMateriales.txtAlto',get('frmMateriales.hidAlto'));
+		set('frmMateriales.txtLargo',get('frmMateriales.hidLargo'));
+		set('frmMateriales.txtAncho',get('frmMateriales.hidAncho'));
+		setComboDefault('frmMateriales.hidUdDeMedidaDimensiones', 'frmMateriales.cbUdDeMedidaDimensiones');
+		set('frmMateriales.txtVolumen',get('frmMateriales.hidVolumen'));
+		set('frmMateriales.txtPeso',get('frmMateriales.hidPeso'));
+		setComboDefault('frmMateriales.hidUdMedidaPeso', 'frmMateriales.cbUnidadMedidaPeso');
+		set('frmMateriales.txtUdDentroPedido',get('frmMateriales.hidUdDentroPedido'));
+		set('frmMateriales.txtUnidadesPorCaja',get('frmMateriales.hidUdCaja'));
+		setComboDefault('frmMateriales.hidUdMedidaVenta', 'frmMateriales.cbUnidadMedidaVenta');
+		set('frmMateriales.txtCosteEstandar',get('frmMateriales.hidCosteEstandar'));
+		set('frmMateriales.txtPrecioPosicionamiento',get('frmMateriales.hidPrecioPosicionamiento'));
+		set('frmMateriales.rdbSituacion',get('frmMateriales.hidSituacion'));
+		setComboDefault('frmMateriales.hidEstatusDelProducto', 'frmMateriales.cbEstatusDelProducto');
+		set('frmMateriales.rdbIndicadorDentroDeCaja',get('frmMateriales.hidIndicadorDentroCaja'));
+		set('frmMateriales.txtCodigoPagoFraccionado',get('frmMateriales.hidCodPagoFraccionado'));
+		set('frmMateriales.txtCodigoImpuesto',get('frmMateriales.hidCodImpuesto'));
+		set('frmMateriales.txtPrecioCatalogo',get('frmMateriales.hidPrecioCatalogo'));
+		set('frmMateriales.txtPrecioContable',get('frmMateriales.hidPrecioContable'));
+	}
+
+	function buscar() {
+		if ( ValidaCamposBuscar() ) {
+			set ('frmMateriales.accion', 'buscar');
+			enviarFormulario();
+		}
+	}
+
+	function validarCaracteres(valor,permitidos) {
+		var c;
+		for(var i=0;i<valor.length;i++) {
+			c=valor.charAt(i);
+			if (permitidos.indexOf(c)==-1) {
+				return false;}
+		 }
+		return true;
+	}
+
+	/* Parametros:
+						 -Valor: el valor a validar
+						 -ent: cantidad de la parte entera
+						 -dec : cantidad de la parte decimal
+						 -min: rango minimo
+						 -max: rango maximo
+						 -obligatorio: si el campo viene */
+	function ValidarNumerico( nombre, requerido, error, ent, dec, min, max ) {
+		var variable = get(nombre).replace(",",".");
+		if ( ( ! requerido ) && ( variable.length == 0 ) )
+			return true;	
+		//Ahora verifico que sea un numero valido
+		if ( ! validarCaracteres(variable,'0123456789. ')) {
+			GestionarMensaje ( '2455', null, null, null);
+			focaliza(nombre,'');
+			return false;
+		}
+		var resultado = fValidarFloat(variable, ent, dec, false, min, max, requerido);
+		if  ( resultado != "OK" ) {
+			GestionarMensaje ( error, null, null, null);
+			focaliza(nombre,'');
+			return false;
+		}
+		else {
+			set(nombre,variable);
+			return true;
+		}
+	}
+
+	/* Parametros:
+				 -nombre del componente a validar
+				 -lon: la longitud maxima
+				 -min : menor valor permitido
+				 -max : maximo valor permitido
+				 -error : codigo de error a devolver
+				 -requerido : define si el campo es requerido o no */
+	function ValidarNumericoEntero( nombre, requerido, error, min, max, lon ) {
+		var variable = get(nombre);
+		if ( ( ! requerido ) && ( variable.length == 0 ) )
+			return true;	
+		//Ahora verifico que sea un numero valido		
+		var resultado = 	fValidarNumero(variable, lon, min, max)
+		if  ( resultado != "OK" ) {
+			GestionarMensaje ( error, null, null, null);
+			focaliza(nombre,'');
+			return false;
+		}
+		else 
+			return true;
+	}
+
+	function ValidarRequeridoCombo( nombre, requerido, error ) { 
+		return fValidarCOMBO(nombre);
+	}
+
+	//Falta ver como se focaliza el radio boton
+	function ValidarRequeridoRadio( nombre, requerido, error ) { 
+		var variable = get(nombre);
+		if ( requerido && ( variable.length == 0 ) ) {
+			GestionarMensaje ( error, null, null, null);
+			return false;
+		}
+		else
+			return true;
+	}
+
+	function ValidarRequerido( nombre, requerido, error ) { 
+		var variable = get(nombre);
+		if ( requerido && ( variable.length == 0 ) ) {
+			GestionarMensaje ( error, null, null, null);
+			return false;
+		}
+		else
+			return true;
+	}
+
+	function ValidaCamposModificar() {
+
+		if ( ! ValidarRequeridoRadio( 'frmMateriales.rdbLote', true, 2513 )  )
+			return false;
+
+		if ( ! ValidarRequeridoCombo( 'frmMateriales.cbUdDeMedidaDimensiones', true, 2513 )  )
+			return false;
+
+		if ( ! ValidarRequeridoCombo( 'frmMateriales.cbUnidadMedidaPeso', true, 2513 )  )
+			return false;
+
+		if ( !  ValidarNumericoEntero( 'frmMateriales.txtUdDentroPedido', false, 2455, 0, 999, 3 ) )
+			return false;
+
+		if ( !  ValidarNumericoEntero( 'frmMateriales.txtUnidadesPorCaja', false, 2455, 0, 99999, 5 ) )
+			return false;
+
+		if ( ! ValidarRequeridoCombo( 'frmMateriales.cbUnidadMedidaVenta', true, 2513 )  )
+			return false;
+
+		if ( !  ValidarNumerico( 'frmMateriales.txtCosteEstandar', false, 2510, 14, 2, 0, 99999999999999.99) )
+			return false;
+
+		if ( !  ValidarNumerico( 'frmMateriales.txtPrecioPosicionamiento', false, 2510, 14, 2, 0, 99999999999999.99) )
+			return false;
+
+		//Situacion es nullable, no se valida por ser radio
+
+		//Indicador dentro de caja,  es nullable, no se valida por ser un radio
+
+		//Codigo Pago Fraccionado, es un txt y nullable, no se valida
+
+		//Codigo impuesto, es un txt y nullable, no se valida
+
+		return true;
+	}
+
+	function ValidaCamposBuscar() {
+		if ( !  ValidarNumerico( 'frmMateriales.txtAlto', false, 2511, 15, 5, 0, 99999999999999.99999) )
+			return false;
+
+		if ( !  ValidarNumerico( 'frmMateriales.txtLargo', false, 2511, 15, 5, 0, 99999999999999.99999) )
+			return false;
+
+		if ( !  ValidarNumerico( 'frmMateriales.txtAncho', false, 2511, 15, 5, 0, 99999999999999.99999) )
+			return false;
+
+		if ( !  ValidarNumerico( 'frmMateriales.txtPeso', false, 2511, 5, 5, 0, 99999.99999) )
+			return false;
+
+		if ( !  ValidarNumerico( 'frmMateriales.txtVolumen', false, 2512, 15, 5, 0, 99999999999999.99999) )
+			return false;
+
+		if ( !  ValidarNumericoEntero( 'frmMateriales.txtUdDentroPedido', false, 2455, 0, 999, 3 ) )
+			return false;
+
+		if ( !  ValidarNumericoEntero( 'frmMateriales.txtUnidadesPorCaja', false, 2455, 0, 99999, 5 ) )
+			return false;
+
+		if ( !  ValidarNumerico( 'frmMateriales.txtCosteEstandar', false, 2510, 14, 2, 0, 99999999999999.99) )
+			return false;
+
+		if ( !  ValidarNumerico( 'frmMateriales.txtPrecioPosicionamiento', false, 2510, 14, 2, 0, 99999999999999.99) )
+			return false;
+
+		if ( !  ValidarNumerico( 'frmMateriales.txtPrecioCatalogo', false, 2510, 14, 2, 0, 99999999999999.99) )
+			return false;
+
+		if ( !  ValidarNumerico( 'frmMateriales.txtPrecioContable', false, 2510, 14, 2, 0, 99999999999999.99) )
+			return false;
+		return true;
+	}
+
+	function modificar() {
+	  if (lstResultado.seleccion.longitud == 1) {
+		  var posicion = obtenerPosicionLista (lstResultado.getSeleccion(), lstResultado );
+		  set ('frmMateriales.elementosSeleccionados', lstResultado.getSeleccion() );
+
+		  myString = new String(lstResultado.datos.ij(posicion,0));
+		  splitString = myString.split('--');
+		  if ( splitString.length != 0 ) {
+
+				set('frmMateriales.hidCodigoSAP', splitString[0] );
+				set('frmMateriales.hidCodigoAntiguo', splitString[1] );
+				set('frmMateriales.hidDescripcionSAP', splitString[2] );
+				set('frmMateriales.hidDescripcionCorta', splitString[3] );
+				set('frmMateriales.hidLote', splitString[4] );
+				set('frmMateriales.hidTipo', splitString[5] );
+				set('frmMateriales.hidMarca', splitString[6] );
+				set('frmMateriales.hidUnidadDeNegocio', splitString[7] );
+				set('frmMateriales.hidNegocio', splitString[8] );
+				set('frmMateriales.hidGenerico', splitString[9] );
+				set('frmMateriales.hidSupergenerico', splitString[10] );
+				set('frmMateriales.hidJerarquia1', splitString[11] );
+				set('frmMateriales.hidJerarquia2', splitString[12] );
+				set('frmMateriales.hidJerarquia3', splitString[13] );
+				set('frmMateriales.hidLinea', splitString[14] );
+				set('frmMateriales.hidAtributo1', splitString[15] );
+				set('frmMateriales.hidAtributo2', splitString[16] );
+				set('frmMateriales.hidAtributo3', splitString[17] );
+				set('frmMateriales.hidAlto', splitString[18] );
+				set('frmMateriales.hidLargo', splitString[19] );
+				set('frmMateriales.hidAncho', splitString[20] );
+				set('frmMateriales.hidUdDeMedidaDimensiones', splitString[21] );
+				set('frmMateriales.hidVolumen', splitString[22] );
+				set('frmMateriales.hidPeso', splitString[23] );
+				set('frmMateriales.hidUdMedidaPeso', splitString[24] );
+				set('frmMateriales.hidUdDentroPedido', splitString[25] );
+				set('frmMateriales.hidUdCaja', splitString[26] );
+				set('frmMateriales.hidUdMedidaVenta', splitString[27] );
+				set('frmMateriales.hidCosteEstandar', splitString[28] );
+				set('frmMateriales.hidPrecioPosicionamiento', splitString[29] );
+				set('frmMateriales.hidSituacion', splitString[30] );
+				set('frmMateriales.hidEstatusDelProducto', splitString[31] );
+				set('frmMateriales.hidIndicadorDentroCaja', splitString[32] );
+				set('frmMateriales.hidCodPagoFraccionado', splitString[33] );
+				set('frmMateriales.hidCodImpuesto', splitString[34] );
+				set('frmMateriales.hidPrecioCatalogo', splitString[35] );
+				set('frmMateriales.hidPrecioContable', splitString[36] );
+						
+				set ('frmMateriales.conectorAction','LPModificarMateriales');
+				set ('frmMateriales.accion', 'modificar');
+				enviarFormulario();
+		  }
+	  } else {
+		  GestionarMensaje ('8', null, null, null);
+	  }
+	}
+
+	function guardar() {
+		if ( ValidaCamposModificar() ) {
+		  set ('frmMateriales.conectorAction','LPModificarMateriales');
+		  set ('frmMateriales.accion', 'guardar');
+		  enviarFormulario();
+		}
+	}
+
+	function mostrarCodigoError() { 
+	  if ( get('frmMateriales.errDescripcion') != '' ) {
+		  //var wnd = fMostrarMensajeError (get ('frmMateriales.errCodigo'), get ('frmMateriales.errDescripcion'));
+		  cdos_mostrarAlert( get('frmMateriales.errDescripcion') );
+	  }
+	}
+
+	function pasarFocoAnteriorRDBLotes() {
+		if ( pantalla == 'modificar' )
+			focaliza('frmMateriales.txtCodigoImpuesto','');
+		else
+			focaliza('frmMateriales.txtDescripcionCorta','');
+	}
+
+	function pasarFocoAnteriorCodigoSAP() {
+		focaliza('frmMateriales.txtPrecioContable','');
+	}
+
+	function pasarFocoSiguienteCodigoImpuesto() {	
+	
+		if ( pantalla == 'modificar' )
+		  if (get('frmMateriales.hidLote') == 'SI') {
+				document.all.rdbLote[0].focus();
+			}
+			else {
+				document.all.rdbLote[1].focus();
+			}
+		else
+			focaliza('frmMateriales.txtPrecioCatalogo','');
+	}
+
+	function pasarFocoSiguientePrecioContable() {
+		focaliza('frmMateriales.txtCodigoSAP','');
+	}
+
+	function enviarFormulario() {
+		//Se deshabilitan los campos para que no se puedan cambiar mientras se realiza la consulta al servidor
+		deshabilitarControles();
+		envia ('frmMateriales');
+	}
+
+	function setRdbTipoS() {
+		set('frmMateriales.rdbTipo','Producto');
+	}
+
+	function setRdbTipoN() {
+		set('frmMateriales.rdbTipo','Servicio');
+	}
+
+	function setRdbLoteS() {
+		set('frmMateriales.rdbLote','SI');
+	}
+
+	function setRdbLoteN() {
+		set('frmMateriales.rdbLote','NO');
+	}
+
+	function setRdbSituacionN() {
+		set('frmMateriales.rdbSituacion','Inactivo');
+	}
+
+	function setRdbSituacionS() {
+		set('frmMateriales.rdbSituacion','Activo');
+	}
+
+	function setRdbIndicadorDentroDeCajaS() {
+		set('frmMateriales.rdbIndicadorDentroDeCaja','SI');
+	}
+
+	function setRdbIndicadorDentroDeCajaN() {
+		set('frmMateriales.rdbIndicadorDentroDeCaja','NO');
+	}
+
+  ]]>
+</JAVASCRIPT>
+
+<FORMULARIO nombre="frmMateriales" >
+
+<VAR nombre="barra" valor="barra_consultar_materiales"/>
+
+<VAR nombre="errCodigo" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>
+
+<VAR nombre="accion" valor=""/>
+<VAR nombre="conectorAction" valor="LPBusquedaMateriales" />
+<VAR nombre="casoDeUso" valor=""/>
+
+<VAR nombre="hidCodigoSAP" valor=""/>
+<VAR nombre="hidCodigoAntiguo" valor=""/>
+<VAR nombre="hidDescripcionSAP" valor=""/>
+<VAR nombre="hidDescripcionCorta" valor=""/>
+<VAR nombre="hidLote" valor=""/>
+<VAR nombre="hidTipo" valor=""/>
+<VAR nombre="hidMarca" valor=""/>
+<VAR nombre="hidUnidadDeNegocio" valor=""/>
+<VAR nombre="hidNegocio" valor=""/>
+<VAR nombre="hidGenerico" valor=""/>
+<VAR nombre="hidSupergenerico" valor=""/>
+<VAR nombre="hidJerarquia1" valor=""/>
+<VAR nombre="hidJerarquia2" valor=""/>
+<VAR nombre="hidJerarquia3" valor=""/>
+<VAR nombre="hidLinea" valor=""/>
+<VAR nombre="hidAtributo1" valor=""/>
+<VAR nombre="hidAtributo2" valor=""/>
+<VAR nombre="hidAtributo3" valor=""/>
+<VAR nombre="hidAlto" valor=""/>
+<VAR nombre="hidLargo" valor=""/>
+<VAR nombre="hidAncho" valor=""/>
+<VAR nombre="hidUdDeMedidaDimensiones" valor=""/>
+<VAR nombre="hidVolumen" valor=""/>
+<VAR nombre="hidPeso" valor=""/>
+<VAR nombre="hidUdMedidaPeso" valor=""/>
+<VAR nombre="hidUdDentroPedido" valor=""/>
+<VAR nombre="hidUdCaja" valor=""/>
+<VAR nombre="hidUdMedidaVenta" valor=""/>
+<VAR nombre="hidCosteEstandar" valor=""/>
+<VAR nombre="hidPrecioPosicionamiento" valor=""/>
+<VAR nombre="hidSituacion" valor=""/>
+<VAR nombre="hidEstatusDelProducto" valor=""/>
+<VAR nombre="hidIndicadorDentroCaja" valor=""/>
+<VAR nombre="hidCodPagoFraccionado" valor=""/>
+<VAR nombre="hidCodImpuesto" valor=""/>
+<VAR nombre="hidPrecioCatalogo" valor=""/>
+<VAR nombre="hidPrecioContable" valor=""/>
+
+<VAR nombre="hidClave" valor=""/>
+<VAR nombre="hidPantalla" valor="consultar"/>
+<VAR nombre="hidClean" valor=""/>
+
+<VAR nombre="elementosSeleccionados" valor=""/>
+
+<table  border="0" cellpadding="1" cellspacing="0" align="left" width="1280" >
+	<TR>
+	  <TD width="12" align="center"><IMG src="b.gif" width="12" height="8"/></TD>
+	  <TD>&nbsp;</TD>	
+	  <TD width="12"><IMG src="b.gif" width="12" height="8"/></TD>
+	</TR>
+
+	<TR> 
+	<TD>&nbsp;</TD>
+	<TD align="center">
+		<table width="1260" border="1" cellspacing="1" cellpadding="0" bordercolor="#CCCCCC"  >
+			<td>
+				<table cellSpacing="0" cellPadding="0" width="99%" align="center" border="0" >
+					<!-- Ini codigo SAP -->
+					<tr>
+						<td><LABELC nombre="lblCodigoSAP" ancho="155" alto="30" filas="1" id="datosTitle" cod="475" /></td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td>
+							<TEXT id="datosCamposLeft" nombre="txtCodigoSAP" valor="" size="34" max="20" onshtab="pasarFocoAnteriorCodigoSAP();" ></TEXT>
+						</td>
+						<td></td>
+						<td><IMG src="b.gif" width="665" height="8"/></td>
+						<td></td>
+					</tr>
+					<!-- Fin codigo SAP -->
+
+					<!-- Ini codigo antiguo -->
+					<tr>
+						<td>     
+							<LABELC nombre="lblCodigoAntiguo" ancho="155" alto="30" filas="1" id="datosTitle" cod="2468" />
+						</td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td>
+							<TEXT id="datosCamposLeft" nombre="txtCodigoAntiguo" valor="" size="30" max="18" ></TEXT>
+						</td>
+						<td></td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td></td>
+					</tr>
+					<!-- Fin codigo antiguo -->
+
+					<!-- Ini descripcion sap -->
+					<tr>
+						<td>     
+							<LABELC nombre="lblDescripcionSap" ancho="155" alto="30" filas="1" id="datosTitle" cod="2469" />
+						</td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td>
+							<TEXT id="datosCamposLeft" nombre="txtDescripcionSAP" valor="" size="71" max="40" ></TEXT>
+						</td>
+						<td></td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td></td>
+					</tr>
+					<!-- Fin descripcion sap -->
+
+					<!-- Ini Descripcion Corta-->
+					<tr>
+						<td>     
+							<LABELC nombre="lblDescripcionCorta" ancho="155" alto="30" filas="1" id="datosTitle" cod="47" />
+						</td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td>
+							<TEXT id="datosCamposLeft" nombre="txtDescripcionCorta" valor="" size="71" max="40" ></TEXT>
+						</td>
+						<td></td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td></td>
+					</tr>
+					<!-- Fin Descripcion Corta -->
+
+				</table>
+				<table cellSpacing="0" cellPadding="0" width="99%" align="center" border="0" >
+
+					<!-- Ini Lote -->
+					<tr align="left" >
+						<td><LABELC nombre="lblLote" ancho="155" alto="30" filas="1" id="datosTitle" cod="2470" /></td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td align="left" class="datosCampos" tipo="H" >
+							<RADIOB nombre="rdbLote" tipo="H" req="N" id="datosTitleLeft.css" onshtab="pasarFocoAnteriorRDBLotes();" >
+							<RBINPUT valor="SI" check="" onfocus="">Si</RBINPUT>
+								<!-- <LABELC nombre="lblSi" ancho="175" alto="10" filas="1" id="datosTitle" cod="81" /> -->
+							<RBINPUT valor="NO" onfocus="" >No</RBINPUT>
+								<!-- <LABELC nombre="lblNo" ancho="175" alto="10" filas="1" id="datosTitle" cod="82" /> -->									
+							</RADIOB>
+						</td>
+						<td></td>
+						<td><IMG src="b.gif" width="1060" height="8"/></td>
+						<td></td>
+					</tr>
+					<!-- Fin Lote -->
+
+				</table>
+				<table cellSpacing="0" cellPadding="0" width="99%" align="center" border="0" >
+
+					<!-- Ini Tipo -->
+					<tr>
+						<td><LABELC nombre="lblTipo" ancho="155" alto="30" filas="1" id="datosTitle" cod="2471" /></td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td align="left" class="datosCampos" tipo="H" >
+							<RADIOB nombre="rdbTipo" tipo="H" req="N" id="datosTitleLeft.css">
+								<RBINPUT valor="Producto" check="" onfocus="">Producto</RBINPUT>
+								<!-- <LABELC nombre="lblProducto" ancho="175" filas="1" id="datosTitle" cod="509" /> -->
+								<RBINPUT valor="Servicio" onfocus="" >Servicio</RBINPUT>
+								<!-- <LABELC nombre="lblServicio" ancho="175" filas="1" id="datosTitle" cod="2472" /> -->
+							</RADIOB>
+						</td>
+						<td></td>
+						<td><IMG src="b.gif" width="1000" height="8"/></td>
+						<td></td>
+					</tr>
+					<!-- Fin Tipo -->
+
+				</table>
+				<table cellSpacing="0" cellPadding="0" width="99%" align="center" border="0" >	
+
+					<!-- Ini Marca-->
+					<tr>
+						<td>     
+							<LABELC nombre="lblMarca" ancho="155" alto="30" filas="1" id="datosTitle" cod="165" />
+						</td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td>
+								<COMBO id="estMiCombo30" nombre="cbMarca" size="1" multiple="N" req="N" valorinicial="" textoinicial=" " >
+									<ROWSET>
+									</ROWSET>
+								</COMBO>
+						</td>
+						<td></td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td></td>
+					</tr>
+					<!-- Fin Marca -->
+
+					<!-- Ini de Campos Dobles para Unidad de Negocio y Negocio -->
+					<tr>
+						<!-- Ini Unidad de Negocio -->
+						<td>     
+							<LABELC nombre="lblUnidadDeNegocio" ancho="155" alto="30" filas="1" id="datosTitle" cod="480" />
+						</td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td>
+							<COMBO id="estMiCombo40" nombre="cbUnidadDeNegocio" size="1" multiple="N" req="N" valorinicial="" textoinicial=" " >
+								<ROWSET>
+								</ROWSET>
+							</COMBO>
+						</td>
+						<!-- Fin Unidad de Negocio -->
+
+						<!-- Ini Negocio -->
+						<td>     
+							<LABELC nombre="lblNegocio" ancho="175" alto="30" filas="1" id="datosTitle" cod="481" />
+						</td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td>
+							<COMBO id="estMiCombo40" nombre="cbNegocio" size="1" multiple="N" req="N" valorinicial="" textoinicial=" " >
+								<ROWSET>
+								</ROWSET>
+							</COMBO>
+						</td>
+						<!-- Fin Negocio -->
+					</tr>
+					<!-- Fin de Campos Dobles para Unidad de Negocio y Negocio -->
+
+					<!-- Ini de Campos Dobles para Generico y Supergenerico -->
+					<tr>
+						<!-- Ini Generico -->
+						<td>     
+							<LABELC nombre="lblGenerico" ancho="155" alto="30" filas="1" id="datosTitle" cod="482" />
+						</td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td>
+							<COMBO id="estMiCombo40" nombre="cbGenerico" size="1" multiple="N" req="N" valorinicial="" textoinicial=" " >
+								<ROWSET>
+								</ROWSET>
+							</COMBO>
+						</td>
+						<!-- Fin Generico -->
+
+						<!-- Ini Supergenerico -->
+						<td>     
+							<LABELC nombre="lblSupergenerico" ancho="175" alto="30" filas="1" id="datosTitle" cod="483" />
+						</td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td>
+							<COMBO id="estMiCombo40" nombre="cbSupergenerico" size="1" multiple="N" req="N" valorinicial="" textoinicial=" " >
+								<ROWSET>
+								</ROWSET>
+							</COMBO>
+						</td>
+						<!-- Fin Supergenerico -->
+					</tr>
+					<!-- Fin de Campos Dobles para Generico y Supergenerico -->
+
+					<!-- Ini de Campos Dobles para  Jerarquia1 y Jerarquia2 -->
+					<tr>
+						<!-- Ini Jerarquia1 -->
+						<td>     
+							<LABELC nombre="lblJerarquia1" ancho="155" alto="30" filas="1" id="datosTitle" cod="314" />
+						</td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td>
+								<TEXT id="datosCamposLeft" nombre="txtJerarquia1" valor="" size="4" max="3" ></TEXT>
+						</td>
+						<!-- Fin Jerarquia1 -->
+
+						<!-- Ini Jerarquia2 -->
+						<td>     
+							<LABELC nombre="lblJerarquia2" ancho="175" alto="30" filas="1" id="datosTitle" cod="315" />
+						</td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td>
+								<TEXT id="datosCamposLeft" nombre="txtJerarquia2" valor="" size="4" max="3" ></TEXT>
+						</td>
+						<!-- Fin Jerarquia2 -->
+					</tr>
+					<!-- Fin de Campos Dobles para  Jerarquia1 y Jerarquia2 -->
+
+					<!-- Ini Jerarquia3 -->
+					<tr>
+						<td>     
+							<LABELC nombre="lblJerarquia3" ancho="155" alto="30" filas="1" id="datosTitle" cod="316" />
+						</td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td>
+								<TEXT id="datosCamposLeft" nombre="txtJerarquia3" valor="" size="4" max="3" ></TEXT>
+						</td>
+						<td></td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td></td>
+					</tr>
+					<!-- Fin Jerarquia3 -->
+
+					<!-- Ini Linea -->
+					<tr>
+						<td>     
+							<LABELC nombre="lblLinea" ancho="155" alto="30" filas="1" id="datosTitle" cod="2473" />
+						</td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td>
+							<COMBO id="estMiCombo40" nombre="cbLinea" size="1" multiple="N" req="N" valorinicial="" textoinicial=" " >
+								<ROWSET>
+								</ROWSET>
+							</COMBO>
+						</td>
+						<td></td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td></td>
+					</tr>
+					<!-- Fin Linea -->
+
+					<!-- Ini de Campos Dobles para  Atributo1 y Atributo2 -->
+					<tr>
+						<!-- Ini Atributo1 -->
+						<td>     
+							<LABELC nombre="lblAtributo1" ancho="155" alto="30" filas="1" id="datosTitle" cod="189" />
+						</td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td>
+							<TEXT id="datosCamposLeft" nombre="txtAtributo1" valor="" size="4" max="3" ></TEXT>
+						</td>
+						<!-- Fin Atributo1 -->
+
+						<!-- Ini Atributo2 -->
+						<td>     
+							<LABELC nombre="lblAtributo2" ancho="175" alto="30" filas="1" id="datosTitle" cod="190" />
+						</td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td>
+							<TEXT id="datosCamposLeft" nombre="txtAtributo2" valor="" size="6" max="4" ></TEXT>
+						</td>
+						<!-- Fin Atributo2 -->
+					</tr>
+					<!-- Fin de Campos Dobles para  Atributo1 y Atributo2 -->
+
+					<!-- Ini Atributo3 -->
+					<tr>
+						<td>     
+							<LABELC nombre="lblAtributo3" ancho="155" alto="30" filas="1" id="datosTitle" cod="191" />
+						</td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td>
+								<TEXT id="datosCamposLeft" nombre="txtAtributo3" valor="" size="16" max="10" ></TEXT>
+						</td>
+						<td></td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td></td>
+					</tr>
+					<!-- Fin Atributo3 -->
+
+					<!-- Ini de Campos Dobles para Dimension Alto y Dimension Largo -->
+					<tr>
+						<!-- Ini Dimension Alto -->
+						<td>
+							<LABELC nombre="lblDimensionAlto" ancho="155" alto="30" filas="1" id="datosTitle" cod="2474" />
+						</td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td>
+								<TEXT id="datosCamposLeft" nombre="txtAlto" valor="" size="18" max="11" ></TEXT>
+						</td>
+						<!-- Fin Dimension Alto -->
+
+						<!-- Ini Dimension Largo -->
+						<td>     
+							<LABELC nombre="lblDimensionLargo" ancho="175" alto="30" filas="1" id="datosTitle" cod="2475" />
+						</td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td>
+								<TEXT id="datosCamposLeft" nombre="txtLargo" valor="" size="18" max="11" ></TEXT>
+						</td>
+						<!-- Fin Dimension Largo -->
+					</tr>
+					<!-- Fin de Campos Dobles para Dimension Alto y Dimension Largo -->
+
+					<!-- Ini de Campos Dobles para Dimensión Ancho y Ud. de Medida Dimensiones -->
+					<tr>
+						<!-- Ini Dimensión Ancho -->
+						<td>
+							<LABELC nombre="lblDimensionAncho" ancho="155" alto="30" filas="1" id="datosTitle" cod="2476" />
+						</td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td>
+								<TEXT id="datosCamposLeft" nombre="txtAncho" valor="" size="18" max="11" ></TEXT>
+						</td>
+						<!-- Fin Dimensión Ancho -->
+
+						<!-- Ini Ud. de Medida Dimensiones -->
+						<td>
+							<LABELC nombre="lblUdDeMedidaDimensiones" ancho="175" alto="30" filas="1" id="datosTitle" cod="2477" />
+						</td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td>
+							<COMBO id="estMiCombo30" nombre="cbUdDeMedidaDimensiones" size="1" multiple="N" req="N" valorinicial="" textoinicial=" " >
+								<ROWSET>
+								</ROWSET>
+							</COMBO>
+						</td>
+						<!-- Fin Ud. de Medida Dimensiones -->
+					</tr>
+					<!-- Fin de Campos Dobles para Dimensión Ancho y Ud. de Medida Dimensiones -->
+
+					<!-- Ini Volumen -->
+					<tr>
+						<td>     
+							<LABELC nombre="lblVolumen" ancho="155" alto="30" filas="1" id="datosTitle" cod="2478" />
+						</td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td>
+								<TEXT id="datosCamposLeft" nombre="txtVolumen" valor="" size="36" max="21" ></TEXT>
+						</td>
+						<td></td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td></td>
+					</tr>
+					<!-- Fin Volumen -->
+
+					<!-- Ini de Campos Dobles para Peso y Unidad Medida Peso -->
+					<tr>
+						<!-- Ini Dimensión Ancho -->
+						<td>
+							<LABELC nombre="lblPeso" ancho="155" alto="30" filas="1" id="datosTitle" cod="350" />
+						</td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td>
+								<TEXT id="datosCamposLeft" nombre="txtPeso" valor="" size="18" max="11" ></TEXT>
+						</td>
+						<!-- Fin Dimensión Ancho -->
+
+						<!-- Ini Unidad Medida Peso -->
+						<td>
+							<LABELC nombre="lblUnidadMedidaPeso" ancho="175" alto="30" filas="1" id="datosTitle" cod="2479" />
+						</td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td>
+							<COMBO id="estMiCombo40" nombre="cbUnidadMedidaPeso" size="1" multiple="N" req="N" valorinicial="" textoinicial=" " >
+								<ROWSET>
+								</ROWSET>
+							</COMBO>
+						</td>
+						<!-- Fin Unidad Medida Peso -->
+					</tr>
+					<!-- Fin de Campos Dobles para Peso y Unidad Medida Peso-->
+
+					<!-- Ini de Campos Dobles Unidades Dentro de Pedido y Unidades por Caja  -->
+					<tr>
+						<!-- Ini Unidades Dentro de Pedido -->
+						<td>
+							<LABELC nombre="lblUnidadesDentroDePedido" ancho="155" alto="30" filas="1" id="datosTitle" cod="2480" />
+						</td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td>
+								<TEXT id="datosCamposLeft" nombre="txtUdDentroPedido" valor="" size="4" max="3" ></TEXT>
+						</td>
+						<!-- Fin Unidades Dentro de Pedido -->
+
+						<!-- Ini Unidades por Caja -->
+						<td>
+							<LABELC nombre="lblUnidadesPorCaja" ancho="175" alto="30" filas="1" id="datosTitle" cod="2481" />
+						</td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td>
+								<TEXT id="datosCamposLeft" nombre="txtUnidadesPorCaja" valor="" size="7" max="5" ></TEXT>
+						</td>
+						<!-- Fin Unidades por Caja -->
+					</tr>
+					<!-- Fin de Campos Dobles Unidades Dentro de Pedido y Unidades por Caja  -->
+
+					<!-- Ini Unidad Medida Venta -->
+					<tr>
+						<td>     
+							<LABELC nombre="lblUnidadMedidaVenta" ancho="155" alto="30" filas="1" id="datosTitle" cod="2482" />
+						</td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td>
+							<COMBO id="estMiCombo40" nombre="cbUnidadMedidaVenta" size="1" multiple="N" req="N" valorinicial="" textoinicial=" " >
+								<ROWSET>
+								</ROWSET>
+							</COMBO>
+						</td>
+						<td></td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td></td>
+					</tr>
+					<!-- Fin Unidad Medida Venta -->
+
+					<!-- Ini de Campos Dobles Coste Estandar y Precio Posicionamiento -->
+					<tr>
+						<!-- Ini Coste Estandar  -->
+						<td>
+							<LABELC nombre="lblCosteEstandar" ancho="155" alto="30" filas="1" id="datosTitle" cod="2483" />
+						</td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td>
+								<TEXT id="datosCamposLeft" nombre="txtCosteEstandar" valor="" size="29" max="17" ></TEXT>
+						</td>
+						<!-- Fin Coste Estandar -->
+
+						<!-- Ini Precio Posicionamiento -->
+						<td>
+							<LABELC nombre="lblPrecioPosicionamiento" ancho="175" alto="30" filas="1" id="datosTitle" cod="2484" />
+						</td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td>
+								<TEXT id="datosCamposLeft" nombre="txtPrecioPosicionamiento" valor="" size="29" max="17" ></TEXT>
+						</td>
+						<!-- Fin Precio Posicionamiento -->
+					</tr>
+					<!-- Fin de Campos Dobles Coste Estandar y Precio Posicionamiento  -->
+
+				</table>
+				<table cellSpacing="0" cellPadding="0" width="99%" align="center" border="0" >
+
+					<!-- Ini Situación -->
+					<tr>
+						<td>
+							<LABELC nombre="lblSituacion" ancho="155" alto="30" filas="1" id="datosTitle" cod="2485" />
+						</td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						 <td align="left" class="datosCampos">
+							 <RADIOB nombre="rdbSituacion" tipo="H" req="N" id="datosTitleLeft.css" >
+								<RBINPUT valor="Activo" check="" onfocus="">Activo</RBINPUT>
+								<RBINPUT valor="Inactivo" onfocus="" >Inactivo</RBINPUT>
+							 </RADIOB>
+						 </td>
+						<td></td>
+						<td><IMG src="b.gif" width="1015" height="8"/></td>
+						<td></td>
+					</tr>
+					<!-- Fin Situación -->
+
+				</table>
+				<table cellSpacing="0" cellPadding="0" width="99%" align="center" border="0" >	
+
+					<!-- Ini Estatus del Producto -->
+					<tr>
+						<td>     
+							<LABELC nombre="lblEstatusDelProducto" ancho="155" alto="30" filas="1" id="datosTitle" cod="2487" />
+						</td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td>
+							<COMBO id="estMiCombo30" nombre="cbEstatusDelProducto" size="1" multiple="N" req="N" valorinicial="" textoinicial=" " >
+								<ROWSET>
+								</ROWSET>
+							</COMBO>
+						</td>
+						<td></td>
+						<td><IMG src="b.gif" width="745" height="8"/></td>
+						<td></td>
+					</tr>
+					<!-- Fin Estatus del Producto -->
+
+				</table>
+				<table cellSpacing="0" cellPadding="0" width="99%" align="center" border="0" >	
+
+					<!-- Ini Indicador Dentro de Caja -->
+					<tr>
+						<td>     
+							<LABELC nombre="lblIndicadorDentroDeCaja" ancho="155" alto="30" filas="1" id="datosTitle" cod="2488" />
+						</td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						 <td class="datosCampos" align="left" >
+							 <RADIOB nombre="rdbIndicadorDentroDeCaja" tipo="H" req="N" id="datosTitleLeft.css" >
+								<RBINPUT valor="SI" check="" onfocus="">Si</RBINPUT>
+									<!-- <LABELC nombre="lblSICaja" ancho="175" filas="1" id="datosTitle" cod="" /> -->								
+								<RBINPUT valor="NO" onfocus="" >No</RBINPUT>
+									<!-- <LABELC nombre="lblNOCaja" ancho="175" filas="1" id="datosTitle" cod="" /> -->
+							 </RADIOB>
+						 </td>
+						<td></td>
+						<td><IMG src="b.gif" width="1060" height="8"/></td>
+						<td></td>
+					</tr>
+					<!-- Fin Indicador Dentro de Caja -->
+
+				</table>
+				<table cellSpacing="0" cellPadding="0" width="99%" align="center" border="0" >	
+
+					<!-- Ini de Campos Dobles Código pago Fraccionado y Código de Impuesto -->
+					<tr>
+						<!-- Ini Código pago Fraccionado -->
+						<td>     
+							<LABELC nombre="lblCodigoPagoFraccionado" ancho="155" alto="30" filas="1" id="datosTitle" cod="558" />
+						</td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td>
+							<td>
+								<TEXT id="datosCamposLeft" nombre="txtCodigoPagoFraccionado" valor="" size="16" max="10" ></TEXT>	
+							</td>
+							<td>
+								<IMG src="b.gif" width="265" height="0"/>
+							</td>
+						</td>
+						<!-- Fin Código pago Fraccionado -->
+
+						<!-- Ini Código de Impuesto -->
+						<td>     
+							<LABELC nombre="lblCodigoImpuesto" ancho="175" alto="30" filas="1" id="datosTitle" cod="2489" />
+						</td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td>
+							<td>
+								<TEXT id="datosCamposLeft" nombre="txtCodigoImpuesto" valor="" size="16" max="10" ontab="pasarFocoSiguienteCodigoImpuesto();" ></TEXT>
+							</td>
+							<td>
+								<IMG src="b.gif" width="265" height="0"/>
+							</td>
+						</td>
+						<!-- Fin Código de Impuesto -->
+					</tr>
+					<!-- Fin de Campos Dobles Código pago Fraccionado y Código de Impuesto -->
+					
+					<!-- Ini de Campos Dobles Precio Catalogo y Precio Contable -->
+					<tr>
+						<!-- Ini Precio Catalogo -->
+						<td>     
+							<LABELC nombre="lblPrecioCatalogo" ancho="155" alto="30" filas="1" id="datosTitle" cod="2490" />
+						</td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td>
+								<td>
+									<TEXT id="datosCamposLeft" nombre="txtPrecioCatalogo" valor="" size="29" max="17" ></TEXT>
+								</td>
+								<td>
+									<IMG src="b.gif" width="265" height="0"/>
+								</td>
+						</td>
+						<!-- Fin Precio Catalogo -->
+
+						<!-- Ini Precio Contable -->
+						<td>     
+							<LABELC nombre="lblPrecioContable" ancho="175" alto="30" filas="1" id="datosTitle" cod="712" />
+						</td>
+						<td><IMG src="b.gif" width="8" height="8"/></td>
+						<td>
+							<td>
+								<TEXT id="datosCamposLeft" nombre="txtPrecioContable" valor="" size="29" max="17" ontab="pasarFocoSiguientePrecioContable();" ></TEXT>
+							</td>
+							<td>
+								<IMG src="b.gif" width="265" height="0"/>
+							</td>
+						</td>
+						<!-- Fin Precio Contable -->
+					</tr>
+					<!-- Fin de Campos Dobles Precio Catalogo y Precio Contable -->
+
+				</table>
+
+			</td>
+
+		</table>
+	</TD>
+	
+	<TD>
+	</TD>
+
+
+</TR>
+</table>
+
+ <CAPA nombre="capaBotonBuscar" alto="25" ancho="1294" colorf="#CCCCCC"  imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="14" y="809" zindex="" > 
+	<tr>
+	  <td>
+		<IMG src="b.gif" width="1" height="8"/>
+	  </td>
+	  <td bgcolor="#CCCCCC">
+			<BOTON cod="141" estado="false" accion="buscar();" tipo="html" ID="botonContenido" nombre="btnBuscar" />
+	  </td>
+	</tr>
+</CAPA> 
+
+
+
+
+  
+<CAPA nombre="capaResultado" alto="150" ancho="1294" colorf="#CCCCCC" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="hidden" contravsb="" x="14" y="880" zindex="">
+      
+	<LISTA seleccion="boton" nombre="lstResultado" x="0" y="0" ancho="1294" alto="150" multisel="1" incy="10" incx="10" colorf="#F0F0F0"
+        imagenoff="close_no.gif" imagenon="close_up.gif" accion="" sep="|" pixelsborde="3" colorborde="#CCCCCC">
+
+        <CABECERA nombre="cab1" height="20">
+			<!-- Para la imagen -->
+			<COL id="fondoCabecera" ancho="20">
+				<LABELC nombre="lblEspacio" ancho="20" alto="20" filas="1" id="datosCamposCabecera" cod=""/>
+			</COL>
+
+			<!-- Código SAP -->
+			<COL id="fondoCabecera" ancho="210" >
+				<LABELC nombre="lblCodigoSAPLista" ancho="210" alto="20" filas="1" id="datosCamposCabecera" cod="2467"/>
+			</COL>
+					
+			<!-- Código Antiguo -->
+			<COL id="fondoCabecera" ancho="190">
+				<LABELC nombre="lblCodigoAntiguoLista" ancho="190" alto="20" filas="1" id="datosCamposCabecera" cod="2468"/>
+			</COL>
+
+			<!-- Descripción SAP -->
+			<COL id="fondoCabecera" ancho="410">
+				<LABELC nombre="lblDescripcionSAPLista" ancho="410" alto="20" filas="1" id="datosCamposCabecera" cod="2469"/>
+			</COL>
+						  
+			<!-- Descripción Corta -->
+			<COL id="fondoCabecera" ancho="410">
+				<LABELC nombre="lblDescripcionCortaLista" ancho="410" alto="20" filas="1" id="datosCamposCabecera" cod="47"/>
+			</COL>
+					
+			<!-- Lote -->
+			<COL id="fondoCabecera" ancho="100">
+				<LABELC nombre="lblLoteLista" ancho="100" alto="20" filas="1" id="datosCamposCabecera" cod="2470"/>
+			</COL>
+
+			<!-- Tipo -->
+			<COL id="fondoCabecera" ancho="100">
+				<LABELC nombre="lblTipoLista" ancho="100" alto="20" filas="1" id="datosCamposCabecera" cod="2471"/>
+			</COL>
+
+			<!-- Marca -->
+			<COL id="fondoCabecera" ancho="310">
+				<LABELC nombre="lblMarcaLista" ancho="310" alto="20" filas="1" id="datosCamposCabecera" cod="165"/>
+			</COL>
+					
+			<!-- Unidad de Negocio -->
+			<COL id="fondoCabecera" ancho="410">
+				<LABELC nombre="lblUnidaddeNegocioLista" ancho="410" alto="20" filas="1" id="datosCamposCabecera" cod="480"/>
+			</COL>
+					
+			<!-- Negocio -->
+			<COL id="fondoCabecera" ancho="410">
+				<LABELC nombre="lblNegocioLista" ancho="410" alto="20" filas="1" id="datosCamposCabecera" cod="481"/>
+			</COL>
+						  
+			<!-- Generico -->
+			<COL id="fondoCabecera" ancho="410">
+				<LABELC nombre="lblGenericoLista" ancho="410" alto="20" filas="1" id="datosCamposCabecera" cod="482"/>
+			</COL>
+					
+			<!-- Supergenerico -->
+			<COL id="fondoCabecera" ancho="410">
+				<LABELC nombre="lblSupergenericoLista" ancho="410" alto="20" filas="1" id="datosCamposCabecera" cod="483"/>
+			</COL>
+					
+			<!-- Jerarquia 1 -->
+			<COL id="fondoCabecera" ancho="130">
+				<LABELC nombre="lblJerarquia1Lista" ancho="130" alto="20" filas="1" id="datosCamposCabecera" cod="314"/>
+			</COL>
+					
+			<!-- Jerarquia 2 -->
+			<COL id="fondoCabecera" ancho="130">
+				<LABELC nombre="lblJerarquia2Lista" ancho="130" alto="20" filas="1" id="datosCamposCabecera" cod="315"/>
+			</COL>
+					
+			<!-- Jerarquia 3 -->
+			<COL id="fondoCabecera" ancho="130">
+				<LABELC nombre="lblJerarquia3Lista" ancho="130" alto="20" filas="1" id="datosCamposCabecera" cod="316"/>
+			</COL>
+					
+			<!-- Linea -->
+			<COL id="fondoCabecera" ancho="410">
+				<LABELC nombre="lblLineaLista" ancho="410" alto="20" filas="1" id="datosCamposCabecera" cod="2473"/>
+			</COL>
+					
+			<!-- Atributo 1 -->
+			<COL id="fondoCabecera" ancho="110">
+				<LABELC nombre="lblAtributo1Lista" ancho="110" alto="20" filas="1" id="datosCamposCabecera" cod="189"/>
+			</COL>
+					
+			<!-- Atributo 2 -->
+			<COL id="fondoCabecera" ancho="110">
+				<LABELC nombre="lblAtributo2Lista" ancho="110" alto="20" filas="1" id="datosCamposCabecera" cod="190"/>
+			</COL>
+					
+			<!-- Atributo 3 -->
+			<COL id="fondoCabecera" ancho="110">
+				<LABELC nombre="lblAtributo3Lista" ancho="110" alto="20" filas="1" id="datosCamposCabecera" cod="191"/>
+			</COL>
+
+			<!-- Alto -->
+			<COL id="fondoCabecera" ancho="110">
+				<LABELC nombre="lblAltoLista" ancho="110" alto="20" filas="1" id="datosCamposCabecera" cod="2493"/>
+			</COL>
+					
+			<!-- Largo -->
+			<COL id="fondoCabecera" ancho="110">
+				<LABELC nombre="lblLargoLista" ancho="110" alto="20" filas="1" id="datosCamposCabecera" cod="2494"/>
+			</COL>
+					
+			<!-- Ancho -->
+			<COL id="fondoCabecera" ancho="110">
+				<LABELC nombre="lblAnchoLista" ancho="110" alto="20" filas="1" id="datosCamposCabecera" cod="2495"/>
+			</COL>
+					
+			<!-- Ud. Medida -->
+			<COL id="fondoCabecera" ancho="310">
+				<LABELC nombre="lblUdMedidaLista" ancho="310" alto="20" filas="1" id="datosCamposCabecera" cod="2496"/>
+			</COL>
+					
+			<!-- Volumen -->
+			<COL id="fondoCabecera" ancho="210">
+				<LABELC nombre="lblVolumenLista" ancho="210" alto="20" filas="1" id="datosCamposCabecera" cod="2478"/>
+			</COL>
+
+			<!-- Peso -->
+			<COL id="fondoCabecera" ancho="110">
+				<LABELC nombre="lblPesoLista" ancho="110" alto="20" filas="1" id="datosCamposCabecera" cod="350"/>
+			</COL>
+			
+			<!-- Ud. Medida Peso -->
+			<COL id="fondoCabecera" ancho="410">
+				<LABELC nombre="lblUdMedidaPesoLista" ancho="410" alto="20" filas="1" id="datosCamposCabecera" cod="2497"/>
+			</COL>
+						  
+			<!-- Ud. Dentro Pedido -->
+			<COL id="fondoCabecera" ancho="250">
+				<LABELC nombre="lblUdDentroPedidoLista" ancho="250" alto="20" filas="1" id="datosCamposCabecera" cod="2498"/>
+			</COL>
+											  
+			<!-- Ud. Caja -->
+			<COL id="fondoCabecera" ancho="150">
+				<LABELC nombre="lblUdCajaLista" ancho="150" alto="20" filas="1" id="datosCamposCabecera" cod="2505"/>
+			</COL>
+
+			<!-- Ud. Medida Venta -->
+			<COL id="fondoCabecera" ancho="410">
+				<LABELC nombre="lblUdMedidaVentaLista" ancho="410" alto="20" filas="1" id="datosCamposCabecera" cod="2499"/>
+			</COL>
+										
+			<!-- Coste Estandar -->
+			<COL id="fondoCabecera" ancho="170">
+				<LABELC nombre="lblCosteEstandarLista" ancho="170" alto="20" filas="1" id="datosCamposCabecera" cod="2483"/>
+			</COL>
+										
+			<!-- Precio Posicionamiento -->
+			<COL id="fondoCabecera" ancho="170">
+				<LABELC nombre="lblPrecioPosicionamientoLista" ancho="170" alto="20" filas="1" id="datosCamposCabecera" cod="2484"/>
+			</COL>
+										
+			<!-- Situación -->
+			<COL id="fondoCabecera" ancho="100">
+				<LABELC nombre="lblSituacionLista" ancho="100" alto="20" filas="1" id="datosCamposCabecera" cod="2485"/>
+			</COL>
+					
+			<!-- Estatus del Producto -->
+			<COL id="fondoCabecera" ancho="310">
+				<LABELC nombre="lblEstatusdelProductoLista" ancho="310" alto="20" filas="1" id="datosCamposCabecera" cod="2487"/>
+			</COL>
+					
+			<!-- Indicador Dentro Caja -->
+			<COL id="fondoCabecera" ancho="210">
+				<LABELC nombre="lblIndicadorDentroCajaLista" ancho="210" alto="20" filas="1" id="datosCamposCabecera" cod="2500"/>
+			</COL>
+					
+			<!-- Cod. Pago Fraccionado -->
+			<COL id="fondoCabecera" ancho="220">
+				<LABELC nombre="lblCodPagoFraccionadoLista" ancho="220" alto="20" filas="1" id="datosCamposCabecera" cod="2501"/>
+			</COL>
+					
+			<!-- Cod. Impuesto -->
+			<COL id="fondoCabecera" ancho="150">
+				<LABELC nombre="lblCodImpuestoLista" ancho="150" alto="20" filas="1" id="datosCamposCabecera" cod="2502"/>
+			</COL>
+
+			<!-- Vacia -->
+			<COL id="fondoCabecera" ancho="30">
+				<LABELC nombre="lblVacia" ancho="30" alto="20" filas="1" id="datosCamposCabecera" cod=""/>
+			</COL>
+
+		</CABECERA>
+
+		<PRESENTACION ancho="8030" filas="1" 
+			bloquesid="['datosCamposCenterImpar', 'datosCamposCenterPar', 'datosCamposCenterImpar', 'datosCamposCenterPar',
+						      'datosCamposCenterImpar', 'datosCamposCenterPar', 'datosCamposCenterImpar', 'datosCamposCenterPar',
+						      'datosCamposCenterImpar', 'datosCamposCenterPar', 'datosCamposCenterImpar', 'datosCamposCenterPar',
+						      'datosCamposCenterImpar', 'datosCamposCenterPar', 'datosCamposCenterImpar', 'datosCamposCenterPar',
+						      'datosCamposCenterImpar', 'datosCamposCenterPar', 'datosCamposCenterImpar', 'datosCamposCenterPar',
+						      'datosCamposCenterImpar', 'datosCamposCenterPar', 'datosCamposCenterImpar', 'datosCamposCenterPar',
+						      'datosCamposCenterImpar', 'datosCamposCenterPar', 'datosCamposCenterImpar', 'datosCamposCenterPar',
+						      'datosCamposCenterImpar', 'datosCamposCenterPar', 'datosCamposCenterImpar', 'datosCamposCenterPar',
+						      'datosCamposCenterImpar', 'datosCamposCenterPar', 'datosCamposCenterImpar' ]">
+            
+            <COL ancho="20"/>
+            <COL ancho="210" caracteres="20">Código SAP</COL>
+            <COL ancho="190" caracteres="18">Código Antiguo</COL>
+            <COL ancho="410" caracteres="40">Descripción SAP</COL>
+            <COL ancho="410" caracteres="40">Descripción Corta</COL>
+            <COL ancho="100" caracteres="4">Lote</COL>
+            <COL ancho="100" caracteres="9">Tipo</COL>
+            <COL ancho="310" caracteres="30">Marca</COL>
+            <COL ancho="410" caracteres="40">Unidad de Negocio</COL>
+            <COL ancho="410" caracteres="40">Negocio</COL>
+            <COL ancho="410" caracteres="40">Generico</COL>
+            <COL ancho="410" caracteres="40">Supergenerico</COL>
+            <COL ancho="130" caracteres="12">Jerarquia 1</COL>
+            <COL ancho="130" caracteres="12">Jerarquia 2</COL>
+            <COL ancho="130" caracteres="12">Jerarquia 3</COL>
+            <COL ancho="410" caracteres="40">Linea</COL>
+            <COL ancho="110" caracteres="10">Atributo 1</COL>
+            <COL ancho="110" caracteres="10">Atributo 2</COL>
+            <COL ancho="110" caracteres="10">Atributo 3</COL>
+            <COL ancho="110" caracteres="10">Alto</COL>
+            <COL ancho="110" caracteres="10">Largo</COL>
+            <COL ancho="110" caracteres="10">Ancho</COL>
+            <COL ancho="310" caracteres="30">Ud. Medida</COL>
+            <COL ancho="210" caracteres="20">Volumen</COL>
+            <COL ancho="110" caracteres="10">Peso</COL>
+            <COL ancho="410" caracteres="40">Ud. Medida Peso</COL>
+            <COL ancho="250" caracteres="17">Ud. Dentro Pedido</COL>
+            <COL ancho="150" caracteres="8">Ud. Caja</COL>
+            <COL ancho="410" caracteres="40">Ud. Medida Venta</COL>
+            <COL ancho="170" caracteres="16">Coste Estandar</COL>
+            <COL ancho="170" caracteres="16">Precio Posicionamiento</COL>
+            <COL ancho="100" caracteres="9">Situación</COL>
+            <COL ancho="310" caracteres="30">Estatus del Producto</COL>
+            <COL ancho="210" caracteres="20">Indicador Dentro Caja</COL>
+            <COL ancho="220" caracteres="10">Cod. Pago Fraccionado</COL>
+            <COL ancho="150" caracteres="10">Cod. Impuesto</COL>
+        </PRESENTACION>
+        
+		<ROWSET>	
+        </ROWSET>
+
+	</LISTA>
+
+	</CAPA>
+
+	<!-- BOTON MODIFICAR -->
+	<CAPA nombre="capaBotonModificar" alto="25" ancho="1294" colorf="#CCCCCC" borde="1" imagenf="" repeat="" 
+				padding="" visibilidad="hidden" contravsb="" zindex="" x="14" y="1030" >
+		<table width="100%"> 
+			<tr>
+				<td>
+					<BOTON nombre="btnModificar" ID="botonContenido" alt="" estado="false" accion="modificar();" tipo="html" cod="142"/>
+				</td>          
+			</tr>
+		</table> 
+	</CAPA>
+
+</FORMULARIO>
+
+</PAGINA>

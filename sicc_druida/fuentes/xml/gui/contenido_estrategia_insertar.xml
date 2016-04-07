@@ -1,0 +1,954 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_estrategia_insertar.xml,v 1.1 2009/12/03 18:45:53 pecbazalar Exp $
+   prueba arbol 
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+<PAGINA nombre="contenido_estrategia_insertar" cod="" titulo="" estilos="estilosB3.css" colorf="#F0F0F0" 
+	msgle="" onload="onLoadPage();" xml:lang="es">
+<!--Modificar estrategia    cod="0780"-->
+<!--Eliminar estrategia    cod="0781"-->
+<!--Consultar estrategia    cod="0782"
+0779
+-->
+<JS src="sicc_util.js"/>	 
+<JS src="PaginacionSicc.js"/>	 
+<JS src="DruidaTransactionMare.js"/>
+ <JS src="i18NJS.js"/> 
+<JAVASCRIPT>    
+  <![CDATA[
+var xrbTipoProducto;
+
+    function onLoadPage(){
+      configurarMenuSecundario("formulario");
+      fMostrarMensajeError();
+		if(get("formulario.accion")=="")
+            tipoEstrategiaOnChange();
+            
+        if(get("formulario.opcionMenu")=="Insertar"){    
+            loadOnInitComponent();
+            focaliza("formulario.txtCodEstrategia");    
+
+        }
+        if((get("formulario.opcionMenu")=="Modificar")  || (get("formulario.opcionMenu")=="Consultar")) {       
+            // setea las variables cheks que fueron seteados en la pagina.
+            seteaCheck();
+            // setea el combo de tipo de estrategias
+            set("formulario.cbTipoEstrategia",new Array(get("formulario.indCvTipoEstrategia")) );        
+            // setea el tipo de cliente 
+            xrbTipoProducto = get("formulario.tipoCli");
+            seteaTipoProducto(xrbTipoProducto);
+            // deshabilita todos los campos que correspondan
+            deshabilita();
+            if(get("formulario.opcionMenu")=="Modificar" ){
+                loadOnInitComponent();                
+                //set("formulario.xrbTipoProducto",get("formulario.tipoCli"));
+                xrbTipoProducto = get("formulario.tipoCli");
+                seteaTipoProducto(xrbTipoProducto);
+                tipoEstrategiaOnChange();
+                focaliza("formulario.txtDescipcion");
+
+            }
+        }
+    }
+
+    function seteaCheck(){
+        set("formulario.ckEstrategiaGrupo",get("formulario.indgrupo") );
+        set("formulario.ckEstrategiaCondicionada",get("formulario.indcondi") );
+        set("formulario.ckVS",get("formulario.indvs") );
+        set("formulario.ckPaquetes",get("formulario.indpaq") );
+        set("formulario.ckListaRanking",get("formulario.indlista") );
+        set("formulario.ckSolicitarIndicadorCuadre",get("formulario.indCGru") );        
+        set("formulario.ckCodVentaImprimibles",get("formulario.indCvimp") );
+        set("formulario.ckModificableImprimibles",get("formulario.indMImp") );        
+        set("formulario.ckCodVentaDespachoAutomatico",get("formulario.indCvDesp") );            
+        set("formulario.ckModificableDespachoAutomatico",get("formulario.indMDesp") );
+        set("formulario.ckCodVentaDigitables",get("formulario.indCvDig") );        
+        set("formulario.ckModificableDigitables",get("formulario.indMDig") );
+    }
+
+        
+    function seteaTipoProducto(ticl){        
+        if(ticl == get("formulario.ORDEN_COMPRA") ){
+            document.all["rbTipoProducto"][0].checked=true;           
+        }
+        if(ticl == get("formulario.ALTERNATIVO") ){
+            document.all["rbTipoProducto"][1].checked=true;
+        }
+        if(ticl == get("formulario.REEMPLAZO") ){
+            document.all["rbTipoProducto"][2].checked=true;
+        }
+        if(ticl == get("formulario.RECUPERACION") ){
+            document.all["rbTipoProducto"][3].checked=true;
+        }
+        set("formulario.rbTipoProducto",ticl);
+    }
+ 
+    function cambioTipoProd(){
+        var sel = get("formulario.cbTipoEstrategia");
+        //enozigli 30/09/2005 BELC300021002
+        if(((document.all["rbTipoProducto"][0].disabled==true) && (sel!="2") && (sel!="6")) ||
+           ((document.all["rbTipoProducto"][0].disabled==false) && (get("formulario.rbTipoProducto")=="1") && (sel!="2") && (sel!="6"))){ 
+              accion("formulario.txtOrdenAsignacionCUV",".disabled=false");
+        } else {
+              accion("formulario.txtOrdenAsignacionCUV",".disabled=true");
+              set("formulario.txtOrdenAsignacionCUV","");
+        }      
+    }
+
+	function deshabilita(){
+        if(get("formulario.opcionMenu") != "Insertar"){
+            // Modificar y consultar common
+            accion("formulario.cbTipoEstrategia",".disabled=true");
+            accion("formulario.txtCodEstrategia",".disabled=true" );
+        }
+        
+        deshabilitaObjects(true, 'ck');
+        deshabilitaRadio(true);
+
+        if(get("formulario.opcionMenu")=="Consultar"){
+            deshabilitaObjects(true, 'txt'); 
+        }
+	 }
+
+    function tipoEstrategiaOnChange(){
+    
+        if(get("formulario.opcionMenu")=="Insertar"){
+            // Deshabilita todos los campos
+            deshabilita();
+            accion("formulario.cbTipoEstrategia",".disabled=false" );
+            accion("formulario.txtCodEstrategia",".disabled=false" );
+        }
+        // Este campo lo dejo afuera ya que se ve en la modificacion e insercion
+        accion("formulario.txtDescipcion",".disabled=false" );
+        accion("formulario.ckCodVentaImprimibles", ".disabled=false");
+        accion("formulario.ckModificableImprimibles",".disabled=false" );        
+        accion("formulario.ckCodVentaDespachoAutomatico",".disabled=false" );            
+        accion("formulario.ckModificableDespachoAutomatico",".disabled=false" );
+        accion("formulario.ckCodVentaDigitables",".disabled=false" );        
+        accion("formulario.ckModificableDigitables",".disabled=false" );
+        
+        var sel = get("formulario.cbTipoEstrategia");
+        if(sel == ''){
+            // en caso de que el combo se selecciona en blanco. 
+            deshabilitaObjects(true, 'ck');       
+           // accion("formulario.txtCodEstrategia",".disabled=true" );
+           deshabilitaRadio(true);
+           accion("formulario.txtNumMaximoGrupo",".disabled=true");
+           accion("formulario.txtOrdenAsignacionCUV",".disabled=true");
+           accion("formulario.txtNumMaximoGrupoCondicionados",".disabled=true");
+           accion("formulario.txtNumMaximoGrupoCondicionantes",".disabled=true");
+           set("formulario.ckEstrategiaGrupo","N");
+           set("formulario.ckEstrategiaCondicionada","N");
+           set("formulario.ckEstrategiaVR","N");
+           set("formulario.ckEstrategiaPaquetes","N");                
+        }
+        
+        var array = listaEstrategia.datos;
+        for(var i=0; i < array.length; i++){
+          if(array[i][0] == sel){
+                if(array[i][2]=="1") {set("formulario.ckEstrategiaGrupo","S");}else{set("formulario.ckEstrategiaGrupo","N");}
+                if(array[i][3]=="1") {set("formulario.ckEstrategiaCondicionada","S");}else{set("formulario.ckEstrategiaCondicionada","N");} 
+                if(array[i][4]=="1") {set("formulario.ckEstrategiaVR","S");}else{set("formulario.ckEstrategiaVR","N");} 
+                if(array[i][5]=="1") {set("formulario.ckEstrategiaPaquetes","S");}else{set("formulario.ckEstrategiaPaquetes","N");} 
+                
+                if((array[i][2]=="1") || (array[i][5]=="1")){	accion("formulario.txtNumMaximoGrupo",".disabled=false");}
+																							  else {set("formulario.txtNumMaximoGrupo","");accion("formulario.txtNumMaximoGrupo",".disabled=true");}
+                if((array[i][2]=="1") && (array[i][3]=="1"))	accion("formulario.txtNumMaximoGrupoCondicionantes",".disabled=false");
+																							  else{set("formulario.txtNumMaximoGrupoCondicionantes",""); accion("formulario.txtNumMaximoGrupoCondicionantes",".disabled=true");}
+                if((array[i][2]=="1") && (array[i][3]=="1"))	accion("formulario.txtNumMaximoGrupoCondicionados",".disabled=false");
+																							  else{set("formulario.txtNumMaximoGrupoCondicionados",""); accion("formulario.txtNumMaximoGrupoCondicionados",".disabled=true");}
+                if((array[i][2]=="1") || (array[i][5]=="1"))	accion("formulario.ckListaRanking",".disabled=false");
+																							  else{set("formulario.ckListaRanking","N");  accion("formulario.ckListaRanking",".disabled=true");}
+                /*if(sel=="4") accion("formulario.ckEstrategiaCondicionada",".disabled=false");
+                                                else{set("formulario.ckEstrategiaCondicionada","N"); accion("formulario.ckEstrategiaCondicionada",".disabled=true");}
+                */
+                if(sel=="4"){ 
+                  set("formulario.ckIndicadorCuadrePorGrupo","S");          
+                  accion("formulario.txtNumMaximoGrupoCondicionados",".disabled=false");
+                  accion("formulario.txtNumMaximoGrupoCondicionantes",".disabled=false");
+                } else { 
+                  set("formulario.ckIndicadorCuadrePorGrupo","N");
+                  accion("formulario.txtNumMaximoGrupoCondicionados",".disabled=true");
+                  accion("formulario.txtNumMaximoGrupoCondicionantes",".disabled=true");
+                }
+        
+                if((sel=="1") || (sel=="2")){ 
+                    if((get("formulario.opcionMenu")!="Modificar")&&(get("formulario.opcionMenu")!="Consultar")){
+                      set("formulario.rbTipoProducto","1");
+                    }
+                    document.all["rbTipoProducto"][0].disabled=false;
+                    document.all["rbTipoProducto"][1].disabled=false;
+                    document.all["rbTipoProducto"][2].disabled=false;
+                    document.all["rbTipoProducto"][3].disabled=false;                    
+                      
+                } else { 
+                    accion("formulario.rbTipoProducto",".disabled=true");
+                    set("formulario.rbTipoProducto","");
+                }
+                
+                //enozigli 30/09/2005 BELC300021002
+                if(((document.all["rbTipoProducto"][0].disabled==true) && (sel!="2") && (sel!="6")) ||
+                   ((document.all["rbTipoProducto"][0].disabled==false) && (get("formulario.rbTipoProducto")=="1") && (sel!="2") && (sel!="6"))){ 
+                      accion("formulario.txtOrdenAsignacionCUV",".disabled=false");
+                } else {
+                      accion("formulario.txtOrdenAsignacionCUV",".disabled=true");
+                      set("formulario.txtOrdenAsignacionCUV","");
+                }
+			     }
+		    }
+    }
+
+    function accionGuardar(){
+        var testr = get("formulario.cbTipoEstrategia");
+
+        if (testr == '' ){ // Si no selecciono tipoEstrategia 
+            if(!sicc_validaciones_generales("general")){return false;}          
+        } 
+        if(testr == 1 ){ // Individual
+            if(!sicc_validaciones_generales("general")){return false;}         
+        }
+
+        if(testr == 2){ // Compuesta Fija            
+            if(!sicc_validaciones_generales("general")){return false;}        
+        }
+
+       if(testr == 3){ // Compuesta Variable
+            if(!sicc_validaciones_generales("general,maxgrupo")){return false;}
+        }
+
+        if(testr == 4){ // Condicionada
+            if(!sicc_validaciones_generales("general,maxgrupo,maxgrupocondicionante,maxgrupocondicionado")){return false;}
+        }
+
+        if(testr == 5){ // Individual vs grupo
+            if(!sicc_validaciones_generales("general")){return false;}
+        }
+        if(testr == 6){ //Compuesta fija vs grupo            
+            if(!sicc_validaciones_generales("general,maxgrupo")){return false;}
+        }
+        if(testr == 7){ //Compuesta variable vs grupo
+            if(!sicc_validaciones_generales("general,maxgrupo")){return false;}        
+        }        
+
+        //enozigli 30/09/2005 BELC300021002
+        if(((document.all["rbTipoProducto"][0].disabled==true) && (testr!="2") && (testr!="6")) ||
+           ((document.all["rbTipoProducto"][0].disabled==false) && (get("formulario.rbTipoProducto")=="1") && (testr!="2") && (testr!="6"))){ 
+           if(!sicc_validaciones_generales("cuv")){return false;}
+        } else {
+           setMV('formulario.txtOrdenAsignacionCUV','N');
+        }
+        
+     //   if(!validacionFuncionales()){return false;}        
+        
+        if(get("formulario.opcionMenu")!="Modificar"){ 
+
+        		set("formulario.cbTipoEstrategiaTxt",get("formulario.cbTipoEstrategia"));
+            	set("formulario.accion", "Guardar");
+                set('formulario.conectorAction','LPMantenimientoEstrategias');
+                setVariables();
+                set('formulario.ckCodVentaImprimibles',get('formulario.ckCodVentaImprimibles'));
+                set("formulario.txtCodEstrategia", get("formulario.txtCodEstrategia").toUpperCase());
+
+                enviaSICC('formulario');
+
+        }else{
+            // modificar
+                setVariables();
+        		set("formulario.cbTipoEstrategiaTxt",get("formulario.cbTipoEstrategia"));
+            	set("formulario.accion", "Guardar");
+                set('formulario.conectorAction','LPMantenimientoEstrategias');
+                set("formulario.txtCodEstrategia", get("formulario.txtCodEstrategia").toUpperCase());
+                enviaSICC("formulario");
+        
+
+        }
+    } 
+
+    function validacionFuncionales(){
+        if(!valida_sumatoriaGrupos()){
+            alert("Los grupos son la composicion de los grupos condicionantes y condicionados")
+        }else{
+            return true;
+        }
+    }
+
+    function valida_sumatoriaGrupos(){
+           var gr       = parseInt(get("formulario.txtNumMaximoGrupo"));
+           var grcdos   = parseInt(get("formulario.txtNumMaximoGrupoCondicionados"));
+           var grctes   = parseInt(get("formulario.txtNumMaximoGrupoCondicionantes"));
+        if((get("formulario.txtNumMaximoGrupoCondicionados") == '') && (get("formulario.txtNumMaximoGrupoCondicionantes") == '') ){
+            return true;
+        }
+        if((grcdos + grctes) <= gr ){
+            return true;
+        }else{
+            return false;
+        }
+            
+    }    
+    function fGuardar(){    
+        accionGuardar();
+    }
+
+    function fLimpiar(){
+        limpiaI18N("formulario", 1 );
+        set("formulario.cbTipoEstrategia",new Array(get("formulario.indCvTipoEstrategia")) ); 
+        if(get("formulario.opcionMenu") == 'Insertar'){
+//            limpiaObjects();
+            set("formulario.rbTipoProducto","");
+            restoreComponent();
+            deshabilitaObjects(false, 'ck');       
+            deshabilitaObjects(false, 'txt');
+            deshabilitaRadio(false);
+            tipoEstrategiaOnChange();
+            focaliza("formulario.txtCodEstrategia");
+        }else{
+            seteaTipoProducto(xrbTipoProducto);
+            focaliza("formulario.txtDescipcion");
+        }
+        restoreComponent();
+        
+        
+    }
+
+    function setVariables(){
+        
+        set('formulario.vtxtCodEstrategia',get('formulario.txtCodEstrategia'));
+        set('formulario.vcbTipoEstrategia',get('formulario.cbTipoEstrategia'));
+        set('formulario.vtxtDescipcion',get('formulario.txtDescipcion'));
+        set('formulario.vckEstrategiaGrupo',get('formulario.ckEstrategiaGrupo'));
+        set('formulario.vckSolicitarIndicadorCuadre',get('formulario.ckSolicitarIndicadorCuadre'));
+        set('formulario.vckEstrategiaCondicionada',get('formulario.ckEstrategiaCondicionada'));
+        set('formulario.vckVS',get('formulario.ckVS'));
+        set('formulario.vckPaquetes',get('formulario.ckPaquetes'));        
+        set('formulario.vckListaRanking',get('formulario.ckListaRanking'));                
+        set('formulario.vckSolicitarIndicadorCuadre',get('formulario.ckSolicitarIndicadorCuadre')); 
+
+
+        set('formulario.vckCodVentaImprimibles',get('formulario.ckCodVentaImprimibles'));
+        set('formulario.vckModificableImprimibles',get('formulario.ckModificableImprimibles'));
+        set('formulario.vckCodVentaDespachoAutomatico',get('formulario.ckCodVentaDespachoAutomatico'));
+        set('formulario.vckModificableDespachoAutomatico',get('formulario.ckModificableDespachoAutomatico'));        
+        set('formulario.vckCodVentaDigitables',get('formulario.ckCodVentaDigitables'));        
+        set('formulario.vckModificableDigitables',get('formulario.ckModificableDigitables'));
+
+        set('formulario.vtxtNumMaximoGrupo',get('formulario.txtNumMaximoGrupo')); 
+        set('formulario.vtxtNumMaximoGrupoCondicionados',get('formulario.txtNumMaximoGrupoCondicionados')); 
+        set('formulario.vtxtNumMaximoGrupoCondicionantes',get('formulario.txtNumMaximoGrupoCondicionantes')); 
+
+    }
+    
+    function deshabilitaObjects(boole, pattern ){
+        var td2 = document.all.tags("INPUT");
+        for(var i=0;i<td2.length;i++){
+            if(td2.item(i).name.substring(0,pattern.length) == pattern){
+                td2.item(i).disabled=boole;
+            }
+        }
+        
+    }
+    
+    
+    function deshabilitaRadio(boole){
+        document.all["rbTipoProducto"][0].disabled=boole;
+        document.all["rbTipoProducto"][1].disabled=boole;
+        document.all["rbTipoProducto"][2].disabled=boole;
+        document.all["rbTipoProducto"][3].disabled=boole;
+    }
+
+ 
+    function guardoOk(){
+
+        this.close();
+        fLimpiar();
+    }
+
+    function noGuardo(){    }
+
+    function tabularTXTHasta(tipo, campo){
+        // caso en el que el combo no esta seteado
+        var sel = get("formulario.cbTipoEstrategia");
+        document.selection.empty();
+        if(sel == ''){
+           if(tipo=='shtab' && (campo == 'txtCodEstrategia' || get('formulario.opcionMenu')=='Modificar')){
+           
+                focaliza("formulario.cbTipoEstrategia");
+                return;
+            }else{
+                if(campo == 'txtDescipcion' && get('formulario.opcionMenu')=='Insertar' ){
+                    focaliza('formulario.txtCodEstrategia');
+                    return;
+                }
+            }
+        }
+        // caso en el que entra por modificar
+        if (get('formulario.opcionMenu')=='Modificar' ){
+             if (tipo=='tab'){
+                  focaliza('formulario.txtDescipcion');
+             }else if (tipo=='shtab'){
+                  focaliza('formulario.ckModificableDigitables');
+             }
+        }
+        
+        // demas casos 
+         if (!(get('formulario.opcionMenu')=='Modificar' || get('formulario.opcionMenu')=='Mostrar datos')){
+             if (tipo=='tab'){
+                  focaliza('formulario.txtCodEstrategia');
+             }else if (tipo=='shtab'){
+                if(campo == 'txtCodEstrategia' ){
+                  focaliza('formulario.ckModificableDigitables');
+                }else{
+                  focaliza('formulario.txtCodEstrategia');
+                }
+             }
+         }
+         
+    }
+
+
+
+
+
+
+    // Persistencia para el Limpiar
+
+    var arrNCheck = new Array();
+    var arrNCombo = new Array();
+    var arrNText = new Array();
+    var arrNrad = new Array();
+    
+    var arrCombos = new Array();
+    var observaciones = '';
+    var activa = '' ;
+         
+    function loadOnInitComponent(){
+         // Algunas cosas que no guardo;
+    
+         var arrN = new Array();
+         arrN.length = d3_componentes.length;
+             
+         arrNCheck.length = d3_componentes.length;
+         arrNCombo.length = d3_componentes.length;
+         arrNText.length = d3_componentes.length;
+         arrNrad.length = d3_componentes.length;
+    
+         var ich = 0;
+         var ico = 0;
+         var ict = 0;
+         var icr = 0;
+                 
+         for(var j = 0 ; j < d3_componentes.length ; j++) {
+             var tipo = d3_componentes[j][0];
+             var nombre = d3_componentes[j][1];
+             // No funca para Radios 
+             if(tipo == 'RADIOB') {
+                  arrNrad[ich] =  get(nombre);
+                  icr++;
+
+             }
+             if(tipo == 'CHECKBOX') {
+                  arrNCheck[ich] =  get(nombre);
+                  ich++;
+             }
+             if(tipo == 'CTEXTO') {
+                  arrNText[ict] =  get(nombre);
+                  ict++;
+             }
+             if(tipo == 'COMBO') {
+                  arrNCombo[ico] =  get(nombre);
+                  arrCombos[ico] = nombre;
+                  ico++;
+             }
+
+        }
+        
+    }
+
+
+    
+    function restoreComponent(){
+         var ich = 0;
+         var ico = 0;
+         var ict = 0;
+         var icr = 0;
+        
+         for(var j = 0 ; j < d3_componentes.length ; j++) {
+             var tipo = d3_componentes[j][0];
+
+             var nombre = d3_componentes[j][1];
+             if(tipo == 'RADIOB') {
+                 set(nombre,  arrNrad[ich] );
+                  icr++;
+             }
+             if(tipo == 'CHECKBOX') {
+                 set(nombre,  arrNCheck[ich] );
+                  ich++;
+             }
+             if(tipo == 'CTEXTO') {
+                  if(arrNText[ict] != undefined){    
+                      set(nombre,  arrNText[ict] );
+                  }
+                  ict++;
+             }
+             if(tipo == 'COMBO') {
+                  set(nombre,  arrNCombo[ico] );
+                  ico++;
+             }
+       
+         }
+       
+     }
+
+
+    function validaTab(){
+        // si esta en posicion 0 el focalizo en el primer campo sino no hago nada
+        var sel = get("formulario.cbTipoEstrategia");
+
+        if(sel == ''){
+            if(get("formulario.opcionMenu")=="Insertar"){    
+                focaliza("formulario.txtCodEstrategia");
+            }
+            if(get("formulario.opcionMenu")=="Modificar"){    
+                focaliza("formulario.txtDescipcion");
+            }
+        }else{
+            manejaTab('ckEstrategiaGrupo')
+        }        
+    }
+
+
+
+    
+    function manejaTab(campo){
+        if( campo == 'ckEstrategiaGrupo' ){
+    		if( ckEstrategiaCondicionada.disabled == false ){
+        		focaliza('formulario.ckEstrategiaCondicionada');
+            }else{
+                manejaTab('ckEstrategiaCondicionada');
+        	}
+        }else if( campo == 'ckEstrategiaCondicionada' ){
+            if( ckEstrategiaVR.disabled == false ){
+        		focaliza('formulario.ckEstrategiaVR');
+    		}else{
+            	manejaTab('ckEstrategiaVR');
+            }
+		}else if( campo == 'ckEstrategiaVR' ){
+            if( ckEstrategiaPaquetes.disabled == false ){
+                focaliza('formulario.ckEstrategiaPaquetes');
+    		}else{
+        		manejaTab('ckEstrategiaPaquetes');
+    		}   
+        }else if( campo == 'ckEstrategiaPaquetes' ){
+            if( txtNumMaximoGrupo.disabled == false ){
+                focaliza('formulario.txtNumMaximoGrupo');
+    		}else{
+        		manejaTab('txtNumMaximoGrupo');
+    		}
+        }else if( campo == 'txtNumMaximoGrupo' ){
+            if( txtNumMaximoGrupoCondicionados.disabled == false ){
+                focaliza('formulario.txtNumMaximoGrupoCondicionados');
+    		}else{
+        		manejaTab('txtNumMaximoGrupoCondicionados');
+    		}
+        }else if( campo == 'txtNumMaximoGrupoCondicionados' ){
+            if( txtNumMaximoGrupoCondicionantes.disabled == false ){
+                focaliza('formulario.txtNumMaximoGrupoCondicionantes');
+    		}else{
+        		manejaTab('txtNumMaximoGrupoCondicionantes');
+    		}
+        }else{  
+            focaliza('formulario.ckCodVentaImprimibles');
+        }
+        
+    }
+
+    function fVolver(){
+        this.close();
+    }
+  
+
+  ]]>   
+<VALIDACION>
+      <ELEMENTO name="txtCodEstrategia" required="true" cod="2592" group="general"/>
+      <ELEMENTO name="txtDescipcion" required="true" cod="9" group="general"/>
+      <ELEMENTO name="cbTipoEstrategia" required="true" cod="460" group="general"/>
+      <ELEMENTO name="txtNumMaximoGrupo" required="true" cod="2597"  format="e" min="1" max="99" group="maxgrupo"/>
+      <ELEMENTO name="txtNumMaximoGrupoCondicionados" required="true" cod="2599"  format="e" min="1" max="99" group="maxgrupocondicionado"/>
+      <ELEMENTO name="txtNumMaximoGrupoCondicionantes" required="true" cod="2598" format="e" min="1" max="99" group="maxgrupocondicionante"/>      
+      <ELEMENTO name="txtOrdenAsignacionCUV" required="true" cod="3035" format="e" min="0" max="99" group="cuv"/>
+            
+</VALIDACION>
+</JAVASCRIPT>
+
+<FORMULARIO nombre="formulario" oculto="S">
+<VAR nombre="accion" valor=""/>
+<VAR nombre="acciones" valor=""/>
+<VAR nombre="idioma" valor=""/>
+<VAR nombre="pais" valor=""/>
+<VAR nombre="conectorAction" valor="LPMantenimientoEstrategias"/>
+<VAR nombre="casoDeUso" valor=""/>
+<VAR nombre="errCodigo" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="opcionMenu" valor=""/>
+<VAR nombre="cbTipoEstrategiaTxt" valor=""/>
+<VAR nombre="indgrupo" valor=""/>
+<VAR nombre="indcondi" valor=""/>
+<VAR nombre="indvs" valor=""/>
+<VAR nombre="indpaq" valor=""/>
+<VAR nombre="indlista" valor=""/>
+<VAR nombre="indCGru" valor=""/>
+<VAR nombre="indCvimp" valor=""/>
+<VAR nombre="indMImp" valor=""/>
+<VAR nombre="indCvDesp" valor=""/>
+<VAR nombre="indMDesp" valor=""/>
+<VAR nombre="indCvDig" valor=""/>
+<VAR nombre="indMDig" valor=""/>
+<VAR nombre="indCvTipoEstrategia" valor=""/>
+<VAR nombre="tipoCli" valor=""/>
+<VAR nombre="oidEstr" valor=""/>
+
+
+<!-- Constantes PRE -->
+<VAR nombre="ORDEN_COMPRA" valor=""/>
+<VAR nombre="REEMPLAZO" valor=""/>
+<VAR nombre="ALTERNATIVO" valor=""/>
+<VAR nombre="RECUPERACION" valor=""/>
+<!-- Variables de componentes -->
+<VAR nombre="vtxtCodEstrategia" valor=""/>
+<VAR nombre="vcbTipoEstrategia" valor=""/>
+<VAR nombre="vtxtDescipcion" valor=""/>
+<VAR nombre="vckEstrategiaGrupo" valor=""/>
+<VAR nombre="vckSolicitarIndicadorCuadre" valor=""/>
+
+<VAR nombre="vckEstrategiaCondicionada" valor=""/>
+
+<VAR nombre="vckVS" valor=""/>
+
+<VAR nombre="vckPaquetes" valor=""/>
+<VAR nombre="vckListaRanking" valor=""/>
+<VAR nombre="vckSolicitarIndicadorCuadre" valor=""/>
+<VAR nombre="vtxtNumMaximoGrupoCondicionantes" valor=""/>
+<VAR nombre="vtxtNumMaximoGrupoCondicionados" valor=""/>
+<VAR nombre="vtxtNumMaximoGrupo" valor=""/>
+
+<VAR nombre="vckCodVentaImprimibles" valor=""/>
+<VAR nombre="vckModificableImprimibles" valor=""/>
+<VAR nombre="vckCodVentaDigitables" valor=""/>
+<VAR nombre="vckModificableDigitables" valor=""/>
+<VAR nombre="vckCodVentaDespachoAutomatico" valor=""/>
+<VAR nombre="vckModificableDespachoAutomatico" valor=""/>
+
+<!-- Este esta para el limpiar (La puse como una var global de js)-->
+<!-- <VAR nombre="xrbTipoProducto" valor=""/> -->
+ 
+<CAPA nombre="capa1"> 
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+     <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+	<fieldset><legend class="legend"><LABELC nombre="lblDatosAlta" alto="13" filas="1" valor="" id="legend" cod="00127"/></legend> 
+	<table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+              
+            <tr><td>
+              
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td><LABELC nombre="lblCodEstrategia" alto="13" filas="1" valor="" id="datosTitle" cod="2592"/></td>                   
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td colspan="3"><LABELC nombre="lblDescripcion" alto="13" filas="1" valor="" id="datosTitle" cod="9"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td  nowrap="nowrap">
+                      <CTEXTO nombre="txtCodEstrategia" id="datosCampos" max="3" tipo="" onchange="" req="S" size="3" valor="" validacion="" onshtab="tabularTXTHasta('shtab', 'txtCodEstrategia')"/>
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>  
+                   <td  nowrap="nowrap">
+                      <CTEXTO nombre="txtDescipcion" id="datosCampos" max="30" tipo="" onchange="" req="S" size="30" valor="" validacion="" onshtab="tabularTXTHasta('shtab','txtDescipcion')"/>
+                   </td>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><IMG src="iconmultidioma.gif" onclick="levantarI18N('formulario','1');"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+              </td></tr>
+	     <tr><td>
+               <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>   
+                   <td><LABELC nombre="lblTipoEstrategia" alto="13" filas="1" valor="" id="datosTitle" cod="460"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>                
+                   <td><LABELC nombre="lblEstrategiaGrupo" alto="13" filas="1" valor="" id="datosTitle" cod="2593"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lblEstrategiaCondicionada" alto="13" filas="1" valor="" id="datosTitle" cod="2594"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lblEstrategiaVR" alto="13" filas="1" valor="" id="datosTitle" cod="2595"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lblEstrategiaPaquetes" alto="13" filas="1" valor="" id="datosTitle" cod="2596"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td> 
+                    <td  nowrap="nowrap">
+                    <COMBO nombre="cbTipoEstrategia" id="datosCampos" size="1" multiple="N" req="S" onchange="tipoEstrategiaOnChange();focaliza('formulario.cbTipoEstrategia');" valorinicial="" textoinicial="" ontab="validaTab()">
+                      	<ROWSET>
+                      	</ROWSET>
+                    </COMBO>
+                   </td>  
+                   <td><IMG src="b.gif" width="25" height="8"/></td>                          
+                   <td  nowrap="nowrap">
+                      <CHECKBOX check="" id="" msjreq="" nombre="ckEstrategiaGrupo" onclick="" onfocus="" readonly="" req="" tabindex="1" texto="" validacion=""/>
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td  nowrap="nowrap">
+                      <CHECKBOX check="" id="" msjreq="" nombre="ckEstrategiaCondicionada" onclick="" onfocus="" readonly="" req="" tabindex="1" texto="" validacion=""/>
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td  nowrap="nowrap">
+                      <CHECKBOX check="" id="" msjreq="" nombre="ckEstrategiaVR" onclick="" onfocus="" readonly="" req="" tabindex="1" texto="" validacion=""/>
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td  nowrap="nowrap">
+                      <CHECKBOX check="" id="" msjreq="" nombre="ckEstrategiaPaquetes" onclick="" onfocus="" readonly="" req="" tabindex="1" texto="" validacion=""/>
+                   </td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+              </td></tr>
+	     <tr><td>
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td><LABELC nombre="lblNumMaximoGrupo" alto="13" filas="1" valor="" id="datosTitle" cod="2597"/></td>                   
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lblNumMaximoGrupoCondicionantes" alto="13" filas="1" valor="" id="datosTitle" cod="2598"/></td>                   
+                    <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lblNumMaximoGrupoCondicionados" alto="13" filas="1" valor="" id="datosTitle" cod="2599"/></td>                   
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td  nowrap="nowrap">
+                      <CTEXTO nombre="txtNumMaximoGrupo" id="datosCampos" max="2" tipo="" onchange="" req="N" size="2" valor="" validacion="" />
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>  
+                   <td  nowrap="nowrap">
+                      <CTEXTO nombre="txtNumMaximoGrupoCondicionantes" id="datosCampos" max="2" tipo="" onchange="" req="N" size="2" valor="" validacion="" />
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>  
+                   <td  nowrap="nowrap">
+                      <CTEXTO nombre="txtNumMaximoGrupoCondicionados" id="datosCampos" max="2" tipo="" onchange="" req="N" size="2" valor="" validacion="" />
+                   </td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+              </table>
+              </td></tr>
+	     <tr><td>
+               <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>   
+                   <td><LABELC nombre="lblListaRanking" alto="13" filas="1" valor="" id="datosTitle" cod="2600"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>                
+                   <td><LABELC nombre="lblIndicadorCuadrePorGrupo" alto="13" filas="1" valor="" id="datosTitle" cod="2601"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lblTipoProducto" alto="13" filas="1" valor="Tipo producto" id="datosTitle" cod="2602"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td> 
+                   <td  nowrap="nowrap">
+                      <CHECKBOX check="" id="" msjreq="" nombre="ckListaRanking" onclick="" onfocus=""  readonly="" req="" tabindex="1" texto="" validacion=""/>
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>                
+                   <td  nowrap="nowrap">
+		     <CHECKBOX check="" id="" msjreq="" nombre="ckIndicadorCuadrePorGrupo" onclick="" onfocus=""  readonly="" req="" tabindex="1" texto="" validacion=""/>
+		   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td class="datosCampos" nowrap="nowrap">
+                     <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                       <tr><td nowrap="nowrap"> 
+        		 <RADIOB nombre="rbTipoProducto" tipo="H" id="datosCampos"  onclick="cambioTipoProd();">
+			   <!--RBINPUT valor="S" check="N" onfocus="" id="datosCampos" cod="2603"></RBINPUT-->
+			   <RBINPUT valor="1" onfocus="" id="datosCampos" cod="2603"></RBINPUT>
+				<RBINPUT valor="3" onfocus="" id="datosCampos" cod="2604"></RBINPUT>
+			   <RBINPUT valor="2" onfocus="" id="datosCampos" cod="2605"></RBINPUT>
+				<!--RBINPUT valor="S" check="N" onfocus="" id="datosCampos" cod="2605"></RBINPUT-->
+			   <RBINPUT valor="4" onfocus="" id="datosCampos" cod="2606"></RBINPUT>
+			 </RADIOB>
+                       </td></tr>
+                     </table>
+		   </td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>               
+              </table>
+             </td></tr>
+	     <tr><td>
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>   
+                   <td><LABELC nombre="lblOrdenAsignacionCUV" alto="13" filas="1" valor="" id="datosTitle" cod="3035"/></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td> 
+                   <td nowrap="nowrap"><CTEXTO nombre="txtOrdenAsignacionCUV" id="datosCampos" max="2" tipo="" onchange="" req="S" size="2" valor="" validacion="" /></td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                
+                <tr>
+                   <td colspan="4"><IMG src="b.gif" width="8" height="15"/></td>
+                </tr>                  
+              </table>
+             </td></tr>
+	     <tr><td>
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td><IMG src="b.gif" width="12" height="12"/></td>                  
+                  <td width="100%">                      
+                    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                      <tr>
+                        <td>
+                          <fieldset><legend class="legend"><LABELC nombre="lblEtiqueta"  alto="13" filas="1" valor="" id="legend" cod="00630"/></legend> 
+		                  <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+		                    <tr>
+		                      <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+		                    </tr>
+		                    <tr>
+		                      <td><IMG src="b.gif" width="8" height="8"/></td>
+		                      <td><LABELC nombre="lblCodVentaImprimibles" alto="13" filas="1" valor="" id="datosTitle" cod="2607"/></td>
+		                      <td><IMG src="b.gif" width="25" height="8"/></td>
+		                      <td><LABELC nombre="lblModificableImprimibles" alto="13" filas="1" valor="" id="datosTitle" cod="914"/></td>
+		                      <td><IMG src="b.gif" width="25" height="8"/></td>
+		                      <td><LABELC nombre="lblCodVentaDespachoAutomatico" alto="13" filas="1" valor="" id="datosTitle" cod="2608"/></td>
+		                      <td><IMG src="b.gif" width="25" height="8"/></td>
+		                      <td><LABELC nombre="lblModificableDespachoAutomatico" alto="13" filas="1" valor="" id="datosTitle" cod="914"/></td>
+		                      <td><IMG src="b.gif" width="25" height="8"/></td>
+		                      <td><LABELC nombre="lblCodVentaDigitables" alto="13" filas="1" valor="" id="datosTitle" cod="2609"/></td>
+		                      <td><IMG src="b.gif" width="25" height="8"/></td>
+		                      <td><LABELC nombre="lblModificableDigitables" alto="13" filas="1" valor="" id="datosTitle" cod="914"/></td>
+		                      <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+		                    </tr> 
+		                    <tr>
+		                      <td><IMG src="b.gif" width="8" height="8"/></td>
+		                      <td  nowrap="nowrap">
+		                        <CHECKBOX check="" id="" msjreq="" nombre="ckCodVentaImprimibles" onclick="" onfocus=""  readonly="" req="" tabindex="1" texto="" validacion=""/>
+		                      </td>
+		                      <td><IMG src="b.gif" width="25" height="8"/></td>                          
+		                      <td  nowrap="nowrap">
+		                        <CHECKBOX check="" id="" msjreq="" nombre="ckModificableImprimibles" onclick="" onfocus=""  readonly="" req="" tabindex="1" texto="" validacion=""/>
+		                      </td>
+		                      <td><IMG src="b.gif" width="25" height="8"/></td>                          
+		                      <td  nowrap="nowrap">
+		                        <CHECKBOX check="" id="" msjreq="" nombre="ckCodVentaDespachoAutomatico" onclick="" onfocus=""  readonly="" req="" tabindex="1" texto="" validacion=""/>
+		                      </td>
+		                      <td><IMG src="b.gif" width="25" height="8"/></td>                          
+		                      <td  nowrap="nowrap">
+		                        <CHECKBOX check="" id="" msjreq="" nombre="ckModificableDespachoAutomatico" onclick="" onfocus=""  readonly="" req="" tabindex="1" texto="" validacion=""/>
+		                      </td>
+		                      <td><IMG src="b.gif" width="25" height="8"/></td>                          
+		                      <td  nowrap="nowrap">
+		                        <CHECKBOX check="" id="" msjreq="" nombre="ckCodVentaDigitables" onclick="" onfocus=""  readonly="" req="" tabindex="1" texto="" validacion=""/>
+		                      </td>
+		                      <td><IMG src="b.gif" width="25" height="8"/></td>                          
+		                      <td  nowrap="nowrap">
+		                        <CHECKBOX check="" id="" msjreq="" nombre="ckModificableDigitables" onclick="" onfocus="" ontab="tabularTXTHasta('tab','ckModificableDigitables')" readonly="" req="" tabindex="1" texto="" validacion=""/>
+   		        
+		                      </td>
+		                      <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+		                    </tr> 
+		                    <tr>
+		                      <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+		                    </tr>
+		            </table>
+                          </fieldset>
+                        </td>
+                      </tr> 
+                    </table> 
+                  </td>
+                  <td><IMG src="b.gif" width="12" height="12"/></td> 
+	        </tr>
+	        <tr>
+                   <td colspan="4"><IMG src="b.gif" width="12" height="12"/></td>
+                </tr>    
+	      </table> 
+	      </td></tr>
+	     </table>
+        </fieldset>        
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+ </CAPA>
+
+ <CAPA nombre="capa2" visibilidad="hidden"> 
+    <LISTAEDITABLE nombre="listaEstrategia" ancho="703" alto="299" x="12" y="0" colorFondo="#CECFCE" msgDebugJS="S"  >
+      <IMGBOTONES precarga="S" conROver="S">
+	<BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+	<BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+	<BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+      <LINEAS>
+	<GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="1" horizTitulo="1" horizBase="1"/> 
+	<COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00135" ID="datosTitle" />
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+         <COL ancho="180" minimizable="S" minimizada="N"/>
+         <COL ancho="100" minimizable="S" minimizada="N"/> 
+         <COL ancho="100" minimizable="S" minimizada="N"/> 
+         <COL ancho="100" minimizable="S" minimizada="N"/> 
+         <COL ancho="100" minimizable="S" minimizada="N"/> 
+      </COLUMNAS>
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+			<COL colFondo="" ID="EstCab" cod="460"></COL> 
+			<COL colFondo="" ID="EstCab" cod="2592"></COL> 
+			<COL colFondo="" ID="EstCab" cod="9"></COL> 
+			<COL colFondo="" ID="EstCab" cod="9"></COL> 
+			<COL colFondo="" ID="EstCab" cod="9"></COL> 
+      </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel=""  coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" onLoad="" colorSelecc="#D0D9E8">
+         <COL tipo="texto" ID="EstDat"/> 
+         <COL tipo="texto" ID="EstDat2"/> 
+         <COL tipo="texto" ID="EstDat"/> 
+         <COL tipo="texto" ID="EstDat"/> 
+         <COL tipo="texto" ID="EstDat"/> 
+      </DATOS>
+      <ROWSET>
+      </ROWSET>
+   </LISTAEDITABLE>
+	</CAPA>
+ </FORMULARIO>
+</PAGINA>       

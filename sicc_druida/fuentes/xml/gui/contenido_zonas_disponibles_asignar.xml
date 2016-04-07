@@ -1,0 +1,481 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/PROY
+   $Id: contenido_zonas_disponibles_asignar.xml,v 1.1 2009/12/03 18:44:37 pecbazalar Exp $
+   DESC
+
+   DRUIDATARGET=/../../config/scripts/iniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_zonas_disponibles_asignar" titulo="" estilos="estilosB3.css" colorf="#F0F0F0" msgle="" 
+        onload="inicia();" xml:lang="es" cod="068">
+
+    <JS src="sicc_util.js"/>   
+   <JS src="I18NJS.js"/>   
+   <JS src="DruidaTransactionMare.js"/>   
+    
+   <JAVASCRIPT>    
+     <![CDATA[   
+
+      var arrValoresIniciales = new Array();
+    
+       function inicia(){  
+              
+              if (get('frmAsinarZonasDisponibles.hcerrar')=='false'){              
+                   configurarMenuSecundario("frmAsinarZonasDisponibles");   
+                   posicionarRegionPorDefecto();                     
+                   mostrarCodigoError();   
+                 } else {   
+                   returnValue = 'guardo';   
+                   window.close();   
+              }
+              recolectaZonasIniciales();
+       } 
+
+       function recolectaZonasIniciales(){
+          var zonasIniciales = document.getElementById("comboZonasGrupo");
+          
+          for(var i=0;i<zonasIniciales.options.length;i++){
+            arrValoresIniciales[i] = zonasIniciales.options[i].value;
+          }
+          //alert('el array ' + arrValoresIniciales);
+       }
+          
+         function mostrarCodigoError() {     
+                  
+          var vErrCodigo = get('frmAsinarZonasDisponibles.errCodigo');   
+          var vErrDescrip = get('frmAsinarZonasDisponibles.errDescripcion');   
+    
+          if (get('frmAsinarZonasDisponibles.errDescripcion')!='') {   
+                 var wnd = fMostrarMensajeError( vErrCodigo,vErrDescrip);   
+                 /*if (get('frmAsinarZonasDisponibles.errCodigo')=='260020002')   
+                       focaliza('frmAsinarZonasDisponibles.');*/   
+          }   
+             
+       }      
+       function posicionarRegionPorDefecto(){            
+              iSeleccionadob = new Array();             
+              iSeleccionadob[0] = get('frmAsinarZonasDisponibles.hRegionDefecto');         
+              set('frmAsinarZonasDisponibles.cbRegiones',iSeleccionadob);   
+    
+              focaliza('frmAsinarZonasDisponibles.cbRegiones');                
+       }   
+          
+       function fGuardar(){ 
+          controlaZonas();
+          //accionAceptaZonas();         
+       }  
+
+       function controlaZonas(){
+           
+          var zonasFinales = document.getElementById("comboZonasGrupo");
+          var arrValoresFinales = new Array(); 
+
+          for(var i=0;i<zonasFinales.options.length;i++){
+            arrValoresFinales[i] = zonasFinales.options[i].value;
+          }
+                    
+          //lo primero que chequeo es si el contenido del combo a enviar es menor 
+          //al contenido que recibi en el onload. si es asi ya quiere decir que hay zonas 
+          //disponibles
+          if(arrValoresFinales.length < arrValoresIniciales.length){
+             if(GestionarMensaje('1379')){
+                accionAceptaZonas();
+             }else{
+                return;
+             }
+          }else{
+
+              var arr = new Array();
+              arr[arr.length]=new Array("oidPais", get("frmAsinarZonasDisponibles.hPais"));
+              arr[arr.length]=new Array("oidMarca", get('frmAsinarZonasDisponibles.hMarca'));
+              arr [arr.length]=new Array("oidCanal", get('frmAsinarZonasDisponibles.hCanal'));
+              arr[arr.length]=new Array("oidRegion", '');
+                   
+              recargaCombo("frmAsinarZonasDisponibles.cbZonasDisponibles", "CRAObtenerZonasNoAsignadasPorRegion", 
+                           "es.indra.sicc.dtos.cra.DTOGrupoZonas", arr , "comparar(datos)");
+          }
+       }
+
+       function comparar(datos){
+            var cantBBDD = datos.length;
+            var sacadas = get('frmAsinarZonasDisponibles.hZonasSacadas');
+            var sacadasParseadas   = sacadas.split('~~');
+            var longitudSacadas;
+            var bandera;
+            //alert('sacadas ' + sacadasParseadas);
+
+            if(sacadasParseadas.length != 0){
+               longitudSacadas = (sacadasParseadas.length - 1)/2;
+            }else{
+               longitudSacadas = 0;
+            }
+
+            //alert('longitud ' + longitudSacadas);
+            var disponibleFinal = cantBBDD + longitudSacadas;
+            var zonasFinales = document.getElementById("comboZonasGrupo");
+            var arrValoresFinales = new Array(); 
+
+            for(var i=0;i<zonasFinales.options.length;i++){
+               arrValoresFinales[i] = zonasFinales.options[i].value;
+            }
+            
+            //aca me fijo si la cantidad de zonas de la BBDD es mayor a
+            // lo que esta en el combo, en el caso de que el usuario
+            //haya asignado todas las zonas existentes
+
+            if(cantBBDD > arrValoresFinales.length){
+               if(GestionarMensaje('1379')){
+                   bandera = true;
+                   accionAceptaZonas();
+               }else{
+                   return;
+               }
+            }
+            var diferencia = arrValoresFinales.length - arrValoresIniciales.length;
+            if (diferencia>0) disponibleFinal = disponibleFinal - diferencia;
+            //aca traigo las zonas disponibles de la base y le sumo las que el usuario
+            //removio. Si la suma es mayor a cero, significa que hay zonas disponibles
+            if (bandera != true){   
+               if(disponibleFinal > 0){
+                  if(GestionarMensaje('1379')){
+                     accionAceptaZonas();
+                  }else{
+                     return;
+                  }
+               } else {
+                  accionAceptaZonas();
+               }
+            }
+       }
+    
+       function fVolver(){   
+          window.close();   
+       }   
+    
+       function accionAceptaZonas(){   
+            var datosGZ='';                   
+            datosGZ = comboToStr('frmAsinarZonasDisponibles.comboZonasGrupo');
+                        
+            set('frmAsinarZonasDisponibles.sZonasInicial', datosGZ );         
+            set('frmAsinarZonasDisponibles.accion','aceptaZonas');             
+            set('frmAsinarZonasDisponibles.conectorAction','LPMantieneGruposZonas');   
+            envia('frmAsinarZonasDisponibles');
+  
+       }
+
+       
+       function comboToStr(campo){   
+           var l=combo_get(campo,'L');   
+           var arrai=new Array();   
+           var datos='';   
+           for(var i=0;i<l;i++) {   
+             datos += combo_get(campo,'V',i)+'~~';   
+             datos += combo_get(campo,'T',i)+'~~';   
+           }                               
+           return datos;   
+       }         
+       function cmbRegionOnChange(){   
+          //if (get('frmAsinarZonasDisponibles.cbRegiones')!=''){   
+              var arr = new Array();   
+              arr[arr.length]=new Array("oidPais", get("frmAsinarZonasDisponibles.hPais"));   
+              arr[arr.length]=new Array("oidMarca", get('frmAsinarZonasDisponibles.hMarca'));   
+              arr[arr.length]=new Array("oidCanal", get('frmAsinarZonasDisponibles.hCanal'));   
+              arr[arr.length]=new Array("oidRegion", get('frmAsinarZonasDisponibles.cbRegiones'));   
+                      
+              recargaCombo("frmAsinarZonasDisponibles.comboZonas2", "CRAObtenerZonasNoAsignadasPorRegion",    
+                            "es.indra.sicc.dtos.cra.DTOGrupoZonas", arr , "filtrarCombo(datos)");   
+          /*} else {   
+              var arr = new Array();                
+              set_combo('frmAsinarZonasDisponibles.comboZonas2', arr);                 
+          }*/   
+       }
+
+      function filtrarCombo(datos){
+                var lcomboGrupo = combo_get('frmAsinarZonasDisponibles.comboZonasGrupo','L');
+                var arrComboGrupo = new Array();
+                for (var i=0; i<lcomboGrupo;i++){
+                    arrComboGrupo[arrComboGrupo.length]= new Array(combo_get('frmAsinarZonasDisponibles.comboZonasGrupo','V',i),combo_get('frmAsinarZonasDisponibles.comboZonasGrupo','T',i));
+                }
+
+                var arrResultado = new Array();
+                var aniadir = "si";
+                for (var j=0; j<datos.length;j++){
+                    aniadir = "si";
+                    for (var k=0; k<arrComboGrupo.length;k++){                         
+                         if (datos[j][0]==arrComboGrupo[k][0])
+                             aniadir = "no";
+                    }
+                    if (aniadir=="si")
+                         arrResultado[arrResultado.length]= datos[j];
+                }
+                
+                //si hay alguna zona que se haya sacado del grupo y pertenece 
+                //a esta region la agrego y le pongo un * adelante 
+                var zonasGrupo = get('frmAsinarZonasDisponibles.sZonasInicial');//necesito esto para sacar la descripcion
+                var valdescr = zonasGrupo.split('~~');
+                var sacadas = get('frmAsinarZonasDisponibles.hZonasSacadas');//formato hZonasSacadas oidZona~~oidRegion~~oidZona~~oidRegion~~
+                var oidRegionActual = get('frmAsinarZonasDisponibles.cbRegiones');
+                var valsac = sacadas.split('~~');                
+                for(var j = 0;j<valsac.length;j++){
+                    oidzona = valsac[j]; j++;
+                    oidregion = valsac[j];
+                    if ((oidregion==oidRegionActual)||(oidRegionActual=='')||(oidRegionActual==null)){
+                        //aqui la agrego al combo y le pongo un * adelante a su descripcion
+                        //obtengo la descripcion primero
+                        var descripcion = '';
+                        for (var z =0;z<valdescr.length;z++){
+                            if (valdescr[z]==oidzona){
+                              z++;
+                              descripcion = valdescr[z];
+                            } else {
+                              z++;
+                            }
+                        }
+                        //agrego * adelante
+                        if ((descripcion!=null)&&(descripcion!='')){
+                                 descripcion = '*'+descripcion;
+                                 arrResultado[arrResultado.length]=new Array(oidzona, descripcion);
+                        }
+                    }
+                }
+                
+                set_combo('frmAsinarZonasDisponibles.comboZonas2',arrResultado, []);
+      }
+      
+       
+      
+       function quitarDeSacadas(){   
+          var seleccion = get('frmAsinarZonasDisponibles.comboZonas2','V');   
+          var sacadas = '';   
+          var sacadasPrevias = get('frmAsinarZonasDisponibles.hZonasSacadas');   
+          var arrsacadas = sacadasPrevias.split('~~');   
+          var aniadir = '';   
+          for (var t=0;t<arrsacadas.length-1;t++){   
+              oidzona = arrsacadas[t]; t++;   
+              oidregion = arrsacadas[t];   
+              aniadir='si';   
+              for (var h =0;h<seleccion.length;h++){   
+                   if (oidzona==seleccion[h]){   
+                     aniadir='no';   
+                   }   
+              }   
+              if (aniadir=='si'){   
+                 if (oidzona!=null&&oidregion!=null){   
+                   sacadas += oidzona+'~~';   
+                   sacadas += oidregion+'~~';   
+                 }   
+              }   
+          }   
+          //alert(sacadas);   
+          set('frmAsinarZonasDisponibles.hZonasSacadas',sacadas);   
+       }   
+       function asignandoZonas(){   
+          quitarDeSacadas();   
+          traspasarZNEO('frmAsinarZonasDisponibles.comboZonas2', 'frmAsinarZonasDisponibles.comboZonasGrupo');   
+       }   
+       function eliminandoZonas(){   
+          pasarASacadas();   
+          vectorValue = get('frmAsinarZonasDisponibles.comboZonasGrupo','V');   
+          for (var i=0;i <= vectorValue.length - 1;i++){   
+              del_combo('frmAsinarZonasDisponibles.comboZonasGrupo','V', vectorValue[i]);   
+          }             
+          cmbRegionOnChange();   
+       }   
+       //Si es del grupo lo guardo en una lista    
+       function pasarASacadas(){   
+          //formato hZonasSacadas oidZona~~oidRegion~~oidZona~~oidRegion~~   
+          var sacadasNuevas='';   
+          vectorValue = get('frmAsinarZonasDisponibles.comboZonasGrupo','V');   
+          var vals = get('frmAsinarZonasDisponibles.sRegionDeCZona');            
+          var regdez = vals.split('~~');    
+          for (var i=0;i <= vectorValue.length - 1;i++){//zonas quitadas(lista de oids zona)   
+            for(var j = 0;j<regdez.length;j++){//zonas del grupo(oidzona~~oidRegion~~)   
+                 //si la zona quitada es del grupo la agrego a hZonasSacadas   
+                 if (vectorValue[i]==regdez[j]){   
+                     if (regdez[j]!=null){   
+                       sacadasNuevas += regdez[j]+'~~';//oidZonas   
+                       sacadasNuevas += regdez[++j]+'~~';//oidRegion   
+                     }   
+                 } else {                   
+                   j++;//adelanto la region   
+                 }   
+            }     
+          }   
+          var sacadasPrevias = get('frmAsinarZonasDisponibles.hZonasSacadas');   
+          var sacadas = sacadasPrevias+sacadasNuevas;   
+          //alert('las sacadas 2 ' + sacadas);   
+          set('frmAsinarZonasDisponibles.hZonasSacadas',sacadas);   
+       }   
+       function traspasarZNEO(listaOrigen, listaDestino){   
+          vectorValue = get(listaOrigen,'V');   
+          vectorDesc = get(listaOrigen,'T');   
+                      
+          for (var i=0;i <= vectorValue.length - 1;i++){   
+             if ((vectorValue[i] != null) && (vectorValue[i] != '')){   
+                 del_combo(listaOrigen, 'V', vectorValue[i]);   
+                 //recorrer las zonasinicial y si esta en la lista tomo su descripcion de ahi   
+                 //para que no tenga el *   
+                 var zonasInicial = get('frmAsinarZonasDisponibles.sZonasInicial');   
+                 var arrzi = zonasInicial.split('~~');   
+                 var descripcion = '';   
+                 var esDeGrupo = 'no';   
+                 for (var j =0;j<arrzi.length;j++){   
+                     if (vectorValue[i]==arrzi[j]){   
+                       j++;   
+                       descripcion = arrzi[j];   
+                       esDeGrupo = 'si';   
+                     } else {   
+                       j++;   
+                     }   
+                 }   
+                 if (esDeGrupo=='si'){   
+                   combo_add(listaDestino, vectorValue[i], descripcion);   
+                 } else {   
+                   combo_add(listaDestino, vectorValue[i], vectorDesc[i]);   
+                 }   
+             }   
+          }   
+       }   
+       function fLimpiar(){   
+          set('frmAsinarZonasDisponibles.hZonasSacadas','');   
+          var arr = new Array();   
+          var vals = get('frmAsinarZonasDisponibles.sZonasInicial');            
+          var valores = vals.split('~~');    
+          for(var i = 0;i<valores.length;i++){   
+              arr[arr.length] = new Array(valores[i],valores[++i]);    
+          }            
+          set_combo('frmAsinarZonasDisponibles.comboZonasGrupo',arr,[]);   
+          posicionarRegionPorDefecto();   
+          cmbRegionOnChange();   
+       }   
+                
+     ]]>     
+     </JAVASCRIPT>      
+
+
+<FORMULARIO nombre="frmAsinarZonasDisponibles">
+    <VAR nombre="accion" valor=""/>
+    <VAR nombre="conectorAction" valor="LPMantieneGruposZonas"/>
+    <VAR nombre="errCodigo" valor=""/>
+    <VAR nombre="errDescripcion" valor=""/>
+    <VAR nombre="hCasoDeUso" valor=""/>
+    <VAR nombre="hcerrar" valor="false"/>
+
+    <VAR nombre="hMarca" valor=""/>
+    <VAR nombre="hCanal" valor=""/>
+    <VAR nombre="hPais" valor=""/>
+
+    <VAR nombre="sRegionPrevia" valor=""/>
+    <VAR nombre="sRegionActual" valor=""/>
+    <VAR nombre="sZonasRegion" valor=""/>
+    <VAR nombre="sZonasInicial" valor=""/>
+    <VAR nombre="sZonasFinal" valor=""/>
+    <VAR nombre="hRegionDefecto" valor=""/>
+    <VAR nombre="sRegionDeCZona" valor=""/>
+    <VAR nombre="hZonasSacadas" valor=""/>
+    <VAR nombre="hiddenZonas" valor=""/>
+    
+<CAPA nombre="capaBuscar" x="0" y="0">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primero formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblDatosGruposZonas" alto="13" filas="1" valor="" id="legend" cod="00496"/></legend>
+          <!---primera fila-->
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblGrupoInicial" alto="13" filas="1" valor="" id="datosTitle" cod="203"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblRegion" alto="13" filas="1" valor="" id="datosTitle" cod="109"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblGrupoInicialXX" alto="13" filas="1" valor="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1" id="datosCampos"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td>
+		     <COMBO nombre="cbRegiones" id="datosCampos" size="1" onchange="cmbRegionOnChange();" multiple="N" req="N" onshtab="focaliza('frmAsinarZonasDisponibles.comboZonasGrupo');" valorinicial="" textoinicial="">
+		       <ROWSET>
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+              </table>
+       <!---fin primera fila-->
+       <!---segunda fila-->
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td><LABELC nombre="lblZonas" alto="13" filas="1" valor="" id="datosTitle" cod="237"/></td>
+                   <td colspan="3"><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td><LABELC nombre="lblZonas2" alto="13" filas="1" valor="" id="datosTitle" cod="205"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>                   
+                   <td nowrap="nowrap">
+                    <COMBO nombre="comboZonas2" id="datosCampos" size="5" multiple="S" req="N">
+                      <ROWSET>
+                      </ROWSET>
+                    </COMBO>
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td nowrap="nowrap">
+		     <table width="100%">
+		       <tr>
+			 <td class="botonera">
+			   <BOTON nombre="btnEliminar" ID="botonContenido" tipo="html" accion="asignandoZonas();" estado="false" alt="&gt;"/>
+			 </td>			
+		       </tr>
+		       <tr>
+			 <td class="botonera">
+			   <BOTON nombre="btnAgregar" ID="botonContenido" tipo="html" accion="eliminandoZonas();" estado="false" codi="1" alt="&lt;"/>
+			 </td>			
+		       </tr>	
+		     </table>
+                   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td> 
+                   <td  nowrap="nowrap">
+                     <COMBO nombre="comboZonasGrupo" id="datosCampos" size="5" multiple="S" req="N" ontab="focaliza('frmAsinarZonasDisponibles.cbRegiones');">
+                       <ROWSET>
+                       </ROWSET>
+                     </COMBO>
+                   </td>
+                   <td width="100%" ><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr> 
+                  <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+              </table>
+       <!---fin segunda fila-->
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr>   
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+</FORMULARIO>
+</PAGINA>

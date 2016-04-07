@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/PROY
+   $Id: contenido_cronograma_fecha_modificar_1.xml,v 1.1 2009/12/03 18:46:19 pecbazalar Exp $
+   DESC
+
+   DRUIDATARGET=/../../config/scripts/iniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_cronograma_fecha_modificar_1" titulo="" estilos="estilosB3.css" colorf="#F0F0F0" msgle="" 
+        onload="onLoadPag()" xml:lang="es" cod="081">
+
+<!-- Caso de uso Modificar cronograma: cod="081" -->
+
+  <JS src="sicc_util.js"/>
+  
+   <JAVASCRIPT>
+  <![CDATA[ 
+
+	function onLoadPag() {
+		configurarMenuSecundario("frmModificarFecha");
+		btnProxy(3, '0');
+		if (get_visibilidad('capaBusqueda')) {
+			txt_to("lblActividad1",get('frmModificarFecha.hTextoActividad'));
+			focaliza('frmModificarFecha.txtDiasDeDesplazamiento');
+			sicc_cambiar_estado("txtFecha3", false)
+		   //setMV('frmModificarFecha.txtFecha3','N');
+		} else {
+			txt_to("lblActividad2",get('frmModificarFecha.hTextoActividad'));
+			focaliza('frmModificarFecha.txtFecha3');       
+			sicc_cambiar_estado("txtDiasDeDesplazamiento", false) 
+		   //setMV('frmModificarFecha.txtDiasDeDesplazamiento','N');
+		}
+	}
+
+  function fVolver() {
+      history.back();
+  }
+
+	function validaNumero(sNum) {
+		sNum = cdos_trim(sNum);
+		var numeros = "0123456789";
+		var c = sNum.charAt(0);
+		var j;
+		if (numeros.indexOf(c) == -1 && c != "-")
+			return false;
+		if (c == "-" && sNum.length == 1)
+			return false;
+		for (j = 1; j < sNum.length; j++) {
+			c = sNum.charAt(j);
+			if (numeros.indexOf(c) == -1) 
+				return false;
+		}
+		return true;
+	}
+
+	function validaPositivo(sNum) {
+		sNum = cdos_trim(sNum);
+		var numeros = "0123456789";
+		var c;
+		var j;
+		for (j = 0; j < sNum.length; j++) {
+			c = sNum.charAt(j);
+			if (numeros.indexOf(c) == -1) 
+				return false;
+		}
+		return true;
+	}
+
+/*	function validaNumero(sNum) {
+		var re = /[-]?\d{1,3}/;
+		var res = re.test(sNum);
+		alert(res);
+		return false;
+	}*/
+
+	function fGuardar() {
+		//alert("Guardar");
+		//set('frmModificarFecha.hActividad', 'guardarFechaActividad');
+		if (get_visibilidad('capaBusqueda')) {
+			if (!sicc_validaciones_generales("grupoFase1"))
+				return;
+			if (!validaNumero(get('frmModificarFecha.txtDiasDeDesplazamiento'))) {
+					GestionarMensaje('1514',sicc_obtenerDescripcion('txtDiasDeDesplazamiento'));
+					focaliza('frmModificarFecha.txtDiasDeDesplazamiento');       
+					return;
+			}
+			set('frmModificarFecha.hDiasDeDesp',get('frmModificarFecha.txtDiasDeDesplazamiento'));
+		} else {
+			if (!sicc_validaciones_generales("grupoFase2"))
+				return;
+			if (EsFechaValida(get('frmModificarFecha.txtFecha3'),get('frmModificarFecha.txtFecha3'),'frmModificarFecha') != 0) {
+				GestionarMensaje('1313',get('frmModificarFecha.hFormatoFechaPais'));
+				focaliza('frmModificarFecha.txtFecha3');       
+				return;
+			}
+			if (!esHoraValida()) {
+				GestionarMensaje('2516');
+				focaliza('frmModificarFecha.txtHora');       
+				return;
+			}
+			set('frmModificarFecha.hFecha',get('frmModificarFecha.txtFecha3'));
+			set('frmModificarFecha.hHora',get('frmModificarFecha.txtHora'));
+		}
+		
+		set('frmModificarFecha.hlblActiFija',GestionarMensaje('1002'));
+		set('frmModificarFecha.hlblActiRefe',GestionarMensaje('1003'));
+		set('frmModificarFecha.accion', 'guardarFechaActividad');
+		set('frmModificarFecha.conectorAction', 'LPMantieneCronograma');
+		enviaSICC('frmModificarFecha');
+	}
+
+	function esHoraValida() {
+		var hora = get('frmModificarFecha.txtHora');
+		var numeros = "0123456789:";
+		var c;
+		var i;
+		for (i = 0; i < hora.length; i++) {
+			c = hora.charAt(i);
+			if (numeros.indexOf(c) == -1) 
+				return false;
+		}
+		var aHora = hora.split(':');
+		//alert("aHora: "+aHora);
+		if (aHora.length != 3) 
+			return false;
+		for (i = 0; i < aHora.length; i++) {
+			if (aHora[i].length > 2 || aHora[i].length < 1)
+				return false;
+			if (!validaPositivo(aHora[i]))
+				return false;
+		}
+		if (parseInt(aHora[0],10) < 0 || parseInt(aHora[0],10) > 23)
+			return false;
+		if (parseInt(aHora[1],10) < 0 || parseInt(aHora[1],10) > 59)
+			return false;
+		if (parseInt(aHora[2],10) < 0 || parseInt(aHora[2],10) > 59)
+			return false;
+		
+		return true;
+	}
+
+	function fLimpiar() {
+		if (get_visibilidad('capaBusqueda')) {
+			txt_to("lblActividad1",get('frmModificarFecha.hTextoActividad'));
+		} else {
+			txt_to("lblActividad2",get('frmModificarFecha.hTextoActividad'));
+		}
+	}
+
+
+
+  ]]> 
+</JAVASCRIPT>
+
+<VALIDACION>
+	<!--ELEMENTO name="txtDiasDeDesplazamiento" format="N" max="999" min="0" required="true" cod="250" group="grupoFase1"/-->
+	<ELEMENTO name="txtDiasDeDesplazamiento" required="true" cod="250" group="grupoFase1"/>
+	<ELEMENTO name="txtFecha3" required="true" cod="183" group="grupoFase2"/>
+</VALIDACION>
+
+
+   
+<FORMULARIO nombre="frmModificarFecha">
+    <VAR nombre="accion" valor=""/>
+    <VAR nombre="casoDeUso" valor=""/>
+    <VAR nombre="conectorAction" valor=""/>
+    <VAR nombre="errCodigo" valor=""/>
+    <VAR nombre="errDescripcion" valor=""/>
+    <VAR nombre="hIdVista" valor=""/>
+    <VAR nombre="hActividad" valor=""/>
+    <VAR nombre="hGrupo" valor=""/>
+    <VAR nombre="hTextoActividad" valor=""/>
+    <VAR nombre="hCbPais" valor=""/>
+    <VAR nombre="hMarca" valor=""/>
+    <VAR nombre="hCanal" valor=""/>
+    <VAR nombre="hCodPeriodo" valor=""/>
+    <VAR nombre="hGrupoZona" valor=""/>
+    <VAR nombre="hSubgerencia" valor=""/>
+    <VAR nombre="hRegion" valor=""/>
+    <VAR nombre="hZona" valor=""/>
+    <VAR nombre="hVecDiasSemana" valor=""/>
+    <VAR nombre="hVecMeses" valor=""/>
+    <VAR nombre="hFormatoFechaPais" valor=""/>
+	 <VAR nombre="hlblActiFija" valor=""/>
+	 <VAR nombre="hlblActiRefe" valor=""/>
+	 <VAR nombre="hDiasDeDesp" valor=""/>
+	 <VAR nombre="hHora" valor=""/>
+	 <VAR nombre="hFecha" valor=""/>
+    <VAR nombre="hChangePaisMC" valor=""/>
+    <VAR nombre="hChangeMarcaMC" valor=""/>
+    <VAR nombre="hChangeCanalMC" valor=""/>
+    <VAR nombre="hChangeGrupo" valor=""/>
+    <VAR nombre="hChangeSub" valor=""/>
+    <VAR nombre="hChangeRegion" valor=""/>
+
+<CAPA nombre="capaBusqueda" x="0" y="0" visibilidad="hidden">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primero formulario-->
+	        <fieldset><legend class="legend">
+					<!--LABELC nombre="lblActividad1" alto="13" filas="1" valor="" id="legend" cod="313"/></legend-->
+					<LABELC nombre="lblActividad1" alto="13" filas="1" valor="" id="legend"/></legend>
+           <!---primera fila-->
+	          <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+	            <tr> 
+	              <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+	            </tr>
+	            <tr>
+	              <td><IMG src="b.gif" width="8" height="8"/></td>
+	              <td><LABELC nombre="lblFecha" alto="13" filas="1" valor="" id="datosTitle" cod="188"/></td>
+	              <td><IMG src="b.gif" width="25" height="8"/></td>
+	              <td><LABELC nombre="lblDiasDeDesplazamiento" alto="13" filas="1" valor="" id="datosTitle" cod="250"/></td>
+	              <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	            </tr> 
+	            <tr>
+	              <td><IMG src="b.gif" width="8" height="8"/></td>
+	              <td><LABELC nombre="lblFechaxx" alto="13" filas="1" valor="" id="datosCampos"/></td>
+	              <td><IMG src="b.gif" width="25" height="8"/></td>
+	              <td nowrap="nowrap"><CTEXTO nombre="txtDiasDeDesplazamiento" id="datosCampos" max="3" tipo="" req="S" size="3" valor="" ontab="focaliza('frmModificarFecha.txtDiasDeDesplazamiento')"/></td>
+	              <td><IMG src="b.gif" width="83" height="8"/></td>
+	              <td><IMG src="b.gif" width="8" height="8"/></td>
+	            </tr> 
+	            <tr> 
+	              <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+	            </tr>
+	          </table>
+	   <!---fin primera fila-->
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr>
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+
+<CAPA nombre="capaBusqueda2" x="0" y="0" visibilidad="">    
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primero formulario-->
+	        <fieldset><legend class="legend"><LABELC nombre="lblActividad2" alto="13" filas="1" valor="" id="legend" cod="313"/></legend>
+           <!---primera fila-->
+	          <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+	            <tr> 
+	              <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+	            </tr>
+	            <tr>
+	              <td><IMG src="b.gif" width="8" height="8"/></td>
+	              <td><LABELC nombre="lblFecha3" alto="13" filas="1" valor="" id="datosTitle" cod="183"/></td>
+	              <td><IMG src="b.gif" width="25" height="8"/></td>
+	              <td><LABELC nombre="lblHora" alto="13" filas="1" valor="" id="datosTitle" cod="184"/></td>
+	              <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	            </tr> 
+	            <tr>
+	              <td><IMG src="b.gif" width="8" height="8"/></td>
+	              <td nowrap="nowrap"><CTEXTO nombre="txtFecha3" id="datosCampos" max="10" tipo="" req="S" size="11" valor="" onshtab="focaliza('frmModificarFecha.txtHora');"/></td>
+	              <td><IMG src="b.gif" width="25" height="8"/></td>
+	              <td><CTEXTO nombre="txtHora" id="datosCampos" max="8" tipo="" req="N" size="8" valor="" ontab="focaliza('frmModificarFecha.txtFecha3');"/></td>
+	              <td><IMG src="b.gif" width="125" height="8"/></td>
+	              <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	            </tr> 
+	            <tr> 
+	              <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+	            </tr>
+	          </table>
+	   <!---fin primera fila-->
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr>
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+</FORMULARIO>
+</PAGINA>

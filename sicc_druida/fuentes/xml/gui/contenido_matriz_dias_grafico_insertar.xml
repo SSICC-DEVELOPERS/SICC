@@ -1,0 +1,1037 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/PROY
+<<<<<<< contenido_matriz_dias_grafico_insertar.xml
+   $Id: contenido_matriz_dias_grafico_insertar.xml,v 1.1 2009/12/03 18:45:52 pecbazalar Exp $
+=======
+   $Id: contenido_matriz_dias_grafico_insertar.xml,v 1.1 2009/12/03 18:45:52 pecbazalar Exp $
+>>>>>>> 1.44
+   DESC
+
+   DRUIDATARGET=/../../config/scripts/iniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_matriz_dias_grafico_insertar" titulo="" estilos="estilosB3.css" colorf="#F0F0F0" msgle="" 
+         onload="onLoadPag(); inicializacion();" xml:lang="es" cod="0663">
+
+<!-- Caso de uso Crear matriz de días en modo gráfico: cod="0663" 
+     Caso de uso Crear matriz de días en modo no gráfico: cod="0663"
+     Caso de uso Modificar matriz de días en modo gráfico: cod="0664"
+     Caso de uso Modificar matriz de días en modo no gráfico: cod="0664" 
+     Caso de uso Ver matriz de días en modo gráfico: cod="0666"
+     Caso de uso Ver matriz de días en modo no gráfico: cod="0667" -->
+
+<JS src="sicc_util.js"/>
+
+
+<JAVASCRIPT>
+
+  <![CDATA[  
+
+         var objActividadClick=null;
+
+         //Carga el estado inicial
+         function onLoadPag() {
+                  try{
+                           tdContenedor.onresize();
+                  }catch(e){
+                           ;
+                  }
+                  try{
+                           tdContenedorDos.onresize();
+                  }catch(e){
+                           ;
+                  }
+                  configurarMenuSecundario("frmInsertarMatrizDias");
+                  fMostrarMensajeError();
+                  DrdEnsanchaConMargenDcho('lstFueraPeriodo',24);
+                  DrdEnsanchaConMargenDcho('lstOtraCampana',24);
+                  if (get('frmInsertarMatrizDias.hListaFueraPeriodoMostrar') == "SI") {
+                           mostrarListaEditable();
+                  } else {		
+                           ocultarListaEditable();
+                  }
+                  eval (ON_RSZ);  
+                  // deshabilitamos el manejo de requeridos por druida
+                  setMV('frmInsertarMatrizDias.cbMarcas','N');
+                  setMV('frmInsertarMatrizDias.cbCanales','N');
+                  setMV('frmInsertarMatrizDias.cbGrupoDeZonas','N');
+                  setMV('frmInsertarMatrizDias.cbGrupoDeZonasSeleccionados','N');
+                  setMV('frmInsertarMatrizDias.cbActividades','N');
+
+				  var accion = get('frmInsertarMatrizDias.accion');
+				  // Cambiamos el estado del boton para cambio de modo visual
+				  if ((accion == "insertaGrupo") || (accion == "insertaActividad") 
+						|| (accion == "") || (accion == "eliminar")) {
+					  // Si la accion fue insertaGrupo, insertaActividad, modificar eq "" o eliminar entonces deshabilito
+					  deshabilitarHabilitarBoton('botonContenido','btnModoGrafico','D');
+					  deshabilitarHabilitarBoton('botonContenido','btnModoNoGrafico','D');
+				  } else {
+					  // Si la accion fue verMatriz, crearNoGrafica, crearGrafica o buscar entonces habilito 
+					  deshabilitarHabilitarBoton('botonContenido','btnModoGrafico','A');
+					  deshabilitarHabilitarBoton('botonContenido','btnModoNoGrafico','A');
+				  }
+
+				  // Luego de crear una matrizDias solo dejamos habilitado el boton para cambio de modo visual (inc 10707)
+				  if (get('frmInsertarMatrizDias.hMostrarCreada') == "si") {
+						// dehabilitamos todos los botones salvo 
+						btnProxy('1','0');
+						deshabilitarHabilitarBoton('botonContenido','btnBuscar','D');
+						deshabilitarHabilitarBoton('botonContenido','btnAnyadir','D');	
+						deshabilitarHabilitarBoton('botonContenido','btnAnyadirActividad','D');		
+						deshabilitarHabilitarBoton('botonContenido','btnModificar1','D');		
+						deshabilitarHabilitarBoton('botonContenido','btnEliminar1','D');			
+						deshabilitarHabilitarBoton('botonContenido','btnModificarFueraPeriodo','D');
+						deshabilitarHabilitarBoton('botonContenido','btnEliminarFueraPeriodo','D');
+						deshabilitarHabilitarBoton('botonContenido','btnModificarOtraCampana','D');
+						deshabilitarHabilitarBoton('botonContenido','btnEliminarOtraCampana','D');
+				  }
+		 }
+
+         
+         /*
+         * Inicializa la pagina
+         */
+         function inicializacion() {		
+                  txt_to('lblValorPais', get('frmInsertarMatrizDias.hPaisDescripcion')); 
+                  posicionarCombo(); 
+                  focaliza('frmInsertarMatrizDias.cbMarcas','');
+         }
+
+
+         /*
+         * Se llama a esta función javascript cuando se pulsa sobre el botón btnBuscar. 
+         * Llama a LPMantieneMatrizDias con accion = "buscar".
+         */
+         function onClickBuscar() {
+                  // validamos campos requeridos
+                  if( ! sicc_validaciones_generales('grupoBuscar') ) {
+                           return false;
+                  }		
+
+                  // tomamos valores seleccionados
+                  obtenerMarcaCanal();
+
+                  // si hay modificaciones por perder
+                  if ( get_visibilidad('capaSeleccion') ) {
+                           // alertamos sobre perdida de modificaciones
+                           if ( ! GestionarMensaje(751) ) {
+                                    return;
+                           }
+                  }
+
+                  //ejecutamos la accion buscar
+                  set('frmInsertarMatrizDias.accion', 'buscar');
+                  enviaSICC('frmInsertarMatrizDias');
+         }
+
+
+         /*
+         * Se llama a esta función javascript cuando se pulsa sobre el botón btnAnyadir. 
+         * Llama a LPMantieneMatrizDias con accion = "insertaGrupo"
+         */
+        function onClickAnyadir() {
+                  // validamos campos requeridos
+                  if( ! sicc_validaciones_generales('grupoAnyadirGrupoZona') ) {
+                           return false;
+                  }
+
+                  //obtenemos los oids multiselección de cbGrupoDeZonas
+                  var arrOidsGruposAnyadir = get('frmInsertarMatrizDias.cbGrupoDeZonas');
+                  set('frmInsertarMatrizDias.hOidsGruposAnyadir', arrOidsGruposAnyadir);			
+
+                  //obtenemos las descripción multiselección de cbGrupoDeZonas
+                  var arrNombresGruposAnyadir = get('frmInsertarMatrizDias.cbGrupoDeZonas','T');
+                  set('frmInsertarMatrizDias.hNombresGruposAnyadir', arrNombresGruposAnyadir);
+                  
+                  //ejecutamos la accion insertaGrupo
+                  set('frmInsertarMatrizDias.accion', 'insertaGrupo');
+                  enviaSICC('frmInsertarMatrizDias');
+         }
+
+         
+         /*
+         * Se llama a esta función javascript cuando se pulsa sobre el botón btnAnyadirActividad.
+         * Llama a LPMantieneMatrizDias con accion = "insertaActividad"
+         */
+         function onClickAnyadirActividad() {
+                  // validamos campos requeridos
+                  if( ! sicc_validaciones_generales('grupoAnyadirActividad') ) {
+                           return false;
+                  }		
+
+                  //obtenemos los oids multiselección de cbGrupoDeZonasSeleccionados
+                  var arrOidsGruposAnyadirMatriz = get('frmInsertarMatrizDias.cbGrupoDeZonasSeleccionados');
+                  set('frmInsertarMatrizDias.hOidsGruposAnyadirMatriz', arrOidsGruposAnyadirMatriz);			
+
+                  //obtenemos el oid de la actividad seleccionada en cbActividades
+                  var oidActividadAnyadirMatriz = get('frmInsertarMatrizDias.cbActividades');
+                  set('frmInsertarMatrizDias.hOidActividadAnyadirMatriz', oidActividadAnyadirMatriz);
+
+                  //ejecutamos la accion insertaGrupo
+                  set('frmInsertarMatrizDias.accion', 'insertaActividad');
+                  enviaSICC('frmInsertarMatrizDias');
+         }
+
+         
+         /*
+         * Al seleccionar una actividad en la matriz, guarda su idVista en hActividadSeleccionada.
+         * Luego se utiliza este valor para identificar que actividad se desea modificar o eliminar.
+         */
+        function seleccionaActividad(idVistaActividad) {
+                  //tomamos el valor de la actividad seleccionada
+                  set('frmInsertarMatrizDias.hActividadSeleccionada', idVistaActividad);
+                  //ver el manejo del color al seleccionar la actividad (Incidencia 4460)
+                  //debugger;
+                  if(objActividadClick!=null){
+                           objActividadClick.style.color = objActividadClick.normalColor;
+                           objActividadClick.style.fontWeight = "normal";
+                  }
+                  objActividadClick = event.srcElement;
+                  objActividadClick.normalColor = objActividadClick.style.color;
+				  objActividadClick.style.color = "#000000";	//incidencia 5505 asi lo define
+				  objActividadClick.style.fontWeight = "bold";	//incidencia 5505 asi lo define
+         }
+
+
+         /*
+         * Se llama a esta función javascript cuando se pulsa sobre el botón btnEliminar.
+         * Llama a LPMantieneMatrizDias con accion = "eliminar"
+         */
+        function onClickEliminar() {
+                  var idVistaActividad = get('frmInsertarMatrizDias.hActividadSeleccionada');
+                  // Si seleccionaron una actividad
+                  if ( (idVistaActividad != null) && (idVistaActividad != '') ) {
+                           //ejecutamos la accion eliminar
+                           set('frmInsertarMatrizDias.accion', 'eliminar');
+                           enviaSICC('frmInsertarMatrizDias');
+                  }
+         }
+
+
+         /*
+         * Se llama a esta función javascript cuando se pulsa sobre el botón btnModificar.
+         * Llama a LPMantieneMatrizDias con accion = "modificar"
+         */
+        function onClickModificar() {
+                  var idVistaActividad = get('frmInsertarMatrizDias.hActividadSeleccionada');
+                  // Si seleccionaron una actividad
+                  if ( (idVistaActividad != null) && (idVistaActividad != '') ) {
+                           //ejecutamos la accion modificar
+                           set('frmInsertarMatrizDias.accion', 'modificar');
+
+                           //muestra ventana modal
+                           var parametros = new Object();  
+                           parametros.idVistaActividadModificar = idVistaActividad;
+                           parametros.varTipo = get('frmInsertarMatrizDias.varTipo');
+                           parametros.varModo = get('frmInsertarMatrizDias.varModo');
+                           mostrarModalSICC("LPMantieneMatrizDias","modificar", parametros, '650', '250');
+
+                           //actualizamos la matrizDias
+                           set('frmInsertarMatrizDias.accion', 'refrescaModificacion');
+                           enviaSICC('frmInsertarMatrizDias');
+                  }
+         }
+
+
+         /*
+         * Se llama a esta función javascript cuando se pulsa sobre el botón btnEliminar 
+         * Llama a LPMantieneMatrizDias con accion = "eliminar" pasandole 
+         * las actividades seleccionada en la lista de actividades fuera de periodo.
+         */
+       function onClickEliminarFueraPeriodo() {
+                  //tomamos el valor de la actividad seleccionada
+                  var idVistaActividad = lstFueraPeriodo.codSeleccionados();
+                  set('frmInsertarMatrizDias.hActividadSeleccionada', idVistaActividad);
+                  // invocamos a la funcion de eliminar una actividad segun hActividadSeleccionada
+                  onClickEliminar();
+         }
+
+
+         /*
+         * Se llama a esta función javascript cuando se pulsa sobre el botón btnModificarFueraPeriodo.
+         * Llama a LPMantieneMatrizDias con accion = "modificar" pasandole
+         * la actividad seleccionada en la lista de actividades fuera de periodo.
+         */
+        function onClickModificarFueraPeriodo() {
+                  //tomamos el valor de la actividad seleccionada
+                  var idVistaActividad = lstFueraPeriodo.codSeleccionados();
+                  set('frmInsertarMatrizDias.hActividadSeleccionada', idVistaActividad);
+                  // invocamos a la funcion de modificar una actividad segun hActividadSeleccionada
+                  onClickModificar();
+         }
+
+         /*
+         * Se llama a esta función javascript cuando se pulsa sobre el botón btnEliminar 
+         * Llama a LPMantieneMatrizDias con accion = "eliminar" pasandole 
+         * las actividades seleccionada en la lista de actividades otra camapaña.
+         */
+       function onClickEliminarOtraCampana() {
+                  //tomamos el valor de la actividad seleccionada
+                  var idVistaActividad = lstOtraCampana.codSeleccionados();
+                  set('frmInsertarMatrizDias.hActividadSeleccionada', idVistaActividad);
+                  // invocamos a la funcion de eliminar una actividad segun hActividadSeleccionada
+                  onClickEliminar();
+         }
+
+
+         /*
+         * Se llama a esta función javascript cuando se pulsa sobre el botón btnModificarFueraPeriodo.
+         * Llama a LPMantieneMatrizDias con accion = "modificar" pasandole
+         * la actividad seleccionada en la lista de actividades otra campaña.
+         */
+        function onClickModificarOtraCampana() {
+                  //tomamos el valor de la actividad seleccionada
+                  var idVistaActividad = lstOtraCampana.codSeleccionados();
+                  set('frmInsertarMatrizDias.hActividadSeleccionada', idVistaActividad);
+                  // invocamos a la funcion de modificar una actividad segun hActividadSeleccionada
+                  onClickModificar();
+         }
+
+
+         /*
+         * Se llama a esta función javascript cuando se pulsa sobre el botón btnVerMatriz.
+         * Llama a LPMantieneMatrizDias con accion = "verMatriz".
+         */
+        function onClickVerMatriz() {
+                  //ejecutamos la accion verMatriz
+                  set('frmInsertarMatrizDias.accion', 'verMatriz');
+                  enviaSICC('frmInsertarMatrizDias');
+         }
+
+
+         /*
+         * Esta función javascript se realiza cuando se pulsa sobre "Guardar" en el menú. 
+         * En diseño es accionGuardar().
+         * - Llama a LPMantieneMatrizDias con accion = "guardar"
+         */
+        function fGuardar() {
+                  //actualizamos la matrizDias, en modo oculto NO necesito recarga
+                  //eval('frmInsertarMatrizDias').oculto='S';  // en modo oculto NO necesito recarga
+                  set('frmInsertarMatrizDias.accion', 'guardar');
+                  enviaSICC('frmInsertarMatrizDias');
+                  //eval('frmInsertarMatrizDias').oculto='N';
+
+         }
+
+
+         // Limpia combos
+        function fLimpiar() { 
+                  //luego de fLimpiar generico, focaliza en el primer combo
+                  focaliza('frmInsertarMatrizDias.cbMarcas');
+         } 
+
+
+         /*
+         * Este método se activa al seleccionar un valor en cbMarcas.
+         */
+        function onChangeMarca() {
+                  cambiaFiltro();
+         }
+
+
+         /*
+         * Este método se activa al seleccionar un valor en cbCanales.
+         */
+        function onChangeCanal() {
+                  cambiaFiltro();
+         }
+
+
+         /*
+         * Si existe un valor seleccionado (no vacio) en cmbMarca
+         * y existe un valor seleccionado (no vacio) en cmbCanal, habilitar btnBuscar.
+         */
+        function cambiaFiltro() {
+                  var botonBuscar = document.getElementById('btnBuscar');
+                  if ( (get('frmInsertarMatrizDias.cbMarcas') != null) && (get('frmInsertarMatrizDias.cbMarcas') != '') &&
+                            (get('frmInsertarMatrizDias.cbCanales') != null) && (get('frmInsertarMatrizDias.cbCanales') != '') ) {
+                           //habilita el boton buscar
+                           botonBuscar.enable = true;
+                  } else {
+                           //deshabilita el boton buscar
+                           botonBuscar.enable = false;
+                  }
+         }
+
+
+         // focaliza el cbMarcas si estoy en la capa de busqueda
+        function focalizaDesdeBusqueda() {  
+                  document.selection.empty();
+                  // si no esta visible la capa de seleccion
+                  if ( ! get_visibilidad('capaSeleccion') ) {
+                           focaliza('frmInsertarMatrizDias.cbMarcas');
+                  } else {
+                           focaliza('frmInsertarMatrizDias.cbGrupoDeZonas');
+                  }
+         }
+
+
+         // focaliza el cbMarcas si estoy en la capa de seleccion
+        function focalizaDesdeSeleccion() {  
+                  document.selection.empty();
+                  // si no estan visibles ninguna de las capas que muestran la matriz
+                  if ( ! (get_visibilidad('capaTablaGrafica') || get_visibilidad('capaTablaNoGrafica')) ) {
+                           focaliza('frmInsertarMatrizDias.cbMarcas');
+                  } else {
+                           //druida no se lo banca aca, que raro!!!
+                           //focaliza('frmInsertarMatrizDias.btnModificar1');
+                           document.all.btnModificar1.focus();
+                  }
+         }
+
+
+         // focaliza el cbMarcas desde el boton de cambio de vista
+        function focalizaDesdeMatriz() {  
+                  document.selection.empty();
+                  focaliza('frmInsertarMatrizDias.cbMarcas');
+         }
+
+
+         // focaliza shiftTab segun las capas visibles
+        function focalizaShift() {  
+                  document.selection.empty();
+                  // vemos si esta visible la capaTablaGrafica
+                  if (get_visibilidad('capaTablaGrafica')) {
+                           //druida no se lo banca aca, que raro!!!
+                           //focaliza('frmInsertarMatrizDias.btnModoNoGrafico');
+                           document.all.btnModoNoGrafico.focus();
+                           return;
+                  }
+                  // vemos si esta visible la capaTablaNoGrafica
+                  if (get_visibilidad('capaTablaNoGrafica')) {
+                           //druida no se lo banca aca, que raro!!!
+                           //focaliza('frmInsertarMatrizDias.btnModoGrafico');
+                           document.all.btnModoGrafico.focus();
+                           return;
+                  }		
+                  // no esta visible la capa que muestra la matriz, vemos si esta visible la capaSeleccion
+                  if (get_visibilidad('capaSeleccion')) {
+                           //druida no se lo banca aca, que raro!!!
+                           //focaliza('frmInsertarMatrizDias.btnAnyadirActividad');
+                           document.all.btnAnyadirActividad.focus();
+                           return;
+                  }
+                  // no esta visible la capaSeleccion, solo esta visible la capaBusqueda
+                  if (get_visibilidad('capaBusqueda')) {
+                           //druida no se lo banca aca, que raro!!!
+                           //focaliza('frmInsertarMatrizDias.btnBuscar');
+                           document.all.btnBuscar.focus();
+                           return;
+                  }
+         }
+
+
+         // Levanta los valores seleccionados para marca y canal 
+        function obtenerMarcaCanal(){ 
+                  set('frmInsertarMatrizDias.hCanal', get('frmInsertarMatrizDias.cbCanales')); 
+                  set('frmInsertarMatrizDias.hMarca', get('frmInsertarMatrizDias.cbMarcas')); 
+         } 
+
+
+         //Posicina los combos marca y canal segun el seleccionado
+        function posicionarCombo() { 
+                  //combo marcas
+                  var iSeleccionadoMarca = new Array(); 
+                  iSeleccionadoMarca[0] = get('frmInsertarMatrizDias.hMarca'); 
+                  set('frmInsertarMatrizDias.cbMarcas',iSeleccionadoMarca); 
+
+                  //combo canales
+                  var iSeleccionadoCanal = new Array(); 
+                  iSeleccionadoCanal[0] = get('frmInsertarMatrizDias.hCanal'); 
+                  set('frmInsertarMatrizDias.cbCanales',iSeleccionadoCanal); 
+
+                  //combo gruposZonas multiple
+                  var oidsGruposAnyadir = get('frmInsertarMatrizDias.hOidsGruposAnyadir'); 
+                  iSeleccionadoGrupos = oidsGruposAnyadir.split(",");
+                  set('frmInsertarMatrizDias.cbGrupoDeZonas',iSeleccionadoGrupos); 
+
+                  //combo grupoZonasSeleccionados multiple
+                  var oidsGruposAnyadirMatriz = get('frmInsertarMatrizDias.hOidsGruposAnyadirMatriz'); 
+                  iSeleccionadoGruposSelMatriz = oidsGruposAnyadirMatriz.split(",");
+                  set('frmInsertarMatrizDias.cbGrupoDeZonasSeleccionados',iSeleccionadoGruposSelMatriz); 
+
+                  //combo activitades
+                  var iSeleccionadoActividad = new Array();
+                  iSeleccionadoActividad[0] = get('frmInsertarMatrizDias.hOidActividadAnyadirMatriz'); 
+                  set('frmInsertarMatrizDias.cbActividades',iSeleccionadoActividad); 
+         } 
+
+
+         //Muestra la lista editable
+        function mostrarListaEditable() {
+                  //lista editable actividades fuera de periodo
+                  document.all["CplstFueraPeriodo"].style.visibility='visible';
+                  document.all["CpLin1lstFueraPeriodo"].style.visibility='visible';
+                  document.all["CpLin2lstFueraPeriodo"].style.visibility='visible';
+                  document.all["CpLin3lstFueraPeriodo"].style.visibility='visible';
+                  document.all["CpLin4lstFueraPeriodo"].style.visibility='visible';
+
+                  document.all["primera2Div"].style.visibility='visible';
+                  document.all["ret2Div"].style.visibility='visible';
+                  document.all["ava2Div"].style.visibility='visible';
+                  document.all["separa2Div"].style.visibility='visible';
+
+                  document.all["btnModificarFueraPeriodoDiv"].style.visibility='visible';
+                  document.all["btnEliminarFueraPeriodoDiv"].style.visibility='visible';
+
+		  //Otra Campaña
+                  document.all["CplstOtraCampana"].style.visibility='visible';
+                  document.all["CpLin1lstOtraCampana"].style.visibility='visible';
+                  document.all["CpLin2lstOtraCampana"].style.visibility='visible';
+                  document.all["CpLin3lstOtraCampana"].style.visibility='visible';
+                  document.all["CpLin4lstOtraCampana"].style.visibility='visible';
+
+                  document.all["primera3Div"].style.visibility='visible';
+                  document.all["ret3Div"].style.visibility='visible';
+                  document.all["ava3Div"].style.visibility='visible';
+                  document.all["separa3Div"].style.visibility='visible';
+
+                  document.all["btnModificarOtraCampanaDiv"].style.visibility='visible';
+                  document.all["btnEliminarOtraCampanaDiv"].style.visibility='visible';
+         }
+
+
+         //Oculta la lista editable
+        function ocultarListaEditable() {
+                  //lista editable actividades fuera de periodo
+                  document.all["CplstFueraPeriodo"].style.visibility='hidden';
+                  document.all["CpLin1lstFueraPeriodo"].style.visibility='hidden';
+                  document.all["CpLin2lstFueraPeriodo"].style.visibility='hidden';
+                  document.all["CpLin3lstFueraPeriodo"].style.visibility='hidden';
+                  document.all["CpLin4lstFueraPeriodo"].style.visibility='hidden';
+
+                  document.all["primera2Div"].style.visibility='hidden';
+                  document.all["ret2Div"].style.visibility='hidden';
+                  document.all["ava2Div"].style.visibility='hidden';
+                  document.all["separa2Div"].style.visibility='hidden';
+
+                  document.all["btnModificarFueraPeriodoDiv"].style.visibility='hidden';
+                  document.all["btnEliminarFueraPeriodoDiv"].style.visibility='hidden';
+
+		  //otra campaña
+                  document.all["CplstOtraCampana"].style.visibility='hidden';
+                  document.all["CpLin1lstOtraCampana"].style.visibility='hidden';
+                  document.all["CpLin2lstOtraCampana"].style.visibility='hidden';
+                  document.all["CpLin3lstOtraCampana"].style.visibility='hidden';
+                  document.all["CpLin4lstOtraCampana"].style.visibility='hidden';
+
+                  document.all["primera3Div"].style.visibility='hidden';
+                  document.all["ret3Div"].style.visibility='hidden';
+                  document.all["ava3Div"].style.visibility='hidden';
+                  document.all["separa3Div"].style.visibility='hidden';
+
+                  document.all["btnModificarOtraCampanaDiv"].style.visibility='hidden';
+                  document.all["btnEliminarOtraCampanaDiv"].style.visibility='hidden';		  
+         }
+
+
+  ]]> 
+
+</JAVASCRIPT>
+
+   
+<VALIDACION>
+         <!-- Primer Grupo -->
+         <ELEMENTO name="cbMarcas" required="true" cod="6" group="grupoBuscar"/>
+         <ELEMENTO name="cbCanales" required="true" cod="7" group="grupoBuscar"/>
+         <!-- Segundo Grupo -->
+         <ELEMENTO name="cbGrupoDeZonas" required="true" cod="2195" group="grupoAnyadirGrupoZona"/>
+         <!-- Tercer Grupo -->
+         <ELEMENTO name="cbGrupoDeZonasSeleccionados" required="true" cod="238" group="grupoAnyadirActividad"/>
+         <ELEMENTO name="cbActividades" required="true" cod="173" group="grupoAnyadirActividad"/>
+</VALIDACION>
+
+
+<FORMULARIO nombre="frmInsertarMatrizDias">
+
+         <VAR nombre="varModo" valor=""/>
+         <VAR nombre="varTipo" valor=""/>
+         <VAR nombre="accion" valor=""/>
+         <VAR nombre="conectorAction" valor="LPMantieneMatrizDias"/>
+         <VAR nombre="errCodigo" valor=""/>
+         <VAR nombre="errDescripcion" valor=""/>
+         <VAR nombre="hIdioma" valor=""/>
+         <VAR nombre="hPais" valor=""/>
+         <VAR nombre="hPaisDescripcion" valor=""/> 
+         <VAR nombre="hMarca" valor=""/>
+         <VAR nombre="hCanal" valor=""/>
+         <VAR nombre="hOidsGruposAnyadir" valor=""/>
+         <VAR nombre="hNombresGruposAnyadir" valor=""/>
+         <VAR nombre="hOidsGruposAnyadirMatriz" valor=""/>
+         <VAR nombre="hOidActividadAnyadirMatriz" valor=""/>
+         <VAR nombre="hActividadSeleccionada" valor=""/>	
+         <VAR nombre="hListaFueraPeriodoMostrar" valor=""/>
+         <VAR nombre="hMostrarCreada" valor=""/>
+
+
+<CAPA nombre="capaBusqueda" x="0" y="0" visibilidad="visible">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primero formulario-->
+         <fieldset><legend class="legend"><LABELC nombre="lblCriteriosBusqueda" alto="13" filas="1" valor="" id="legend" cod="0075"/></legend>
+           <!---primera fila-->
+                <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                  <tr><td>
+                  <table width="705" border="0" align="left" cellspacing="0" cellpadding="0">
+                  <tr> 
+                    <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td><LABELC nombre="lblPais" alto="13" filas="1" valor="" id="datosTitle" cod="5"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td><LABELC nombre="lblMarca" alto="13" filas="1" valor="" id="datosTitle" cod="6"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td><LABELC nombre="lblCanal" alto="13" filas="1" valor="" id="datosTitle" cod="7"/></td>
+                     <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr> 
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td valign="bottom"><LABELC nombre="lblValorPais" alto="13" filas="1" valor="" id="datosCampos"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td nowrap="nowrap">
+                        <COMBO nombre="cbMarcas" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" accion="onChangeMarca();" onshtab="focalizaShift();">
+                          <ROWSET>
+                          </ROWSET>
+                        </COMBO>
+                     </td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td nowrap="nowrap">
+                        <COMBO nombre="cbCanales" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" accion="onChangeCanal();">
+                          <ROWSET>
+                          </ROWSET>
+                        </COMBO>
+                     </td>
+                     <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr> 
+                  <tr> 
+                    <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                </table>
+                </td></tr></table>
+        <!---fin primera fila-->
+         </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+         <fieldset>
+           <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">         
+             <tr>
+                <td class="botonera">
+                  <BOTON nombre="btnBuscar" ID="botonContenido" tipo="html" accion="onClickBuscar();" estado="false" cod="1" ontab="focalizaDesdeBusqueda();"/>
+                </td>
+             </tr>    
+           </table>         
+         </fieldset>
+      </td>
+      <td><IMG src="b.gif" width="8" height="12"/></td>
+    </tr> 
+    <tr>
+         <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+         <td width="756" ><IMG src="b.gif"/></td>
+         <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+
+
+
+<CAPA nombre="capaSeleccion" x="0" y="102" visibilidad="hidden">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primero formulario-->
+         <fieldset><legend class="legend"><LABELC nombre="lblSeleccionDatos" alto="13" filas="1" valor="" id="legend" cod="0099"/></legend>
+                <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr><td>
+                <table width="705" border="0" align="left" cellspacing="0" cellpadding="0">
+                  <tr> 
+                    <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td><LABELC nombre="lblGrupoDeZonas" alto="13" filas="1" valor="" id="datosTitle" cod="2195"/></td>
+                     <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr> 
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+						<td nowrap="nowrap">
+							<COMBO nombre="cbGrupoDeZonas" id="datosCampos" size="5" multiple="S" req="S" valorinicial="" textoinicial="">
+							  <ROWSET>
+							  </ROWSET>
+							</COMBO>
+						</td>
+                     <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr> 
+                  <tr> 
+                    <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                </table></td></tr></table>
+         </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+         <fieldset>
+           <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">         
+             <tr>
+                <td class="botonera">
+                  <BOTON nombre="btnAnyadir" ID="botonContenido" tipo="html" accion="onClickAnyadir();" estado="false" cod="404"/>
+                </td>
+             </tr>    
+           </table>         
+         </fieldset>
+      </td>
+      <td><IMG src="b.gif" width="8" height="12"/></td>
+    </tr>   
+    <tr> 
+      <td colspan="3"><IMG src="b.gif" width="8" height="15"/></td>
+    </tr>      
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primero formulario-->
+         <fieldset><legend class="legend"><LABELC nombre="lblSeleccionDatos" alto="13" filas="1" valor="" id="legend" cod="0099"/></legend>
+                <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr><td>
+                <table width="705" border="0" align="left" cellspacing="0" cellpadding="0">
+                  <tr> 
+                    <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td><LABELC nombre="lblGrupoDeZonasSeleccionados" alto="13" filas="1" valor="" id="datosTitle" cod="238"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td><LABELC nombre="lblActividad" alto="13" filas="1" valor="" id="datosTitle" cod="173"/></td>
+                     <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr> 
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td nowrap="nowrap">
+                        <COMBO nombre="cbGrupoDeZonasSeleccionados" id="datosCampos" size="5" multiple="S" req="S" valorinicial="" textoinicial="">
+                          <ROWSET>
+                          </ROWSET>
+                        </COMBO>
+                     </td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td valign="top" nowrap="nowrap">
+                        <COMBO nombre="cbActividades" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="">
+                          <ROWSET>
+                          </ROWSET>
+                        </COMBO>
+                     </td>
+                     <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr> 
+                  <tr> 
+                    <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                </table></td></tr></table>
+         </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+         <fieldset>
+           <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">         
+             <tr>
+                <td class="botonera">
+                  <BOTON nombre="btnAnyadirActividad" ID="botonContenido" tipo="html" accion="onClickAnyadirActividad();" estado="false" cod="256" ontab="focalizaDesdeSeleccion();"/>
+                </td>
+             </tr>    
+           </table>         
+         </fieldset>
+      </td>
+      <td><IMG src="b.gif" width="8" height="12"/></td>
+    </tr>        
+    <tr>
+         <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+         <td width="756" ><IMG src="b.gif"/></td>
+         <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+
+
+
+<CAPA nombre="capaTablaGrafica"  borde="0" visibilidad="hidden" x="0" y="400">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primero formulario-->
+         <fieldset><legend class="legend"><LABELC nombre="lblDatosDeModoGrafico" alto="13" filas="1" valor="" id="legend" cod="00552"/></legend>
+			<!---primera fila-->
+				 <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+					 <!--- construccion -->	
+					 <tr valign="top">
+							  <td id="tdContenedor" style="border:1px solid #CECFCE" onresize="try{document.getElementById('miscroll').style.width=this.offsetWidth-15;
+												document.getElementById('capaBotones').style.width=this.offsetWidth-6;
+										}catch(e){;}"> 
+									<REJILLA nombre="rejMatrizDias" alto="317" ancho="684" x="24" y="437"/>
+							  </td>
+					 </tr>
+					 <!--- construccion   -->	
+					 <tr>
+						  <td>
+							<table width="705" border="0" align="left" cellspacing="0" cellpadding="0">
+								 <tr> 
+									  <td>
+										   <IMG src="b.gif" width="8" height="1010"/>
+									  </td>
+								 </tr>
+							</table>
+						  </td>
+					 </tr>
+				 </table>
+            <!---fin primera fila-->
+                  </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+         <fieldset>
+           <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">         
+             <tr>
+                <td class="botonera">
+                  <BOTON nombre="btnModoNoGrafico" ID="botonContenido" tipo="html" accion="onClickVerMatriz();" estado="false" cod="2283" ontab="focalizaDesdeMatriz();"/>
+                </td>
+             </tr>    
+           </table>         
+         </fieldset>
+      </td>
+      <td><IMG src="b.gif" width="8" height="12"/></td>
+    </tr>      
+    <tr>
+         <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+         <td width="756" ><IMG src="b.gif"/></td>
+         <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>      
+</CAPA>
+
+<!-- generados dinamicamente en la rejilla
+         BOTON nombre="btnModificar1" x="92" y="332" ID="botonContenido" tipo="html" estado="false" cod="2" /> 
+         BOTON nombre="btnEliminar1" x="158" y="332" ID="botonContenido" tipo="html" estado="false" cod="1254"/
+-->
+
+
+
+<LISTAEDITABLE nombre="lstFueraPeriodo" ancho="684" alto="317" x="24" y="779" colorFondo="#CECFCE" msgDebugJS="S">
+  <IMGBOTONES precarga="S" conROver="S">
+    <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+    <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+    <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+  </IMGBOTONES>
+  <LINEAS>
+    <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="1" horizTitulo="1" horizBase="1"/> 
+    <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+  </LINEAS>
+  <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="0046" ID="datosTitle" />
+  <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+  <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+         <COL ancho="80" minimizable="S" minimizada="N"/>
+         <COL ancho="60" minimizable="S" minimizada="N"/>
+         <COL ancho="170" minimizable="S" minimizada="N"/>
+         <COL ancho="100" minimizable="S" minimizada="N"/>
+         <COL ancho="120" minimizable="S" minimizada="N"/>
+         <COL ancho="80" minimizable="S" minimizada="N"/>
+         <COL ancho="100" minimizable="S" minimizada="N"/>
+         <COL ancho="120" minimizable="S" minimizada="N"/>
+  </COLUMNAS>
+  <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+         <COL colFondo="" ID="EstCab" cod="2195"></COL> 
+         <COL colFondo="" ID="EstCab" cod="261"></COL> 
+         <COL colFondo="" ID="EstCab" cod="192"></COL> 
+         <COL colFondo="" ID="EstCab" cod="151"></COL> 
+         <COL colFondo="" ID="EstCab" cod="174"></COL> 
+         <COL colFondo="" ID="EstCab" cod="193"></COL> 
+         <COL colFondo="" ID="EstCab" cod="194"></COL> 
+         <COL colFondo="" ID="EstCab" cod="293"></COL> 
+  </CABECERA>
+  <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="1" msgErrMaxSel="" 
+          coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" colorSelecc="#D0D9E8">
+        <COL tipo="texto" ID="EstDat"/> 
+        <COL tipo="texto" ID="EstDat2"/>
+        <COL tipo="texto" ID="EstDat"/> 
+        <COL tipo="texto" ID="EstDat2"/>
+        <COL tipo="texto" ID="EstDat"/> 
+        <COL tipo="texto" ID="EstDat2"/>
+        <COL tipo="texto" ID="EstDat"/> 
+        <COL tipo="texto" ID="EstDat2"/>
+  </DATOS>
+  <ROWSET>
+
+           </ROWSET>
+  <PAGINADO nombre="mipgndo2" ancho="684" sep="$" x="24" class="botonera" y="1073" control="|" conector="conector_prototipo_2" rowset="" cargainicial="N">
+    <BOTON nombre="ret2" x="49" y="1077" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+    <BOTON nombre="ava2" x="64" y="1077" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>         
+  </PAGINADO>
+</LISTAEDITABLE>
+    <BOTON nombre="primera2" x="32" y="1077" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();"/>  
+    <BOTON nombre="separa2" x="71" y="1073" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />      
+    <BOTON nombre="btnModificarFueraPeriodo" x="92" y="1074" ID="botonContenido" tipo="html" estado="false" cod="2" accion="onClickModificarFueraPeriodo();" /> 
+    <BOTON nombre="btnEliminarFueraPeriodo" x="158" y="1074" ID="botonContenido" tipo="html" estado="false" cod="1254" accion="onClickEliminarFueraPeriodo();"/>
+ 
+<!--Lista de Actividades con Referencia a Otra Campaña -->
+<LISTAEDITABLE nombre="lstOtraCampana" ancho="684" alto="317" x="24" y="1116" colorFondo="#CECFCE" msgDebugJS="S">
+  <IMGBOTONES precarga="S" conROver="S">
+    <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+    <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+    <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+  </IMGBOTONES>
+  <LINEAS>
+    <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="1" horizTitulo="1" horizBase="1"/> 
+    <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+  </LINEAS>
+  <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00682" ID="datosTitle" />
+  <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+  <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+         <COL ancho="80" minimizable="S" minimizada="N"/>
+         <COL ancho="100" minimizable="S" minimizada="N"/>
+         <COL ancho="120" minimizable="S" minimizada="N"/>
+         <COL ancho="100" minimizable="S" minimizada="N"/>
+         <COL ancho="100" minimizable="S" minimizada="N"/>
+         <COL ancho="120" minimizable="S" minimizada="N"/>
+         <COL ancho="120" minimizable="S" minimizada="N"/>
+  </COLUMNAS>
+  <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+         <COL colFondo="" ID="EstCab" cod="2195">Grupo zona</COL>
+         <COL colFondo="" ID="EstCab" cod="151">codigoActividad</COL> 
+         <COL colFondo="" ID="EstCab" cod="174">nombreActividad</COL> 
+	 <COL colFondo="" ID="EstCab" cod="152">tipo actividad</COL> 
+         <COL colFondo="" ID="EstCab" cod="3206">campañas desplazamiento</COL> 
+         <COL colFondo="" ID="EstCab" cod="3226">nombreActividadOrigen</COL> 
+         <COL colFondo="" ID="EstCab" cod="192">diasRespectoActividadOrigen</COL>  
+
+  <COL colFondo="" ID="EstCab" codigo="">idVista</COL> 
+  </CABECERA>
+  <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="1" msgErrMaxSel=""
+          coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" colorSelecc="#D0D9E8">
+        <COL tipo="texto" ID="EstDat"/> 
+        <COL tipo="texto" ID="EstDat2"/>
+        <COL tipo="texto" ID="EstDat"/> 
+        <COL tipo="texto" ID="EstDat2"/>
+        <COL tipo="texto" ID="EstDat"/> 
+        <COL tipo="texto" ID="EstDat2"/>
+        <COL tipo="texto" ID="EstDat"/>
+  </DATOS>
+  <ROWSET>
+      </ROWSET>
+  <PAGINADO nombre="mipgndo3" ancho="684" sep="$" x="24" class="botonera" y="1155" control="|" conector="conector_prototipo_2" rowset="" cargainicial="N">
+    <BOTON nombre="ret3" x="49" y="1414" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo3.retroceder();" /> 
+    <BOTON nombre="ava3" x="64" y="1414" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo3.avanzar();"/>         
+  </PAGINADO>
+</LISTAEDITABLE>
+    <BOTON nombre="primera3" x="32" y="1414" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo3.retrocederPrimeraPagina();"/>  
+    <BOTON nombre="separa3" x="71" y="1410" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />
+    <BOTON nombre="btnModificarOtraCampana" x="82" y="1411" ID="botonContenido" tipo="html" estado="false" cod="2" accion="onClickModificarOtraCampana();" /> 
+    <BOTON nombre="btnEliminarOtraCampana" x="148" y="1411" ID="botonContenido" tipo="html" estado="false" cod="1254" accion="onClickEliminarOtraCampana();"/>
+
+<CAPA nombre="capaTablaNoGrafica" alto="752" ancho="100%" colorf="" borde="0" visibilidad="hidden" x="0" y="400">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primero formulario-->
+         <fieldset><legend class="legend"><LABELC nombre="lblDatosDeModoNoGrafico" alto="13" filas="1" valor="" id="legend" cod="00553"/></legend>
+			  <!---primera fila-->
+				   <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+
+						 <!--- construccion -->	
+						 <tr valign="top">
+							  <td id="tdContenedorDos" style="border:1px solid #CECFCE" onresize="try{document.getElementById('miscroll').style.width=this.offsetWidth-15;
+											document.getElementById('capaBotones').style.width=this.offsetWidth-6;
+										}catch(e){;}"> 
+									<REJILLA nombre="rejMatrizDiasNoGrafica" alto="317" ancho="684" x="24" y="437"/>
+							  </td>
+						 </tr>
+						 <!--- construccion   -->	
+						 <tr>
+							  <td>
+								<table width="705" border="0" align="left" cellspacing="0" cellpadding="0">
+									 <tr> 
+										  <td>
+											   <IMG src="b.gif" width="8" height="341"/>
+										  </td>
+									 </tr>
+								</table>
+							  </td>
+						 </tr>
+				   </table>
+        <!---fin primera fila-->
+         </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+         <fieldset>
+           <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">         
+             <tr>
+                <td class="botonera">
+                  <BOTON nombre="btnModoGrafico" ID="botonContenido" tipo="html" accion="onClickVerMatriz();" estado="false" cod="2282" ontab="focalizaDesdeMatriz();"/>
+                </td>
+             </tr>    
+           </table>         
+         </fieldset>
+      </td>
+      <td><IMG src="b.gif" width="8" height="12"/></td>
+    </tr>      
+    <tr>
+         <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+         <td width="756" ><IMG src="b.gif"/></td>
+         <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>      
+</CAPA>
+
+
+<!-- generados dinamicamente en la rejilla
+         <BOTON nombre="btnModificar3" x="92" y="732" ID="botonContenido" tipo="html" estado="false" cod="2" /> 
+         <BOTON nombre="btnEliminar3" x="158" y="732" ID="botonContenido" tipo="html" accion="" estado="false" cod="1254"/>
+-->
+
+</FORMULARIO>
+</PAGINA>
+

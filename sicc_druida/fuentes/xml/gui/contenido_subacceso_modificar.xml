@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+ /**
+ * Copyright 2003 © por Indra Sistemas,S.A.. Todos los derechos reservados.
+ * Avda. de Bruselas, 35
+ * Parque Empresarial Arroyo de la Vega
+ * 28108 Alcobendas, Madrid
+ * España
+ *
+ * Privado y Confidencial.
+ * La información contenida en este documento es propiedad de Indra sistemas.
+ * Para uso exclusivo de empleados autorizados no permitiéndose
+ * la distribución de este código sin permiso expreso.
+ */
+
+
+/**
+ * Sistema:           Belcorp
+ * Modulo:            SEG 
+ * Submódulo:         Seguridad
+ * Componente:        XML
+ * Fecha:             12/05/2003
+ * Observaciones:     Componente construido de acuerdo a SIC-DDIU-SEG-001-200
+ *                    y SICC-DMCO-SEG-001-202                
+ * @version           1.0
+ * @autor             Viviana Bongiovanni
+ */
+-->
+
+<PAGINA nombre="contenido_subacceso_modificar" titulo="Modificar Subacceso" estilos="estilos.css" colorf="#F0F0F0"
+        msgle="Modificar Subacceso"  xml:lang="es" onload="fmCargarBarra();">
+
+   <ESTILO> 
+      #estcomboF {width:370px} 	 
+
+   </ESTILO> 
+
+   <JS src="sicc_util.js"/>
+
+    <JAVASCRIPT>
+   <![CDATA[
+
+     function limpiar(){
+         set('frmModificarSubacceso.txtDescripcionSubacceso', get('frmModificarSubacceso.hidDescripcionSubacceso'));
+
+		 focaliza('frmModificarSubacceso.txtDescripcionSubacceso','');
+		 
+     }
+ 
+
+	 function focalizaPrimero() {    		        
+	        focaliza('frmModificarSubacceso.txtDescripcionSubacceso','');
+	 }
+
+
+     function fmCargarBarra(){
+
+	     cargarBarra("barra_subacceso_modificar");    
+
+         // Asignación del valor del combo
+         iSeleccionado = new Array(); 
+		 iSeleccionado[0] = get('frmModificarSubacceso.hidSelectedCanales')==""?"0":get('frmModificarSubacceso.hidSelectedCanales');
+
+		 set('frmModificarSubacceso.cbCodigoCanal',iSeleccionado);
+
+		 llenarAccesos();		 
+
+		 if (ie) {
+            accion('frmModificarSubacceso.cbCodigoCanal','.disabled=true');      
+			accion('frmModificarSubacceso.cbCodigoAcceso','.disabled=true');            
+			accion('frmModificarSubacceso.txtCodigoSubacceso','.disabled=true');         
+         }
+
+		 focaliza('frmModificarSubacceso.txtDescripcionSubacceso','');
+
+		 mostrarCodigoError();
+
+      }
+
+
+	  function llenarAccesos(){
+	     
+		 opciones = new Array();
+		 var i = 0;
+
+         canal = get('frmModificarSubacceso.cbCodigoCanal');
+
+		 //alert(canal);
+
+		 for(var k=0;k<lstAccesos.datos.longitud;k++) 
+		  {
+            if (lstAccesos.datos.ij(k,0) == canal)
+		     { 			     
+		    	  opciones[i] = [lstAccesos.datos.ij(k,1),lstAccesos.datos.ij(k,2)];
+				 // alert(opciones[i][0]);
+				 // alert(opciones[i][1]);
+
+				  i++;				 
+              }               
+		   }  
+
+		   set_combo('frmModificarSubacceso.cbCodigoAcceso',opciones); 
+
+		   iSeleccionado = new Array(); 
+		   iSeleccionado[0] = get('frmModificarSubacceso.hidSelectedAccesos')==""?"0":get('frmModificarSubacceso.hidSelectedAccesos');
+
+		   set('frmModificarSubacceso.cbCodigoAcceso',iSeleccionado);
+      }
+
+
+	  function validaRequeridos()
+	  {
+		if(cdos_trim(get('frmModificarSubacceso.txtDescripcionSubacceso'))=="")
+		{
+		   GestionarMensaje('13',null,null,null);
+		   set('frmModificarSubacceso.txtDescripcionSubacceso',cdos_trim(get('frmModificarSubacceso.txtDescripcionSubacceso')));
+		   focaliza('frmModificarSubacceso.txtDescripcionSubacceso','');
+		   return false;
+		}
+
+		return true;
+
+      }
+
+      
+      function enviarFormulario(){	     
+          if(!validaRequeridos()) return;
+               envia('frmModificarSubacceso');
+      }
+
+
+	  function mostrarCodigoError(){          
+
+		  var vErrCodigo = get('frmModificarSubacceso.errCodigo');
+		  var vErrDescrip = get('frmModificarSubacceso.errDescripcion');
+		  
+		  if (get('frmModificarSubacceso.errDescripcion')!=''){
+      		var wnd = fMostrarMensajeError( vErrCodigo,vErrDescrip);
+     			
+           if ( get('frmModificarSubacceso.accion') == 'preparacion' ){
+		     if (wnd == 0)
+		       reintentarPreparacion();
+	         else
+	           cancelar();
+		   }
+		   else {
+	         if (wnd == 0)
+		       reintentar();
+	         else
+	           cancelar();
+           }
+     	  }		
+		} 
+
+
+      function reintentarPreparacion(){	     
+         set('frmModificarSubacceso.accion','reintentarModificar');
+         set('frmModificarSubacceso.conectorAction','LPPreparacionMantenimientoSubaccesos');
+         envia('frmModificarSubacceso');
+      }
+
+      function reintentar(){	     
+         set('frmModificarSubacceso.accion','reintentar');
+         set('frmModificarSubacceso.conectorAction','LPModificacionSubacceso');
+         envia('frmModificarSubacceso');
+      }
+
+
+      function cancelar(){	     
+         set('frmModificarSubacceso.accion','');
+         set('frmModificarSubacceso.conectorAction','LPPreparacionMantenimientoSubaccesos');
+         envia('frmModificarSubacceso');
+      }
+
+
+   ]]>
+   </JAVASCRIPT>
+
+    <FORMULARIO nombre="frmModificarSubacceso">   
+  
+	 <VAR nombre="accion" valor="Modifica"/>
+     <VAR nombre="conectorAction" valor="LPModificacionSubacceso"/>
+
+	 <VAR nombre="casoDeUso" valor=""/>
+
+	 <VAR nombre="errCodigo" valor=""/>
+     <VAR nombre="errDescripcion" valor=""/>
+
+     <VAR nombre="hidSelectedCanales" valor="" />
+	 <VAR nombre="hidSelectedAccesos" valor="" />
+
+	 <VAR nombre="hidDescripcionSubacceso" valor="" />
+
+   <table width="624" border="0" cellspacing="0" cellpadding="0" align="left">
+    <tr> 
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12" /></td>
+      <td align="center" ></td>
+      <td width="12" ><IMG src="b.gif" width="12" height="12" /></td>
+    </tr>
+	<tr> 
+      <td align="center"><IMG src="b.gif" width="12" height="1"/></td>
+      <td colspan="6" align="left"><table width="100%" border="1" cellspacing="1" cellpadding="0" bordercolor="#CCCCCC">
+          <tr> 
+            <td> <table width="98%" border="0" cellspacing="0" cellpadding="0" align="center">
+                <tr> 
+                  <td colspan="7" nowrap="nowrap" class="datosCampos">
+				  <IMG src="b.gif" width="12" height="8"/>
+				  </td>
+                </tr>
+				<tr> 
+                  <td>
+				  <LABELC nombre="lblSubacceso" ancho="126" alto="25" filas="1" id="datosTitle" cod="775" valor="" enviaroculto="N"/>
+				  </td>
+                  <td><IMG src="b.gif" width="8" height="8"/></td>
+                  <td>
+				  <CTEXTO nombre="txtCodigoSubacceso" id="datosCampos" max="3" tipo="" onchange="" req="N" size="5" valor="" onfocus="if (ns) {accion('frmModificarPais.txtCodigoSubacceso','.blur()');}" />
+				  </td>
+				  <td><IMG src="b.gif" width="2" height="8"/></td>
+				</tr>
+				<tr> 
+				  <td>
+				   <LABELC nombre="lblDescripcionSubacceso" ancho="126" alto="25" filas="1" id="datosTitle" cod="28" valor="" enviaroculto="N"/>
+				  </td>
+                  <td><IMG src="b.gif" width="8" height="8"/></td>
+                  <td colspan="5">
+				  <CTEXTO nombre="txtDescripcionSubacceso" id="datosCampos" max="30" ontab="focalizaPrimero();" tipo="" onchange="" req="N" size="55" valor="" ontab="focalizaPrimero();" />
+				  </td>
+				  <td><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+				<tr> 
+                  <td width="126">
+				  <LABELC nombre="lblCanales" ancho="126" alto="25" filas="1" id="datosTitle" cod="166" valor="" enviaroculto="N"/>
+                  </td>
+                  <td><IMG src="b.gif" width="8" height="8"/></td>
+                  <td colspan="5">
+				  <COMBO  nombre="cbCodigoCanal" size="1" multiple="N" req="N" id="estcombo" onchange="llenarAccesos();" onfocus="if (ns) {accion('frmModificarPais.cbCodigoAcceso','.blur()');}">
+		            <ROWSET>			          
+		            </ROWSET>
+	              </COMBO>      
+				  </td>                  
+                  <td><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+				<tr> 
+                  <td >
+				  <LABELC nombre="lblAccesos" ancho="126" alto="25" filas="1" id="datosTitle" cod="167" valor="" enviaroculto="N"/>
+				  </td>
+                  <td><IMG src="b.gif" width="8" height="8"/></td>
+                  <td  colspan="5">
+				  <COMBO  nombre="cbCodigoAcceso" size="1" multiple="N" req="N"  id="estcombo" onfocus="if (ns) {accion('frmModificarPais.cbCodigoAcceso','.blur()');}">
+		            <ROWSET>			          
+		            </ROWSET>
+	              </COMBO>      
+				  </td>                  
+                  <td><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr> 
+                   <td colspan="7" nowrap="nowrap" class="datosCampos">
+				  <IMG src="b.gif" width="12" height="8"/>
+				  </td>
+                </tr>
+              </table></td>
+          </tr>          
+        </table>
+		</td>
+      <td align="center"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+	</table>
+	  
+   <CAPA nombre="capaCombo" alto="10" ancho="100%" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="hidden" contravsb="" x="0" y="130" zindex="">
+      <LISTA
+        seleccion="boton" nombre="lstAccesos"
+        x="13" y="10" ancho="602" alto="200" multisel="-1" incy="10" incx="10" colorf="#EFEFEF"
+        imagenoff="../imagenes/gif/close_no.gif" imagenon="../imagenes/gif/close_up.gif"
+        accion="" sep="|" pixelsborde="2" colorborde="#CCCCCC">
+        <CABECERA nombre="cab1" height="20">
+            <COL id="datosCamposCabecera" ancho="40"></COL>     		
+            <COL id="datosCamposCabecera" ancho="60">Código Acceso</COL>            
+            <COL id="datosCamposCabecera" ancho="440">Descripción</COL>			
+        </CABECERA>
+        <PRESENTACION ancho="600" filas="1" bloquesid="['datosCamposCenterImpar', 'datosCamposCenterPar']">
+            <COL ancho="40"   caracteres="20" />    			
+            <COL ancho="60"   caracteres="20"/>            
+            <COL ancho="440"  caracteres="30"/>			
+        </PRESENTACION>
+        <ROWSET>
+        </ROWSET>
+				
+      </LISTA> 
+   </CAPA>
+	
+	</FORMULARIO>
+</PAGINA>

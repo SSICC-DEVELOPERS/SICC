@@ -1,0 +1,2317 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_insertar_destinatario.xml,v 1.1 2009/12/03 18:43:54 pecbazalar Exp $
+   contenido CCC
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_insertar_destinatario" cod="" titulo="" estilos="estilosB3.css" colorf="#F0F0F0" 
+	msgle="Insertar mensajes" onload="onLoadPag();" xml:lang="es">
+
+
+<!-- Barra Modificar mensajes cod="0374"
+     Barra Consultar mensajes cod="0376"
+     Barra Eliminar mensajes cod="0375"
+-->
+  <JS src="sicc_util.js"/>
+  <JS src="scripts_clientes.js"/>
+  <JS src="PaginacionSicc.js"/>
+  <JS src="DruidaTransactionMare.js"/>
+
+<JAVASCRIPT>
+
+<![CDATA[
+
+var tipoClasi = new Array();
+var clasi = new Array();
+var tipoSubti = new Array();
+var tipoClien = new Array();
+
+function onLoadPag(){
+  
+	  configurarMenuSecundario("frmAsignacionDestinatarios");
+	  fMostrarMensajeError();
+
+	  varNoLimpiarSICC = true;
+
+    DrdEnsanchaConMargenDcho('listado1',26);
+    document.all["Cplistado1"].style.visibility='';
+    document.all["CpLin1listado1"].style.visibility='';
+    document.all["CpLin2listado1"].style.visibility='';
+    document.all["CpLin3listado1"].style.visibility='';
+    document.all["CpLin4listado1"].style.visibility='';
+    document.all["separaDiv"].style.visibility='hidden';
+    document.all["primera1Div"].style.visibility='hidden';
+    document.all["ret1Div"].style.visibility='hidden';
+    document.all["ava1Div"].style.visibility='hidden';
+   
+    eval (ON_RSZ);
+
+    var vUnidadesAdministrativas = get( 'frmAsignacionDestinatarios.hUnidadesAdministrativas' );
+	  var vTipoCliente = get( 'frmAsignacionDestinatarios.hTipoCliente' );
+    var vMarca = get( 'frmAsignacionDestinatarios.hMarca' );
+    var vCodigoVenta = get( 'frmAsignacionDestinatarios.hCodigoVenta' );
+	//var vGeneracionPedido = get( 'frmAsignacionDestinatarios.hGeneracionPedido' );
+
+
+	
+	if( vUnidadesAdministrativas=='S' ){
+	  var div=document.getElementById( "pUnidadesAdministrativas" );
+	 // div.attachEvent("onmouseover", manejarPestanas );
+   //div.attachEvent("onmouseout", manejarPestanas2 );
+	  div.attachEvent("onclick", mostrarSolapaUnidadesAdministrativas);
+    }
+
+	if( vTipoCliente=='S' ){
+	  var div=document.getElementById( "pTipoCliente" );
+//	  div.attachEvent("onmouseover", manejarPestanas );
+	//  div.attachEvent("onmouseout", manejarPestanas2 );
+	  div.attachEvent("onclick", mostrarSolapaTipoCliente);
+
+	  //setear campos como requeridos
+	  sicc_cambiar_estado('cbTipoCliente', true);
+	}
+
+	if( vMarca=='S' ){
+	  var div=document.getElementById( "pMarca" );
+	//  div.attachEvent("onmouseover", manejarPestanas );
+	//  div.attachEvent("onmouseout", manejarPestanas2 );
+	  div.attachEvent("onclick", mostrarSolapaMarca);
+
+	  //setear campos como requeridos
+	  sicc_cambiar_estado('cbMarca4', true);
+   }
+
+	if( vCodigoVenta=='S' ){
+	  var div=document.getElementById( "pCodigoVenta" );
+	 // div.attachEvent("onmouseover", manejarPestanas );
+	//  div.attachEvent("onmouseout", manejarPestanas2 );
+	  div.attachEvent("onclick", mostrarSolapaCodigoVenta);
+
+	  //setear campos como requeridos
+	  sicc_cambiar_estado('txtCodigoVenta', true);
+	}
+
+
+	 //Hacer visible solo la primera capa habilitada
+	 if( vUnidadesAdministrativas=='S' ){
+			  mostrarSolapaUnidadesAdministrativas();
+	 } else if( vTipoCliente=='S' ){
+			  mostrarSolapaTipoCliente();
+	 } else if( vMarca=='S' ){
+			  mostrarSolapaMarca();
+	 } else if( vCodigoVenta=='S' ){
+			  mostrarSolapaCodigoVenta();
+	 }
+ 
+	 //diseno
+	 if( get('frmAsignacionDestinatarios.opcionMenu')=='Modificar mensaje' || get('frmAsignacionDestinatarios.opcionMenu')=='Consultar mensaje' ||
+	 get('frmAsignacionDestinatarios.opcionMenu')=='Eliminar mensaje' ){
+
+      if(vUnidadesAdministrativas == 'S'){ 
+         recargaListaUnidades();
+      }
+
+      if(vTipoCliente == 'S'){
+         procesaTipoCliente();
+      }
+
+    
+      // MARCAS
+
+      var hidMarca = get( 'frmAsignacionDestinatarios.hMarcasSeleccionadas' );
+      //alert('las marcas seleccionadas son ' + hidMarca);
+
+      if( hidMarca != '' ){
+             var aMarca = hidMarca.split(',');
+             set('frmAsignacionDestinatarios.cbMarca4', aMarca );
+      }
+
+   }
+   //Si es consulta oculto el boton de eliminbar de la lista
+   //Deshabilitacion de combos
+	 if( get('frmAsignacionDestinatarios.opcionMenu')=='Consultar mensaje' ||
+		   get('frmAsignacionDestinatarios.opcionMenu')=='Eliminar mensaje' ){
+          document.all["btnEliminarDiv"].style.visibility='hidden';
+          
+  			  deshabilitarTodos();
+	 }
+
+   if( get('frmAsignacionDestinatarios.opcionMenu')=='Insertar mensaje'){
+      cargarValoresPorDefecto();     
+   }
+   
+}//onLoad
+//******************************************************************************
+
+   function cargarValoresPorDefecto(){
+      var marca =      get('frmAsignacionDestinatarios.marcaPorDefecto');
+      var canal =      get('frmAsignacionDestinatarios.canalPorDefecto');
+
+      if (marca != null){
+
+         iSeleccionado = new Array(); 
+         iSeleccionado[0] = marca;
+         set('frmAsignacionDestinatarios.cbMarca2',iSeleccionado);
+
+         iSeleccionado = new Array(); 
+         iSeleccionado[0] = canal;
+         set('frmAsignacionDestinatarios.cbCanal', iSeleccionado);
+                  
+         asignar([['COMBO','frmAsignacionDestinatarios.cbRegion',
+                          'ConectorDruidaTransactionQuery',
+                          'dtoSalida.resultado_ROWSET',
+                          formarCadenaDT('ZONRecargaRegiones', 
+                            'es.indra.sicc.dtos.zon.DTOUnidadAdministrativa', 
+                            MakeParametersRegion()), 
+						               'recargarRegion(datos);']]);	
+            
+         
+      }
+   } 
+//******************************************************************************
+
+  function MakeParametersRegion(){
+        var arr = new Array();
+        arr[arr.length] = new Array("oidPais", get('frmAsignacionDestinatarios.oidPais'));
+        arr[arr.length] = new Array("oidMarca", get('frmAsignacionDestinatarios.cbMarca'));
+        arr[arr.length] = new Array("oidCanal", get('frmAsignacionDestinatarios.cbCanal'));
+        return arr;
+    }
+//******************************************************************************    
+
+ function recargarRegion(datos){
+
+        var  arr = new Array();
+        var region =     get('frmAsignacionDestinatarios.regionPorDefecto');
+
+        arr[arr.length] = new Array([''],['']);
+        for (var i=0 ;i< datos.length ; i++)  {
+            arr[arr.length] = datos[i];
+        }
+
+        set_combo('frmAsignacionDestinatarios.cbRegion',arr);
+
+
+        var iSeleccionado = new Array(); 
+        var oidRegion = region;
+        iSeleccionado[0] = oidRegion ;
+
+        set('frmAsignacionDestinatarios.cbRegion',iSeleccionado);
+
+         asignar([['COMBO','frmAsignacionDestinatarios.cbZona',
+                          'ConectorDruidaTransactionQuery',
+                          'dtoSalida.resultado_ROWSET',
+                          formarCadenaDT('ZONRecargaZonas', 
+                            'es.indra.sicc.dtos.zon.DTOUnidadAdministrativa', 
+                            armaArrayRegion()), 
+						              'recargarZona(datos);']]);	
+
+                          
+    }
+//******************************************************************************
+  function recargarZona(datos){
+
+        var  arr = new Array();
+        var zona =       get('frmAsignacionDestinatarios.zonaPorDefecto');
+
+        arr[arr.length] = new Array([''],['']);
+        for (var i=0 ;i< datos.length ; i++)  {
+            arr[arr.length] = datos[i];
+        }
+
+        set_combo('frmAsignacionDestinatarios.cbZona',arr);
+        
+        var iSeleccionado = new Array(); 
+        var oidZona = zona;
+
+        iSeleccionado[0] = oidZona;
+        set('frmAsignacionDestinatarios.cbZona',iSeleccionado); 
+
+        asignar([['COMBO','frmAsignacionDestinatarios.cbSeccion',
+                          'ConectorDruidaTransactionQuery',
+                          'dtoSalida.resultado_ROWSET',
+                          formarCadenaDT('ZONRecargaSecciones', 
+                            'es.indra.sicc.dtos.zon.DTOUnidadAdministrativa', 
+                            armaArrayZona()), 
+						               'recargarSeccion(datos);']]);	
+        
+    }
+
+
+//******************************************************************************
+  function recargarSeccion(datos){
+
+        var  arr = new Array();
+        var seccion =       get('frmAsignacionDestinatarios.seccionPorDefecto');
+
+        arr[arr.length] = new Array([''],['']);
+        for (var i=0 ;i< datos.length ; i++)  {
+            arr[arr.length] = datos[i];
+        }
+
+        set_combo('frmAsignacionDestinatarios.cbSeccion',arr);
+        
+        var iSeleccionado = new Array(); 
+        var oidSeccion = seccion;
+
+        iSeleccionado[0] = oidSeccion;
+        set('frmAsignacionDestinatarios.cbSeccion',iSeleccionado); 
+
+        asignar([['COMBO','frmAsignacionDestinatarios.cbTerritorio',
+                          'ConectorDruidaTransactionQuery',
+                          'dtoSalida.resultado_ROWSET',
+                          formarCadenaDT('ZONRecargaSecciones', 
+                            'es.indra.sicc.dtos.zon.DTOUnidadAdministrativa', 
+                            armaArraySeccion()), 
+						               'recargarTerritorio(datos);']]);	
+        
+    }
+//******************************************************************************
+     function recargarTerritorio(datos){
+
+        var  arr = new Array();
+        var seccion =       get('frmAsignacionDestinatarios.terriPorDefecto');
+
+        arr[arr.length] = new Array([''],['']);
+        for (var i=0 ;i< datos.length ; i++)  {
+            arr[arr.length] = datos[i];
+        }
+
+        set_combo('frmAsignacionDestinatarios.cbTerritorio',arr);
+        
+        var iSeleccionado = new Array(); 
+        var oidTerritorio = seccion;
+
+        iSeleccionado[0] = oidTerritorio;
+        set('frmAsignacionDestinatarios.cbTerritorio',iSeleccionado); 
+
+        
+    }
+
+//******************************************************************************      
+
+ function mostrarSolapaUnidadesAdministrativas(){
+		  var div  = document.getElementById( "pUnidadesAdministrativas" );
+      var div2 = document.getElementById( "pTipoCliente" );
+      var div3 = document.getElementById( "pMarca" );
+      var div4 = document.getElementById( "pCodigoVenta" );
+		  div.bgColor  = "#496A9A";
+      div2.bgColor = "";
+      div3.bgColor = "";
+      div4.bgColor = "" ;
+		  mostrarSolapa('2');
+      muestraCapa();
+ }
+//****************************************************************************** 
+
+ function mostrarSolapaTipoCliente(){
+		  var div=document.getElementById( "pTipoCliente" );
+      var div2 = document.getElementById( "pUnidadesAdministrativas" );
+      var div3 = document.getElementById( "pMarca" );
+      var div4 = document.getElementById( "pCodigoVenta" );
+      
+		  div.bgColor = "#496A9A";
+      div2.bgColor = "";
+      div3.bgColor = "";
+      div4.bgColor = "" ;
+		
+		  mostrarSolapa('3');
+      ocultaCapa();
+ }
+//****************************************************************************** 
+
+ function mostrarSolapaMarca(){
+		  var div  = document.getElementById( "pMarca" );
+      var div2 = document.getElementById( "pUnidadesAdministrativas" );
+      var div3 =document.getElementById( "pTipoCliente" );
+      var div4 = document.getElementById( "pCodigoVenta" );
+      
+		  div.bgColor = "#496A9A";
+      div2.bgColor = "";
+      div3.bgColor = "";
+      div4.bgColor = "" ;
+		  mostrarSolapa('4');
+		  
+      ocultaCapa();
+ }
+//****************************************************************************** 
+
+ function mostrarSolapaCodigoVenta(){
+		  var div= document.getElementById( "pCodigoVenta" );
+      var div2  = document.getElementById( "pMarca" );
+      var div3 = document.getElementById( "pUnidadesAdministrativas" );
+      var div4 =document.getElementById( "pTipoCliente" );
+      
+		  div.bgColor = "#496A9A";
+      div2.bgColor = "";
+      div3.bgColor = "";
+      div4.bgColor = "" ;
+		  mostrarSolapa('5');
+		
+      ocultaCapa();
+ }
+//****************************************************************************** 
+
+ function mostrarSolapa(a){
+		  if( a=='2'||a=='3'||a=='4'||a=='5')
+				   ocultarSolapas();
+            
+		  if(a=='2'){
+				   visibilidad('camposBusqueda2','V');
+				   if( cbRegion.disabled == false ){
+							focaliza( 'frmAsignacionDestinatarios.cbMarca2' );
+				   }
+		  }
+		  else if(a=='3'){
+				   visibilidad('camposBusqueda3','V');
+				   if( cbTipoCliente.disabled == false ){
+							focaliza( 'frmAsignacionDestinatarios.cbTipoCliente' );
+				   }
+		  }
+		  else if(a=='4'){
+				   visibilidad('camposBusqueda4','V');
+				   if( cbMarca4.disabled == false ){
+							focaliza( 'frmAsignacionDestinatarios.cbMarca4' );
+				   }
+		  }
+		  else if(a=='5'){
+				   visibilidad('camposBusqueda5','V');
+				   if( txtCodigoVenta.disabled == false ){
+							focaliza( 'frmAsignacionDestinatarios.txtCodigoVenta' );
+				   }
+		  }
+ }
+//****************************************************************************** 
+    
+ function ocultarSolapas(){
+		  if( get_visibilidad('camposBusqueda2') ){
+				   visibilidad('camposBusqueda2','O');
+		  }
+		  if( get_visibilidad('camposBusqueda3') ){
+				   visibilidad('camposBusqueda3','O');
+		  }
+		  if( get_visibilidad('camposBusqueda4') ){
+				   visibilidad('camposBusqueda4','O');
+		  }
+		  if( get_visibilidad('camposBusqueda5') ){
+				   visibilidad('camposBusqueda5','O');
+		  }
+ }
+
+//******************************************************************************  
+
+function fGuardar(){
+		var vUnidadesAdministrativas = get( 'frmAsignacionDestinatarios.hUnidadesAdministrativas' );
+		var vTipoCliente = get( 'frmAsignacionDestinatarios.hTipoCliente' );
+		var vMarca = get( 'frmAsignacionDestinatarios.hMarca' );
+		var vCodigoVenta = get( 'frmAsignacionDestinatarios.hCodigoVenta' );
+
+		tipoClasi = new Array();
+		clasi = new Array();
+		tipoSubti = new Array();
+		tipoClien = new Array();
+
+		var estructuraTipoCliente = new Array();
+		
+		generarTiposClientes();
+
+		for (var i=0; i< clasi.length; i++){
+			estructuraTipoCliente[estructuraTipoCliente.length] = clasi[i];
+    }
+
+		for (var i=0; i< tipoClasi.length; i++){
+			estructuraTipoCliente[estructuraTipoCliente.length] = tipoClasi[i];
+    }
+
+		for (var i=0; i< tipoSubti.length; i++){
+			estructuraTipoCliente[estructuraTipoCliente.length] = tipoSubti[i];
+    }
+
+		for (var i=0; i< tipoClien.length; i++){
+			estructuraTipoCliente[estructuraTipoCliente.length] = tipoClien[i];
+    }
+
+    var elementos = new String();
+
+		for (var i=0;i<estructuraTipoCliente.length; i++){
+        elementos = elementos + estructuraTipoCliente[i] + '#';
+    }
+   
+    set('frmAsignacionDestinatarios.elementosSeleccionados', elementos);
+    		
+   
+		/*if(!sicc_validaciones_generales('grupo2')){
+			  visibilidad('camposBusqueda2','O');
+		  	visibilidad('camposBusqueda3','O');
+		  	visibilidad('camposBusqueda4','O');
+		  	visibilidad('camposBusqueda5','O');
+        ocultaCapa();
+			  return false;
+		}*/
+
+
+
+    var correcto = comprobarDatos();
+    if( correcto ){
+
+       if(validacionCapas()){
+          recolectarListaUA();
+      
+          setMV('frmAsignacionDestinatarios.cbMarca2', 'N');
+          setMV('frmAsignacionDestinatarios.cbCanal', 'N');
+          setMV('frmAsignacionDestinatarios.cbRegion', 'N');
+      
+          set( 'frmAsignacionDestinatarios.oculto', 'S' );
+          set( 'frmAsignacionDestinatarios.accion', 'Guardar' );
+          set( 'frmAsignacionDestinatarios.conectorAction', 'LPDestinatarios' );
+  
+          enviaSICC( 'frmAsignacionDestinatarios' );
+      
+       }
+    }
+      
+ 
+ }
+//******************************************************************************
+//Esta funcion hubo que ponerla porque hubo que puentear el tag validacion
+
+   function validacionCapas(){
+      
+	    var vTipoCliente = get( 'frmAsignacionDestinatarios.hTipoCliente' );
+      var vMarca = get( 'frmAsignacionDestinatarios.hMarca' );
+      var vCodigoVenta = get( 'frmAsignacionDestinatarios.hCodigoVenta' );
+
+      if(vTipoCliente == 'S'){
+         if(get('frmAsignacionDestinatarios.cbTipoCliente') == ''){
+
+            visibilidad('camposBusqueda2','O');
+		  	    visibilidad('camposBusqueda4','O');
+		  	    visibilidad('camposBusqueda5','O');
+            visibilidad('camposBusqueda3','V');
+            mostrarSolapaTipoCliente();
+            GestionarMensaje('1107');
+            focaliza('frmAsignacionDestinatarios.cbTipoCliente');
+            return false;
+         }
+      }
+
+      if(vMarca == 'S'){
+         if(get('frmAsignacionDestinatarios.cbMarca4') == ''){
+
+            visibilidad('camposBusqueda2','O');
+		  	    visibilidad('camposBusqueda3','O');
+		  	    visibilidad('camposBusqueda5','O');
+            visibilidad('camposBusqueda4','V');
+            mostrarSolapaMarca();
+            GestionarMensaje('1525');
+            focaliza('frmAsignacionDestinatarios.cbMarca4');
+            return false;
+         }
+      }
+
+      if(vCodigoVenta == 'S'){
+         if(get('frmAsignacionDestinatarios.txtCodigoVenta') == ''){
+
+            visibilidad('camposBusqueda2','O');
+		  	    visibilidad('camposBusqueda3','O');
+		  	    visibilidad('camposBusqueda4','O');
+            visibilidad('camposBusqueda5','V');
+            mostrarSolapaCodigoVenta();
+            GestionarMensaje('1404');
+            focaliza('frmAsignacionDestinatarios.txtCodigoVenta');
+            return false;
+         }
+      }
+
+      return true;
+   }
+//****************************************************************************** 
+
+   function retorna(){
+      //alert('tiene que cerra');
+      this.close();
+   }
+   
+//****************************************************************************** 
+
+   function recolectarListaUA(){
+      var datosLista = new String();
+      for (var i=0; i < listado1.datos.length; i++){
+      
+         datosLista = datosLista + listado1.datos[i][5] + ',';
+         datosLista = datosLista + listado1.datos[i][6] + ',';
+         datosLista = datosLista + listado1.datos[i][7] + ',';
+         datosLista = datosLista + listado1.datos[i][8] + "#";
+      }
+     // alert('los datos de la lista ' + datosLista);
+      set('frmAsignacionDestinatarios.hidListaUnidades', datosLista);
+      //alert('recolecto lista');
+   }
+
+
+//******************************************************************************
+
+		  function mostrarMensajeNumerico(campo){
+				   var msg = sicc_obtenerDescripcion(campo);
+				   focaliza("frmAsignacionDestinatarios." + campo);
+				   cdos_mostrarAlert(GestionarMensaje("000000000000100" ,  "\"" + msg + "\""));
+		  }
+//******************************************************************************       
+
+	function generarTiposClientes(){
+		var oidS = new Array();
+		oidS = get( 'frmAsignacionDestinatarios.cbClasificacion');
+
+		for (var i=0; i < oidS.length; i++){
+			var oidTipoClasi = obtenerOidTipoClasi(oidS[i]);
+			var oidTipoSubti = obtenerOidTipoSubti(oidTipoClasi);
+			var oidTipoClien = obtenerOidTipoClien(oidTipoSubti);
+			var estructuraClasi = new Array();
+			estructuraClasi[0]  = oidTipoClien;
+			estructuraClasi[1]  = oidTipoSubti;
+			estructuraClasi[2]  = oidTipoClasi;
+			estructuraClasi[3]  = oidS[i];
+			clasi[clasi.length] = estructuraClasi;
+		}
+
+		oidS = get( 'frmAsignacionDestinatarios.cbTipoClasificacion');
+		for (var i=0; i < oidS.length; i++){
+			if (esNivel2(oidS[i])) {
+				var oidTipoSubti = obtenerOidTipoSubti(oidS[i]);
+				var oidTipoClien = obtenerOidTipoClien(oidTipoSubti);
+				var estructuraTipoClasi = new Array();
+				estructuraTipoClasi[0] = oidTipoClien;
+				estructuraTipoClasi[1] = oidTipoSubti;
+				estructuraTipoClasi[2] = oidS[i];
+				tipoClasi[tipoClasi.length] = estructuraTipoClasi;
+			}			
+		}
+
+		oidS = get( 'frmAsignacionDestinatarios.cbSubtipoCliente');
+		for (var i=0; i < oidS.length; i++){
+			if (esNivel1(oidS[i]))  {
+				var oidTipoClien = obtenerOidTipoClien(oidS[i]);
+				var estructuraTipoSubti = new Array();
+				estructuraTipoSubti[0] = oidTipoClien;
+				estructuraTipoSubti[1] = oidS[i];
+				tipoSubti[tipoSubti.length] = estructuraTipoSubti;
+			}			
+		}
+
+		oidS = get('frmAsignacionDestinatarios.cbTipoCliente');
+		for (var i=0; i < oidS.length; i++){
+			if (esNivel0(oidS[i]))  {
+				var estructuraTipoClien = new Array();
+				estructuraTipoClien[0] = oidS[i];
+				tipoClien[tipoClien.length] = estructuraTipoClien;
+			}			
+		}
+
+	}
+//******************************************************************************  
+
+	function obtenerOidTipoClasi(oidClasi){
+		for (var i=0;i<lstClasificacion.datos.longitud; i++)
+			if (lstClasificacion.datos.ij(i,0) == oidClasi)
+				return lstClasificacion.datos.ij(i,1)
+	}
+//******************************************************************************  
+ 
+	function obtenerOidTipoSubti(oidTipoClasi){
+		for (var i=0;i<lstTipoClasificacion.datos.longitud; i++)
+			if (lstTipoClasificacion.datos.ij(i,0) == oidTipoClasi)
+				return lstTipoClasificacion.datos.ij(i,1)
+	}
+//******************************************************************************  
+
+	function obtenerOidTipoClien(oidTipoSubti){
+		for (var i=0;i<lstSubtipo.datos.longitud; i++)
+			if (lstSubtipo.datos.ij(i,0) == oidTipoSubti)
+				return lstSubtipo.datos.ij(i,1)
+	}
+
+//******************************************************************************
+
+	function esNivel0(oid){
+		for (var i=0; i<tipoSubti.length; i++){
+			var estructura = tipoSubti[i];
+			if (estructura[0] == oid){
+				return false;
+			}
+		}
+		for (var i=0; i<tipoClasi.length; i++){
+			var estructura = tipoClasi[i];
+			if (estructura[0] == oid)
+				return false;
+		}
+		for (var i=0; i<clasi.length; i++){
+			var estructura = clasi[i];
+			if (estructura[0] == oid)
+				return false;
+		}
+		return true;
+	}
+//******************************************************************************  
+
+	function esNivel1(oid){
+		for (var i=0; i<tipoClasi.length; i++){
+			var estructura = tipoClasi[i];
+			if (estructura[1] == oid)
+				return false;
+		}
+		for (var i=0; i<clasi.length; i++){
+			var estructura = clasi[i];
+			if (estructura[1] == oid)
+				return false;
+		}
+		return true;
+	}
+//******************************************************************************
+	function esNivel2(oid){
+		for (var i=0; i<clasi.length; i++){
+			var estructura = clasi[i];
+			if (estructura[2] == oid){
+				return false;
+			}
+
+		}
+		return true;
+	}
+
+//******************************************************************************
+
+	function fLimpiar(){
+		  if( get_visibilidad( 'camposBusqueda2' ) ){
+         if( get('frmAsignacionDestinatarios.opcionMenu')=='Insertar mensaje'){
+            cargarValoresPorDefecto();     
+         }else{
+           set('frmAsignacionDestinatarios.cbMarca2', '')
+           set('frmAsignacionDestinatarios.cbCanal', '')
+           
+			     var aCombo = new Array(new Array("",""));
+      
+           set_combo( 'frmAsignacionDestinatarios.cbRegion' ,aCombo, []);
+           set_combo( 'frmAsignacionDestinatarios.cbZona' ,aCombo, []);
+           set_combo( 'frmAsignacionDestinatarios.cbSeccion' ,aCombo, []);
+           set_combo( 'frmAsignacionDestinatarios.cbTerritorio' ,aCombo, []);
+				   focaliza('frmAsignacionDestinatarios.cbMarca2');
+         }
+				   
+		  } else if( get_visibilidad( 'camposBusqueda3' ) ){
+				   set( 'frmAsignacionDestinatarios.cbTipoCliente', new Array() );
+				   set_combo( 'frmAsignacionDestinatarios.cbSubtipoCliente', new Array() );
+				   set_combo( 'frmAsignacionDestinatarios.cbTipoClasificacion', new Array() );
+				   set_combo( 'frmAsignacionDestinatarios.cbClasificacion', new Array() );
+				   accion('frmAsignacionDestinatarios.cbSubtipoCliente','.disabled=true');
+				   accion('frmAsignacionDestinatarios.cbTipoClasificacion','.disabled=true');
+				   accion('frmAsignacionDestinatarios.cbClasificacion','.disabled=true');
+				   if( cbTipoCliente.disabled == false ){
+							focaliza( 'frmAsignacionDestinatarios.cbTipoCliente' );
+				   }
+		  } else if( get_visibilidad( 'camposBusqueda4' ) ){
+				   set( 'frmAsignacionDestinatarios.cbMarca4', new Array() );
+				   if( cbMarca4.disabled == false ){
+							focaliza( 'frmAsignacionDestinatarios.cbMarca4' );
+				   }
+		  } else if( get_visibilidad( 'camposBusqueda5' ) ){
+				   set( 'frmAsignacionDestinatarios.txtCodigoVenta', '' );
+				   if( txtCodigoVenta.disabled == false ){
+							focaliza( 'frmAsignacionDestinatarios.txtCodigoVenta' );
+				   }
+		  } 
+ }
+//****************************************************************************** 
+
+ //NO SE QUE HACE ESTA FUNCION
+ function filtrarCampos(){
+		  if( vUnidadesAdministrativas != 'S' ){
+			  set( 'frmAsignacionDestinatarios.cbRegion' );
+				   set( 'frmAsignacionDestinatarios.cbZona' )
+				   set( 'frmAsignacionDestinatarios.cbSeccion' )
+				   set( 'frmAsignacionDestinatarios.cbTerritorio' )
+		  }
+		  if( vTipoCliente != 'S' ){
+		  }
+		  if( vMarca != 'S' ){
+		  }
+		  if( vCodigoVenta != 'S' ){
+		  }
+ }
+//****************************************************************************** 
+
+
+ function comprobarDatos(){
+		  var correcto = true;
+
+      if( get ('frmAsignacionDestinatarios.unidadAdministrativa') == 'S'){
+         correcto = comprobarUnidadAdministrativa();
+
+      }
+
+		/*  if( get( 'frmAsignacionDestinatarios.tipoCliente' )=='S' ){
+				   correcto = comprobarTipoCliente();
+		  }
+
+		  if( correcto && get( 'frmAsignacionDestinatarios.marca' )=='S' ){
+				   correcto = comprobarMarca();
+		  }
+
+		  if( correcto && get( 'frmAsignacionDestinatarios.codigoVenta' )=='S' ){
+				   correcto = comprobarCodigoVenta();
+		  }*/
+
+		  return correcto;
+ }
+//******************************************************************************
+
+   function comprobarUnidadAdministrativa(){
+      var lista = listado1.datos.length;
+
+      if (lista == 0){
+         visibilidad('camposBusqueda3','O');
+         visibilidad('camposBusqueda4','O');
+         visibilidad('camposBusqueda5','O');
+         visibilidad('camposBusqueda2','V');
+         mostrarSolapaUnidadesAdministrativas();
+         //muestraCapa();
+         GestionarMensaje(1392);
+         focaliza('frmAsignacionDestinatarios.cbMarca2');
+         return false;
+      }else{
+         return true;
+      }
+   }
+ 
+//****************************************************************************** 
+
+ function comprobarTipoCliente(){
+		  var sel = get( 'frmAsignacionDestinatarios.cbTipoCliente' );
+		  if( sel.toString()=='' ){
+				   GestionarMensaje(1107);
+				   return false;
+		  }
+		  return true;
+ }
+//****************************************************************************** 
+
+ function comprobarMarca(){
+		  var sel = get( 'frmAsignacionDestinatarios.cbMarca4' );
+		  if( sel.toString()=='' ){
+				   GestionarMensaje(1076);
+				   return false;
+		  }
+		  return true;
+ }
+//****************************************************************************** 
+
+
+ function comprobarCodigoVenta(){
+		  var cv = get( 'frmAsignacionDestinatarios.txtCodigoVenta' );
+
+		  if( cv == '' ){
+				   GestionarMensaje( 1143 );
+				   return false;
+		  }
+
+		  //Los codigos de venta, si son varios, se deben ingresar separados por ';'.
+		  var acv = cv.split(';');
+
+		  for( i = 0; i < acv.length; i++ ){
+				   if( !validarNumeroCodVenta( acv[i] ) ){
+							return false;
+				   }
+                           
+		  }
+
+		  return true;
+ }
+//****************************************************************************** 
+
+
+ function validarNumeroCodVenta( num ){
+                  
+		  var x = esNumero( num );
+
+		  if( x == 'OK' ){
+				   return true;
+		  } else{
+				   GestionarMensaje( 2560 );
+				   if( txtCodigoVenta.disabled == false ){
+							focaliza( 'frmAsignacionDestinatarios.txtCodigoVenta' );
+				   }
+				   return false;
+		  }
+ }
+//****************************************************************************** 
+
+
+ function accionAnadirCliente(){
+		  // yyy AQUI SE DEBE USAR EL SUBSISTEMA DE BUSQUEDA RAPIDA DE CLIENTES.
+ }
+//****************************************************************************** 
+
+ function accionEliminarCliente(){
+		  if( get_visibilidad( 'frmAsignacionDestinatarios.camposBusqueda8' ) ){
+				   if( listado1.numSelecc() > 0){
+							listado1.eliminarSelecc();
+							listado1.repintaDat();
+				   }
+		  }
+ }
+//****************************************************************************** 
+
+
+function validarDestinatarios(){
+ var resultado = false;
+   
+ if (get_visibilidad('camposBusqueda2')){
+		  if (fValidarCOMBO('frmAsignacionDestinatarios.cbRegion') && get('frmAsignacionDestinatarios.cbRegion')!=''){
+				   resultado=true;
+		  }
+ }else if (get_visibilidad('camposBusqueda3')){
+		  if (fValidarCOMBO('frmAsignacionDestinatarios.cbTipo') && get('frmAsignacionDestinatarios.cbTipo')!=''){
+				   resultado=true;
+		  }
+ }else if (get_visibilidad('camposBusqueda4')){
+		  if (fValidarCOMBO('frmAsignacionDestinatarios.cbMarca4') && get('frmAsignacionDestinatarios.cbMarca4')!=''){
+				   resultado=true;
+		  }
+ }else if (get_visibilidad('camposBusqueda5')){
+		  if (fValidarCTEXT('frmAsignacionDestinatarios.txtCodVenta')){
+				   resultado=true;
+		  }
+ }else if (get_visibilidad('camposBusqueda6')){
+		  resultado=true;
+ }
+ return resultado;
+}
+
+//******************************************************************************
+ 
+function cambioTipo(){
+
+ if( get('frmAsignacionDestinatarios.opcionMenu')=='Consultar mensaje' || get('frmAsignacionDestinatarios.opcionMenu')=='Eliminar mensaje' ){
+    return;
+ }else{
+ 
+     opciones = new Array();
+     set_combo('frmAsignacionDestinatarios.cbSubtipoCliente',opciones);                      
+     tipo = get('frmAsignacionDestinatarios.cbTipoCliente','V');
+     combo_add('frmAsignacionDestinatarios.cbSubtipoCliente', '', '');
+     if (tipo.length==1 &&  tipo==""){
+          accion( 'frmAsignacionDestinatarios.cbSubtipoCliente', '.disabled=true' );
+          set_combo('frmAsignacionDestinatarios.cbTipoClasificacion',opciones);
+          accion( 'frmAsignacionDestinatarios.cbTipoClasificacion', '.disabled=true' );
+          set_combo('frmAsignacionDestinatarios.cbClasificacion',opciones);
+          accion( 'frmAsignacionDestinatarios.cbClasificacion', '.disabled=true' );
+     }else{
+          accion( 'frmAsignacionDestinatarios.cbSubtipoCliente', '.disabled=false' );
+          var x=0;
+          for(var k=0;k<lstSubtipo.datos.longitud;k++) {
+               for(var y=0;y<tipo.length;y++){
+                  if (lstSubtipo.datos.ij(k,1) == tipo[y]){ 			 
+                       combo_add('frmAsignacionDestinatarios.cbSubtipoCliente',lstSubtipo.datos.ij(k,0),lstSubtipo.datos.ij(k,2));
+                       x++;
+                  }
+               }
+          }
+
+          if (x < 1){
+               accion( 'frmAsignacionDestinatarios.cbSubtipoCliente', '.disabled=true' );
+               set_combo('frmAsignacionDestinatarios.cbTipoClasificacion',opciones);
+               accion( 'frmAsignacionDestinatarios.cbTipoClasificacion', '.disabled=true' );
+               set_combo('frmAsignacionDestinatarios.cbClasificacion',opciones);
+               accion( 'frmAsignacionDestinatarios.cbClasificacion', '.disabled=true' );
+          }else{
+               accion( 'frmAsignacionDestinatarios.cbSubtipoCliente', '.disabled=false' );
+               accion( 'frmAsignacionDestinatarios.cbTipoClasificacion', '.disabled=false' );
+               accion( 'frmAsignacionDestinatarios.cbClasificacion', '.disabled=false' );
+               iSeleccionado = new Array(); 
+               iSeleccionado[0] = get('frmAsignacionDestinatarios.hSubtipo')==""?"0":get('frmAsignacionDestinatarios.hSubtipo');
+               set('frmAsignacionDestinatarios.cbSubtipoCliente',iSeleccionado);
+          }
+      }
+   }
+}
+//******************************************************************************
+ 
+function cambioSubtipo(){
+if( get('frmAsignacionDestinatarios.opcionMenu')=='Consultar mensaje' || get('frmAsignacionDestinatarios.opcionMenu')=='Eliminar mensaje' ){
+    return;
+ }else{
+     opciones = new Array();
+     set_combo('frmAsignacionDestinatarios.cbTipoClasificacion',opciones);          
+     var subTipo = get('frmAsignacionDestinatarios.cbSubtipoCliente','V');
+     combo_add('frmAsignacionDestinatarios.cbTipoClasificacion', '', '');
+     if (subTipo.length==1 &&  subTipo==""){
+          accion( 'frmAsignacionDestinatarios.cbTipoClasificacion', '.disabled=true' );
+          set_combo('frmAsignacionDestinatarios.cbClasificacion',opciones);
+          accion( 'frmAsignacionDestinatarios.cbClasificacion', '.disabled=true' );
+     }else{
+          accion( 'frmAsignacionDestinatarios.cbSeccion', '.disabled=false' );
+          var x=0;
+          for(var k=0;k<lstTipoClasificacion.datos.longitud;k++) {
+               for(var y=0;y<subTipo.length;y++){
+                  if (lstTipoClasificacion.datos.ij(k,1) == subTipo[y]){ 			 
+                       combo_add('frmAsignacionDestinatarios.cbTipoClasificacion',lstTipoClasificacion.datos.ij(k,0),lstTipoClasificacion.datos.ij(k,2));
+                       x++;
+                  }
+               }
+          }
+
+          if (x<1){
+               accion( 'frmAsignacionDestinatarios.cbTipoClasificacion', '.disabled=true' );
+               set_combo('frmAsignacionDestinatarios.cbClasificacion',opciones);
+               accion( 'frmAsignacionDestinatarios.cbClasificacion', '.disabled=true' );
+          }else{
+               accion( 'frmAsignacionDestinatarios.cbTipoClasificacion', '.disabled=false' );
+               accion( 'frmAsignacionDestinatarios.cbClasificacion', '.disabled=false' );
+               iSeleccionado = new Array(); 
+               iSeleccionado[0] = get('frmAsignacionDestinatarios.hTipoClasificacion')==""?"0":get('frmAsignacionDestinatarios.hTipoClasificacion');
+               set('frmAsignacionDestinatarios.cbTipoClasificacion',iSeleccionado);
+          }
+     }
+   }
+}
+//******************************************************************************
+
+function cambioTipoClasificacion(){
+  if( get('frmAsignacionDestinatarios.opcionMenu')=='Consultar mensaje' || get('frmAsignacionDestinatarios.opcionMenu')=='Eliminar mensaje' ){
+      return;
+  }else{
+     opciones = new Array();
+     set_combo('frmAsignacionDestinatarios.cbClasificacion',opciones);                      
+     var tipoClasificacion = get('frmAsignacionDestinatarios.cbTipoClasificacion','V');
+     combo_add('frmAsignacionDestinatarios.cbClasificacion', '', '');
+     
+
+     var x=0;
+     for(var k=0;k<lstClasificacion.datos.longitud;k++) {
+               for(var y=0;y<tipoClasificacion.length;y++){
+                  if (lstClasificacion.datos.ij(k,1) == tipoClasificacion[y]){ 			 
+                       combo_add('frmAsignacionDestinatarios.cbClasificacion',lstClasificacion.datos.ij(k,0),lstClasificacion.datos.ij(k,2));
+                       x++;
+                  }
+               }
+      }
+
+      if (x<1){
+         accion( 'frmAsignacionDestinatarios.cbClasificacion', '.disabled=true' );
+      }else{
+           accion( 'frmAsignacionDestinatarios.cbClasificacion', '.disabled=false' );
+           iSeleccionado = new Array(); 
+           iSeleccionado[0] = get('frmAsignacionDestinatarios.hClasificacion')==""?"0":get('frmAsignacionDestinatarios.hClasificacion');
+           set('frmAsignacionDestinatarios.cbClasificacion',iSeleccionado);
+      }
+      
+    }
+}
+//******************************************************************************
+
+function procesaTipoCliente(){
+
+   if( get('frmAsignacionDestinatarios.opcionMenu')=='Consultar mensaje' || get('frmAsignacionDestinatarios.opcionMenu')=='Eliminar mensaje' ){
+     seleccionaTipoCliente();
+     var subtipo   = procesaArray2(get('frmAsignacionDestinatarios.hSeleccionSubtipoCliente'));
+     var tipoClasi = procesaArray2(get('frmAsignacionDestinatarios.hSeleccionTipoClasificacion'));
+     var clasi     = procesaArray2(get('frmAsignacionDestinatarios.hSeleccionClasificacion'));
+     
+     set_combo('frmAsignacionDestinatarios.cbSubtipoCliente', obtenerDescripciones(subtipo, lstSubtipo));
+     set_combo('frmAsignacionDestinatarios.cbTipoClasificacion', obtenerDescripciones(tipoClasi, lstTipoClasificacion));
+     set_combo('frmAsignacionDestinatarios.cbClasificacion', obtenerDescripciones(clasi, lstClasificacion));
+      
+    
+	 }else{    
+     set('frmAsignacionDestinatarios.cbTipoCliente',procesaArray(get('frmAsignacionDestinatarios.hSeleccionTipoCliente')));
+     cambioTipo();  
+     set('frmAsignacionDestinatarios.cbSubtipoCliente',procesaArray(get('frmAsignacionDestinatarios.hSeleccionSubtipoCliente')));
+     cambioSubtipo();
+     set('frmAsignacionDestinatarios.cbTipoClasificacion',procesaArray(get('frmAsignacionDestinatarios.hSeleccionTipoClasificacion')));
+     cambioTipoClasificacion();
+     set('frmAsignacionDestinatarios.cbClasificacion',procesaArray(get('frmAsignacionDestinatarios.hSeleccionClasificacion')));
+   }        
+	 
+}
+//******************************************************************************
+
+   function seleccionaTipoCliente(){
+
+      var tipoClienSelec = get('frmAsignacionDestinatarios.hSeleccionTipoCliente');
+ 	  var tipoCliTemp    = tipoClienSelec.split(','); 
+      var tipoCliFinal   = new Array();
+      var valoresCombo   = obtieneOidsComboTipoCliente();
+      var dato = new Array();
+      var descripcion = new Array();
+	  var encontro ;
+
+      tipoCliFinal[tipoCliFinal.length] = tipoCliTemp[0];
+
+	  for(var m = 1; m < tipoCliTemp.length; m++){
+          encontro = false;
+	      for(var y = 0; y < tipoCliFinal.length; y++){
+			 if(tipoCliTemp[m] == tipoCliFinal[y]){
+			    encontro = true;
+             }
+		  }
+         	  
+		  if(encontro == false){
+  		      tipoCliFinal[tipoCliFinal.length] = tipoCliTemp[m];			 
+		  }
+
+	  }
+
+      
+      for (var i = 0; i < valoresCombo.length; i++){
+          dato = valoresCombo[i];
+     
+          for(var x = 0; x < tipoCliFinal.length; x++){
+             if(dato[0] == tipoCliFinal[x]){
+               var desc = descripcion.length;
+               var temp =  new Array();
+               temp[0] = dato[0];
+               temp[1] = dato[1];
+               descripcion[desc] =  temp;
+               
+             }
+          }
+          
+      }       
+      set_combo('frmAsignacionDestinatarios.cbTipoCliente', descripcion);
+   }
+
+//******************************************************************************
+  function obtenerDescripciones(oids, listado){
+	   var array = new Array();
+
+	   for( var i=0; i<oids.length; i++){
+		   for(var j=0;j<listado.datos.longitud; j++){
+			   if (listado.datos.ij(j,0) == oids[i]){
+				   var fila = new Array();
+				   fila[fila.length] = listado.datos.ij(j,0);
+				   fila[fila.length] = listado.datos.ij(j,2);
+				   array[array.length] = fila;
+			   }
+		   }
+	   }
+	   return array;
+  }
+
+
+//******************************************************************************   
+
+   function obtieneOidsComboTipoCliente(){
+	    var cantElems = combo_get("frmAsignacionDestinatarios.cbTipoCliente", "L", "");
+	    var oids = new Array();
+
+	    for (var i = 0; i < cantElems; i++){
+         var oid = combo_get("frmAsignacionDestinatarios.cbTipoCliente", "V", i);
+	       var desc = combo_get("frmAsignacionDestinatarios.cbTipoCliente", "T", i);
+	       if ( oid != ""){
+	          var array = new Array(oid, desc);
+	          oids[oids.length] 
+     	      var desc = combo_get("frmAsignacionDestinatarios.cbTipoCliente", "T", i);
+
+	          if ( oid != ""){
+	             var array = new Array(oid, desc);
+	             oids[oids.length] = array;
+	          }
+	       }
+      }
+      return oids;
+   }
+
+
+//******************************************************************************
+  	function procesaArray (valor){
+		var array = valor.split(',');
+		return array;
+	}
+   
+//******************************************************************************
+
+	function procesaArray2 (valor){
+		var arrTemp = valor.split(',');
+		var arrFinal = new Array();
+		var encontro;
+		
+		arrFinal[arrFinal.length] = arrTemp[0];
+
+  	    for(var m = 1; m < arrTemp.length; m++){
+ 		   
+		   encontro = false;
+	       
+		   for(var y = 0; y < arrFinal.length; y++){
+		     
+  		     if(arrTemp[m] == arrFinal[y]){
+			    encontro = true
+		     }	  
+		  }
+          
+		  if(encontro == false){
+    	      arrFinal[arrFinal.length] = arrTemp[m];			 
+		  }
+		}
+
+   	    return arrFinal;
+	}
+//******************************************************************************
+
+	function obtieneHijo(valor, listaHija){
+		var array = new Array();
+		var x=0;
+		for (var i=0;i<listaHija.datos.longitud;i++){
+			for (var k=0;k<valor.length;k++){
+				if (valor[k]==listaHija.datos.ij(i,0)){
+					 array[x] = listaHija.datos.ij(i,2);
+					 x++;
+				}
+			}
+		}
+		return array;
+	}
+//******************************************************************************  
+
+	//Usada para tipo cliente (las listas tienen los campos invertidos)
+	function obtieneHijo2(valor, listaHija){
+		var array = new Array();
+		var x=0;
+    
+		for (var i=0;i<listaHija.datos.longitud;i++){
+      //alert('la lista tiene ' + listaHija.datos.ij(i,0));
+			for (var k=0;k<valor.length;k++){
+        //alert('el valor del array ' + valor[k]);
+        
+				if (valor[k]==listaHija.datos.ij(i,0)){
+           
+					 array[x] = listaHija.datos.ij(i,1);
+           //alert('el array que se va haciendo es ' + array)
+					 x++;
+				}
+			}
+		}
+
+    
+		return array;
+	}
+//****************************************************************************** 
+
+
+	function fVolver(){
+	   this.close();
+  }
+//******************************************************************************  
+
+ //********************************
+ //FUNCIONES PARA POSICIONAR COMBOS
+ //********************************
+
+ function posicionarComboUnidadesAdministrativas( cmb, tab ){
+         
+		  //cmb puede valer:
+		  //cbRegion
+		  //cbZona
+		  //cbSeccion
+		  //cbTerritorio
+
+		  //que representa el combo que invoco a esta funcion en el onchange()
+
+		  //tab puede valer:
+		  //ontab
+		  //onshtab
+
+		  if( tab == 'ontab' ){
+				   if( cmb == 'cbRegion' ){
+							focalizaZona();
+				   } else if( cmb == 'cbZona' ){
+							focalizaSeccion();
+				   } else if( cmb == 'cbSeccion' ){
+							focalizaTerritorio();
+				   } else if( cmb == 'cbTerritorio' ){
+							focalizaBotonHTML('botonContenido','btnAnadir');
+				   }
+		  } else if( tab == 'onshtab' ){
+				   if( cmb == 'cbRegion' ){
+							focalizaTerritorio();
+				   } else if( cmb == 'cbZona' ){
+							focalizaRegion();
+				   } else if( cmb == 'cbSeccion' ){
+							focalizaZona();
+				   } else if( cmb == 'cbTerritorio' ){
+							focalizaSeccion();
+				   }
+		  }
+ }
+//****************************************************************************** 
+
+ function focalizaRegion(){
+		  if( cbRegion.disabled != true ){
+				   focaliza( 'frmAsignacionDestinatarios.cbRegion' );
+		  }
+ }
+//****************************************************************************** 
+
+ function focalizaZona(){
+		  if( cbZona.disabled != true ){
+				   focaliza( 'frmAsignacionDestinatarios.cbZona' );
+		  }
+ }
+//******************************************************************************
+
+ function focalizaSeccion(){
+		  if( cbSeccion.disabled != true ){
+				   focaliza( 'frmAsignacionDestinatarios.cbSeccion' );
+		  }
+         
+ }
+//****************************************************************************** 
+
+ function focalizaTerritorio(){
+		  if( cbTerritorio.disabled != true ){
+				   focaliza( 'frmAsignacionDestinatarios.cbTerritorio' );
+		  }
+ }
+//****************************************************************************** 
+
+ function posicionarComboTipoCliente( cmb, tab ){
+         
+		  //cmb puede valer:
+		  //cbTipoCliente
+		  //cbSubtipoCliente
+		  //cbTipoClasificacion
+		  //cbClasificacion
+
+		  //que representa el combo que invoco a esta funcion en el onchange()
+
+		  //tab puede valer:
+		  //ontab
+		  //onshtab
+
+		  if( tab == 'ontab' ){
+				   if( cmb == 'cbClasificacion' ){
+							if( cbTipoCliente.disabled != true ){
+									 focaliza( 'frmAsignacionDestinatarios.cbTipoCliente' );
+							}
+				   }
+		  } else if( tab == 'onshtab' ){
+				   if( cmb == 'cbTipoCliente' ){
+							if( cbClasificacion.disabled != true ){
+									 focaliza( 'frmAsignacionDestinatarios.cbClasificacion' );
+							}
+				   }
+		  }
+ }
+//******************************************************************************
+
+
+ function deshabilitarTodos(){
+		  accion('frmAsignacionDestinatarios.txtCodigoVenta','.disabled=true');
+      accion('frmAsignacionDestinatarios.cbMarca2','.disabled=true');
+      accion('frmAsignacionDestinatarios.cbCanal','.disabled=true');
+		  accion('frmAsignacionDestinatarios.cbRegion','.disabled=true');
+		  accion('frmAsignacionDestinatarios.cbZona','.disabled=true');
+		  accion('frmAsignacionDestinatarios.cbSeccion','.disabled=true');
+		  accion('frmAsignacionDestinatarios.cbTerritorio','.disabled=true');
+	}   
+
+// De aca para abajo son todas funciones de recarga de combos que agregue segun modelo(mdolce)
+//Ver para que sirven las funciones de recarga anteriores que estan mas arriba
+//******************************************************************************
+
+  function marcaOnChange(){
+     var marca = get('frmAsignacionDestinatarios.cbMarca2');
+  
+     if(marca != ''){
+        correcto = comprobarCanal();
+        if(correcto){
+           vaciarCombos();
+           recargaCombo( 'frmAsignacionDestinatarios.cbRegion', 'ZONRecargaRegiones','es.indra.sicc.dtos.zon.DTOUnidadAdministrativa', armaArray());
+        }
+     }else{
+        vaciarCombos();
+     }
+  }
+//******************************************************************************
+
+  function canalOnChange(){
+     var canal = get('frmAsignacionDestinatarios.cbCanal');
+
+     if(canal != ''){
+        correcto = comprobarMarcaUA();
+
+        if(correcto){
+           vaciarCombos();
+           recargaCombo( 'frmAsignacionDestinatarios.cbRegion', 'ZONRecargaRegiones','es.indra.sicc.dtos.zon.DTOUnidadAdministrativa', armaArray());
+        }
+     }else{
+        vaciarCombos();
+     }
+  }
+
+//******************************************************************************
+
+   function regionOnChange(){
+      vaciarCombos2();      
+      recargaCombo( 'frmAsignacionDestinatarios.cbZona', 'ZONRecargaZonas','es.indra.sicc.dtos.zon.DTOUnidadAdministrativa', armaArrayRegion());
+   }
+
+//******************************************************************************
+
+   function zonaOnChange(){
+      vaciarCombos3();  
+      recargaCombo( 'frmAsignacionDestinatarios.cbSeccion', 'ZONRecargaSecciones','es.indra.sicc.dtos.zon.DTOUnidadAdministrativa', armaArrayZona());
+   }
+
+//******************************************************************************
+
+   function seccionOnChange(){
+      vaciarCombos4();  
+      recargaCombo( 'frmAsignacionDestinatarios.cbTerritorio', 'ZONRecargaTerritorios','es.indra.sicc.dtos.zon.DTOUnidadAdministrativa', armaArraySeccion());
+   }
+
+//******************************************************************************
+
+   function comprobarMarcaUA(){
+      var marcaUA = get('frmAsignacionDestinatarios.cbMarca2');
+
+     if(marcaUA == ''){
+        //cdos_mostrarAlert(GestionarMensaje("152"));
+        vaciarCombos();
+        return false;
+     }else{
+        return true;
+     }
+   }
+//******************************************************************************
+
+ function comprobarCanal(){
+ 
+     var canal = get('frmAsignacionDestinatarios.cbCanal');
+
+     if(canal == ''){
+        vaciarCombos();
+        return false;
+     }else{
+        return true;
+     }
+  }
+
+//******************************************************************************
+
+   function armaArray(){
+      var arr = new Array();
+
+      arr[arr.length] = new Array('oidPais',get('frmAsignacionDestinatarios.oidPais'));   
+      arr[arr.length] = new Array('oidMarca',get('frmAsignacionDestinatarios.cbMarca2'));
+      arr[arr.length] = new Array('oidCanal',get('frmAsignacionDestinatarios.cbCanal'));
+
+      return arr;
+      
+   }  
+
+//******************************************************************************
+
+   function armaArrayRegion(){
+      var arr = new Array();
+
+      arr[arr.length] = new Array('oidPais',get('frmAsignacionDestinatarios.oidPais'));   
+      arr[arr.length] = new Array('oidMarca',get('frmAsignacionDestinatarios.cbMarca2'));
+      arr[arr.length] = new Array('oidCanal',get('frmAsignacionDestinatarios.cbCanal'));
+      arr[arr.length] = new Array('oidRegion',get('frmAsignacionDestinatarios.cbRegion'));
+
+      return arr;
+   }
+
+//******************************************************************************
+
+   function armaArrayZona(){
+      var arr = new Array();
+
+      arr[arr.length] = new Array('oidPais',get('frmAsignacionDestinatarios.oidPais'));   
+      arr[arr.length] = new Array('oidMarca',get('frmAsignacionDestinatarios.cbMarca2'));
+      arr[arr.length] = new Array('oidCanal',get('frmAsignacionDestinatarios.cbCanal'));
+      arr[arr.length] = new Array('oidRegion',get('frmAsignacionDestinatarios.cbRegion'));
+      arr[arr.length] = new Array('oidZona',get('frmAsignacionDestinatarios.cbZona'));
+
+      return arr;
+   }
+
+//******************************************************************************   
+
+   function armaArraySeccion(){
+      var arr = new Array();
+
+      arr[arr.length] = new Array('oidPais',get('frmAsignacionDestinatarios.oidPais'));   
+      arr[arr.length] = new Array('oidMarca',get('frmAsignacionDestinatarios.cbMarca2'));
+      arr[arr.length] = new Array('oidCanal',get('frmAsignacionDestinatarios.cbCanal'));
+      arr[arr.length] = new Array('oidRegion',get('frmAsignacionDestinatarios.cbRegion'));
+      arr[arr.length] = new Array('oidZona',get('frmAsignacionDestinatarios.cbZona'));
+      arr[arr.length] = new Array('oidSeccion',get('frmAsignacionDestinatarios.cbSeccion'));
+
+      return arr;
+   }
+
+//******************************************************************************   
+
+   function incluirUA(){
+   if( get('frmAsignacionDestinatarios.opcionMenu')=='Consultar mensaje' || get('frmAsignacionDestinatarios.opcionMenu')=='Eliminar mensaje' ){
+      return;
+   }else{
+
+     if(!sicc_validaciones_generales('grupo1')){
+        return;
+
+     }else{
+
+        var region     = document.getElementById('cbRegion');
+        var zona       = document.getElementById('cbZona');
+        var seccion    = document.getElementById('cbSeccion');
+        var territorio = document.getElementById('cbTerritorio')
+
+        var descRegion     = region.options[region.selectedIndex].text; 
+        var descZona       = zona.options[zona.selectedIndex].text; 
+        var descSeccion    = seccion.options[seccion.selectedIndex].text;
+        var descTerritorio = territorio.options[territorio.selectedIndex].text;
+
+        var oidRegion      = region.options[region.selectedIndex].value; 
+        var oidZona        = zona.options[zona.selectedIndex].value; 
+        var oidSeccion     = seccion.options[seccion.selectedIndex].value;
+        var oidTerritorio  = territorio.options[territorio.selectedIndex].value;
+
+        var linea = new Array();
+        linea[linea.length] = 'g';
+        linea[linea.length] = descRegion;
+        linea[linea.length] = descZona;
+        linea[linea.length] = descSeccion;
+        linea[linea.length] = descTerritorio;
+        linea[linea.length] = oidRegion;
+        linea[linea.length] = oidZona;
+        linea[linea.length] = oidSeccion;
+        linea[linea.length] = oidTerritorio;
+      
+        listado1.insertar(linea);
+        listado1.repinta();
+        //limpio toditos los campos despues de insertar en la lista
+        set('frmAsignacionDestinatarios.cbMarca2', '')
+        set('frmAsignacionDestinatarios.cbCanal', '')
+           
+        var aCombo = new Array(new Array("",""));
+      
+        set_combo( 'frmAsignacionDestinatarios.cbRegion' ,aCombo, []);
+        set_combo( 'frmAsignacionDestinatarios.cbZona' ,aCombo, []);
+        set_combo( 'frmAsignacionDestinatarios.cbSeccion' ,aCombo, []);
+        set_combo( 'frmAsignacionDestinatarios.cbTerritorio' ,aCombo, []);
+        focaliza('frmAsignacionDestinatarios.cbMarca2');
+      
+        }
+      }
+   }
+
+//******************************************************************************   
+
+   function eliminarUA(){
+      if( listado1.numSelecc() > 0){
+		     listado1.eliminarSelecc();
+				 listado1.repintaDat();
+			}else{
+         GestionarMensaje("50");
+      }
+   }
+   
+//******************************************************************************
+
+   function muestraCapa(){
+      document.all["Cplistado1"].style.visibility='visible';
+      document.all["CpLin1listado1"].style.visibility='visible';
+      document.all["CpLin2listado1"].style.visibility='visible';
+      document.all["CpLin3listado1"].style.visibility='visible';
+      document.all["CpLin4listado1"].style.visibility='visible';
+      document.all["separaDiv"].style.visibility='hidden';
+      document.all["primera1Div"].style.visibility='hidden';
+      document.all["ret1Div"].style.visibility='hidden';
+      document.all["ava1Div"].style.visibility='hidden';
+
+      if(get('frmAsignacionDestinatarios.opcionMenu')=='Modificar mensaje'){
+         document.all["btnEliminarDiv"].style.visibility='visible';
+      }
+   }
+
+//******************************************************************************
+
+   function ocultaCapa(){
+      document.all["Cplistado1"].style.visibility='hidden';
+      document.all["CpLin1listado1"].style.visibility='hidden';
+      document.all["CpLin2listado1"].style.visibility='hidden';
+      document.all["CpLin3listado1"].style.visibility='hidden';
+      document.all["CpLin4listado1"].style.visibility='hidden';
+      document.all["separaDiv"].style.visibility='hidden';
+      document.all["primera1Div"].style.visibility='hidden';
+      document.all["ret1Div"].style.visibility='hidden';
+      document.all["ava1Div"].style.visibility='hidden';
+      document.all["btnEliminarDiv"].style.visibility='hidden';
+   }
+//------------------------------------------------------------------------------
+
+   function vaciarCombos(){
+      var aCombo = new Array(new Array("",""));
+      
+      set_combo( 'frmAsignacionDestinatarios.cbRegion' ,aCombo, []);
+      set_combo( 'frmAsignacionDestinatarios.cbZona' ,aCombo, []);
+      set_combo( 'frmAsignacionDestinatarios.cbSeccion' ,aCombo, []);
+      set_combo( 'frmAsignacionDestinatarios.cbTerritorio' ,aCombo, []);
+   }
+//------------------------------------------------------------------------------
+
+function vaciarCombos2(){
+      var aCombo = new Array(new Array("",""));
+          
+      set_combo( 'frmAsignacionDestinatarios.cbZona' ,aCombo, []);
+      set_combo( 'frmAsignacionDestinatarios.cbSeccion' ,aCombo, []);
+      set_combo( 'frmAsignacionDestinatarios.cbTerritorio' ,aCombo, []);
+   }
+//------------------------------------------------------------------------------
+
+function vaciarCombos3(){
+      var aCombo = new Array(new Array("",""));
+           
+      set_combo( 'frmAsignacionDestinatarios.cbSeccion' ,aCombo, []);
+      set_combo( 'frmAsignacionDestinatarios.cbTerritorio' ,aCombo, []);
+   }
+//------------------------------------------------------------------------------
+
+function vaciarCombos4(){
+      var aCombo = new Array(new Array("",""));
+
+      set_combo( 'frmAsignacionDestinatarios.cbTerritorio' ,aCombo, []);
+   }
+//------------------------------------------------------------------------------
+
+   function recargaListaUnidades(){
+   //en esta funcion parseo un string formato valor|valor|valor# para cargarlo en la lista
+
+      var datosLista = get('frmAsignacionDestinatarios.hValoresLista');
+      
+      if(datosLista != ''){
+        var primerPars  = datosLista.split('#');
+
+        for (var i=0; i< primerPars.length; i++){
+           var segundoPars = primerPars[i].split('|');
+           //alert('el dato ' + segundoPars);
+           
+           var lineaLista = new Array();
+
+           lineaLista[0] = segundoPars[0];
+           lineaLista[1] = segundoPars[1] ;
+           lineaLista[2] = segundoPars[2] ;
+           lineaLista[3] = segundoPars[3];  
+           lineaLista[4] = segundoPars[4];
+
+
+           if(segundoPars[5] != 'null'){
+              lineaLista[5] = segundoPars[5];
+           }else{
+              lineaLista[5] = '';           
+           }
+
+           if(segundoPars[6] != 'null'){
+              lineaLista[6] = segundoPars[6];
+           }else{
+              lineaLista[6] = '';           
+           } 
+
+           if(segundoPars[7] != 'null'){
+              lineaLista[7] = segundoPars[7];
+           }else{
+              lineaLista[7] = '';           
+           }
+
+           if(segundoPars[8] != 'null'){
+              lineaLista[8] = segundoPars[8];
+           }else{
+              lineaLista[8] = '';           
+           } 
+  
+
+           listado1.insertar(lineaLista);
+           listado1.repinta();
+                                                      
+        }
+      }
+   }
+
+  ]]> 
+</JAVASCRIPT>
+
+<VALIDACION>
+         <ELEMENTO name="cbMarca2" required="true" group="grupo1" cod="6"/>
+         <ELEMENTO name="cbCanal" required="true" group="grupo1" cod="7"/>
+         <ELEMENTO name="cbRegion" required="true" group="grupo1" cod="109"/>
+
+         <ELEMENTO name="cbTipoCliente" required="true" cod="393" group="grupo2"/>
+         <ELEMENTO name="cbMarca4" required="true" cod="6" group="grupo2"/>
+         <ELEMENTO name="txtCodigoVenta" required="true" cod="336" group="grupo2"/>
+</VALIDACION>
+
+
+<FORMULARIO nombre="frmAsignacionDestinatarios" oculto="S">
+
+		 <VAR nombre="accion" valor="S"/>
+         <VAR nombre="conectorAction" valor=""/>
+
+         <!--Tienen valor S si se habilita el DIV-->
+         <VAR nombre="hUnidadesAdministrativas" valor=""/>
+         <VAR nombre="hTipoCliente" valor=""/>
+         <VAR nombre="hMarca" valor=""/>
+         <VAR nombre="hCodigoVenta" valor=""/>
+         <VAR nombre="hGeneracionPedido" valor=""/>
+         <!-- ********************************** -->
+
+         <VAR nombre="oidMensaje" valor="S"/>
+         <VAR nombre="oidTipoMensaje" valor="S"/>
+         <VAR nombre="unidadAdministrativa" valor="S"/>
+         <VAR nombre="tipoCliente" valor="S"/>
+         <VAR nombre="marca" valor="S"/>
+         <VAR nombre="codigoVenta" valor="S"/>
+         <VAR nombre="programa" valor="S"/>
+         <VAR nombre="consultoras" valor="S"/>
+
+         <VAR nombre="hModulo" valor=""/>
+         <VAR nombre="hCodMensaje" valor=""/>
+         <VAR nombre="hTipoMensaje" valor=""/>
+         <VAR nombre="hDescripcion" valor=""/>
+         <VAR nombre="hProceso" valor=""/>
+         <VAR nombre="hProgramaAsociado" valor=""/>
+         <VAR nombre="hGenDatos" valor=""/>
+         <VAR nombre="hBloqueGrupo" valor=""/>
+         <VAR nombre="hPermanencia" valor=""/>
+         <VAR nombre="hDesde" valor=""/>
+         <VAR nombre="hHasta" valor=""/>
+         <VAR nombre="hTipoPeriodo" valor=""/>
+         <VAR nombre="hPeriodoDesde" valor=""/>
+         <VAR nombre="hPeriodoHasta" valor=""/>
+         <VAR nombre="hTextoFijoYDatosVariables" valor=""/>
+         <VAR nombre="hNVariable" valor=""/>
+         <VAR nombre="hAsignacionDestinatario" valor=""/>
+
+         <VAR nombre="hAsigDest" valor=""/>
+         <VAR nombre="hRegion" valor=""/>
+         <VAR nombre="hSubtipo" valor=""/>
+
+         <VAR nombre="hFlagUnidadesAdministrativas" valor=""/>
+         <VAR nombre="hFlagTipoCliente" valor=""/>
+         <VAR nombre="hFlagMarca" valor=""/>
+         <VAR nombre="hFlagCodigoVenta" valor=""/>
+         <VAR nombre="hFlagGeneracionPedido" valor=""/>
+
+         <VAR nombre="hZona" valor=""/>
+         <VAR nombre="hVolver" valor=""/>
+
+         <VAR nombre="opcionMenu" valor=""/>
+
+         <VAR nombre="hNivel" valor=""/>
+         <VAR nombre="hNivelTipificacion" valor=""/>
+         <VAR nombre="oidPais" valor="" />
+
+
+
+         <!-- usados por modificar y consultar para cargar los valores de los combos -->
+         <!-- son una lista de valores separados por coma -->
+         <VAR nombre="seleccionRegion" valor=""/>
+         <VAR nombre="seleccionZona" valor=""/>
+         <VAR nombre="seleccionSeccion" valor=""/>
+         <VAR nombre="seleccionTerritorio" valor=""/>
+         <VAR nombre="seleccionTipoCliente" valor=""/>
+         <VAR nombre="seleccionSubtipoCliente" valor=""/>
+         <VAR nombre="seleccionTipoClasificacion" valor=""/>
+         <VAR nombre="seleccionClasificacion" valor=""/>
+
+         <!-- para combos de unidades administrativas -->
+         <VAR nombre="hSeleccionRegion" valor=""/>
+         <VAR nombre="hSeleccionZona" valor=""/>
+         <VAR nombre="hSeleccionSeccion" valor=""/>
+         <VAR nombre="hSeleccionTerritorio" valor=""/>
+
+         <!-- para combos de tipo cliente -->
+         <VAR nombre="hSeleccionTipoCliente" valor=""/>
+         <VAR nombre="hSeleccionSubtipoCliente" valor=""/>
+         <VAR nombre="hSeleccionTipoClasificacion" valor=""/>
+         <VAR nombre="hSeleccionClasificacion" valor=""/>
+
+         <VAR nombre="hMarcasSeleccionadas" valor=""/>
+         <VAR nombre="oidMensajeSeleccionado" valor=""/>
+         <VAR nombre="casoDeUso" valor=""/>
+         <VAR nombre="elementosSeleccionados" valor="" />
+         <VAR nombre="hidListaUnidades" valor="" />
+         <VAR nombre="hValoresLista" valor="" />
+
+         <!--Valores por defecto-->
+         <VAR nombre="marcaPorDefecto" valor="" />
+         <VAR nombre="canalPorDefecto" valor="" />
+         <VAR nombre="regionPorDefecto" valor="" />
+         <VAR nombre="zonaPorDefecto" valor="" />
+         <VAR nombre="seccionPorDefecto" valor="" />
+         <VAR nombre="terriPorDefecto" valor="" />
+         
+
+
+         <!-- Links de solapas -->
+   <!--      <table border="0" width="100%" height="30" bgcolor="#F0F0F0">
+                  <tr>
+                           <td>
+                                    <DIV ID="pUnidadesAdministrativas" style="width:145px;border-style:solid;background-color:#F0F0F0;color:#496A9A;border-color:#496A9A;border-width:2px;position:absolute;left:515px;top:3px;text-align:center;font-family: Arial, Helvetica, sans-serif;font-size: 11px;font-weight: bold;">Unidades administrativas</DIV>
+
+                                    <DIV ID="pTipoCliente" style="width:90px;border-style:solid;background-color:#F0F0F0;color:#496A9A;border-color:#496A9A;border-width:2px;position:absolute;left:670px;top:3px;text-align:center;font-family: Arial, Helvetica, sans-serif;font-size: 11px;font-weight: bold;">Tipo de cliente</DIV>
+
+                                    <DIV ID="pMarca" style="width:80px;border-style:solid;background-color:#F0F0F0;color:#496A9A;border-color:#496A9A;border-width:2px;position:absolute;left:770px;top:3px;text-align:center;font-family: Arial, Helvetica, sans-serif;font-size: 11px;font-weight: bold;">Marca</DIV>
+
+                                    <DIV ID="pCodigoVenta" style="width:100px;border-style:solid;background-color:#F0F0F0;color:#496A9A;border-color:#496A9A;border-width:2px;position:absolute;left:860px;top:3px;text-align:center;font-family: Arial, Helvetica, sans-serif;font-size: 11px;font-weight: bold;">Codigo de venta</DIV>
+                           </td>
+                  </tr>
+         </table>-->
+
+<!-- Estas son las pestañas que os enviamos-->
+<table width="100%" height="100%" border="0" align="center" cellpadding="0" cellspacing="0" class="menu4">
+  <tr> 
+    <td width="12" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="12" height="35"/></td>
+    <td nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="8" height="8"/></td>
+    <td width="10" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+
+	 <td width="92" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A" >  <!-- bgcolor="#496A9A" -->
+        <tr align="center"> 
+          <td nowrap="nowrap" ><LABELC nombre="lblUnidadAdministrativaP"  alto="13" filas="1" valor="" id="pUnidadesAdministrativas" cod="0043"/></td>
+        </tr>
+      </table>
+    </td>
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A">
+        <tr align="center"> 
+          <td nowrap="nowrap"><LABELC nombre="lblTipoCLienteP"  alto="13" filas="1" valor="" id="pTipoCliente" cod="0068"/></td>
+        </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A">
+        <tr align="center"> 
+          <td nowrap="nowrap" ><LABELC nombre="lblMarcaP"  alto="13" filas="1" valor="" id="pMarca" cod="0069"/></td>
+        </tr>
+      </table>
+   </td>
+   <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto"><table width="75" border="1" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A">
+        <tr align="center"> 
+          <td nowrap="nowrap" ><LABELC nombre="lblCodigoVentaP" alto="13" filas="1" valor="" id="pCodigoVenta" cod="0070"/></td>
+        </tr>
+      </table>
+   </td>
+    <td width="16" class="menu5texto"><IMG src="b.gif" width="12" height="8"/></td>
+  </tr>
+</table>  
+
+
+<CAPA nombre="camposBusqueda2"  visibilidad="hidden">
+ <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr > 
+      <td><IMG src="b.gif"/></td>
+      <td >
+      
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblUnidadesAdministrativas"  alto="13" filas="1" valor="" id="legend" cod="0043"/></legend>
+	
+          <!---primera fila-->
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+             <tr><td>
+                     <table width="100%"  align="left"  border="0" cellspacing="0" cellpadding="0">
+			     <tr> 
+		            <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+		          </tr>
+			    <tr> 
+			      <td><IMG src="b.gif"/></td>
+			      <td>
+			
+				<fieldset><legend class="legend"><LABELC nombre="lblDatosAnadir"  alto="13" filas="1" valor="" id="legend" cod="00280"/></legend>
+				 <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          			    <tr><td>
+			     
+			              <table width="707" border="0" align="left" cellspacing="0" cellpadding="0">
+				                  <tr> 
+					            <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+					          </tr>
+					          <tr>
+				                    <td><IMG src="b.gif" width="8" height="8"/></td>
+				                    <td><LABELC nombre="lblMarca2"  alto="13" filas="1" valor="" id="datosTitle" cod="6"/></td>
+				                    <td><IMG src="b.gif" width="25" height="8"/></td>
+				                    <td><LABELC nombre="lblCanal"  alto="13" filas="1" valor="" id="datosTitle" cod="7"/></td>
+				                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+				                  </tr>
+				                  <tr>
+				                    <td><IMG src="b.gif" width="8" height="8"/></td>
+				                    <td  nowrap="nowrap"><COMBO nombre="cbMarca2" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onchange="marcaOnChange();" onshtab="focalizaBotonHTML('botonContenido','btnAnadir')">
+						               <ROWSET>
+						                       		
+						               </ROWSET>
+						         </COMBO> 
+						     </td>
+						     <td><IMG src="b.gif" width="25" height="8"/></td>
+						     <td  nowrap="nowrap"><COMBO nombre="cbCanal" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onchange="canalOnChange();">
+						               <ROWSET>
+						                       		
+						               </ROWSET>
+						         </COMBO> 
+						     </td>
+				                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+				                  </tr>
+				                  <tr> 
+				                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+				                  </tr>
+				            </table>
+			   
+			                </td></tr>
+			                <tr><td>
+			        
+			              	     <table width="707" border="0" align="left" cellspacing="0" cellpadding="0">
+				                  
+					          <tr>
+				                    <td><IMG src="b.gif" width="8" height="8"/></td>
+				                    <td><LABELC nombre="lblRegion"  alto="13" filas="1" valor="" id="datosTitle" cod="109"/></td>
+				                    <td><IMG src="b.gif" width="25" height="8"/></td>
+				                    <td><LABELC nombre="lblZona"  alto="13" filas="1" valor="" id="datosTitle" cod="143"/></td>
+				                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+				                  </tr>
+				                  <tr>
+				                    <td><IMG src="b.gif" width="8" height="8"/></td>
+				                    <td  nowrap="nowrap"><COMBO nombre="cbRegion" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onchange="regionOnChange();" >
+						               <ROWSET>
+						                       		
+						               </ROWSET>
+						         </COMBO> 
+						     </td>
+						     <td><IMG src="b.gif" width="25" height="8"/></td>
+						     <td  nowrap="nowrap" valign="bottom"><COMBO nombre="cbZona" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" onchange="zonaOnChange();">
+						               <ROWSET>
+						                       		
+						               </ROWSET>
+						         </COMBO> 
+						     </td>
+				                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+				                  </tr>
+				                  <tr> 
+				                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+				                  </tr>
+				            </table>
+			       
+			                </td></tr>
+			                <tr><td>
+			        
+			              	     <table width="707" border="0" align="left" cellspacing="0" cellpadding="0">
+				                  
+					          <tr>
+				                    <td><IMG src="b.gif" width="8" height="8"/></td>
+				                    <td><LABELC nombre="lblSeccion"  alto="13" filas="1" valor="" id="datosTitle" cod="112"/></td>
+				                    <td><IMG src="b.gif" width="25" height="8"/></td>
+				                    <td><LABELC nombre="lblTerritorio"  alto="13" filas="1" valor="" id="datosTitle" cod="126"/></td>
+				                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+				                  </tr>
+				                  <tr>
+				                    <td><IMG src="b.gif" width="8" height="8"/></td>
+				                    <td  nowrap="nowrap"><COMBO nombre="cbSeccion" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" onchange="seccionOnChange();">
+						               <ROWSET>
+						                       		
+						               </ROWSET>
+						         </COMBO> 
+						     </td>
+						     <td><IMG src="b.gif" width="25" height="8"/></td>
+						     <td  nowrap="nowrap"><COMBO nombre="cbTerritorio" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" ontab="posicionarComboUnidadesAdministrativas( 'cbTerritorio', 'ontab');">
+						               <ROWSET>
+						                       		
+						               </ROWSET>
+						         </COMBO> 
+						     </td>
+				                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+				                  </tr>
+				                  <tr> 
+				                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+				                  </tr>
+				            </table>
+			       
+			                </td></tr>
+        			   </table>
+			        </fieldset>
+			
+			      </td>
+			      <td><IMG src="b.gif" /></td>
+			    </tr> 
+			      <tr> 
+				        <td><IMG src="b.gif"/></td>
+				        <td>
+					  <fieldset>
+					    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+					      <tr>
+					        <td class="botonera">
+						  <BOTON nombre="btnAnadir" ID="botonContenido" tipo="html" accion="incluirUA();" estado="false" cod="404" ontab="focaliza('frmAsignacionDestinatarios.cbMarca2')"/>
+					        </td>
+					      </tr>    
+					    </table>        
+					  </fieldset>
+				        </td>
+				        <td><IMG src="b.gif" width="8" height="12"/></td>
+				      </tr>    
+			    <tr>
+			       	<td width="12" align="center"><IMG src="b.gif" width="12" height="356"/></td>
+			     	<td width="756" ><IMG src="b.gif"/></td>
+			      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+			    </tr>
+			  </table>   
+			  
+		</td></tr>
+	  </table>
+        </fieldset>
+          
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+
+ <LISTAEDITABLE nombre="listado1" ancho="711" alto="317" x="26" y="260" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+        <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+        <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+         <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+      <LINEAS>
+        <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="0" horizTitulo="1" horizBase="1"/> 
+        <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00622" ID="datosTitle" />
+       <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+        
+        <COL ancho="50" minimizable="S" minimizada="N"/>
+        <COL ancho="50" minimizable="S" minimizada="N"/>
+        <COL ancho="50" minimizable="S" minimizada="N"/>
+        <COL ancho="50" minimizable="S" minimizada="N"/>
+        <COL ancho="30" minimizable="S" minimizada="N" oculta="S"/>
+        <COL ancho="30" minimizable="S" minimizada="N"  oculta="S"/>
+        <COL ancho="30" minimizable="S" minimizada="N"  oculta="S"/>
+        <COL ancho="30" minimizable="S" minimizada="N"  oculta="S"/>
+        
+      </COLUMNAS>
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+	 
+	<COL colFondo="" ID="EstCab" cod="109">Región</COL> 
+	<COL colFondo="" ID="EstCab" cod="143">Zona</COL> 
+	<COL colFondo="" ID="EstCab" cod="112">Sección</COL> 
+	<COL colFondo="" ID="EstCab" cod="126">Terriorio</COL> 
+	<COL colFondo="" ID="EstCab">oidRegión</COL> 
+	<COL colFondo="" ID="EstCab" >oidZona</COL> 
+	<COL colFondo="" ID="EstCab">oidSección</COL> 
+	<COL colFondo="" ID="EstCab" >oidTerriorio</COL> 
+	
+      </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+             coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+             onLoad="" colorSelecc="#D0D9E8">
+        
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat"/> 
+      </DATOS>
+      <ROWSET>
+      </ROWSET>
+      <PAGINADO nombre="mipgndo" ancho="711" sep="$" x="26" class="botonera" y="554" control="|" conector="conectorSandra" rowset="" cargainicial="N">
+        
+        <BOTON nombre="ret1" x="51" y="558" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+        <BOTON nombre="ava1" x="66" y="558" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>
+        
+    </PAGINADO>
+  </LISTAEDITABLE>
+  <BOTON nombre="primera1" x="34" y="558" ID="botonContenido" img="primera_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();" />      
+  <BOTON nombre="separa" x="73" y="554" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />      
+  <BOTON nombre="btnEliminar" x="27" y="555" ID="botonContenido" tipo="html" estado="false" cod="1254" accion="eliminarUA();"/> 
+
+<!--******************************************************************-->
+
+<CAPA nombre="camposBusqueda3" visibilidad="hidden">
+ <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr > 
+      <td><IMG src="b.gif"/></td>
+      <td >
+      
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblTipoCliente"  alto="13" filas="1" valor="" id="legend" cod="0068"/></legend>
+	
+          <!---primera fila-->
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+          	<table width="731" border="0" align="left" cellspacing="0" cellpadding="0">
+	                  <tr> 
+		            <td colspan="8"><IMG src="b.gif" width="8" height="8"/></td>
+		          </tr>
+		          <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td><LABELC nombre="lblTipo"  alto="13" filas="1" valor="" id="datosTitle" cod="393"/></td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td><LABELC nombre="lblSubtipo"  alto="13" filas="1" valor="" id="datosTitle" cod="595"/></td>
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td nowrap="nowrap"><COMBO nombre="cbTipoCliente" id="datosCampos" size="5" multiple="S" req="S" valorinicial="" textoinicial="" onchange="cambioTipo();" onshtab="posicionarComboTipoCliente('cbTipoCliente', 'onshtab');">
+			               <ROWSET>
+			               </ROWSET>
+			         </COMBO>
+			        
+			    </td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td><COMBO nombre="cbSubtipoCliente" id="datosCampos" size="5" multiple="S" req="N" valorinicial="" textoinicial="" onchange="cambioSubtipo();">
+			               <ROWSET>
+			               </ROWSET>
+			         </COMBO>
+			        
+			    </td>
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr> 
+	                    <td colspan="9"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	            </table>
+             </td></tr>
+             <tr><td>
+          	<table width="731" border="0" align="left" cellspacing="0" cellpadding="0">
+	                 
+		          <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td><LABELC nombre="lblTipoClasificacion"  alto="13" filas="1" valor="" id="datosTitle" cod="756"/></td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td><LABELC nombre="lblClasificacion"  alto="13" filas="1" valor="" id="datosTitle" cod="550"/></td>
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td><COMBO nombre="cbTipoClasificacion" id="datosCampos" size="5" multiple="S" req="N" valorinicial="" textoinicial="" onchange="cambioTipoClasificacion();">
+			               <ROWSET>
+			               </ROWSET>
+			         </COMBO>
+			        
+			    </td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td><COMBO nombre="cbClasificacion" id="datosCampos" size="5" multiple="S" req="N" valorinicial="" textoinicial="" ontab="posicionarComboTipoCliente('cbClasificacion', 'ontab');">
+			               <ROWSET>
+			               </ROWSET>
+			         </COMBO>
+			        
+			    </td>
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr> 
+	                    <td colspan="9"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	            </table>
+             </td></tr>
+	  </table>
+        </fieldset>
+          
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>      
+<!--******************************************************************-->
+<CAPA nombre="camposBusqueda4"  visibilidad="hidden">
+ <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr > 
+      <td><IMG src="b.gif"/></td>
+      <td >
+      
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblMarcaT"  alto="13" filas="1" valor="" id="legend" cod="0069"/></legend>
+	
+          <!---primera fila-->
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+          	<table width="731" border="0" align="left" cellspacing="0" cellpadding="0">
+	                  <tr> 
+		            <td colspan="8"><IMG src="b.gif" width="8" height="8"/></td>
+		          </tr>
+		          <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td><LABELC nombre="lblMarca4"  alto="13" filas="1" valor="" id="datosTitle" cod="6"/></td>
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td nowrap="nowrap"><COMBO nombre="cbMarca4" id="datosCampos" size="5" multiple="S" req="S" valorinicial="" textoinicial="" ontab="focaliza('frmAsignacionDestinatarios.cbMarca4')" onshtab="focaliza('frmAsignacionDestinatarios.cbMarca4')">
+			               <ROWSET>
+			               </ROWSET>
+			         </COMBO>
+			        
+			    </td>
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr> 
+	                    <td colspan="9"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	            </table>
+             </td></tr>
+             
+	  </table>
+        </fieldset>
+          
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>  
+<!--******************************************************************-->
+<CAPA nombre="camposBusqueda5"  visibilidad="hidden">
+ <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr > 
+      <td><IMG src="b.gif"/></td>
+      <td >
+      
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblCodigoVenta"  alto="13" filas="1" valor="" id="legend" cod="0070"/></legend>
+	
+          <!---primera fila-->
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+          	<table width="731" border="0" align="left" cellspacing="0" cellpadding="0">
+	                  <tr> 
+		            <td colspan="8"><IMG src="b.gif" width="8" height="8"/></td>
+		          </tr>
+		          <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td><LABELC nombre="lblCodVenta"  alto="13" filas="1" valor="" id="datosTitle" cod="336"/></td>
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td nowrap="nowrap"><CTEXTO nombre="txtCodigoVenta" id="datosCampos" max="40" tipo="" onchange="" req="S" size="40" valor="" validacion="" ontab="focaliza('frmAsignacionDestinatarios.txtCodigoVenta')" onshtab="focaliza('frmAsignacionDestinatarios.txtCodigoVenta')" /></td>
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr> 
+	                    <td colspan="9"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	            </table>
+             </td></tr>
+             
+	  </table>
+        </fieldset>
+          
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+<!-- ********************************************************************* -->
+  <!-- de aca en adelante se usa para el manejo de los combos de unidades administrativas-->
+        
+         <CAPA nombre="capaSubtipo" alto="3" ancho="624" colorf="" borde="0" imagenf="" repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="165" zindex="">
+                  <LISTA seleccion="boton" nombre="lstSubtipo" x="12" y="10" ancho="600" alto="3" multisel="-1" incy="10" incx="10" colorf="#EFEFEF" imagenoff="close_no.gif" imagenon="close_up.gif" accion="" sep="|" pixelsborde="2" colorborde="#CCCCCC">
+                           <CABECERA nombre="cab1" height="20">
+                                    <COL id="datosCamposCabecera" ancho="40"></COL>
+                                    <COL id="datosCamposCabecera" ancho="60">Subtipo</COL>
+                                    <COL id="datosCamposCabecera" ancho="440">Descripción</COL>
+                           </CABECERA>
+                           <PRESENTACION ancho="590" filas="1" bloquesid="['datosCamposCenterImpar', 'datosCamposCenterPar']">
+                                    <COL ancho="40" caracteres="20"/>
+                                    <COL ancho="60" caracteres="20"/>
+                                    <COL ancho="440" caracteres="30"/>
+                           </PRESENTACION>
+                           <ROWSET>
+                           </ROWSET>
+                  </LISTA>
+         </CAPA>
+         <CAPA nombre="capaTipoClasificacion" alto="3" ancho="624" colorf="" borde="0" imagenf="" repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="165" zindex="">
+                  <LISTA seleccion="boton" nombre="lstTipoClasificacion" x="12" y="10" ancho="600" alto="3" multisel="-1" incy="10" incx="10" colorf="#EFEFEF" imagenoff="close_no.gif" imagenon="close_up.gif" accion="" sep="|" pixelsborde="2" colorborde="#CCCCCC">
+                           <CABECERA nombre="cab1" height="20">
+                                    <COL id="datosCamposCabecera" ancho="40"></COL>
+                                    <COL id="datosCamposCabecera" ancho="60">TipoClasificacion</COL>
+                                    <COL id="datosCamposCabecera" ancho="440">Descripción</COL>
+                           </CABECERA>
+                           <PRESENTACION ancho="590" filas="1" bloquesid="['datosCamposCenterImpar', 'datosCamposCenterPar']">
+                                    <COL ancho="40" caracteres="20"/>
+                                    <COL ancho="60" caracteres="20"/>
+                                    <COL ancho="440" caracteres="30"/>
+                           </PRESENTACION>
+                           <ROWSET>
+                           </ROWSET>
+                  </LISTA>
+         </CAPA>
+         <CAPA nombre="capaClasificacion" alto="3" ancho="624" colorf="" borde="0" imagenf="" repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="165" zindex="">
+                  <LISTA seleccion="boton" nombre="lstClasificacion" x="12" y="10" ancho="600" alto="3" multisel="-1" incy="10" incx="10" colorf="#EFEFEF" imagenoff="close_no.gif" imagenon="close_up.gif" accion="" sep="|" pixelsborde="2" colorborde="#CCCCCC">
+                           <CABECERA nombre="cab1" height="20">
+                                    <COL id="datosCamposCabecera" ancho="40"></COL>
+                                    <COL id="datosCamposCabecera" ancho="60">Clasificacion</COL>
+                                    <COL id="datosCamposCabecera" ancho="440">Descripción</COL>
+                           </CABECERA>
+                           <PRESENTACION ancho="590" filas="1" bloquesid="['datosCamposCenterImpar', 'datosCamposCenterPar']">
+                                    <COL ancho="40" caracteres="20"/>
+                                    <COL ancho="60" caracteres="20"/>
+                                    <COL ancho="440" caracteres="30"/>
+                           </PRESENTACION>
+                           <ROWSET>
+                           </ROWSET>
+                  </LISTA>
+         </CAPA>
+		 
+</FORMULARIO>
+</PAGINA>  

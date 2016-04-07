@@ -1,0 +1,866 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/DTO/sic33
+   $Id: contenido_alcance_tipos_cliente_crear.xml,v 1.1 2009/12/03 18:45:26 pecbazalar Exp $
+   
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+<PAGINA nombre="contenido_alcance_tipos_cliente_crear" cod="0644"
+         titulo="Ingresar valores de descuento" estilos="estilosB3.css"
+         colorf="#F0F0F0" msgle="" onload="onLoadPag();" xml:lang="es">
+    <!--
+                 0233 Consultar descuentos
+                 0354 Modificar valores de descuentos
+                 0343 Eliminar descuentos
+                 0644 Ingresar valores de descuentos            
+             -->
+
+    <JS src="DruidaTransactionMare.js"/>
+    <JS src="sicc_util.js"/>
+    <JS src="utilidadesDTO.js"/>
+    <JS src="PaginacionSicc.js"/>                          
+    <JAVASCRIPT>
+         <![CDATA[ 
+         var arrLimpia = new Array();
+         var arrComboTiposCliente;
+         var  arrComboSubtiposCliente    ;
+
+    function onLoadPag(){     
+  
+  configurarMenuSecundario('formulario');
+         fMostrarMensajeError();
+         set('formulario.casoDeUso', get('formulario.hidCasoDeUso'));
+
+         accionError();
+
+         eval (ON_RSZ);
+         mostrarListado();
+
+         guardoConExito();
+         btnProxy(2,'1');
+         
+         document.getElementById("InsertarP2").style.backgroundColor = "#496A9A";
+         document.getElementById("InsertarP2").style.color = "#FFFFFF";
+         if (get('formulario.hidCasoDeUso') != 'consultar' )  
+           ColocarValoresDeLaMatrizDeDescuento();
+                  
+         if (get('formulario.hidCasoDeUso') == 'consultar' )  {
+             //accion('formulario.cbTiposCliente','.disabled=true');
+             //accion('formulario.cbSubtiposCliente','.disabled=true');
+         
+                                    //guardamos los combos para no permitir que 
+                                    //seleccionen otra opcion que no sea la original
+                                    resguardarCombos();
+             sicc_cambiar_estado("cbTiposCliente",false);   
+             sicc_cambiar_estado("cbSubtiposCliente",false);   
+             deshabilitarHabilitarBoton('botonContenido','btnAceptar','D');
+             deshabilitarHabilitarBoton('botonContenido','btnAnadir','D');
+             deshabilitarHabilitarBoton('botonContenido','btnEliminar','D');
+             
+             document.all.rbDefinirCliente[0].disabled=true;
+             document.all.rbDefinirCliente[1].disabled=true;
+             // vbongiov -- cambio DTO-08 -- 26/06/2008
+             //listado1.tiposCol[4][8]=true; 
+             listado1.actualizaDat();
+             listado1.repinta();                   
+         }
+
+                    function resguardarCombos(){
+             arrComboTiposCliente= get("formulario.cbTiposCliente");   
+             arrComboSubtiposCliente= get("formulario.cbSubtiposCliente");  
+          }
+         //**********************************************************************
+         
+         //jsilva
+         //BELC300022001
+         set('formulario.rbDefinirCliente',get('formulario.hidChkDefinirCliente'));
+         
+         //**********************************************************************
+         
+         set('formulario.hidUltimoElementoEnLaLista','1');
+         if (get('formulario.hidCasoDeUso') != 'consultar' ) { 
+           focaliza("formulario.cbTiposCliente");
+                  
+         }
+                                    
+         //if(get('formulario.hidCasoDeUso') != 'modificar' && get('formulario.hidCasoDeUso') != 'consultar')
+         //    buscoTipoCliente();
+                  
+         tomarDatosPagina();
+                 
+    }
+         
+             function ocultarListado()
+             {
+                  DrdEnsanchaConMargenDcho('listado1',12);
+                  document.all["Cplistado1"].style.visibility='hidden';
+                  document.all["CpLin1listado1"].style.visibility='hidden';
+                  document.all["CpLin2listado1"].style.visibility='hidden';
+                  document.all["CpLin3listado1"].style.visibility='hidden';
+                  document.all["CpLin4listado1"].style.visibility='hidden';
+                  document.all["primera1Div"].style.visibility='hidden';
+                  document.all["ret1Div"].style.visibility='hidden';
+                  document.all["ava1Div"].style.visibility='hidden';
+                  document.all["separaDiv"].style.visibility='hidden';
+                  document.all["btnAnadirDiv"].style.visibility='hidden';
+                  document.all["btnEliminarDiv"].style.visibility='hidden';
+                  eval (ON_RSZ);  
+             }
+         
+             function mostrarListado()
+             {
+                  DrdEnsanchaConMargenDcho('listado1',12);
+                  document.all["Cplistado1"].style.visibility='visible';
+                  document.all["CpLin1listado1"].style.visibility='visible';
+                  document.all["CpLin2listado1"].style.visibility='visible';
+                  document.all["CpLin3listado1"].style.visibility='visible';
+                  document.all["CpLin4listado1"].style.visibility='visible';
+                  document.all["primera1Div"].style.visibility='hidden';
+                  document.all["ret1Div"].style.visibility='hidden';
+                  document.all["ava1Div"].style.visibility='hidden';
+                  document.all["separaDiv"].style.visibility='hidden';
+                  document.all["btnAnadirDiv"].style.visibility='visible';
+                  document.all["btnEliminarDiv"].style.visibility='visible';
+                  eval (ON_RSZ);           
+             }
+         
+                            function	tomarDatosPagina(){
+                                    arrLimpia[0] = get("formulario.cbTiposCliente");
+                                    arrLimpia[1] = get("formulario.cbSubtiposCliente");
+                                    arrLimpia[2] = get("formulario.rbDefinirCliente");
+                   }
+         
+         function fLimpiar()
+         {
+             if (get('formulario.hidCasoDeUso') != 'consultar' )  {
+                  set("formulario.cbTiposCliente",arrLimpia[0]);
+                  
+                  var datosNuevo = new Array();
+                  datosNuevo[0] = ["",""];    
+                  set_combo("formulario.cbSubtiposCliente", datosNuevo);
+
+                  if (get('formulario.hidCasoDeUso')=='insertar'){
+                      set('formulario.rbDefinirCliente','N'); 
+                  }
+                  else{// Modificar
+
+                      var sel = get('formulario.selTiposClientes');
+                      sel = sel.split(",");
+                      set('formulario.cbTiposCliente', sel);
+                      buscoTipoCliente();
+                      var sels = get('formulario.selSubtiposClientes');
+                      sels = sels.split(",");
+                      set('formulario.cbSubtiposCliente',sels);
+                      
+                      set('formulario.rbDefinirCliente','S'); 
+                  }
+
+                  focaliza('formulario.cbTiposCliente');
+             }
+         }
+         
+         
+         
+             function accionAceptar()
+             {
+                 
+                 var vCantValoresEnLista = listado1.datos.length;
+                  if(vCantValoresEnLista > 0){
+                      if( GestionarMensaje('2533'))
+                      {
+                           /*Limpiar lista editable de registros.*/
+             
+                           var nuevos_datos = new Array();
+                           listado1.setDatos(nuevos_datos);
+                      }
+                  }
+             }
+         
+             function accionAniadir(){
+                
+                  var vCantiMaximaItems = get('formulario.txtNmaximoTiposClientes');
+                           var vCantValoresEnLista = listado1.datos.length;
+                  if(vCantiMaximaItems != ""){
+                      if (vCantValoresEnLista <= vCantiMaximaItems){
+         
+                           levantaModalClasi();
+                                             
+                      }else {
+                                         GestionarMensaje('1437');
+                                    }
+                  }else levantaModalClasi();
+         
+             }
+         
+    function levantaModalClasi(){
+         if (fValidarCOMBO('formulario.cbSubtiposCliente') == true){
+             if (get('formulario.VisiblePorcentaje') == 'S' && get('formulario.ModificablePorcentaje') == 'S' ){
+                  var obj = new Object();
+                  //Tomar de pantalla los subtipos de cliente seleccionados, si no hubiese ninguno se tomarán todos
+                  // Tomar subtipocliente seleccionado
+                  var vSubTipoClienteSeleccionado = getComboSeleccionado('formulario.cbSubtiposCliente');
+                  obj.hidSubTipoCliSel = vSubTipoClienteSeleccionado;
+         
+                  var whnd = mostrarModalSICC('LPMantenimientoAlcanceTipoCliente','aniadir',obj,null,200);
+                  if(whnd!=null){
+                      var posi = parseInt(get('formulario.hidUltimoElementoEnLaLista'), 10);
+                      var codigo = listado1.generaCodigo( posi );
+         
+                      var datos = codigo + "|" + whnd[0] + "|" +  whnd[1] + "|" +  whnd[2] + "|" +  whnd[3];  
+                      if (!existeFila(datos)){
+                           var newRow = new Array();
+                           newRow = datos.split("|");
+                           listado1.insertar(newRow);
+                           set('formulario.hidUltimoElementoEnLaLista', codigo);
+                      }
+                  }
+             }
+         }
+    }
+
+    function existeFila(datos)
+    {
+         var codigo = listado1.codigos();
+         var newRow = new Array();
+         newRow = datos.split("|");
+         var flag = false;
+         var a = 0;
+
+         while( (a < codigo.length ) && (flag == false) ){
+             
+             if( newRow[1] == listado1.extraeDato(codigo[a], 0)!="") {//Tipo Clasificacion, oid
+                if( newRow[3] == cdos_trim(listado1.extraeDato(codigo[a], 2))){//Clasificacion, oid
+                 //if( newRow[5] == cdos_trim(listado1.extraeDato(codigo[a], 4))){//Descuento
+                      flag = true;
+                      listado1.insertaDato (codigo[a],4,newRow[5]);
+                //}
+              }
+             }
+             a++;
+                  }//while
+         return flag;
+    }
+         
+    function accionSiguiente() {
+         if (get('formulario.hidCasoDeUso')!="consultar") {
+                  if ( sicc_validaciones_generales("grupo1")) {
+                         if (ObtenerInformacionDescuentosDefinidos())
+                         {
+                             set('formulario.hidChkDefinirCliente',get('formulario.rbDefinirCliente','V'));
+                             set('formulario.conectorAction', 'LPMantenimientoAlcanceTipoCliente');
+                             set('formulario.accion', 'siguiente');
+                             enviaSICC('formulario');
+                         }else
+                           focaliza("formulario.cbSubtiposCliente");
+                  }
+         } else {
+                    set('formulario.hidChkDefinirCliente',get('formulario.rbDefinirCliente','V'));
+                    set('formulario.conectorAction', 'LPMantenimientoAlcanceTipoCliente');
+                    set('formulario.accion', 'siguiente');
+                    enviaSICC('formulario');
+         }
+    }
+         
+    function accionEliminar()
+    {
+         var cantElementosSel = listado1.codSeleccionados();
+         if ( cantElementosSel.length == 0)
+         {
+             GestionarMensaje("4", null, null, null);
+             return ;
+         }
+         listado1.eliminarSelecc();
+    }
+         
+    function tiposClienteOnChange(){
+         if (get('formulario.hidCasoDeUso') != 'consultar' ){
+                           buscoTipoCliente();	
+                    }else{
+                            set("formulario.cbTiposCliente",arrComboTiposCliente);
+                    }
+         //focaliza("formulario.cbSubtiposCliente");
+    }
+    
+         function subtiposClienteOnChange(){
+                   if (get('formulario.hidCasoDeUso') == 'consultar' ){
+                   		 set("formulario.cbSubtiposCliente",arrComboSubtiposCliente);
+                   }
+         } 
+         
+    function buscoTipoCliente(){
+         var combo = get("formulario.cbTiposCliente");
+         var id = get("formulario.SubtipoClienteOid");
+         var desc = get("formulario.SubtipoClienteDesc");
+         var padre = get("formulario.SubtipoClienteOidPadre");
+         if (combo !=""){
+             if (combo.length == 1)      {
+                  id = id.split(",");
+                  desc = desc.split(",");
+                  padre = padre.split(",");
+                  var largo = padre.length;
+                  var opciones = new Array();
+                  var j = 1;
+                  var i = 0;
+                  opciones[0] = ["", ""];
+                  for(i=0; i < largo; i++){  //padre
+                      if(padre[i] == combo){
+                           opciones[j] = [id[i], desc[i]];
+                           j++;
+                     }
+                  }
+             }
+             if (combo.length > 1){
+                  id = id.split(",");
+                  desc = desc.split(",");
+                  padre = padre.split(",");
+                  var largo = padre.length;
+                  var opciones = new Array();
+                  var j = 1;
+                  var i = 0;
+                  var c = 0;
+                  opciones[0] = ["", ""];
+                  for(c=0;c<combo.length;c++){ //combo
+                      for(i=0; i < largo; i++){ //padre
+                           if(padre[i] == combo[c]){
+                                opciones[j] = [id[i], desc[i]];
+                                j++;
+                           }
+                      }
+                  }
+             }            
+                  if (opciones.length >0)
+                      set_combo("formulario.cbSubtiposCliente", opciones);                  
+         }else{
+             opciones = new Array();
+             opciones[0] = ["", ""];
+             set_combo("formulario.cbSubtiposCliente", opciones);
+         }
+    }
+            
+         
+             function ColocarValoresDeLaMatrizDeDescuento()
+             {
+                  if (get('formulario.VisibleTiposClientes') == 'N')
+                      ocultarListado();
+                           
+                           if (get('formulario.ModificableTiposClientes') == 'N')
+                                accion('formulario.cbTiposCliente','.disabled=false');
+         
+                  if (get('formulario.VisibleDescuentoCliente') == 'N'){
+                      // vbongiov -- cambio DTO-08 -- 26/06/2008
+                        visibilidad('capaDefinirCliente','O');
+                  }
+         
+                           if (get('formulario.ModificableDescuentoCliente') == 'N')
+                           {
+                                    document.all.rbDefinirCliente[0].disabled=false;
+                                    document.all.rbDefinirCliente[1].disabled=false;
+                           }
+                           
+                  var sel = get('formulario.selTiposClientes');
+                  sel = sel.split(",");
+                  set('formulario.cbTiposCliente', sel);
+                  buscoTipoCliente();
+                  var sels = get('formulario.selSubtiposClientes');
+                  sels = sels.split(",");
+                  set('formulario.cbSubtiposCliente',sels);
+             }
+         
+             function listado2String(){
+                           var codigo = listado1.codigos();
+                           var toAdd = "";
+                           var total = "";
+                           var vHasta = "";
+         
+                           for(var a = 0; a < codigo.length ; a++){
+                                    toAdd = codigo[a];
+                                    toAdd = toAdd + "|" + cdos_trim(listado1.extraeDato(codigo[a], 0));//Tipo Clasificacion, oid
+                  
+                                             // si la clasificacion no fue elegida le paso un 0, para que no vaya vacio y no falle el StringTokenizer en la LP
+                                             var clasificacion = cdos_trim(listado1.extraeDato(codigo[a], 2));
+                                             if  (clasificacion != '')
+                                             toAdd = toAdd + "|" + clasificacion; //Clasificacion, oid
+                                             else 
+                                                      toAdd = toAdd + "|0";
+                      // vbongiov -- cambio DTO-08 -- 26/06/2008
+                      //toAdd = toAdd + "|" + cdos_trim(listado1.extraeDato(codigo[a], 4)); //Descuento
+
+                      toAdd = toAdd + "|" + cdos_trim(listado1.extraeDato(codigo[a], 1));
+                      toAdd = toAdd + "|" + cdos_trim(listado1.extraeDato(codigo[a], 3));
+
+                                    total = total + "$" + toAdd;
+                           }		
+                           return total;
+                  }
+             
+             
+             function ObtenerInformacionDescuentosDefinidos()
+             {
+                  // Tomar valores de la lista
+                  var descuentosAdicionales = listado2String();
+                  set('formulario.hidDescuentos',descuentosAdicionales);
+         
+                  var vTipoCliente = getComboSeleccionado('formulario.cbTiposCliente');
+                  var vSubTipoCliente = getComboSeleccionado('formulario.cbSubtiposCliente');
+
+                                     if (get('formulario.hidCasoDeUso') != 'consultar' )  {
+                                             if( (get("formulario.ObligatorioTiposClientes")=='S') &&
+                                                                vSubTipoCliente == '')
+                                             {
+                                                      GestionarMensaje('910');
+                                                      return false;
+                                             }
+                                    }
+         
+                  set('formulario.hidOidTipoClienteSel', vTipoCliente);
+                  set('formulario.hidOidSubTipoClienteSel', vSubTipoCliente);
+                  return true;
+             }
+         
+    function fGuardar() {
+                  //accionGuardar();
+         
+         if ( sicc_validaciones_generales("grupo1")) {
+             if( ObtenerInformacionDescuentosDefinidos())
+             {
+                  set('formulario.hidChkDefinirCliente',get('formulario.rbDefinirCliente','V'));
+                  set('formulario.conectorAction', 'LPMantenimientoAlcanceTipoCliente');
+                  //eval('formulario').oculto="S"; 
+                  set('formulario.accion', 'guardar');                  
+                  enviaSICC('formulario');
+             }else
+             focaliza("formulario.cbSubtiposCliente");
+         }
+    }
+
+         function accionExitosa(){
+                  window.close();
+         }
+         
+    function accionGuardar() {
+         if ( sicc_validaciones_generales("grupo1")) {
+           if( ObtenerInformacionDescuentosDefinidos()){
+             set('formulario.hidChkDefinirCliente',get('formulario.rbDefinirCliente','V'));
+             set('formulario.conectorAction', 'LPMantenimientoAlcanceTipoCliente');
+             set('formulario.accion', 'siguiente');
+             enviaSICC('formulario');
+           }else
+                  focaliza("formulario.cbSubtiposCliente");
+         }
+    }
+             
+    function focalista(){
+         // vbongiov -- cambio DTO-08 -- 26/06/2008
+         focalizaBotonHTML('botonContenido','btnAnadir');
+    }    
+
+    function focalista2(){
+          // vbongiov -- cambio DTO-08 -- 26/06/2008
+          focalizaBotonHTML('botonContenido','btnAceptar');
+    }
+
+   function focalizaListaShTab(FILAEVENTO) {
+         if(FILAEVENTO == 0){
+             //setTimeout("focalizaBotonHTML('botonContenido','btnAceptar')",10); 
+             focalizaBotonHTML('botonContenido','btnAceptar');
+         }        
+    }
+
+   function fVolver(){
+         onClickPestanya('0');
+    }
+
+    function navegaPestaniasDetalle(pestanya){
+      if ( sicc_validaciones_generales("grupo1")) {
+         set('formulario.conectorAction', 'LPMantenimientoAlcanceTipoCliente');
+         set('formulario.accion', 'siguiente');
+         if (pestanya == 2){
+             set("formulario.hidPestanya", "2");
+             //eval('formulario').oculto="S";     
+             enviaSICC('formulario');  
+         }
+      }  
+    }
+        
+    function onTabSiguiente()
+    {
+         if ( get('formulario.hidCasoDeUso')!='consultar' )
+             focaliza('formulario.cbTiposCliente')
+    }
+    
+    function accionError(){
+         fMostrarMensajeError();
+    }
+             
+         function onClickPestanya(valor) {
+
+                  set('formulario.idPestanyaDest', valor);
+           
+                  if (get('formulario.hidCasoDeUso')!="consultar") {
+                         if ( sicc_validaciones_generales("grupo1")) 
+                         {
+                           if (ObtenerInformacionDescuentosDefinidos())
+                           { 				
+
+                                    if (valor != "1") {//!=pestanyaDatosGenerales
+                                      // Sólo llamamos a la LP para almacenar en el "dtoDescuento" los datos de la pestaña,
+                                      // si el identificador de la pestaña actual es distinto de la variable idPestanyaDest 
+                                      // (identificador de la pestaña que se ha pulsado) 
+
+                                      set('formulario.hidChkDefinirCliente',get('formulario.rbDefinirCliente','V'));
+                                      set('formulario.conectorAction', 'LPMantenimientoAlcanceTipoCliente');
+                                      set('formulario.accion', 'almacenar');
+
+                                      enviaSICC('formulario');        
+                                    }// Fin Si pestanyaDatosGenerales != idPestanyaDest 
+                                  
+                           } else {
+                              focaliza("formulario.cbSubtiposCliente");
+                           }
+                         } // Fin sicc_validaciones_generales
+                  } else { // Si casodeuso == "consultar", solo debe redirigirse a otra pestaña                 
+                        set('formulario.conectorAction', 'LPMantenimientoAlcanceTipoCliente');             
+                        set('formulario.accion', 'redirigir');
+                        enviaSICC('formulario');          
+                  } // Fin si 
+           }
+
+
+           ]]>
+    </JAVASCRIPT>
+
+    <VALIDACION>
+         <ELEMENTO name="cbTiposCliente" required="true" cod="1301"
+                    group="grupo1"/>
+         <ELEMENTO name="cbSubtiposCliente" required="false" cod="1302"
+                    group="grupo1"/>
+    </VALIDACION>
+    <!-- Agregue oculto="S">  para usar el ENVIO OCULTO-->
+
+   <FORMULARIO nombre="formulario" oculto="N">
+         <VAR nombre="conectorAction" valor=""/>
+         <VAR nombre="accion" valor=""/>
+         <VAR nombre="hidIdioma" valor=""/>	
+         <VAR nombre="errCodigo" valor=""/>
+         <VAR nombre="errDescripcion" valor=""/>
+    <VAR nombre="hidCasoDeUso" valor=""/>
+    <VAR nombre="casoDeUso" valor=""/>
+          <VAR nombre="varNoLimpiarSICC" valor="true"/>
+
+    <VAR nombre="hidOidDescuento" valor=""/>
+    
+         <VAR nombre="hidSubTipoCliSel" valor=""/>
+         <VAR nombre="hidChkDefinirCliente" valor=""/>
+
+    <!-- Variables para el manejo de los combos -->
+    <VAR nombre="SubtipoClienteOid" valor=""/>
+    <VAR nombre="SubtipoClienteDesc" valor=""/>
+    <VAR nombre="SubtipoClienteOidPadre" valor=""/>
+
+    <!-- Variables para manejo de selecciones a colocar-->
+    <VAR nombre="selTiposClientes" valor=""/>
+    <VAR nombre="selSubtiposClientes" valor=""/>
+
+    <!-- Variables para manejo de selecciones obtenidas de pantalla-->
+         <VAR nombre="hidOidTipoClienteSel" valor=""/>
+         <VAR nombre="hidOidSubTipoClienteSel" valor=""/>
+
+    <!-- Variable para tomar los valores de la lista  -->
+         <VAR nombre="hidDescuentos" valor=""/>    
+
+    <!-- Variables para el control del comportamiento del formulario -->
+         <VAR nombre="VisibleTiposClientes" valor=""/>
+         <VAR nombre="ObligatorioTiposClientes" valor=""/>
+         <VAR nombre="ModificableTiposClientes" valor=""/>
+         <VAR nombre="txtNmaximoTiposClientes" valor=""/>
+
+         <VAR nombre="VisiblePorcentaje" valor=""/>
+         <VAR nombre="ObligatorioPorcentaje" valor=""/>
+         <VAR nombre="ModificablePorcentaje" valor=""/>
+         <VAR nombre="txtNmaximoPorcentaje" valor=""/>
+
+         <VAR nombre="VisibleDescuentoCliente" valor=""/>
+         <VAR nombre="ObligatorioDescuentoCliente" valor=""/>
+         <VAR nombre="ModificableDescuentoCliente" valor=""/>
+
+    <!-- Variable para mantener los codigos de los elementos en la lista -->
+         <VAR nombre="hidUltimoElementoEnLaLista" valor=""/>
+
+         <VAR nombre="hExito" valor=""/>
+         <VAR nombre="idPestanyaDest" valor=""/>
+
+
+  <CAPA nombre="capa1">
+      <!-- Codigo para armar las pestañas -->
+
+ <table  bgcolor="red" width="100%" height="100%" border="0" align="center" cellpadding="0" cellspacing="0" class="menu5">
+  <tr> 
+    <td width="12" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="12" height="10"/></td>
+    <td nowrap="nowrap" class="menu5texto">&nbsp;</td>
+    <td width="10" nowrap="nowrap" class="menu5texto"><IMG src="b.gif" width="10" height="0"/></td>
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto">
+         <table width="75" border="0" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A">
+         <tr align="center"> 
+           <td nowrap="nowrap" class="menu5textonegrita">
+             <a href="#">
+                  <DIV ID="InsertarP1"  onmouseover="poneManito('InsertarP1');"
+         onclick="onClickPestanya('0')" 
+         style="width:80px;border-style:solid; border-color:#496A9A;border-width:2px;position:relative;top:3px;text-align:center;color:#496A9A;font-family: Arial, Helvetica, sans-serif;font-size: 11px;font-weight: bold; visibility:visible">Datos generales</DIV>
+             </a>
+             </td>
+         </tr>
+      </table>
+   </td>     
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto">
+    <table width="75" border="0" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A">
+         <tr align="center"> 
+           <td nowrap="nowrap" class="menu5textonegrita">
+             <DIV ID="InsertarP2"  
+         onclick="onClickPestanya('1')"
+         style="width:80px;border-style:solid; border-color:#496A9A;border-width:2px;position:relative;top:3px;text-align:center;color:#496A9A;font-family: Arial, Helvetica, sans-serif;font-size: 11px;font-weight: bold; visibility:visible">Tipo de cliente</DIV>
+             </td>
+         </tr>
+      </table>
+   </td>
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto">
+    <table width="75" border="0" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A">
+         <tr align="center"> 
+           <td nowrap="nowrap"  class="menu5textonegrita">
+             <DIV ID="InsertarP3"     onmouseover="poneManito('InsertarP3');"
+         onclick="onClickPestanya('2')" 
+         style="width:80px;border-style:solid; border-color:#496A9A;border-width:2px;position:relative;top:3px;text-align:center;color:#496A9A;font-family: Arial, Helvetica, sans-serif;font-size: 11px;font-weight: bold; visibility:visible">Alcance administrativo</DIV>
+             </td>
+         </tr>
+      </table>
+   </td>   
+    <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto">
+    <table width="75" border="0" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A">
+         <tr align="center"> 
+           <td nowrap="nowrap" class="menu5textonegrita">
+             <DIV ID="InsertarP4"  onmouseover="poneManito('InsertarP4');"
+         onclick="onClickPestanya('3')"
+         style="width:80px;border-style:solid; border-color:#496A9A;border-width:2px;position:relative;top:3px;text-align:center;color:#496A9A;font-family: Arial, Helvetica, sans-serif;font-size: 11px;font-weight: bold; visibility:visible">Base de cálculo</DIV>
+             </td>
+         </tr>
+      </table>
+   </td>
+ <td width="10" class="menu5texto"><IMG src="b.gif" width="10" height="8"/></td>
+    <td width="20" nowrap="nowrap" class="menu5texto">
+    <table width="75" border="0" align="center" cellpadding="1" cellspacing="0" bordercolor="#496A9A">
+         <tr align="center"> 
+           <td nowrap="nowrap" class="menu5textonegrita">
+             <DIV ID="InsertarP5"  onmouseover="poneManito('InsertarP5');"
+         onclick="onClickPestanya('4')" 
+         style="width:80px;border-style:solid; border-color:#496A9A;border-width:2px;position:relative;top:3px;text-align:center;color:#496A9A;font-family: Arial, Helvetica, sans-serif;font-size: 11px;font-weight: bold; visibility:visible">Aplicación de descuento</DIV>
+             </td>
+         </tr>
+      </table>
+   </td>
+    <td width="16" class="menu5texto"><IMG src="b.gif" width="12" height="8"/></td>
+  </tr>
+</table>
+
+<!-- Fin código para armar las pestañas -->
+
+    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+      <tr>
+         <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+         <td width="750"><IMG src="b.gif"/></td>
+         <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+      </tr>
+      <tr> 
+         <td><IMG src="b.gif"/></td>
+         <td>
+           <fieldset>
+             <legend class="legend"><LABELC nombre="lblDatosClientes" alto="13" filas="1" valor="" cod="0091" id="legend" /></legend>
+            <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+           <tr><td>
+
+             <table width="676" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                  <td><IMG src="b.gif" width="8" height="8"/></td>
+                  <td><LABELC nombre="lblTiposCliente" alto="13" filas="1" valor="" id="datosTitle" cod="1301"/></td>
+                  <td><IMG src="b.gif" width="25" height="8"/></td>
+                  <td><LABELC nombre="lblSubtiposCliente"  alto="13" filas="1" valor="" id="datosTitle" cod="1302"/></td>
+                  <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                  <td><IMG src="b.gif" width="8" height="8"/></td>
+                  <td nowrap="nowrap">
+                    <COMBO nombre="cbTiposCliente" id="datosCampos" size="5" multiple="S" 
+                    req="S" valorinicial="" textoinicial="" onchange="tiposClienteOnChange();" onshtab="focalizaBotonHTML('botonContenido','btnSiguiente')">
+                      <ROWSET>
+                      </ROWSET>
+                    </COMBO> 
+                  </td>                  
+                  <td><IMG src="b.gif" width="25" height="8"/></td>
+                  <td nowrap="nowrap" valign="bottom">
+                    <COMBO nombre="cbSubtiposCliente" id="datosCampos" size="5" onchange="subtiposClienteOnChange();" multiple="S" req="N" valorinicial="" textoinicial="">
+                      <ROWSET>
+                      </ROWSET>
+                    </COMBO> 
+                  </td>
+                  <td width="100%"><IMG src="b.gif" width="8" height="8"/></td> 
+                </tr>
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+             </table>
+            </td></tr>
+          </table>  
+           </fieldset>
+         </td>
+         <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr> 
+      <tr> 
+         <td><IMG src="b.gif"/></td>
+           <td>
+           <fieldset>
+             <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">         
+                <tr>
+                  <td class="botonera">
+                    <BOTON nombre="btnAceptar" ID="botonContenido" tipo="html" accion="accionAceptar();" estado="false" ontab="focalista()" cod="12"/>
+                  </td>
+                </tr>    
+             </table>         
+           </fieldset>
+         </td>
+         <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>        
+      <tr>
+         <td width="12" align="center"><IMG src="b.gif" width="12" height="8"/></td>
+         <td width="750"><IMG src="b.gif"/></td>
+         <td width="12"><IMG src="b.gif" width="12" height="8"/></td>
+      </tr>
+    </table>
+    
+</CAPA>    
+    <LISTAEDITABLE nombre="listado1" ancho="680" alto="301" x="12" y="170" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+         <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+         <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+         <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+     
+      <LINEAS>
+         <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="1" horizTitulo="1" horizBase="1"/> 
+         <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+     <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00102" ID="datosTitle" />
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+         <COL ancho="50" minimizable="S" minimizada="N" oculta="S"/> 
+         <COL ancho="50" minimizable="S" minimizada="N" /> 
+          <COL ancho="40" minimizable="S" minimizada="N" oculta="S"/> 
+         <COL ancho="50" minimizable="S" minimizada="N" />          
+      </COLUMNAS>
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+         <COL colFondo="" ID="EstCab" align="center">oidTipoClasificacion</COL> 
+         <COL colFondo="" ID="EstCab" align="center" cod="756">Tipo clasificación</COL>
+         <COL colFondo="" ID="EstCab" align="center">oidClasificacion</COL> 
+         <COL colFondo="" ID="EstCab" align="center" cod="550">Clasificación</COL> 
+      </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+              coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+              onLoad="" colorSelecc="#D0D9E8">
+        <COL tipo="texto" ID="EstDat"/> 
+        <COL tipo="texto" ID="EstDat"/> 
+        <COL tipo="texto" ID="EstDat2"/> 
+        <COL tipo="texto" ID="EstDat2"/> 
+      </DATOS>
+      <ROWSET>
+      </ROWSET>
+     <!--Comienzo del paginado y botones de listas-->
+        <PAGINADO nombre="mipgndo" ancho="680" sep="$" x="12" class="botonera" y="448" control="|" conector="conectorSandra" rowset="" cargainicial="N">
+         
+         <BOTON nombre="ret1" x="37" y="452" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+         <BOTON nombre="ava1" x="52" y="452" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>
+         
+    </PAGINADO>
+  </LISTAEDITABLE>
+         <BOTON nombre="primera1" x="20" y="452" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();" />      
+         <BOTON nombre="separa" x="59" y="448" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />      
+         <BOTON nombre="btnAnadir" x="13" y="449" ID="botonContenido" tipo="html" estado="false" accion="accionAniadir();" cod="404" onshtab="focalista2()"/>         
+         <BOTON nombre="btnEliminar" x="61" y="449" ID="botonContenido" tipo="html" estado="false" accion="accionEliminar();" cod="1254" />         
+
+<CAPA nombre="capa2" alto="100" ancho="100%" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="483" zindex="">    
+    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+      <tr>
+         <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+         <td width="750"><IMG src="b.gif"/></td>
+         <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+      </tr>
+      <tr> 
+         <td><IMG src="b.gif"/></td>
+         <td>
+           <fieldset>
+             <legend class="legend"><LABELC nombre="lblClientesEspecificos" alto="13" filas="1" valor="" cod="00464" id="legend" /></legend>
+                <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+           <tr><td>
+
+             <table width="676" border="0" align="left" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                  <td><IMG src="b.gif" width="8" height="8"/></td>
+                  <td><LABELC nombre="lblDefinirCliente" alto="13" filas="1" valor="" id="datosTitle" cod="2183"/></td>
+                  <td width="100%"><IMG src="b.gif" width="473" height="8"/></td>
+                </tr> 
+                <tr>
+                  <td><IMG src="b.gif" width="8" height="8"/></td>
+                  <td class="datosCampos">
+             <CAPA nombre="capaDefinirCliente"  colorf="" borde="0" imagenf="" repeat="" padding="" visibilidad="hidden" contravsb="" zindex="">
+                         <RADIOB nombre="rbDefinirCliente" tipo="H" id="datosCampos">
+                           <RBINPUT valor="S" check="N" onfocus="" id="datosCampos" cod="117">yy</RBINPUT>
+                           <RBINPUT valor="N" check="N" onfocus="" id="datosCampos" cod="87">nn</RBINPUT>
+                         </RADIOB>
+             </CAPA> 
+                  </td>
+          	<td width="100%"><IMG src="b.gif" width="8" height="8"/></td> 
+                </tr>
+                <tr> 
+                  <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>                
+             </table>
+             </td></tr>
+         </table>
+           </fieldset>
+         </td>
+         <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr> 
+      <tr> 
+         <td><IMG src="b.gif"/></td>
+         <td>
+           <fieldset>
+             <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">         
+                <tr>
+                  <td class="botonera">
+                    <BOTON nombre="btnSiguiente" ID="botonContenido" tipo="html" accion="accionSiguiente();" estado="false" cod="446" ontab="onTabSiguiente();"/>
+                  </td>
+                </tr>    
+             </table>         
+           </fieldset>
+         </td>
+         <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>        
+      <tr>
+         <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+         <td width="750"><IMG src="b.gif"/></td>
+         <td width="12"><IMG src="b.gif" width="12" height="12"/></td>
+      </tr>
+    </table>    
+</CAPA>
+
+</FORMULARIO>
+</PAGINA>

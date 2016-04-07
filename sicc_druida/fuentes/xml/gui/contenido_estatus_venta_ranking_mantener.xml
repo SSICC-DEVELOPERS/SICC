@@ -1,0 +1,455 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+/**
+ * Copyright 2003 © por Indra Sistemas,S.A.. Todos los derechos reservados.
+ * Avda. de Bruselas, 35
+ * Parque Empresarial Arroyo de la Vega
+ * 28108 Alcobendas, Madrid
+ * España
+ *
+ * Privado y Confidencial.
+ * La información contenida en este documento es propiedad de Indra sistemas.
+ * Para uso exclusivo de empleados autorizados no permitiéndose
+ * la distribución de este código sin permiso expreso.
+ */
+ 
+ Autor: Paola Cabrera
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_estatus_venta_ranking_mantener" cod="0507" titulo="Mantener estatus de venta" 
+estilos="estilosB3.css" colorf="#F0F0F0" msgle="" onload="onLoadPag();" xml:lang="es">
+
+<JS src="sicc_util.js"/>	 
+<JS src="PaginacionSicc.js"/>	 
+<JS src="DruidaTransactionMare.js"/>
+<JS src="pestanyas_concurso_ranking_inc.js"/>
+
+<JAVASCRIPT>
+<![CDATA[ 
+
+function onLoadPag()   {  
+         DrdEnsanchaConMargenDcho('listado1',12);
+         document.all["Cplistado1"].style.visibility='';
+         document.all["CpLin1listado1"].style.visibility='';
+         document.all["CpLin2listado1"].style.visibility='';
+         document.all["CpLin3listado1"].style.visibility='';
+         document.all["CpLin4listado1"].style.visibility='';
+         document.all["separaDiv"].style.visibility='hidden';
+         document.all["primera1Div"].style.visibility='hidden';
+         document.all["ret1Div"].style.visibility='hidden';
+         document.all["ava1Div"].style.visibility='hidden';
+         document.all["btnAceptar1Div"].style.visibility='';
+         eval (ON_RSZ);  
+         
+         configurarMenuSecundario('formulario');
+         
+         btnProxy(1,'0');
+        
+        if (get("formulario.opcionMenu") == "Modificar Concurso Ranking"){
+            btnProxy(2,'1');
+            btnProxy(7, 0);
+			btnProxy(8, 0);
+			btnProxy(9, 0);
+        }
+        
+         if ( get('formulario.hidLstEstatusVta')!= null ) {
+             var listaItems = get('formulario.hidLstEstatusVta');
+         }         
+         actualizaListado(listaItems);             
+         
+         if ( get('formulario.opcionMenu') == 'Consultar Concurso Ranking') {
+             deshabilitarHabilitarBoton('botonContenido','btnAnadir','D');             
+             document.getElementById("btnAceptar1").disabled = true;	         
+             document.getElementById("cbEstatusVentaMAE").disabled = true;	         
+             document.getElementById("cbPeriodoDesde").disabled = true;	         
+             document.getElementById("cbPeriodoHasta").disabled = true;	  
+                           
+             btnProxy(2,'1');
+			 btnProxy(4, 0);			
+			 btnProxy(5, 0);
+			 btnProxy(7, 0);
+			 btnProxy(8, 0);
+			 btnProxy(9, 0);
+          }
+           else {
+                 focaliza('formulario.cbEstatusVentaMAE');
+           }
+     }
+   
+   function accionAniadir()
+   {
+         var vOidEstatusVtaMae = get('formulario.cbEstatusVentaMAE','V');        
+         var vOidPeridoD  = get('formulario.cbPeriodoDesde','V');
+         var vOidPeridoH  = get('formulario.cbPeriodoHasta','V');         
+         var vEstatusVtaMae = get('formulario.cbEstatusVentaMAE','T');
+         var vPeridoD  = get('formulario.cbPeriodoDesde','T');
+         var vPeridoH  = get('formulario.cbPeriodoHasta','T');
+         
+         if(sicc_validaciones_generales("g1")){
+			//Cleal - 21865
+				if(vPeridoH==null || vPeridoH==""){
+					vOidPeridoH = vOidPeridoD;
+					vPeridoH = vPeridoD;
+				}
+         
+             var posi = parseInt(get('formulario.hidUltimoElementoEnLaLista'), 10);
+             var codigo = listado1.generaCodigo( posi );
+             var datos = codigo + "|" + null ;  
+             
+             datos = datos + "|" + vOidEstatusVtaMae + "|" + vOidPeridoD + "|" + vOidPeridoH;
+            
+             datos = datos + "|" + vEstatusVtaMae + "|" + vPeridoD + "|" + vPeridoH;
+           
+             if (!existeFila(datos))
+             {
+                  var newRow = new Array();
+                  newRow = datos.split("|");
+                  
+                  listado1.insertar(newRow);                  
+                  set('formulario.hidUltimoElementoEnLaLista', codigo);
+                  
+                  seteaCombosAniadir();
+   
+              }else{              
+              }                           
+         }    
+    }   
+   
+   function accionAceptar()
+   {
+         var datosAplanados = listado1Tostring();   
+         var arr = new Array();
+         arr[0] = datosAplanados;
+         arr[1] = listado1.datos;  
+         set("formulario.hidLstEstatusVta", arr); 
+         
+         returnValue = arr;         
+         close();
+   }
+   
+   function fBorrar()
+   {
+         accionEliminar();
+   }
+   
+   function actualizaListado(listaItems){
+         //listaItems = get('formulario.hidLstEstatusVta');
+                  var fila = listaItems.split('$');
+                  for(i=0;i<fila.length;i++){
+                           if (fila[i] != ''){
+                  //fila[i] = i + '|' + fila[i];
+                                    var newRow = new Array();
+                                    newRow = fila[i].split("|");
+                                    listado1.insertar(newRow);
+                           }
+                  }
+         }
+   
+    function listado1Tostring(){      
+         var codigo = listado1.codigos();
+                  var total = "";
+         lon = listado1.datos.length
+                  for(var a = 0; a < lon ; a++){
+                  //var toAdd = "";   
+                           //toAdd = codigo[a]; // oid
+             
+             var toAdd = "";
+             toAdd = "oid:"+ codigo[a];
+             
+                           if(listado1.extraeDato(codigo[a], 0)!= null && listado1.extraeDato(codigo[a], 0)!="")
+                                    toAdd = toAdd + "|" + "oEv:" + listado1.extraeDato(codigo[a], 0);    //oidEstatusVenta
+                  
+             if(listado1.extraeDato(codigo[a], 1)!= null && listado1.extraeDato(codigo[a], 1)!="")
+                                    toAdd = toAdd + "|" + "oEM:" + listado1.extraeDato(codigo[a], 1);    //oidEstatusVentaMAE
+             if(listado1.extraeDato(codigo[a], 2)!= null && listado1.extraeDato(codigo[a], 2)!="")
+                                    toAdd = toAdd + "|" + "oPd:" + listado1.extraeDato(codigo[a], 2);    //oidPeriodoDesde   
+                           if(listado1.extraeDato(codigo[a], 3)!= null && listado1.extraeDato(codigo[a], 3)!="")
+                                    toAdd = toAdd + "|" + "oPh:"  + listado1.extraeDato(codigo[a], 3);    //oidPeriodoHasta
+                           if(listado1.extraeDato(codigo[a], 4)!= null && listado1.extraeDato(codigo[a], 4)!="")
+                  toAdd = toAdd + "|" + "dEv:"  + listado1.extraeDato(codigo[a], 4);    //DesEstatusVtaMAE
+                  
+                           if(listado1.extraeDato(codigo[a], 5)!= null && listado1.extraeDato(codigo[a], 5)!="")
+                  toAdd = toAdd + "|" + "dPd:"  + listado1.extraeDato(codigo[a], 5);    //desPeriodoDesde
+                           if(listado1.extraeDato(codigo[a], 6)!= null && listado1.extraeDato(codigo[a], 6)!="")
+                  toAdd = toAdd + "|" + "dPh:"  + listado1.extraeDato(codigo[a], 6);    //desPeriodoHasta
+
+                           total = total + "$" + toAdd;
+      
+      
+                  }		
+                  return total;
+         }
+    
+    function accionEliminar()
+    {
+
+         var vMostrarMensaje ='';
+         var cantElementosL1 = listado1.codSeleccionados();                
+         
+         if ( cantElementosL1.length == 0){
+             GestionarMensaje("4", null, null, null);
+             return;
+         }
+         if ( cantElementosL1.length > 0 )
+             listado1.eliminarSelecc();
+    }
+    
+    function fBorrar()
+    {
+         accionEliminar();
+         focaliza("cbEstatusVentaMAE");
+         
+    }
+   
+    function fVolver()
+    {
+         window.close();
+    }
+    
+    
+    function existeFila(datos)
+    {
+         listado1.actualizaDat();
+         var codigo ="";
+         
+         var dat = listado1.datos;
+          
+         if (listado1.codigos() !="")
+            codigo = listado1.codigos(); 
+             
+         var newRow = new Array();
+         newRow = datos.split("|");
+         
+         var flag = false;
+         var a = 0;
+         
+         var dato1= newRow[2];
+         var dato2= newRow[3];
+         var dato3= newRow[4];
+         
+         if (dat != ""){
+             var datoLista1 = listado1.extraeDato(codigo[a], 1);         
+             var datoLista2 = listado1.extraeDato(codigo[a], 2);
+             var datoLista3 = listado1.extraeDato(codigo[a], 3);
+            
+             if ((dato1 == datoLista1) && (dato2 == datoLista2) && (dato3 == datoLista3)){
+                  
+				  set("formulario.cbEstatusVentaMAE"," "); 
+                  set("formulario.cbPeriodoDesde"," "); 
+                  set("formulario.cbPeriodoHasta"," ");      
+
+                  focaliza("formulario.cbEstatusVentaMAE");
+                  
+                  flag = true;
+             }else{
+             }
+             
+         }
+         return flag;
+    }
+  
+    
+    
+    function seteaCombosAniadir(){
+        set("formulario.cbEstatusVentaMAE"," "); 
+		set("formulario.cbPeriodoDesde"," "); 
+		set("formulario.cbPeriodoHasta"," ");      
+		 
+		focaliza("formulario.cbEstatusVentaMAE");      
+   
+    }
+    
+    
+    function fLimpiar(){
+	  if(get('formulario.opcionMenu')!="Modificar Concurso Ranking"){   
+		  set("formulario.cbEstatusVentaMAE"," ");
+		  set("formulario.cbPeriodoDesde"," "); 
+		  set("formulario.cbPeriodoHasta"," "); 
+					  
+		  focaliza("formulario.cbEstatusVentaMAE");
+		
+	  } else { 
+			set('formulario.conectorAction', 'LPMantenerParametrosConsultorasRanking');  
+			set('formulario.accion', 'cargar estatus venta ranking'); 
+			eval('formulario').oculto = 'N'; 
+			enviaSICC('formulario',null,null,'N'); 
+	  } 
+    
+    }
+
+    
+]]> 
+</JAVASCRIPT>
+
+<VALIDACION>
+     <ELEMENTO name="cbEstatusVentaMAE" required="true" cod="1705" group="g1"/>
+     <ELEMENTO name="cbPeriodoDesde" required="true" cod="1175" group="g1"/>      
+     <!--ELEMENTO name="cbPeriodoHasta" required="true" cod="1176" group="g1"/-->      
+</VALIDACION>
+
+
+<FORMULARIO nombre="formulario">
+    <VAR nombre="accion" valor=""/>
+    <VAR nombre="conectorAction" valor=""/>
+    <VAR nombre="hidLstEstatusVta" valor=""/>
+    <VAR nombre="opcionMenu" valor=""/>
+    
+    <!-- Contador para manejar los elementos de la lista -->
+    <VAR nombre="hidUltimoElementoEnLaLista" valor="1"/>
+    
+    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+	<fieldset><legend class="legend"><LABELC nombre="lblDatos"  alto="13" filas="1" valor="" id="legend" cod="00282"/></legend>
+	 <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+          <!---primera fila-->
+             <table width="426" border="0" align="left" cellspacing="0" cellpadding="0">
+	                  <tr> 
+		            <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+		          </tr>
+		          <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td><LABELC nombre="lblEstatusVentaMAE"  alto="13" filas="1" valor="" id="datosTitle" cod="1705"/></td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td ><LABELC nombre="lblPeriodoDesde"  alto="13" filas="1" valor="" id="datosTitle" cod="1175"/></td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                    <td><LABELC nombre="lblPeriodoHasta"  alto="13" filas="1" valor="" id="datosTitle" cod="1176"/></td>
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr>
+	                    <td><IMG src="b.gif" width="8" height="8"/></td>
+	                    <td nowrap="nowrap"><COMBO nombre="cbEstatusVentaMAE" id="datosCampos" 
+                        size="1" multiple="N" req="S" valorinicial="" textoinicial=""
+                        onshtab="focalizaBotonHTML('botonContenido','btnAceptar1');">
+			               <ROWSET>
+			                      		
+			               </ROWSET>
+			         </COMBO> 
+			    </td>
+	                    <td><IMG src="b.gif" width="25" height="8"/></td>
+	                     <td nowrap="nowrap"><COMBO nombre="cbPeriodoDesde" id="datosCampos" 
+                         size="1" multiple="N" req="S" valorinicial="" textoinicial="">
+			               <ROWSET>
+			                      		
+			               </ROWSET>
+			         </COMBO> 
+			    </td>
+			     <td><IMG src="b.gif" width="25" height="8"/></td>
+	                     <td nowrap="nowrap"><COMBO nombre="cbPeriodoHasta" id="datosCampos" 
+                         size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+			               <ROWSET>
+			                      		
+			               </ROWSET>
+			         </COMBO> 
+			    </td>
+	                    <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	                  <tr> 
+	                    <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+	                  </tr>
+	            </table>
+       <!---fin primera fila-->
+           </td></tr>
+           </table>
+        </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnAnadir" ID="botonContenido" tipo="html" accion="accionAniadir();" 
+          estado="false" cod="404" ontab="focalizaBotonHTML('botonContenido','btnAceptar1');" />
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>       
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+ 
+  <LISTAEDITABLE nombre="listado1" ancho="430" alto="301" x="12" y="126" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+        <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+        <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+        <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+      <LINEAS>
+        <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="0" horizTitulo="1" horizBase="1"/> 
+        <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00317" ID="datosTitle" />
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+        <COL ancho="30" minimizable="S" minimizada="N" oculta="S"/>
+        <COL ancho="30" minimizable="S" minimizada="N" oculta="S"/>
+        <COL ancho="30" minimizable="S" minimizada="N" oculta="S"/>
+        <COL ancho="30" minimizable="S" minimizada="N" oculta="S"/>
+        <COL ancho="10" minimizable="S" minimizada="N"/>        
+        <COL ancho="5" minimizable="S" minimizada="N" />
+        <COL ancho="5" minimizable="S" minimizada="N" /> 
+      </COLUMNAS>
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+            <COL colFondo="" ID="EstCab" >oidStatusVta</COL> 
+            <COL colFondo="" ID="EstCab" >oidStatusVtaMAE</COL> 
+            <COL colFondo="" ID="EstCab" >oidPeriodoDesde</COL> 
+            <COL colFondo="" ID="EstCab" >oidPeriodoHasta</COL> 
+            <COL colFondo="" ID="EstCab" align="center" cod="1705">Estatus venta MAE</COL> 
+            <COL colFondo="" ID="EstCab" cod="1175">Período desde</COL> 
+            <COL colFondo="" ID="EstCab" cod="1176">Período hasta</COL> 
+      </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+             coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+             onLoad="" colorSelecc="#D0D9E8">
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat2"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat"/>  
+       <COL tipo="texto" ID="EstDat"/>
+       <COL tipo="texto" ID="EstDat"/>  
+      </DATOS>
+      <ROWSET>
+	
+      </ROWSET>
+     <PAGINADO nombre="mipgndo" ancho="726" sep="$" x="12" class="botonera" y="404" control="|" conector="" rowset="" cargainicial="N">
+        
+        <BOTON nombre="ret1" x="37" y="408" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+        <BOTON nombre="ava1" x="52" y="408" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>
+        
+    </PAGINADO>
+  </LISTAEDITABLE>
+  <BOTON nombre="primera1" x="20" y="408" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();" />      
+  <BOTON nombre="separa" x="59" y="404" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />      
+  <BOTON nombre="btnAceptar1" x="17" y="405" ID="botonContenido" tipo="html" 
+  accion="accionAceptar();" estado="false" cod="12" ontab="focaliza('formulario.cbEstatusVentaMAE');"
+  onshtab="focalizaBotonHTML('botonContenido','btnAnadir');" /> 
+        
+  
+ <CAPA nombre="capaEspacio" alto="12" ancho="100%" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="427" zindex="">
+  </CAPA>                                                                                                                                                             
+</FORMULARIO>
+</PAGINA>  

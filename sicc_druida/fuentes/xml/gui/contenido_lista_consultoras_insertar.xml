@@ -1,0 +1,499 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_lista_consultoras_insertar.xml,v 1.1 2009/12/03 18:45:14 pecbazalar Exp $
+   contenido CCC
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+
+<PAGINA nombre="contenido_lista_consultoras_insertar" cod="0268" titulo="Insertar Lista de Consultoras" estilos="estilosB3.css" colorf="#F0F0F0"
+        msgle="Insertar Lista de Consultoras" onload="onLoadPag();" xml:lang="es">
+
+  <JS src="PaginacionSicc.js"/>
+  <JS src="sicc_util.js"/>
+  <JS src="DruidaTransactionMare.js"/>        
+        
+<JAVASCRIPT>
+  <![CDATA[ 
+
+  function onLoadPag()   {
+
+    configurarMenuSecundario("frmConsultarListaConsultoras");  
+  
+    DrdEnsanchaConMargenDcho('listado1',12);
+    document.all["Cplistado1"].style.visibility='';
+    document.all["CpLin1listado1"].style.visibility='';
+    document.all["CpLin2listado1"].style.visibility='';
+    document.all["CpLin3listado1"].style.visibility='';
+    document.all["CpLin4listado1"].style.visibility='';
+
+    document.all["primera1Div"].style.visibility='';
+    document.all["ret1Div"].style.visibility='';
+    document.all["ava1Div"].style.visibility='';
+    eval (ON_RSZ);  
+    cargarLista();
+    focaliza('frmConsultarListaConsultoras.CodCliente');    
+
+   }
+
+//------------------------------------------------------------------------------
+//   M E T O D O S    D E L    D I S E Ñ O 
+//------------------------------------------------------------------------------
+
+   function cargarLista(){
+      
+      var id         = 'MSGCargarListaConsultorasInicial';
+      var conector   = 'ConectorCargarListaConsultorasInicial';
+      var dto        = 'es.indra.sicc.dtos.msg.DTOBuscarConsultorasInicial';
+      var oidMensaje = get('frmConsultarListaConsultoras.oidMensaje');   
+            
+      var arr = new Array();
+      arr[0] = new Array('oidMensaje',oidMensaje);
+      
+            
+      configurarPaginado(mipgndo, id, conector, dto, arr);
+   }
+
+//------------------------------------------------------------------------------   
+
+   function accionBuscarCliente(){
+ 
+     var obj = new Object();
+     var whnd = mostrarModalSICC('LPBusquedaRapidaCliente','',obj);
+        
+     if(whnd != null){
+        set('frmConsultarListaConsultoras.CodCliente', whnd[1]);   
+          set('frmConsultarListaConsultoras.NombreApellidos', whnd[2] + ' ' + whnd[3] + ' ' + whnd[4] + ' ' + whnd[5]); 
+                
+     }
+     
+	 }
+
+//------------------------------------------------------------------------------
+
+
+  /*
+   * dmorello, 29/05/2006: Se cambia el nombre de la función, ya que será llamada sólo
+   * cuando el contenido del cuadro de texto cambie y no cada vez que pierda el foco
+   */
+  //function clienteOnBlur() {
+  function clienteOnChange() {
+
+       var longiCod = get('frmConsultarListaConsultoras.hLongCliente');
+       var elTexto  = get('frmConsultarListaConsultoras.CodCliente');
+
+       //if (elTexto != null) {
+       //    alert("CodCliente: " + elTexto);
+       //  alert("CodCliente.length: " + elTexto.length);
+       //} else {
+       //  alert("CodCliente es null");
+       //}
+
+       if(elTexto.length!=0){
+          var faltantes = longiCod -  elTexto.length;
+          var resultCod = new String("");
+          if(faltantes > 0){
+             for(var t = 0 ; t<faltantes; t++){
+                resultCod = resultCod + "0";
+             }
+        }
+        resultCod = resultCod + elTexto;
+        set('frmConsultarListaConsultoras.CodCliente', resultCod);
+		// dmorello, 29/05/2006: Se llama a onChangeCliente sólo si el cuadro de texto no está vacío.
+		onChangeCliente();
+       }
+	   // onChangeCliente();		 
+            
+   }
+
+//------------------------------------------------------------------------------   
+
+   function fGuardar(){
+		sicc_cambiar_estado("CodCliente",true);
+		sicc_cambiar_estado("NombreApellidos",true);
+      if(!sicc_validaciones_generales()){
+         return;
+      }else{
+         set('frmConsultarListaConsultoras.conectorAction', 'LPMantenimientoConsultoras');
+         set('frmConsultarListaConsultoras.accion', 'Guardar');
+         eval('frmConsultarListaConsultoras').oculto = 'S';
+         enviaSICC('frmConsultarListaConsultoras');      
+      }  
+   }
+
+//------------------------------------------------------------------------------
+
+   function accionDatosArchivo(){
+       
+       var a = new Object();
+       a.accion = '';
+       a.oidMensaje = get('frmConsultarListaConsultoras.oidMensaje');
+       mostrarModalSICC('LPCargaFicheroConsultoras', '', a);
+       cargarLista();
+     
+   }
+//------------------------------------------------------------------------------
+
+    function muestraLista( ultima, rowset){   
+
+       var tamano = rowset.length;  
+       if (tamano > 0) {
+          return true;   
+       }else{   
+          return false;   
+       } 
+       
+       focaliza('frmConsultarListaConsultoras.CodCliente');
+    }  
+
+//------------------------------------------------------------------------------    
+
+   function fLimpiar(){
+      set('frmConsultarListaConsultoras.CodCliente', '') ;
+      set('frmConsultarListaConsultoras.NombreApellidos', '');
+      set('frmConsultarListaConsultoras.Variable2','');
+      set('frmConsultarListaConsultoras.Variable3','');
+      set('frmConsultarListaConsultoras.Variable4','');
+      set('frmConsultarListaConsultoras.Variable5','');
+      set('frmConsultarListaConsultoras.Variable6','');
+      set('frmConsultarListaConsultoras.Variable7','');
+      set('frmConsultarListaConsultoras.Variable8','');
+      set('frmConsultarListaConsultoras.Variable9','');
+      set('frmConsultarListaConsultoras.Variable10','');
+      focaliza('frmConsultarListaConsultoras.CodCliente');
+   }
+
+//------------------------------------------------------------------------------
+
+   function insertoConExito(opcionMenu){
+	  if (opcionMenu != 'Modificar mensaje'){
+			fLimpiar();
+			cargarLista();
+	  }
+   }
+   
+//------------------------------------------------------------------------------
+//   M E T O D O S    A G R E G A D O S   L U E G O
+//------------------------------------------------------------------------------
+
+   function onChangeCliente(){
+			sicc_cambiar_estado("NombreApellidos",false);
+			set('frmConsultarListaConsultoras.clienteAnterior',get('frmConsultarListaConsultoras.NombreApellidos'));
+			set('frmConsultarListaConsultoras.conectorAction', 'LPMantenimientoConsultoras');
+         set('frmConsultarListaConsultoras.accion', 'Modificar Cliente');
+         eval('frmConsultarListaConsultoras').oculto = 'S';
+         enviaSICC('frmConsultarListaConsultoras',null,null,'N');      
+   }
+
+//------------------------------------------------------------------------------
+
+	function asignarDatosCliente(cad){
+			cad = cad.split(",");
+			var oid = cad[0];
+			var nombre1 = cad[1];
+			var apellido1 = cad[2];
+		  if(oid =! null && oid != ""){
+		     set('frmConsultarListaConsultoras.oidCliente',oid);
+			  set('frmConsultarListaConsultoras.NombreApellidos',nombre1 + ' ' + apellido1);
+		  }
+   }
+
+//------------------------------------------------------------------------------
+
+	function errorAlBuscar(anterior){
+	  set('frmConsultarListaConsultoras.NombreApellidos',anterior);
+		GestionarMensaje("MSG013");	
+	}
+
+//------------------------------------------------------------------------------
+
+  ]]> 
+
+  <VALIDACION>
+     <ELEMENTO name="CodCliente" required="false" cod="263"/>
+     <ELEMENTO name="NombreApellidos" required="true" cod="943"/>
+  </VALIDACION>
+
+  
+</JAVASCRIPT>
+      
+    <FORMULARIO nombre="frmConsultarListaConsultoras">
+      <VAR nombre="opcionMenu" valor=""/>
+      <VAR nombre="accion" valor=""/>
+      <VAR nombre="conectorAction" valor=""/>
+      <VAR nombre="errCodigo" valor=""/>
+      <VAR nombre="errDescripcion" valor=""/>
+      <VAR nombre="hLongCliente" valor=""/>
+      <VAR nombre="oidMensaje" valor=""/>
+		<VAR nombre="oidCliente" valor=""/>
+		<VAR nombre="clientes" valor=""/>
+		<VAR nombre="clienteAnterior" valor=""/>
+     
+    		
+   <CAPA nombre="capa" x="0" y="0" ancho="100%" alto="100%">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+      <tr>
+        <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+        <td width="750"><IMG src="b.gif"/></td>
+        <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+      </tr>
+      <tr> 
+        <td><IMG src="b.gif"/></td>
+        <td>
+	  <fieldset>
+	    <legend class="legend"><LABELC nombre="lblTitCritBusc" alto="13" filas="1" valor="" cod="00127" id="legend" /></legend>
+	  <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+          <tr><td>
+
+            <table width="600" border="0" align="left" cellspacing="0" cellpadding="0">
+              <tr> 
+                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr>
+              <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td><LABELC nombre="lblCodCliente" alto="13" filas="1" valor="" id="datosTitle" cod="263"/></td>
+                <td width="100%"><IMG src="b.gif" width="25" height="8"/></td>
+              </tr> 
+              <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <!--td nowrap="nowrap"><CTEXTO nombre="CodCliente" id="datosCampos" max="15" tipo="" onchange="onChangeCliente()" req="S" size="15" valor="" validacion="" onblur="clienteOnBlur();" onshtab="focalizaBotonHTML('botonContenido','btnCrear');"/></td-->   
+				<!--td nowrap="nowrap"><CTEXTO nombre="CodCliente" id="datosCampos" max="15" tipo="" req="S" size="15" valor="" validacion="" onblur="clienteOnBlur();" onshtab="focalizaBotonHTML('botonContenido','btnCrear');"/></td-->   
+				<td nowrap="nowrap"><CTEXTO nombre="CodCliente" id="datosCampos" max="15" tipo="" req="S" size="15" valor="" validacion="" onchange="clienteOnChange();" onshtab="focalizaBotonHTML('botonContenido','btnCrear');"/></td>   
+
+                <td width="100%"><IMG src="iconBuscar.gif" onclick="accionBuscarCliente();"/></td>
+              </tr>
+              <tr> 
+                <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr>              
+            </table>	
+           </td></tr>
+           
+           <tr><td>    
+            <table width="600" border="0" align="left" cellspacing="0" cellpadding="0">
+    	     <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td><LABELC nombre="lblNombreApellidos" alto="13" filas="1" valor="" id="datosTitle" cod="943"/></td>
+                <td width="100%"><IMG src="b.gif" width="25" height="8"/></td>
+              </tr> 
+              <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td nowrap="nowrap"><CTEXTO nombre="NombreApellidos" id="datosCampos" max="100" tipo="" onchange="" req="S" size="100" valor="" validacion=""/></td>   
+                <td width="100%"><IMG src="b.gif" width="25" height="8"/></td>
+              </tr>
+              <tr> 
+                <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr>              
+            </table>
+           </td></tr>
+           
+           <tr><td>    
+            <table width="600" border="0" align="left" cellspacing="0" cellpadding="0">
+    	     <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td><LABELC nombre="lblVariable2" alto="13" filas="1" valor="" id="datosTitle" cod="1025"/></td>
+                <td><IMG src="b.gif" width="25" height="8"/></td>
+                <td><LABELC nombre="lblVariable3" alto="13" filas="1" valor="" id="datosTitle" cod="1026"/></td>
+                <td width="100%"><IMG src="b.gif" width="25" height="8"/></td>
+              </tr> 
+              <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td nowrap="nowrap"><AREATEXTO nombre="Variable2" id="datosCampos" cols="50" rows="3" valor="" max="100"/></td>   
+                <td><IMG src="b.gif" width="25" height="8"/></td>
+                <td nowrap="nowrap"><AREATEXTO nombre="Variable3" id="datosCampos" cols="50" rows="3" valor="" max="100"/></td>   
+                <td width="100%"><IMG src="b.gif" width="25" height="8"/></td>
+              </tr>
+              <tr> 
+                <td colspan="7"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr>              
+            </table>
+           </td></tr>
+           
+           <tr><td>    
+            <table width="600" border="0" align="left" cellspacing="0" cellpadding="0">
+    	     <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td><LABELC nombre="lblVariable4" alto="13" filas="1" valor="" id="datosTitle" cod="1027"/></td>
+                <td><IMG src="b.gif" width="25" height="8"/></td>
+                <td><LABELC nombre="lblVariable5" alto="13" filas="1" valor="" id="datosTitle" cod="1028"/></td>
+                <td width="100%"><IMG src="b.gif" width="25" height="8"/></td>
+              </tr> 
+              <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td nowrap="nowrap"><AREATEXTO nombre="Variable4" id="datosCampos" cols="50" rows="3" valor="" max="100"/></td>   
+                <td><IMG src="b.gif" width="25" height="8"/></td>
+                <td nowrap="nowrap"><AREATEXTO nombre="Variable5" id="datosCampos" cols="50" rows="3" valor="" max="100"/></td>   
+                <td width="100%"><IMG src="b.gif" width="25" height="8"/></td>
+              </tr>
+              <tr> 
+                <td colspan="7"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr>              
+            </table>
+           </td></tr>
+           
+           <tr><td>    
+            <table width="600" border="0" align="left" cellspacing="0" cellpadding="0">
+    	     <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td><LABELC nombre="lblVariable6" alto="13" filas="1" valor="" id="datosTitle" cod="1029"/></td>
+                <td><IMG src="b.gif" width="25" height="8"/></td>
+                <td><LABELC nombre="lblVariable7" alto="13" filas="1" valor="" id="datosTitle" cod="1030"/></td>
+                <td width="100%"><IMG src="b.gif" width="25" height="8"/></td>
+              </tr> 
+              <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td nowrap="nowrap"><AREATEXTO nombre="Variable6" id="datosCampos" cols="50" rows="3" valor="" max="100"/></td>   
+                <td><IMG src="b.gif" width="25" height="8"/></td>
+                <td nowrap="nowrap"><AREATEXTO nombre="Variable7" id="datosCampos" cols="50" rows="3" valor="" max="100"/></td>   
+                <td width="100%"><IMG src="b.gif" width="25" height="8"/></td>
+              </tr>
+              <tr> 
+                <td colspan="7"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr>              
+            </table>
+           </td></tr>
+           <tr><td>    
+            <table width="600" border="0" align="left" cellspacing="0" cellpadding="0">
+    	     <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td><LABELC nombre="lblVariable8" alto="13" filas="1" valor="" id="datosTitle" cod="1031"/></td>
+                <td><IMG src="b.gif" width="25" height="8"/></td>
+                <td><LABELC nombre="lblVariable9" alto="13" filas="1" valor="" id="datosTitle" cod="1032"/></td>
+                <td width="100%"><IMG src="b.gif" width="25" height="8"/></td>
+              </tr> 
+              <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td nowrap="nowrap"><AREATEXTO nombre="Variable8" id="datosCampos" cols="50" rows="3" valor="" max="100"/></td>   
+                <td><IMG src="b.gif" width="25" height="8"/></td>
+                <td nowrap="nowrap"><AREATEXTO nombre="Variable9" id="datosCampos" cols="50" rows="3" valor="" max="100"/></td>   
+                <td width="100%"><IMG src="b.gif" width="25" height="8"/></td>
+              </tr>
+              <tr> 
+                <td colspan="7"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr>              
+            </table>
+           </td></tr>
+           <tr><td>    
+            <table width="600" border="0" align="left" cellspacing="0" cellpadding="0">
+    	     <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td><LABELC nombre="lblVariable10" alto="13" filas="1" valor="" id="datosTitle" cod="1024"/></td>
+                <td width="100%"><IMG src="b.gif" width="25" height="8"/></td>
+              </tr> 
+              <tr>
+                <td><IMG src="b.gif" width="8" height="8"/></td>
+                <td nowrap="nowrap"><AREATEXTO nombre="Variable10" id="datosCampos" cols="50" rows="3" valor="" max="100"/></td>   
+                <td width="100%"><IMG src="b.gif" width="25" height="8"/></td>
+              </tr>
+              <tr> 
+                <td colspan="7"><IMG src="b.gif" width="8" height="8"/></td>
+              </tr>              
+            </table>
+           </td></tr>
+           
+           </table>                       
+          </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr> 
+      <tr> 
+        <td><IMG src="b.gif"/></td>
+      	  <td>
+	  <fieldset>
+	    <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">        
+	      <tr>
+	        <td class="botonera">
+		  <BOTON nombre="btnCrear" ID="botonContenido" tipo="html" accion="accionDatosArchivo();" estado="false" cod="2214" ontab="focaliza('frmConsultarListaConsultoras.CodCliente')"/>
+	        </td>
+	      </tr>    
+	    </table>        
+	  </fieldset>
+        </td>
+        <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>       
+      <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="750"><IMG src="b.gif"/></td>
+      	<td width="12"><IMG src="b.gif" width="12" height="12"/></td>
+      </tr>
+    </table> 
+    </CAPA>
+    <LISTAEDITABLE nombre="listado1" ancho="604" alto="317" x="12" y="490" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+        <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+        <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+        <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+      <LINEAS>
+        <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="0" horizTitulo="1" horizBase="1"/> 
+        <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00401" ID="datosTitle" />
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+      
+            <COL ancho="18" minimizable="S" minimizada="N"/>
+	    <COL ancho="30" minimizable="S" minimizada="N"/>
+	    <COL ancho="20" minimizable="S" minimizada="N"/>
+	    <COL ancho="20" minimizable="S" minimizada="N"/>
+	    <COL ancho="20" minimizable="S" minimizada="N"/>
+	    <COL ancho="20" minimizable="S" minimizada="N"/>
+	    <COL ancho="20" minimizable="S" minimizada="N"/>
+	    <COL ancho="20" minimizable="S" minimizada="N"/>
+	    <COL ancho="20" minimizable="S" minimizada="N"/>
+	    <COL ancho="20" minimizable="S" minimizada="N"/>
+	    <COL ancho="20" minimizable="S" minimizada="N"/>
+       
+      </COLUMNAS>
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+        <COL colFondo="" ID="EstCab" cod="263"></COL>
+	<COL colFondo="" ID="EstCab" cod="943"></COL> 
+	<COL colFondo="" ID="EstCab" cod="1025"></COL> 
+	<COL colFondo="" ID="EstCab" cod="1026"></COL> 
+	<COL colFondo="" ID="EstCab" cod="1027"></COL> 
+	<COL colFondo="" ID="EstCab" cod="1028"></COL> 
+	<COL colFondo="" ID="EstCab" cod="1029"></COL> 
+	<COL colFondo="" ID="EstCab" cod="1030"></COL> 
+	<COL colFondo="" ID="EstCab" cod="1031"></COL> 
+	<COL colFondo="" ID="EstCab" cod="1032"></COL> 
+	<COL colFondo="" ID="EstCab" cod="1024"></COL>  
+	
+      </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+             coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+             onLoad="" colorSelecc="#D0D9E8">
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat"/> 
+       <COL tipo="texto" ID="EstDat2"/>
+       <COL tipo="texto" ID="EstDat"/> 
+       
+      </DATOS>
+      <ROWSET>
+	
+      </ROWSET>
+      <PAGINADO nombre="mipgndo" ancho="604" sep="$" x="12" class="botonera" y="784" control="|" conector="conectorSandra" rowset="" cargainicial="N" onload="procesarPaginado(mipgndo,msgError,ultima,rowset,'muestraLista(ultima,rowset)');">
+        
+        <BOTON nombre="ret1" x="37" y="788" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+        <BOTON nombre="ava1" x="52" y="788" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>
+        
+    </PAGINADO>
+  </LISTAEDITABLE>
+  <BOTON nombre="primera1" x="20" y="788" ID="botonContenido" img="primera_on" tipo="1" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();" />      
+  <BOTON nombre="separa" x="59" y="784" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />      
+  
+ <CAPA nombre="capaEspacio" alto="12" ancho="100%" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="807" zindex="">
+  </CAPA>                                          	
+ 	</FORMULARIO>
+</PAGINA>

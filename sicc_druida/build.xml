@@ -1,0 +1,97 @@
+<!DOCTYPE project [
+    <!ENTITY properties SYSTEM "properties.xml">
+]>
+
+<project name="sicc_druida" basedir=".">
+    <!-- import project-wide properties (classpath, jar file locations) -->
+    &properties;
+	
+    <taskdef name="druida" classname="biz.belcorp.ant.druida.TareaDruida"/>
+
+	<path id="compile.classpath">
+	    <fileset dir="web/WEB-INF/lib" includes="*.jar"/>
+	</path>
+	
+	<target name="generateDruidaToJava">
+		<delete>
+		    <fileset dir="${druida.java}" includes="**/*.*"/>
+		</delete>
+
+        <echo message="Copiamos los archivos de Configuracion de Druida necesario para la validacion de las paginas XML ......"/>
+        <copy todir="${druida.xml}">
+            <fileset dir="${druida.conf}">
+                <include name="**"/>
+            </fileset>
+        </copy>    	
+		
+        <echo message="Se esta generando archivos .java de los archivos XML Druida ......"/>
+		<druida dirOrigen="${druida.xml}" dirConfiguracion="${druida.conf}" dirDestino="${druida.java}"/>
+	</target>
+
+	<target name="compileJavaDruida" depends="generateDruidaToJava">
+		<delete>
+		    <fileset dir="${druida.classes}" includes="**/*.*"/>
+		</delete>
+		
+        <echo message="Se esta generando archivos .class de los archivos XML Druida ......"/>
+        <javac srcdir="${druida.java}"
+            destdir="${druida.classes}"
+            debug="${compile.debug}"
+       	    classpathref="compile.classpath"/>
+	</target>
+
+    <target name="deploy" depends="compileJavaDruida">
+        <echo message="Se esta copiando archivos .class al directorio classes del WEB-INF ......"/>
+        <copy todir="web/WEB-INF/classes">
+            <fileset dir="${sicc.classes}">
+                <include name="**"/>
+            </fileset>
+        </copy>    	
+
+        <echo message="Se esta copiando archivos .class al directorio classes del DRUIDA ......"/>
+        <copy todir="web/WEB-INF/classes">
+            <fileset dir="${druida.classes}">
+                <include name="**"/>
+            </fileset>
+        </copy>    	
+
+        <echo message="Se esta copiando archivos .class de los LPs al directorio classes ......"/>
+        <copy todir="web/WEB-INF/classes">
+            <fileset dir="bin">
+                <include name="**"/>
+            </fileset>
+        </copy> 
+
+        <echo message="Se esta copiando archivos carpeta javascripts a la carpeta web ......"/>
+  		<copy todir="web/javascript">
+    		<fileset dir="fuentes/javascript"/>
+  		</copy>
+  		
+  		<echo message="Se esta copiando archivos carpeta javascript de druida a la carpeta web ......"/>
+  		<copy todir="web/druida/js">
+    		<fileset dir="fuentes/druida/js"/>
+  		</copy>
+		
+        <echo message="Se esta generando el WAR ................................"/>    	
+        <war destfile="dist/${webapp.name}.war" webxml="web/WEB-INF/web.xml" compress="true">
+            <fileset dir="web" excludes="**/web.xml"/>
+        </war>
+        
+        <echo message="Eliminando el directorio del proyecto de Tomcat ............."/>    	
+    	<delete dir="${tomcat.home}/webapps/${webapp.name}"/>
+    	
+        <echo message="Se esta copiando el WAR al directorio de Aplicaciones de Tomcat ......"/>
+        <copy file="dist/${webapp.name}.war" todir="${tomcat.home}/webapps"/>
+        <echo message="Finalizado el Despliegue ......"/>
+    </target>
+
+    <target name="deployDruida" depends="compileJavaDruida">
+        <echo message="Se esta copiando archivos .class al directorio classes del WEB-INF ......"/>
+        <copy todir="${tomcat.home}/webapps/${webapp.name}/WEB-INF/classes">
+            <fileset dir="${druida.classes}">
+                <include name="**"/>
+            </fileset>
+        </copy>    	
+    </target>
+</project>
+ 

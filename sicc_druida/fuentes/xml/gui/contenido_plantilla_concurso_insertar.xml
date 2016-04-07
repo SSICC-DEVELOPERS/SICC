@@ -1,0 +1,1216 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/PROY
+   $Id: contenido_plantilla_concurso_insertar.xml,v 1.1 2009/12/03 18:45:50 pecbazalar Exp $
+   DESC
+
+   DRUIDATARGET=/../../config/scripts/iniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_plantilla_concurso_insertar" cod="0939" titulo="" estilos="estilosB3.css" colorf="#F0F0F0"
+        msgle="" onload="onLoadPag();" xml:lang="es">
+         
+<JS src="sicc_util.js"></JS> 
+<JS src="PaginacionSicc.js"></JS>
+<JS src="DruidaTransactionMare.js"></JS>
+<JS src="i18NJS.js"/>
+
+ <JAVASCRIPT>
+ <![CDATA[ 
+
+var opcionMenu;
+var accion;
+var cargarTiposCalificacion;
+var cargarTiposVenta;
+
+var cteBaseCalculoMonto;
+var cteDirigidoAConsultora;
+var cteBaseCalculoNumeroPedidos;
+
+ function onLoadPag()   {  		 
+	opcionMenu = get("frmFormulario.opcionMenu");
+
+	//1° Obtengo valores de constantes seteadas en la LP
+	cteBaseCalculoMonto = get("frmFormulario.cteBaseCalculoMonto");
+	cteDirigidoAConsultora = get("frmFormulario.cteDirigidoAConsultora");
+	cteBaseCalculoNumeroPedidos = get("frmFormulario.cteBaseCalculoNumeroPedidos");
+
+	//2° Obtengo otras constantes para saber si se carga los combos Tipo clasificacion
+	//y Tipo venta
+	cargarTiposCalificacion = get("frmFormulario.estaCargadaTiposCalificacion");
+	cargarTiposVenta = get("frmFormulario.estaCargadaTiposVenta");
+
+	//Si estamos en Insertar se deshabilitan los combos Tipo Venta, Tipo clasificacion
+	//y el checkbox incremental
+	if (opcionMenu == "InsertarPlantilla") {
+		accion('frmFormulario.cbTipoVentas','.disabled=true');
+		accion('frmFormulario.cbTipoCalificacion','.disabled=true');
+		accion('frmFormulario.ckIncremental','.disabled=true');
+	}
+	//Si estamos en el modificar, eliminar o consultar se obtienen todos los datos que se deberan setear en la pagina
+	if((opcionMenu == "ModificarPlantilla") || (opcionMenu == "ConsultarPlantilla") || (opcionMenu == "EliminarPlantilla")) { 	  
+		reasignarDatosPantalla();
+	}
+
+	if((opcionMenu == "ConsultarPlantilla") || (opcionMenu == "EliminarPlantilla")) {
+		accion('frmFormulario.txtNombrePlantilla','.disabled=true')
+		accion('frmFormulario.cbPais','.disabled=true')
+		accion('frmFormulario.cbMarca','.disabled=true')
+		accion('frmFormulario.cbCanal','.disabled=true')
+		accion('frmFormulario.cbAcceso','.disabled=true')
+		accion('frmFormulario.ckMultinivel','.disabled=true')
+		accion('frmFormulario.ckFaseCalificacion','.disabled=true')
+		accion('frmFormulario.cbTipoCalificacion','.disabled=true')
+		accion('frmFormulario.ckIncremental','.disabled=true')
+		accion('frmFormulario.cbDirigidoA','.disabled=true')
+		accion('frmFormulario.cbBaseCalculo','.disabled=true')
+		accion('frmFormulario.ckProgramaNuevas','.disabled=true')
+		accion('frmFormulario.cbTipoVentas','.disabled=true')
+  	    accion('frmFormulario.ckAmbitoGeograficoCompleto','.disabled=true')
+		accion('frmFormulario.ckParticipacionParticipantesCompleto','.disabled=true')
+		accion('frmFormulario.ckProductosValidosCompleto','.disabled=true')
+		accion('frmFormulario.ckProductosExcluidos','.disabled=true')
+		accion('frmFormulario.ckProductosBonificados','.disabled=true')
+		accion('frmFormulario.ckProductosExigidos','.disabled=true')
+		accion('frmFormulario.ckPremiosAcumulativosPorNiveles','.disabled=true')
+		accion('frmFormulario.ckNivelesRotativos','.disabled=true')
+		accion('frmFormulario.ckPremiosElectivos','.disabled=true')
+		accion('frmFormulario.ckPuntajeServicio','.disabled=true')
+		accion('frmFormulario.ckActiva','.disabled=true')
+		accion('frmFormulario.cbTipoConcursoIVR','.disabled=true')
+
+		// vbongiov -- Cambio 20080811 -- 26/08/2009
+		accion('frmFormulario.ckSorteo','.disabled=true')
+
+
+	}
+
+//Cleal - 20896
+//	onClickProductosValidos();
+	//El checkbox bloqueada siempre va a estar deshabilitado
+	accion('frmFormulario.ckBloqueado','.disabled=true')
+	onTabTipoConcurso();
+	configurarMenuSecundario("frmFormulario");
+}
+
+// vbongiov -- Cambio 20080811 -- 26/08/2009
+function onClickIndSorteo() {
+
+	if(get('frmFormulario.ckSorteo')=="S"){
+
+	      if(get('frmFormulario.cbDirigidoA')== get("frmFormulario.cteDirigidoAConsultora") &&
+			 get('frmFormulario.cbBaseCalculo')== get("frmFormulario.cteBaseCalculoMonto") &&
+			 get('frmFormulario.cbTipoConcursoIVR')== get("frmFormulario.OID_TIPO_CONCURSO_VENTAS")) {
+
+				  set('frmFormulario.ckMultinivel', 'N');     
+				  accion('frmFormulario.ckMultinivel', '.disabled=true');  
+
+				  set('frmFormulario.ckFaseCalificacion', 'N');     
+				  accion('frmFormulario.ckFaseCalificacion', '.disabled=true');  
+
+				  set('frmFormulario.ckProgramaNuevas', 'N');     
+				  accion('frmFormulario.ckProgramaNuevas', '.disabled=true');  
+
+				  set('frmFormulario.ckPremiosAcumulativosPorNiveles', 'N');     
+				  accion('frmFormulario.ckPremiosAcumulativosPorNiveles', '.disabled=true');  
+
+				  set('frmFormulario.ckNivelesRotativos', 'N');     
+				  accion('frmFormulario.ckNivelesRotativos', '.disabled=true');  
+
+				  set('frmFormulario.ckPremiosElectivos', 'N');     
+				  accion('frmFormulario.ckPremiosElectivos', '.disabled=true');  
+
+				  set('frmFormulario.ckPuntajeServicio', 'N');     
+				  accion('frmFormulario.ckPuntajeServicio', '.disabled=true');  
+
+		 } else {
+			  GestionarMensaje("2643");
+			  set('frmFormulario.ckSorteo', 'N');    
+		 }
+
+    } else if(get('frmFormulario.ckSorteo')=="N"){
+
+          accion('frmFormulario.ckMultinivel', '.disabled=false');  
+          accion('frmFormulario.ckFaseCalificacion', '.disabled=false'); 
+          accion('frmFormulario.ckProgramaNuevas', '.disabled=false');  
+          accion('frmFormulario.ckPremiosAcumulativosPorNiveles', '.disabled=false');  
+          accion('frmFormulario.ckNivelesRotativos', '.disabled=false');  
+          accion('frmFormulario.ckPremiosElectivos', '.disabled=false');  
+          accion('frmFormulario.ckPuntajeServicio', '.disabled=false');  
+	}
+}
+
+// vbongiov -- Cambio 20080811 -- 26/08/2009
+function onChangeDirigidoA() {
+
+	if(get('frmFormulario.cbDirigidoA')!= get("frmFormulario.cteDirigidoAConsultora")){
+		set('frmFormulario.ckSorteo', 'N');    
+		onClickIndSorteo();
+	}	
+}
+
+// vbongiov -- Cambio 20080811 -- 26/08/2009
+function onChangeTipoConcursoIVR() {
+
+	if(get('frmFormulario.cbTipoConcursoIVR')!= get("frmFormulario.OID_TIPO_CONCURSO_VENTAS")){
+		set('frmFormulario.ckSorteo', 'N');    
+		onClickIndSorteo();
+	}	
+}
+
+
+//Esta funcion reasigna los datos a la pagina
+function reasignarDatosPantalla() {
+	 // COMIENZO OBTENCION DE VALORES
+	  var plantilla = get("frmFormulario.oidPlantilla");
+  	  var nombre = get("frmFormulario.nombreplantilla");
+  	  var paises = get("frmFormulario.arraypaises");
+  	  var marcas = get("frmFormulario.arraymarcas");
+  	  var canal = get("frmFormulario.canal");
+	  var accesos = get("frmFormulario.arrayaccesos");
+  	  var multi = get("frmFormulario.multinivel");
+  	  var fasecal = get("frmFormulario.fasecalificacion");  	  
+  	  var incre = get("frmFormulario.incremental");
+	  var diri = get("frmFormulario.dirigido");
+	  var base = get("frmFormulario.basecalculo");
+	  var pronuevas = get("frmFormulario.programanuevas");
+  	  var tipoven = get("frmFormulario.tipoventas");
+  	  var ambito = get("frmFormulario.ambitogeografico");
+  	  var participacion = get("frmFormulario.participacionparticipantes");
+  	  var productosval = get("frmFormulario.productosvalidos");
+	  var productosexclu = get("frmFormulario.productosexcluidos");
+  	  var productosbon = get("frmFormulario.productosbonificados");
+  	  var productosexi = get("frmFormulario.productosexigidos");
+  	  var premiosacu = get("frmFormulario.premiosacumulativos");
+  	  var niveles = get("frmFormulario.nivelesrotativos");
+	  var premioselec = get("frmFormulario.premioselectivos");
+  	  var puntajeser = get("frmFormulario.puntajeservicio");
+  	  var act = get("frmFormulario.activa");
+  	  var tipocon = get("frmFormulario.tipoconcurso");
+	  var bloqueado = get("frmFormulario.bloqueado");
+
+	  // vbongiov -- Cambio 20080811 -- 26/08/2009
+	  var sorteo = get("frmFormulario.sorteo");
+
+  	  // FIN OBTENCION DE VALORES
+
+  	  // COMIENZO SETEO DE VALORES
+
+	  //1° Seteo oid de plantilla
+	  set("frmFormulario.oidPlantilla", plantilla);
+
+	  //2° Seteo el nombre de plantilla
+	  set("frmFormulario.txtNombrePlantilla", nombre);
+
+      //3° Seteo los paises
+	  if(paises!="") {
+		  var paisesSeleccionados = new Array();
+		  paisesSeleccionados = paises.split(",");	  
+		  set("frmFormulario.cbPais", paisesSeleccionados);
+	  }
+
+	  //4° Seteo las marcas
+  	  var marcasSeleccionadas = new Array();
+	  marcasSeleccionadas = marcas.split(",");	  
+	  set("frmFormulario.cbMarca", marcasSeleccionadas);
+
+	  //5° Seteo el canal
+	  var canalesSeleccionados = new Array();
+	  canalesSeleccionados = canal.split(",");	  
+	  set("frmFormulario.cbCanal", canalesSeleccionados);
+
+	  //6° Seteo los accesos
+	  recargaComboAccesoModificacion();
+
+	  //7° Seteo multinivel
+ 	  set("frmFormulario.ckMultinivel", multi);
+
+	  //8° Seteo fase calificacion
+   	  set("frmFormulario.ckFaseCalificacion", fasecal);
+
+	  //9° Seteo incremental
+	  set("frmFormulario.ckIncremental", incre);
+
+   	  //10° Seteo dirigido a 
+	  var diriSeleccionados = new Array();
+	  diriSeleccionados = diri.split(",");	  
+	  set("frmFormulario.cbDirigidoA", diriSeleccionados);
+
+	  //11° Seteo base calculo
+	  var baseCalculoSeleccionada = new Array();
+	  baseCalculoSeleccionada = base.split(",");	  
+  	  set("frmFormulario.cbBaseCalculo", baseCalculoSeleccionada);
+
+	  //12° Seteo programa nuevas
+	  set("frmFormulario.ckProgramaNuevas", pronuevas);
+
+	  //13° Seteo tipo venta
+	  recargaComboTipoVentaModificacion();
+
+	  //14° Seteo ambito geografico
+	  set("frmFormulario.ckAmbitoGeograficoCompleto", ambito);
+
+	  //15° Seteo participacion participantes
+	  set("frmFormulario.ckParticipacionParticipantesCompleto", participacion);
+
+	  //16° Seteo productos validos
+	  set("frmFormulario.ckProductosValidosCompleto", productosval);
+	  //Cleal - 20896
+	  //onClickProductosValidos();
+
+	  //17° Seteo productos excluidos
+	  set("frmFormulario.ckProductosExcluidos", productosexclu);
+
+	  //18° Seteo productos bonificados
+	  set("frmFormulario.ckProductosBonificados", productosbon);
+
+	  //19° Seteo productos exigidos
+	  set("frmFormulario.ckProductosExigidos", productosexi);
+
+	  //20° Seteo premios acumulativos
+	  set("frmFormulario.ckPremiosAcumulativosPorNiveles", premiosacu);
+
+	  //21° Seteo niveles rotativos
+	  set("frmFormulario.ckNivelesRotativos", niveles);
+
+	  //22° Seteo premios electivos
+	  set("frmFormulario.ckPremiosElectivos", premioselec);
+
+	  //23° Seteo puntaje servicio
+	  set("frmFormulario.ckPuntajeServicio", puntajeser);
+
+	  //24° Seteo activa
+	  set("frmFormulario.ckActiva", act);
+
+	  //25° Seteo tipo concurso
+	  var tipoConcursoSeleccionado = new Array();
+	  tipoConcursoSeleccionado = tipocon.split(",");	  
+	  set("frmFormulario.cbTipoConcursoIVR", tipoConcursoSeleccionado);
+
+	  //26° Habilito el combo dirigido a, si es que quedo deshabilitado
+	  accion('frmFormulario.cbDirigidoA','.disabled=false');			
+	
+	  //27° Habilito el combo base de calculo, si es que quedo deshabilitado
+  	  accion('frmFormulario.cbBaseCalculo','.disabled=false')
+
+	  //28° Recargo el combo tipo calificacion
+	  recargaComboTipoCalificacion();
+
+	  //29 ° Seteo bloqueado
+	  set("frmFormulario.ckBloqueado", bloqueado);
+
+	  if(pronuevas=="S") {
+		accion('frmFormulario.cbDirigidoA','.disabled=true')
+		accion('frmFormulario.cbBaseCalculo','.disabled=true')
+	  }
+
+	  // vbongiov -- Cambio 20080811 -- 26/08/2009
+	  set("frmFormulario.ckSorteo", sorteo);
+      onClickIndSorteo();
+
+	  //FIN SETEO DE VALORES
+}
+
+//Esta funcion recarga el combo acceso cuando se ven los datos en el modificar
+function recargaComboAccesoModificacion() {
+	if(get("frmFormulario.cbCanal")!=""){	
+		var arr = new Array();      
+		arr[arr.length] = new Array("oid", get("frmFormulario.cbCanal"));
+		arr[arr.length] = new Array("oidPais", get("frmFormulario.oidPais")); 
+		arr[arr.length] = new Array("oidIdioma", get("frmFormulario.oidIdioma")); 
+
+		recargaCombo("frmFormulario.cbAcceso", 'SEGObtieneAccesosPorCanal','es.indra.sicc.util.DTOOID', arr, "marcaComboAcceso(datos);");
+	}
+}
+
+//Funcion que se llama despues de la recarga del combo acceso
+function marcaComboAcceso(datos) {
+	// Setea espacio en blanco.
+	var datosNuevo = new Array();
+	datosNuevo[0] = ["",""];
+
+	for (var i = 0; i < datos.length; i++ )
+		datosNuevo[i+1]  = datos[i];
+
+	set_combo("frmFormulario.cbAcceso", datosNuevo);
+    //Ahora selecciono los accesos
+
+	var accesos = get("frmFormulario.arrayaccesos");
+	var accesosSeleccionados = new Array();
+	accesosSeleccionados = accesos.split(",");	  
+	set("frmFormulario.cbAcceso", accesosSeleccionados);
+}
+
+
+//Esta funcion recarga el combo tipo venta cuando se ven los datos
+//en el modificar
+function recargaComboTipoVentaModificacion() {
+	var baseCalculo = get("frmFormulario.cbBaseCalculo");
+	if (baseCalculo == cteBaseCalculoMonto) {
+		accion('frmFormulario.cbTipoVentas','.disabled=false');		
+		if (cargarTiposVenta == "false") {
+			cargarTiposVenta = "true";
+			var arr = new Array();      
+			arr[arr.length] = new Array("oidPais", get("frmFormulario.oidPais")); 
+			arr[arr.length] = new Array("oidIdioma", get("frmFormulario.oidIdioma")); 
+			recargaCombo("frmFormulario.cbTipoVentas", 'INCConsultaTiposVenta','es.indra.sicc.util.DTOOID', arr, "marcaComboTipoVenta(datos);");			
+		}
+	} else {
+		set("frmFormulario.cbTipoVentas", "");
+		accion('frmFormulario.cbTipoVentas','.disabled=true');		
+	}
+}
+
+//Funcion que se llama despues de la recarga del combo tipo venta
+function marcaComboTipoVenta(datos) {
+	// Setea espacio en blanco.
+	var datosNuevo = new Array();
+	datosNuevo[0] = ["",""];
+
+	for (var i = 0; i < datos.length; i++ )
+		datosNuevo[i+1]  = datos[i];
+
+	set_combo("frmFormulario.cbTipoVentas", datosNuevo);
+
+	var tipoven = get("frmFormulario.tipoventas");
+    var tipoVentaSeleccionado = new Array();
+	tipoVentaSeleccionado = tipoven.split(",");
+	set("frmFormulario.cbTipoVentas", tipoVentaSeleccionado);	
+}
+
+ function recargaComboTipoCalificacion() {
+	if (get("frmFormulario.ckFaseCalificacion")=="S") {
+		if (get("frmFormulario.ckMultinivel")=="S") {
+			set("frmFormulario.ckMultinivel", "N");
+		}
+		if (get("frmFormulario.ckProgramaNuevas")=="S") {
+			set("frmFormulario.ckProgramaNuevas", "N");
+		}
+		accion('frmFormulario.ckIncremental','.disabled=false');
+		accion('frmFormulario.cbTipoCalificacion','.disabled=false');
+		
+		if (cargarTiposCalificacion == "false") {
+			cargarTiposCalificacion = "true";
+
+			var arr = new Array();      
+			arr[arr.length] = new Array("oidPais", get("frmFormulario.oidPais")); 
+			arr[arr.length] = new Array("oidIdioma", get("frmFormulario.oidIdioma")); 
+			recargaCombo("frmFormulario.cbTipoCalificacion", 'INCConsultaTiposCalificacion','es.indra.sicc.util.DTOOID', arr, "marcaComboTipoCalificacion(datos);");
+		}
+
+	} else {
+		set("frmFormulario.cbTipoCalificacion", "");
+		accion('frmFormulario.cbTipoCalificacion','.disabled=true');
+		accion('frmFormulario.ckIncremental','.disabled=true');
+	}
+}
+
+ function marcaComboTipoCalificacion(datos){
+	// Setea espacio en blanco.
+	var datosNuevo = new Array();
+	datosNuevo[0] = ["",""];
+
+	for (var i = 0; i < datos.length; i++ )
+		datosNuevo[i+1]  = datos[i];
+
+	set_combo("frmFormulario.cbTipoCalificacion", datosNuevo);
+  
+	var tipocal = get("frmFormulario.tipocalificacion");
+    var tipoCalificacionSeleccionado = new Array();
+	tipoCalificacionSeleccionado = tipocal.split(",");	  
+	set("frmFormulario.cbTipoCalificacion", tipoCalificacionSeleccionado);
+	onChangeTipoCalificacion();
+ }
+
+
+function onChangeCanal(){
+	//Se carga el combo acceso dependiendo del canal seleccionado (mas el pais y el idioma)
+	if(get("frmFormulario.cbCanal")!=""){	
+		var arr = new Array();      
+		arr[arr.length] = new Array("oid", get("frmFormulario.cbCanal"));
+		arr[arr.length] = new Array("oidPais", get("frmFormulario.oidPais")); 
+		arr[arr.length] = new Array("oidIdioma", get("frmFormulario.oidIdioma")); 
+		recargaCombo("frmFormulario.cbAcceso", 'SEGObtieneAccesosPorCanal','es.indra.sicc.util.DTOOID', arr);
+	}
+	else {
+	    var objArr = document.all['cbAcceso'];
+	    for(var i=0; i < objArr.length; i++){
+		if(objArr[i].tagName && objArr[i].tagName.toUpperCase()=="SELECT"){
+			if (!objArr[i].disabled) {
+				var aCombo = new Array(new Array("",""));
+				set_combo('frmFormulario.cbAcceso',aCombo, []);				
+			}
+        }
+     }
+
+	}
+}
+
+function onChangeFaseCalificacion() {
+	if (get("frmFormulario.ckFaseCalificacion")=="S") {
+		//Se habiliatan los combos Dirigido a y Base calculo
+		accion('frmFormulario.cbDirigidoA','.disabled=false');
+		accion('frmFormulario.cbBaseCalculo','.disabled=false');
+
+		if (get("frmFormulario.ckMultinivel")=="S") {
+			set("frmFormulario.ckMultinivel", "N");
+		}
+		if (get("frmFormulario.ckProgramaNuevas")=="S") {
+			set("frmFormulario.ckProgramaNuevas", "N");
+		}
+		accion('frmFormulario.ckIncremental','.disabled=false');
+		accion('frmFormulario.cbTipoCalificacion','.disabled=false');
+		
+
+		if (cargarTiposCalificacion == "false") {
+			cargarTiposCalificacion = "true";
+
+			var arr = new Array();      
+			arr[arr.length] = new Array("oidPais", get("frmFormulario.oidPais")); 
+			arr[arr.length] = new Array("oidIdioma", get("frmFormulario.oidIdioma")); 
+			recargaCombo("frmFormulario.cbTipoCalificacion", 'INCConsultaTiposCalificacion','es.indra.sicc.util.DTOOID', arr);
+		}
+
+	} else {
+		set("frmFormulario.cbTipoCalificacion", "");
+		accion('frmFormulario.cbTipoCalificacion','.disabled=true');
+		accion('frmFormulario.ckIncremental','.disabled=true');
+		accion('frmFormulario.cbDirigidoA','.disabled=false');
+
+		// INC 21036: Debe destildarse el checkbox Incremental (dmorello,02/11/2005)
+		set("frmFormulario.ckIncremental","N");
+	}
+}
+
+function onChangeMultinivel(){
+	if (get("frmFormulario.ckMultinivel")=="S") {
+		//Se deshabilita el combo tipo calificacion y el checkbox incremental
+		set("frmFormulario.cbTipoCalificacion", "");
+		accion('frmFormulario.cbTipoCalificacion','.disabled=true');
+		accion('frmFormulario.ckIncremental','.disabled=true');
+
+		// INC 21036: Debe destildarse el checkbox Incremental (dmorello,02/11/2005)
+		set("frmFormulario.ckIncremental","N");
+
+		//Se habiliatan los combos Dirigido a y Base calculo
+		accion('frmFormulario.cbDirigidoA','.disabled=false');
+		accion('frmFormulario.cbBaseCalculo','.disabled=false');
+
+		if (get("frmFormulario.ckFaseCalificacion")=="S") {	
+			set("frmFormulario.ckFaseCalificacion", "N");
+		}
+		if (get("frmFormulario.ckProgramaNuevas")=="S") {	
+			set("frmFormulario.ckProgramaNuevas", "N");
+		}
+	}
+}
+
+function onChangeBaseCalculo() {
+	var baseCalculo = get("frmFormulario.cbBaseCalculo");
+	if (baseCalculo == cteBaseCalculoMonto) {
+		accion('frmFormulario.cbTipoVentas','.disabled=false');		
+		if (cargarTiposVenta == "false") {
+			cargarTiposVenta = "true";
+			var arr = new Array();      
+			arr[arr.length] = new Array("oidPais", get("frmFormulario.oidPais")); 
+			arr[arr.length] = new Array("oidIdioma", get("frmFormulario.oidIdioma")); 
+			recargaCombo("frmFormulario.cbTipoVentas", 'INCConsultaTiposVenta','es.indra.sicc.util.DTOOID', arr);			
+		}
+	} else {
+		set("frmFormulario.cbTipoVentas", "");
+		accion('frmFormulario.cbTipoVentas','.disabled=true');		
+
+        // vbongiov -- Cambio 20080811 -- 26/08/2009
+		set('frmFormulario.ckSorteo', 'N');    
+		onClickIndSorteo();
+	}
+}
+
+function onChangeProgramaNuevas() {
+	if (get("frmFormulario.ckProgramaNuevas") =="S") {
+		//Se deshabilita el combo tipo calificacion y el checkbox incremental
+		set("frmFormulario.cbTipoCalificacion", "");
+		accion('frmFormulario.cbTipoCalificacion','.disabled=true');
+		accion('frmFormulario.ckIncremental','.disabled=true');
+
+		if (get("frmFormulario.ckFaseCalificacion")=="S") {	
+			set("frmFormulario.ckFaseCalificacion", "N");
+		}
+		if (get("frmFormulario.ckMultinivel")=="S") {	
+			set("frmFormulario.ckMultinivel", "N");
+		}
+
+		set("frmFormulario.cbDirigidoA", new Array(cteDirigidoAConsultora));		
+		accion('frmFormulario.cbDirigidoA','.disabled=true');
+		set("frmFormulario.cbBaseCalculo", new Array(cteBaseCalculoNumeroPedidos));
+		accion('frmFormulario.cbBaseCalculo','.disabled=true')
+
+		// vbongiov -- Cambio 20080811 -- 26/08/2009
+		set('frmFormulario.ckSorteo', 'N');    
+		onClickIndSorteo();
+	}
+	else {
+		accion('frmFormulario.cbDirigidoA','.disabled=false');
+		accion('frmFormulario.cbBaseCalculo','.disabled=false')
+	}
+}
+
+function accionGuardar() {
+	//Se ejecuta cuando se pulsa el botón Guardar del menú secundario 
+	//Primero se validan los campos obligatorios
+	if(sicc_validaciones_generales('obligatorios')) {
+		
+		//Si el checkbox fase calificacion esta chequeado
+		//el combo tipo califiacion para a ser obligatorio
+		if (get("frmFormulario.ckFaseCalificacion")=="S") {
+			if(!sicc_validaciones_generales('tipoCalificacion')) {
+				return;
+			}
+		}		
+	    
+		var nombreplantilla = get("frmFormulario.txtNombrePlantilla");
+
+		var paises = get("frmFormulario.cbPais");
+		var arraypaises = new Array();
+		var j = 0;
+		for(var i=0; i<paises.length; i++) {
+			var temp = paises[i];
+			if(temp!='') {
+				arraypaises[j] = paises[i];
+				j++;
+			}
+		}
+
+		var marcas = get("frmFormulario.cbMarca");
+		var arraymarcas = new Array();
+		var j = 0;
+		for(var i=0; i<marcas.length; i++) {
+			var temp = marcas[i];
+			if(temp!='') {
+				arraymarcas[j] = marcas[i];
+				j++;
+			}
+		}
+
+
+
+		var canal = get("frmFormulario.cbCanal");
+
+		var accesos = get("frmFormulario.cbAcceso");
+		var arrayaccesos = new Array();
+		var j = 0;
+		for(var i=0 ;i<accesos.length; i++) {
+			var temp = accesos[i];
+			if(temp!='') {
+				arrayaccesos[j] = accesos[i];
+				j++;
+			}
+		}
+
+
+		var multinivel = get("frmFormulario.ckMultinivel");
+		var fasecalificacion = get("frmFormulario.ckFaseCalificacion");
+		var tipocalificacion = get("frmFormulario.cbTipoCalificacion");
+		var incremental = get("frmFormulario.ckIncremental");
+		var dirigido = get("frmFormulario.cbDirigidoA");
+		var basecalculo = get("frmFormulario.cbBaseCalculo");
+		var programanuevas = get("frmFormulario.ckProgramaNuevas");
+		var tipoventas = get("frmFormulario.cbTipoVentas");
+		var ambitogeografico = get("frmFormulario.ckAmbitoGeograficoCompleto");
+		var participacionparticipantes = get("frmFormulario.ckParticipacionParticipantesCompleto");
+		var productosvalidos = get("frmFormulario.ckProductosValidosCompleto");
+		var productosexcluidos = get("frmFormulario.ckProductosExcluidos");
+		var productosbonificados = get("frmFormulario.ckProductosBonificados");
+		var productosexigidos = get("frmFormulario.ckProductosExigidos");
+		var premiosacumulativos = get("frmFormulario.ckPremiosAcumulativosPorNiveles");
+		var nivelesrotativos = get("frmFormulario.ckNivelesRotativos");
+		var premioselectivos = get("frmFormulario.ckPremiosElectivos");
+		var puntajeservicio = get("frmFormulario.ckPuntajeServicio");
+		var activa = get("frmFormulario.ckActiva");
+		var tipoconcurso = get("frmFormulario.cbTipoConcursoIVR");
+        // vbongiov -- Cambio 20080811 -- 26/08/2009
+	    var sorteo = get("frmFormulario.ckSorteo");	
+
+		var bloqueado = get("frmFormulario.ckBloqueado");
+    
+		set("frmFormulario.nombreplantilla", nombreplantilla);
+		set("frmFormulario.arraypaises", arraypaises);
+		set("frmFormulario.arraymarcas", arraymarcas);
+		set("frmFormulario.canal", canal);
+		set("frmFormulario.arrayaccesos", arrayaccesos);
+		set("frmFormulario.multinivel", multinivel);
+		set("frmFormulario.fasecalificacion", fasecalificacion);
+		set("frmFormulario.tipocalificacion", tipocalificacion);
+		set("frmFormulario.incremental", incremental);
+		set("frmFormulario.dirigido", dirigido);
+		set("frmFormulario.basecalculo", basecalculo);
+		set("frmFormulario.programanuevas", programanuevas);
+		set("frmFormulario.tipoventas", tipoventas);
+		set("frmFormulario.ambitogeografico", ambitogeografico);
+		set("frmFormulario.participacionparticipantes", participacionparticipantes);
+		set("frmFormulario.productosvalidos", productosvalidos);
+		set("frmFormulario.productosexcluidos", productosexcluidos);
+		set("frmFormulario.productosbonificados", productosbonificados);
+		set("frmFormulario.productosexigidos", productosexigidos);
+		set("frmFormulario.premiosacumulativos", premiosacumulativos);
+		set("frmFormulario.nivelesrotativos", nivelesrotativos);
+		set("frmFormulario.premioselectivos", premioselectivos);
+		set("frmFormulario.puntajeservicio", puntajeservicio);
+		set("frmFormulario.activa", activa);
+		set("frmFormulario.tipoconcurso", tipoconcurso);
+		// vbongiov -- Cambio 20080811 -- 26/08/2009
+        set("frmFormulario.sorteo", sorteo);
+
+        set("frmFormulario.bloqueado", bloqueado);
+    
+		eval("frmFormulario").oculto= "S";
+		set("frmFormulario.conectorAction", "LPMantenimientoPlantilla");
+		set("frmFormulario.accion", "guardar");
+		enviaSICC("frmFormulario"); 
+	}
+}
+
+function fGuardar() {
+	accionGuardar();
+}
+
+function onTabTipoConcurso() {
+	focaliza('frmFormulario.txtNombrePlantilla','');
+}
+
+function onShTabNombrePlantilla() {
+	focaliza('frmFormulario.cbTipoConcursoIVR','');
+}
+
+function fLimpiar() {
+	cargarTiposVenta = "false";
+	cargarTiposCalificacion = "false"; 
+
+	limpiaI18N('frmFormulario', 1)
+	var opc = get("frmFormulario.opcionMenu");
+
+	if(opc == "InsertarPlantilla") {
+		despuesLimpiar();
+	}
+	else {
+		reasignarDatosPantalla();
+	}
+
+	onTabTipoConcurso();
+}
+
+function reInicio() {
+	eval("frmFormulario").oculto= "N";
+    limpiaPaginaInsertar();
+}
+
+function despuesLimpiar() {
+	//1° Vaciar caja de texto nombre plantilla
+	set("frmFormulario.txtNombrePlantilla","");
+
+	//2° Deselecciono el combo pais
+	set("frmFormulario.cbPais","");
+
+	//3° Deselecciono el combo marca
+	set("frmFormulario.cbMarca","");
+
+	//4° Deselecciono el combo canal
+	set("frmFormulario.cbCanal","");
+
+	//5° Vacio el combo de acceso
+	var objArr = document.all['cbAcceso'];
+      for(var i=0; i < objArr.length; i++){
+        if(objArr[i].tagName && objArr[i].tagName.toUpperCase()=="SELECT"){
+          if (!objArr[i].disabled) {
+            var aCombo = new Array(new Array("",""));
+            set_combo('frmFormulario.cbAcceso',aCombo, []);				
+          }
+        }
+      }
+
+	 //6° Deselecciono el check multinivel
+	 set("frmFormulario.ckMultinivel","N");
+
+	 //7° Deselecciono el check fase calificacion
+	 set("frmFormulario.ckFaseCalificacion","N");
+
+	//8° Vacio el combo tipo calificacion
+	var objArr = document.all['cbTipoCalificacion'];
+      for(var i=0; i < objArr.length; i++){
+        if(objArr[i].tagName && objArr[i].tagName.toUpperCase()=="SELECT"){
+          if (!objArr[i].disabled) {
+            var aCombo = new Array(new Array("",""));
+            set_combo('frmFormulario.cbTipoCalificacion',aCombo, []);				
+          }
+        }
+      }
+		
+
+	//9° Deselecciono y deshabilito el check fase calificacion
+	set("frmFormulario.ckIncremental","N");
+	accion('frmFormulario.ckIncremental','.disabled=true');
+
+	//10° Deselecciono el combo dirigido a
+	set("frmFormulario.cbDirigidoA","");
+
+	//11° Deselecciono el base de calculo
+	set("frmFormulario.cbBaseCalculo","");
+
+	//12° Deselecciono el check programa nuevas
+	set("frmFormulario.ckProgramaNuevas","N");
+
+	//13° Vacio el combo tipo venta
+	var objArr = document.all['cbTipoVentas'];
+      for(var i=0; i < objArr.length; i++){
+        if(objArr[i].tagName && objArr[i].tagName.toUpperCase()=="SELECT"){
+          if (!objArr[i].disabled) {
+            var aCombo = new Array(new Array("",""));
+            set_combo('frmFormulario.cbTipoVentas',aCombo, []);				
+          }
+        }
+      }
+
+	//14° Selecciono el check ambito geografico
+	set("frmFormulario.ckAmbitoGeograficoCompleto","S");
+
+	//15° Selecciono el check participacion participantes
+	set("frmFormulario.ckParticipacionParticipantesCompleto","S");
+
+	//16° Selecciono el check productos validos
+	set("frmFormulario.ckProductosValidosCompleto","S");
+//Cleal - 20896
+	//onClickProductosValidos();
+
+	//17° Deselecciono el check productos excluidos
+	set("frmFormulario.ckProductosExcluidos","N");
+
+	//18° Deselecciono el check productos bonificados
+	set("frmFormulario.ckProductosBonificados","N");
+
+	//19° Deselecciono el check productos exigidos
+	set("frmFormulario.ckProductosExigidos","N");
+
+	//20° Selecciono el check premios acumulativos
+	set("frmFormulario.ckPremiosAcumulativosPorNiveles","S");
+
+	//21° Deselecciono el check niveles rotativos
+	set("frmFormulario.ckNivelesRotativos","N");
+
+	//22° Deselecciono el check premios electivos
+	set("frmFormulario.ckPremiosElectivos","N");
+
+	//23° Deselecciono el check puntaje servicio
+	set("frmFormulario.ckPuntajeServicio","N");
+
+	//24° Deselecciono el check activa
+	set("frmFormulario.ckActiva","N");
+
+    // vbongiov -- Cambio 20080811 -- 26/08/2009
+    set("frmFormulario.ckSorteo","N");
+	onClickIndSorteo();
+	
+	//25° Deselecciono el combo Tipo concurso
+	set("frmFormulario.cbTipoConcursoIVR","");
+
+	//26° Se deshabilitan los combos tipo ventas, tipo calificacion
+	//y el checkbox incremental
+	accion('frmFormulario.cbTipoVentas','.disabled=true');
+	accion('frmFormulario.cbTipoCalificacion','.disabled=true');
+	accion('frmFormulario.ckIncremental','.disabled=true');
+
+	//27° Se habilitan los combos dirigido a y base de calculo
+	//si es que alguno de ellos haya quedado deshabilitado
+	accion('frmFormulario.cbDirigidoA','.disabled=false')
+	accion('frmFormulario.cbBaseCalculo','.disabled=false')
+}
+
+function limpiaPaginaInsertar() {
+	//Luego de realizar una insercion correctamente	
+	despuesLimpiar();	
+	limpiaI18N('frmFormulario', 1)
+	onLoadPag();
+}
+
+function reModifica() {
+	eval("frmFormulario").oculto= "N";
+    window.close();
+}
+
+function fErrorAlGuardarI() {
+	onTabTipoConcurso();
+}
+
+function fErrorAlGuardarM() {
+	onTabTipoConcurso();
+}
+
+function fVolver() {
+	window.close();
+}
+
+//Agregado por incidencia 20760
+function onChangeTipoCalificacion() {
+	var valorElegido = get("frmFormulario.cbTipoCalificacion");
+
+	if(valorElegido==get("frmFormulario.OID_TIPO_CALIF_PROYECTADA")) {
+		var arraySeteo = new Array();
+		arraySeteo[0] = get("frmFormulario.OID_DIRIGIDO_A_GERENTE");
+		set("frmFormulario.cbDirigidoA", arraySeteo);
+		accion('frmFormulario.cbDirigidoA','.disabled=true');
+	}	
+	else {
+		accion('frmFormulario.cbDirigidoA','.disabled=false');
+	}
+}
+
+function onClickProductosValidos() {
+	if (get("frmFormulario.ckProductosValidosCompleto")=="S") {
+		set("frmFormulario.ckProductosExcluidos", "N");
+		set("frmFormulario.ckProductosBonificados", "N");
+		set("frmFormulario.ckProductosExigidos", "N");
+
+		accion('frmFormulario.ckProductosExcluidos','.disabled=true');
+		accion('frmFormulario.ckProductosBonificados','.disabled=true');
+		accion('frmFormulario.ckProductosExigidos','.disabled=true');
+	}
+	else {
+		accion('frmFormulario.ckProductosExcluidos','.disabled=false');
+		accion('frmFormulario.ckProductosBonificados','.disabled=false');
+		accion('frmFormulario.ckProductosExigidos','.disabled=false');
+	}
+}
+
+ ]]>  
+  </JAVASCRIPT> 
+
+<!-- Caso de uso Modificar plantilla de concurso cod="0940"
+     Caso de uso Eliminar plantilla de concurso cod="0941"
+     Caso de uso Consultar plantilla de concurso cod="0942"   -->  
+
+<VALIDACION>
+	<ELEMENTO name="txtNombrePlantilla" required="true" cod="743" group="obligatorios"/>	
+<!-- BELC300023763 deja de ser obligatorio el combo pais-->
+<!--<ELEMENTO name="cbPais" required="true" cod="5" group="obligatorios"/>-->
+	<ELEMENTO name="cbMarca" required="true" cod="6" group="obligatorios"/>
+	<ELEMENTO name="cbCanal" required="true" cod="7" group="obligatorios"/>	
+	<ELEMENTO name="cbAcceso" required="true" cod="10" group="obligatorios"/>
+	<ELEMENTO name="cbDirigidoA" required="true" cod="1626" group="obligatorios"/>
+
+	<ELEMENTO name="cbTipoCalificacion" required="true" cod="2799" group="tipoCalificacion"/>
+</VALIDACION>
+
+<FORMULARIO nombre="frmFormulario">
+
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="opcionMenu" valor=""/>
+<VAR nombre="accion" valor=""/>
+<VAR nombre="errCodigo" valor=""/> 
+<VAR nombre="errDescripcion" valor=""/>
+
+<VAR nombre="oidPais" valor=""/> 
+<VAR nombre="oidIdioma" valor=""/>
+
+<VAR nombre="estaCargadaTiposVenta" valor=""/> 
+<VAR nombre="estaCargadaTiposCalificacion" valor=""/> 
+<VAR nombre="cteBaseCalculoMonto" valor=""/> 
+<VAR nombre="cteDirigidoAConsultora" valor=""/> 
+<VAR nombre="cteBaseCalculoNumeroPedidos" valor=""/> 
+
+<VAR nombre="oidPlantilla" valor=""/> 
+<VAR nombre="nombreplantilla" valor=""/> 
+<VAR nombre="arraypaises" valor=""/> 
+<VAR nombre="arraymarcas" valor=""/> 
+<VAR nombre="canal" valor=""/> 
+<VAR nombre="arrayaccesos" valor=""/> 
+<VAR nombre="multinivel" valor=""/> 
+<VAR nombre="fasecalificacion" valor=""/> 
+<VAR nombre="tipocalificacion" valor=""/> 
+<VAR nombre="incremental" valor=""/> 
+<VAR nombre="dirigido" valor=""/> 
+<VAR nombre="basecalculo" valor=""/> 
+<VAR nombre="programanuevas" valor=""/> 
+<VAR nombre="tipoventas" valor=""/> 
+<VAR nombre="ambitogeografico" valor=""/> 
+<VAR nombre="participacionparticipantes" valor=""/> 
+<VAR nombre="productosvalidos" valor=""/> 
+<VAR nombre="productosexcluidos" valor=""/> 
+<VAR nombre="productosbonificados" valor=""/> 
+<VAR nombre="productosexigidos" valor=""/> 
+<VAR nombre="premiosacumulativos" valor=""/> 
+<VAR nombre="nivelesrotativos" valor=""/> 
+<VAR nombre="premioselectivos" valor=""/> 
+<VAR nombre="puntajeservicio" valor=""/> 
+<VAR nombre="activa" valor=""/> 
+<VAR nombre="tipoconcurso" valor=""/> 
+<VAR nombre="sorteo" valor=""/> 
+<VAR nombre="bloqueado" valor=""/> 
+
+<VAR nombre="OID_TIPO_CALIF_PROYECTADA" valor=""/> 
+<VAR nombre="OID_DIRIGIDO_A_GERENTE" valor=""/> 
+
+<VAR nombre="OID_TIPO_CONCURSO_VENTAS" valor=""/> 
+
+<CAPA nombre="capa1" x="0" y="0">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+	<fieldset><legend class="legend"><LABELC nombre="lblDatosAlta" alto="13" filas="1" valor="" id="legend" cod="00125"/></legend>
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr> 
+                  <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td colspan="3"><LABELC nombre="lblNombrePlantilla" alto="13" filas="1" valor="" id="datosTitle" cod="743"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+		   <td><CTEXTO nombre="txtNombrePlantilla" id="datosCampos" max="75" tipo="" onchange="" req="N" size="75" valor="" validacion="" onshtab="onShTabNombrePlantilla();" /></td>
+	           <td><IMG src="b.gif" width="8" height="8"/></td>
+	           <td><IMG src="iconmultidioma.gif" onclick="levantarI18N('frmFormulario','1');"/></td>
+	           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+                <tr>
+                   <td colspan="3"><IMG src="b.gif" width="8" height="7"/></td>
+                </tr>
+              </table>
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblPais" alto="13" filas="1" valor="" id="datosTitle" cod="5"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblMarca" alto="13" filas="1" valor="" id="datosTitle" cod="6"/></td>
+                   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td nowrap="nowrap">
+			<!-- BELC300023763 deja de ser obligatorio el combo pais-->
+		     <COMBO nombre="cbPais" id="datosCampos" size="5" multiple="S" req="N" valorinicial="" textoinicial="">
+		       <ROWSET>
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td nowrap="nowrap">
+		     <COMBO nombre="cbMarca" id="datosCampos" size="5" multiple="S" req="S" valorinicial="" textoinicial="">
+		       <ROWSET>
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+	           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+	        <tr> 
+                  <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+              </table>
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblCanal" alto="13" filas="1" valor="" id="datosTitle" cod="7"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td><LABELC nombre="lblAcceso" alto="13" filas="1" valor="" id="datosTitle" cod="10"/></td>
+		   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+		   <td nowrap="nowrap" valign="top">
+		     <COMBO nombre="cbCanal" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onchange="onChangeCanal();">
+		       <ROWSET>
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+	           <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td nowrap="nowrap">
+		     <COMBO nombre="cbAcceso" id="datosCampos" size="5" multiple="S" req="S" valorinicial="" textoinicial="">
+		       <ROWSET>
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+		   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+	        <tr> 
+                  <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+              </table>
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblMultinivel" alto="13" filas="1" valor="" id="datosTitle" cod="00400"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblFaseCalificacion" alto="13" filas="1" valor="" id="datosTitle" cod="2798"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblTipoCalificacion" alto="13" filas="1" valor="" id="datosTitle" cod="2799"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td><LABELC nombre="lblIncremental" alto="13" filas="1" valor="" id="datosTitle" cod="2800"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblDirigidoA" alto="13" filas="1" valor="" id="datosTitle" cod="1626"/></td>
+		   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><CHECKBOX nombre="ckMultinivel" id="datosCampos" onclick="onChangeMultinivel();" check="N"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td><CHECKBOX nombre="ckFaseCalificacion" id="datosCampos" onclick="onChangeFaseCalificacion();" check="N"/></td>
+	           <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td nowrap="nowrap">
+		     <COMBO nombre="cbTipoCalificacion" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" onchange="onChangeTipoCalificacion();">
+		       <ROWSET>
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+	           <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td><CHECKBOX nombre="ckIncremental" id="datosCampos" onclick="" check="N"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td nowrap="nowrap">
+		     <COMBO nombre="cbDirigidoA" id="datosCampos" size="1" multiple="N" req="S" onchange="onChangeDirigidoA();" valorinicial="" textoinicial="">
+		       <ROWSET>
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+		   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+	        <tr> 
+                  <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+              </table>
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblBaseCalculo" alto="13" filas="1" valor="" id="datosTitle" cod="1181"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td><LABELC nombre="lblProgramaNuevas" alto="13" filas="1" valor="" id="datosTitle" cod="00590"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td><LABELC nombre="lblTipoVenta" alto="13" filas="1" valor="" id="datosTitle" cod="1622"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblAmbitoGeograficoCompleto" alto="13" filas="1" valor="" id="datosTitle" cod="2801"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblParticipacionParticipantesCompleto" alto="13" filas="1" valor="" id="datosTitle" cod="2802"/></td>
+		   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+		   <td nowrap="nowrap">
+		     <COMBO nombre="cbBaseCalculo" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="" onchange="onChangeBaseCalculo();">
+		       <ROWSET>
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+	           <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td><CHECKBOX nombre="ckProgramaNuevas" id="datosCampos" onclick="onChangeProgramaNuevas();" check="N"/></td>
+	           <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td nowrap="nowrap">
+		     <COMBO nombre="cbTipoVentas" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="">
+		       <ROWSET>
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td><CHECKBOX nombre="ckAmbitoGeograficoCompleto" id="datosCampos" onclick="" check="N"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td><CHECKBOX nombre="ckParticipacionParticipantesCompleto" id="datosCampos" onclick="" check="N"/></td>
+		   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+	        <tr> 
+                  <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+              </table>
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblProductosValidosCompleto" alto="13" filas="1" valor="" id="datosTitle" cod="00338"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblProductosExcluidos" alto="13" filas="1" valor="" id="datosTitle" cod="00339"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblProductosBonificados" alto="13" filas="1" valor="" id="datosTitle" cod="00340"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td><LABELC nombre="lblProductosExigidos" alto="13" filas="1" valor="" id="datosTitle" cod="00341"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblPremiosAcumulativosPorNiveles" alto="13" filas="1" valor="" id="datosTitle" cod="1820"/></td>
+		   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+		   <td><CHECKBOX nombre="ckProductosValidosCompleto" id="datosCampos" check="N"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td><CHECKBOX nombre="ckProductosExcluidos" id="datosCampos" onclick="" check="N"/></td>
+	           <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td><CHECKBOX nombre="ckProductosBonificados" id="datosCampos" onclick="" check="N"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td><CHECKBOX nombre="ckProductosExigidos" id="datosCampos" onclick="" check="N"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td><CHECKBOX nombre="ckPremiosAcumulativosPorNiveles" id="datosCampos" onclick="" check="N"/></td>
+		   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+	        <tr> 
+                  <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+              </table>
+              <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+                   <td><LABELC nombre="lblNivelesRotativos" alto="13" filas="1" valor="" id="datosTitle" cod="1822"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td><LABELC nombre="lblPremiosElectivos" alto="13" filas="1" valor="" id="datosTitle" cod="1942"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td><LABELC nombre="lblPuntajeServicio" alto="13" filas="1" valor="" id="datosTitle" cod="1833"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblActiva" alto="13" filas="1" valor="" id="datosTitle" cod="794"/></td>
+                   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblTipoConcursoIVR" alto="13" filas="1" valor="" id="datosTitle" cod="2417"/></td>
+				   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblSorteo" alto="13" filas="1" valor="" id="datosTitle" cod="3449"/></td>
+				   <td><IMG src="b.gif" width="25" height="8"/></td>
+                   <td><LABELC nombre="lblBloqueado" alto="13" filas="1" valor="" id="datosTitle" cod="1328"/></td>
+		   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+                <tr>
+                   <td><IMG src="b.gif" width="8" height="8"/></td>
+		   <td><CHECKBOX nombre="ckNivelesRotativos" id="datosCampos" onclick="" check="N"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td><CHECKBOX nombre="ckPremiosElectivos" id="datosCampos" onclick="" check="N"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td><CHECKBOX nombre="ckPuntajeServicio" id="datosCampos" onclick="" check="N"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td><CHECKBOX nombre="ckActiva" id="datosCampos" onclick="" check="N"/></td>
+		   <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td nowrap="nowrap">
+		     <COMBO nombre="cbTipoConcursoIVR" id="datosCampos" size="1" multiple="N" req="N" onchange="onChangeTipoConcursoIVR();" valorinicial="" textoinicial="" ontab="onTabTipoConcurso();">
+		       <ROWSET>
+		       </ROWSET>
+		     </COMBO>
+		   </td>
+		    <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td><CHECKBOX nombre="ckSorteo" id="datosCampos" onclick="onClickIndSorteo()" check="N"/></td>
+   		   <td><IMG src="b.gif" width="25" height="8"/></td>
+		   <td><CHECKBOX nombre="ckBloqueado" id="datosCampos" onclick="" check="N"/></td>
+		   <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr>
+	            <tr> 
+                  <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                </tr> 
+              </table>
+        </fieldset>
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr>  
+    <tr>
+       	<td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+     	<td width="756" ><IMG src="b.gif"/></td>
+      	<td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+
+</FORMULARIO>
+</PAGINA>                                                                           
+                                                        

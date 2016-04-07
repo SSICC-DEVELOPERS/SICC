@@ -1,0 +1,713 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/PROY
+   $Id: contenido_campos_parametrizables_insertar.xml,v 1.1 2009/12/03 18:43:53 pecbazalar Exp $
+   DESC
+
+   DRUIDATARGET=/../../config/scripts/iniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_campos_parametrizables_insertar" cod="0368" titulo="" estilos="estilosB3.css" colorf="#F0F0F0"
+         msgle="Insertar Campos Obligatorios" onload="Inicio();" xml:lang="es">
+ <JS src="sicc_util.js"></JS>
+<!-- Caso de uso Modificar campos de ingerso obligatorio, modificacion permitida y valores por defecto: cod="0369" -->  
+          
+<JAVASCRIPT>
+  <![CDATA[
+
+  function Inicio() {
+    configurarMenuSecundario("frmFormulario");
+    varNoLimpiarSICC = true;
+
+    if (get('frmFormulario.hCasoDeUso') == "Insertar" && get('frmFormulario.accion') == "") {
+      completarComboTipo();
+      set('frmFormulario.cbTipoCampo',['']); //Se selecciona por defecto la opcion en blanco
+      completarComboNombreCampo();
+      accion('frmFormulario.cbSubTipoCliente','.disabled=true');
+      focaliza('frmFormulario.cbTipoCampo');
+    }
+
+    if (get('frmFormulario.hCasoDeUso') == "Consultar") {
+      completarCamposConsulta();
+      document.all.IngresoObligatorio[0].disabled=true;
+      document.all.IngresoObligatorio[1].disabled=true;
+      document.all.ModificableporUsuario[0].disabled=true;
+      document.all.ModificableporUsuario[1].disabled=true;      
+      accion('frmFormulario.txtValorPorDefecto','.disabled=true');
+      
+      if ( get('frmFormulario.hTipoCampo') == '1' )  {
+         document.all["capaCbSubTipoCLiente"].style.visibility = 'hidden';
+         document.all["capaCbTipoCLiente"].style.visibility = 'hidden';
+         document.all["capaLblSubTipoCLiente"].style.visibility = 'hidden';
+         document.all["capaLblTipoCLiente"].style.visibility = 'hidden';
+         document.all["capaLblValorDefecto"].style.visibility = 'hidden';
+         document.all["capaTxtValorDefecto"].style.visibility = 'hidden';
+      }
+    }
+
+    if (  (get('frmFormulario.hCasoDeUso') == "Modificar") && (get('frmFormulario.accion') == "")  ) {
+      focaliza('frmFormulario.IngresoObligatorio');
+      completarComboTipo();
+      set( 'frmFormulario.cbTipoCampo', [get('frmFormulario.hTipoCampo')] );
+
+      if ( get('frmFormulario.hTipoCampo') == '1' )  {
+         document.all["capaCbSubTipoCLiente"].style.visibility = 'hidden';
+         document.all["capaCbTipoCLiente"].style.visibility = 'hidden';
+         document.all["capaLblSubTipoCLiente"].style.visibility = 'hidden';
+         document.all["capaLblTipoCLiente"].style.visibility = 'hidden';
+         document.all["capaLblValorDefecto"].style.visibility = 'hidden';
+         document.all["capaTxtValorDefecto"].style.visibility = 'hidden';
+      }
+      
+      combo_add('frmFormulario.cbTipoCliente',1,get('frmFormulario.hTipoCliente'));
+      set('frmFormulario.cbTipoCliente',[1]);                
+      combo_add('frmFormulario.cbSubTipoCliente',1,get('frmFormulario.hSubtipoCliente'));
+      set('frmFormulario.cbSubTipoCliente',[1]);
+      combo_add('frmFormulario.cbNombreCampo',1,get('frmFormulario.hNombreCampo'));
+      set('frmFormulario.cbNombreCampo',[1]);
+      accion('frmFormulario.cbTipoCampo','.disabled=true');
+      accion('frmFormulario.cbTipoCliente','.disabled=true');
+      accion('frmFormulario.cbSubTipoCliente','.disabled=true');
+      accion('frmFormulario.cbNombreCampo','.disabled=true');
+      set('frmFormulario.IngresoObligatorio', get('frmFormulario.hObligatorio'));
+      set('frmFormulario.ModificableporUsuario', get('frmFormulario.hModificable'));
+    }
+
+         if( get('frmFormulario.hCasoDeUso') == "Insertar" ){
+                  habilitarValidacionesTodosLosCampos();
+         }
+
+    if(mostrarError()==0) {
+      fLimpiar();
+    }
+  }
+
+  function completarComboTipo(){
+    var pro = GestionarMensaje(982);
+    var cli = GestionarMensaje(983);
+    combo_add('frmFormulario.cbTipoCampo', "0", cli);
+    combo_add('frmFormulario.cbTipoCampo', "1", pro);
+  }
+
+  function completarComboSubtipoCliente()  {
+    set_combo('frmFormulario.cbSubTipoCliente',[]);
+    if ( get('frmFormulario.cbTipoCliente') == "" ) {
+      accion( 'frmFormulario.cbSubTipoCliente', '.disabled=true' );
+      set_combo("frmFormulario.cbSubTipoCliente", eval('[[""],[""]]'));          
+    }   else {
+      accion( 'frmFormulario.cbSubTipoCliente', '.disabled=false' );
+      combo_add('frmFormulario.cbSubTipoCliente', '', '');
+      var tipoCliente = get('frmFormulario.cbTipoCliente','V');
+      
+      for(var k=0;k<listaOcultaSTC.datos.longitud;k++) {
+                                    if ( listaOcultaSTC.datos.ij(k,1) == tipoCliente ) {
+                                             combo_add('frmFormulario.cbSubTipoCliente',listaOcultaSTC.datos.ij(k,0),listaOcultaSTC.datos.ij(k,2));
+                                    }
+      }
+      var seleccionComboSubtipoCliente = new Array();
+                           seleccionComboSubtipoCliente[ 0 ] = get('frmFormulario.hSubtipoCliente');
+                           set( 'frmFormulario.cbSubTipoCliente', seleccionComboSubtipoCliente );
+    }
+  }
+
+         function completarComboNombreCampo()  {
+                  set_combo('frmFormulario.cbNombreCampo',[]);
+    
+                  if ( get('frmFormulario.cbTipoCampo').toString() == '' ){
+                           set( 'frmFormulario.cbTipoCliente', [''] );
+                           set( 'frmFormulario.cbSubTipoCliente', [''] );
+                           set('frmFormulario.txtValorPorDefecto', '');
+                           accion( 'frmFormulario.cbTipoCliente', '.disabled=true' );
+                           accion( 'frmFormulario.cbSubTipoCliente', '.disabled=true' );
+                           accion( 'frmFormulario.txtValorPorDefecto', '.disabled=true' );
+                           cargaNombreCampo();
+                  } else {
+                           accion( 'frmFormulario.cbTipoCliente', '.disabled=false' );
+                           accion( 'frmFormulario.txtValorPorDefecto', '.disabled=false' );
+                           cargaNombreCampo();
+                  }
+         }
+
+         function cargaNombreCampo(){
+                  combo_add('frmFormulario.cbNombreCampo', '', '');
+                  var tipoCliProd = get('frmFormulario.cbTipoCampo','T');
+
+                  for(var k=0;k<listaOcultaNC.datos.longitud;k++) {
+                           if ( listaOcultaNC.datos.ij(k,2) == tipoCliProd ) {
+                                    combo_add('frmFormulario.cbNombreCampo', listaOcultaNC.datos.ij(k, 0), listaOcultaNC.datos.ij(k,1));
+                           }
+                  }
+                  var seleccionComboNombreCampo = new Array();
+                  seleccionComboNombreCampo[ 0 ] = get('frmFormulario.hNombreCampo');
+                  set( 'frmFormulario.cbNombreCampo', seleccionComboNombreCampo );
+         }
+
+         function habilitarValidacionesTodosLosCampos(){
+                  sicc_cambiar_estado('cbTipoCampo', true);
+                  sicc_cambiar_estado('cbTipoCliente', true);
+                  sicc_cambiar_estado('cbSubTipoCliente', true);
+                  sicc_cambiar_estado('cbNombreCampo', true);
+                  sicc_cambiar_estado('IngresoObligatorio', true);
+                  sicc_cambiar_estado('ModificableporUsuario', true);
+                  sicc_cambiar_estado('txtValorPorDefecto', true);
+         }
+
+         //invocada en el onchange del combo cbTipoCampo
+         function habilitarValidacionDeCampos(){
+
+                  var CLIENTES  = '0';
+                  var PRODUCTOS = '1';
+                  var tipoCampo = get( 'frmFormulario.cbTipoCampo', 'V' ).toString();
+
+                  if( tipoCampo == '' ){
+                           sicc_cambiar_estado('cbTipoCampo', true);
+                           sicc_cambiar_estado('cbTipoCliente', false);
+                           sicc_cambiar_estado('cbSubTipoCliente', false);
+                           sicc_cambiar_estado('cbNombreCampo', true);
+                           sicc_cambiar_estado('IngresoObligatorio', true);
+                           sicc_cambiar_estado('ModificableporUsuario', true);
+                           sicc_cambiar_estado('txtValorPorDefecto', false);
+                  } else if( tipoCampo == CLIENTES ){
+                           sicc_cambiar_estado('cbTipoCampo', true);
+                           sicc_cambiar_estado('cbTipoCliente', true);
+                           sicc_cambiar_estado('cbSubTipoCliente', true);
+                           sicc_cambiar_estado('cbNombreCampo', true);
+                           sicc_cambiar_estado('IngresoObligatorio', true);
+                           sicc_cambiar_estado('ModificableporUsuario', true);
+                           sicc_cambiar_estado('txtValorPorDefecto', true);
+                  } else if( tipoCampo == PRODUCTOS ){
+                           sicc_cambiar_estado('cbTipoCampo', true);
+                           sicc_cambiar_estado('cbTipoCliente', false);
+                           sicc_cambiar_estado('cbSubTipoCliente', false);
+                           sicc_cambiar_estado('cbNombreCampo', true);
+                           sicc_cambiar_estado('IngresoObligatorio', true);
+                           sicc_cambiar_estado('ModificableporUsuario', true);
+                           sicc_cambiar_estado('txtValorPorDefecto', false);
+                  }
+         }
+
+  function completarCamposConsulta()  {
+         completarComboTipo();
+    set( 'frmFormulario.cbTipoCampo', [get('frmFormulario.hTipoCampo')] );
+
+    combo_add('frmFormulario.cbTipoCliente',1,get('frmFormulario.hTipoCliente'));
+    set('frmFormulario.cbTipoCliente',[1]);                
+    combo_add('frmFormulario.cbSubTipoCliente',1,get('frmFormulario.hSubtipoCliente'));
+    set('frmFormulario.cbSubTipoCliente',[1]);
+    combo_add('frmFormulario.cbNombreCampo',1,get('frmFormulario.hNombreCampo'));
+    set('frmFormulario.cbNombreCampo',[1]);
+
+    accion('frmFormulario.cbTipoCampo','.disabled=true');
+    accion('frmFormulario.cbTipoCliente','.disabled=true');
+    accion('frmFormulario.cbSubTipoCliente','.disabled=true');
+    accion('frmFormulario.cbNombreCampo','.disabled=true');
+    set('frmFormulario.IngresoObligatorio', get('frmFormulario.hObligatorio'));
+    set('frmFormulario.ModificableporUsuario', get('frmFormulario.hModificable'));
+  }
+
+  function mostrarError() {
+    if ( get('frmFormulario.errCodigo')!= "" )  {
+      var errMsg = fMostrarMensajeError( get('frmFormulario.errCodigo'),get('frmFormulario.errDescripcion') );
+      return 1;
+    }
+    return 0;
+  }
+
+  function fGuardar() {
+    if(get('frmFormulario.hCasoDeUso') == 'Insertar'){
+      if( !sicc_validaciones_generales() ){
+         return false;
+      }
+      set('frmFormulario.conectorAction','LPInsertarConfiguracionCampos');
+      set('frmFormulario.accion','Guardar');
+      enviaSICC('frmFormulario');
+    }
+
+    if ( get('frmFormulario.hCasoDeUso') == 'Modificar' )  {
+      if(get('frmFormulario.txtValorPorDefecto') == '' && get('frmFormulario.cbTipoCampo') == '0'){
+         GestionarMensaje(1109);
+         focaliza('frmFormulario.txtValorPorDefecto');
+         return;
+      } else {
+         setMV('frmFormulario.txtValorPorDefecto', 'N');
+      }
+
+      if(get('frmFormulario.IngresoObligatorio') == ""){
+         GestionarMensaje(1000);
+         document.all.tags("INPUT")["IngresoObligatorio"][0].focus();
+         return;
+      }
+
+      if(get('frmFormulario.ModificableporUsuario') == "")  {
+         GestionarMensaje(1001);
+         document.all.tags("INPUT")["ModificableporUsuario"][0].focus();
+         return;
+      }
+
+      set('frmFormulario.accion','Guardar');
+      set('frmFormulario.conectorAction','LPModificarConfiguracionCampos');
+      enviaSICC('frmFormulario');
+    }
+  }
+
+  function fVolver(){
+    window.close();
+  }
+
+  function habilitacionCombosCli()  {
+    if ( get('frmFormulario.cbTipoCampo','T') == GestionarMensaje(982) )  {
+      setMV('frmFormulario.cbTipoCliente', 'N');
+      setMV('frmFormulario.cbSubTipoCliente', 'N');
+      setMV('frmFormulario.txtValorPorDefecto', 'N');
+
+      document.all["capaCbSubTipoCLiente"].style.visibility = 'hidden';
+      document.all["capaCbTipoCLiente"].style.visibility = 'hidden';
+      document.all["capaLblSubTipoCLiente"].style.visibility = 'hidden';
+      document.all["capaLblTipoCLiente"].style.visibility = 'hidden';
+      document.all["capaLblValorDefecto"].style.visibility = 'hidden';
+      document.all["capaTxtValorDefecto"].style.visibility = 'hidden';
+
+      document.all.IngresoObligatorio[0].checked=false;
+      document.all.IngresoObligatorio[1].checked=false;
+      document.all.ModificableporUsuario[0].checked=false;
+      document.all.ModificableporUsuario[1].checked=false; 
+
+      return false;
+    } else {
+      setMV('frmFormulario.cbTipoCliente', 'S');
+      setMV('frmFormulario.cbSubTipoCliente', 'S');
+      setMV('frmFormulario.txtValorPorDefecto', 'S');
+
+      document.all["capaCbSubTipoCLiente"].style.visibility = 'visible';
+      document.all["capaCbTipoCLiente"].style.visibility = 'visible';
+      document.all["capaLblSubTipoCLiente"].style.visibility = 'visible';
+      document.all["capaLblTipoCLiente"].style.visibility = 'visible';
+      document.all["capaLblValorDefecto"].style.visibility = 'visible';
+      document.all["capaTxtValorDefecto"].style.visibility = 'visible';
+
+      document.all.IngresoObligatorio[0].checked=false;
+      document.all.IngresoObligatorio[1].checked=false;
+      document.all.ModificableporUsuario[0].checked=false;
+      document.all.ModificableporUsuario[1].checked=false; 
+      
+      return true;
+    }
+  }
+
+  function  fLimpiar(){
+    if ( get('frmFormulario.hCasoDeUso')=='Insertar' ) {
+      focaliza('frmFormulario.cbTipoCampo');
+      set('frmFormulario.cbTipoCampo',[''] );
+      completarComboNombreCampo();
+      set('frmFormulario.cbNombreCampo', [] );
+      set('frmFormulario.IngresoObligatorio','');
+      set('frmFormulario.ModificableporUsuario','');
+      set('frmFormulario.txtValorPorDefecto','');
+      if ( habilitacionCombosCli() )  {
+         set( 'frmFormulario.cbTipoCliente', [] );
+         set_combo("frmFormulario.cbSubTipoCliente", eval('[[""],[""]]'));                          
+         accion( 'frmFormulario.cbSubTipoCliente', '.disabled=true' );
+      }
+    }
+    
+    if ( get('frmFormulario.hCasoDeUso')=='Modificar' ) {
+      set('frmFormulario.txtValorPorDefecto',get('frmFormulario.hValorPorDefecto'));
+      set('frmFormulario.ModificableporUsuario',get('frmFormulario.hModificable'));
+      set('frmFormulario.IngresoObligatorio',get('frmFormulario.hObligatorio'));
+      focaliza('frmFormulario.IngresoObligatorio');
+    }
+  }
+
+  function focalizarOnTabVxD(){
+    try {
+      focaliza('frmFormulario.cbTipoCampo');
+    } catch (e)  {
+      focaliza('frmFormulario.IngresoObligatorio');
+    }
+  }
+
+  function focalizarOnShTabTipoCampo()  {
+    focaliza('frmFormulario.txtValorPorDefecto');
+  }
+
+  function ingObligOnTab()  {
+    focaliza('frmFormulario.ModificableporUsuario');
+  }
+
+  function ingObligOnShTab()  {
+    if ( get('frmFormulario.hCasoDeUso') == 'Insertar' ){
+      try {
+         focaliza('frmFormulario.cbNombreCampo');
+      } catch (e)  {
+         try {
+           focaliza('frmFormulario.cbSubTipoCliente');
+         } catch (e)  {
+           focaliza('frmFormulario.cbTipoCliente');
+         }
+      }
+      if ( get('frmFormulario.hCasoDeUso') == 'Modificar' ){
+         focaliza('frmFormulario.txtValorPorDefecto');
+      }
+    }
+  }
+
+function setTabFocus( campo ){
+         if( campo == 'cbTipoCampo' ){
+                  if( cbTipoCliente.disabled == false && document.all["capaCbTipoCLiente"].style.visibility != 'hidden' ){
+                           focaliza('frmFormulario.cbTipoCliente');
+                  }else{
+                           setTabFocus('cbTipoCliente');
+                           //focaliza('frmFormulario.cbNombreCampo');
+                  }
+         }else if(campo =='cbTipoCliente'){
+                  if( cbSubTipoCliente.disabled == false && document.all["capaCbSubTipoCLiente"].style.visibility != 'hidden' ){
+                           focaliza('frmFormulario.cbSubTipoCliente');
+                  }else{
+                           setTabFocus('cbSubTipoCliente');
+                           //focaliza('frmFormulario.cbNombreCampo');
+                  }
+    }else if(campo =='cbSubTipoCliente'){
+                  if(cbNombreCampo.disabled == false){
+                           focaliza('frmFormulario.cbNombreCampo');
+                  }else{
+                           setTabFocus('cbNombreCampo');
+                  }
+    }else if(campo =='cbNombreCampo'){
+                  focaliza('frmFormulario.IngresoObligatorio');
+    }else if(campo =='IngresoObligatorio'){
+                  focaliza('frmFormulario.ModificableporUsuario');
+    }else if(campo =='ModificableporUsuario'){
+                  if(txtValorPorDefecto.disabled == false && document.all["capaTxtValorDefecto"].style.visibility != 'hidden' ){
+                           focaliza('frmFormulario.txtValorPorDefecto');
+                  }else{
+                           setTabFocus('txtValorPorDefecto');
+                           //focaliza('frmFormulario.cbTipoCampo');
+                  }
+    }else if(campo =='txtValorPorDefecto'){
+                  if(cbTipoCampo.disabled == false){
+                           focaliza('frmFormulario.cbTipoCampo');
+                  }else{
+                           setTabFocus('cbTipoCampo');
+                  }
+         }
+}
+
+function setSHTabFocus( campo ){
+         if( campo == 'cbTipoCampo' ){
+                  if(txtValorPorDefecto.disabled == false && document.all["capaTxtValorDefecto"].style.visibility != 'hidden' ){
+                           focaliza('frmFormulario.txtValorPorDefecto');
+                  }else{
+                           setSHTabFocus('txtValorPorDefecto');
+                           //focaliza('frmFormulario.ModificableporUsuario');
+                  }
+    }else if(campo =='cbTipoCliente'){
+                  if( cbTipoCampo.disabled == false ){
+                           focaliza('frmFormulario.cbTipoCampo');
+                  }else{
+                           setSHTabFocus('cbTipoCampo');
+                  }
+    }else if(campo =='cbSubTipoCliente'){
+                  if(cbTipoCliente.disabled == false && document.all["capaCbTipoCLiente"].style.visibility != 'hidden'){
+                           focaliza('frmFormulario.cbTipoCliente');
+                  }else{
+                           setSHTabFocus('cbTipoCliente');
+                  }
+    }else if(campo =='cbNombreCampo'){
+                  if( cbSubTipoCliente.disabled == false && document.all["capaCbSubTipoCLiente"].style.visibility != 'hidden' ){
+                           focaliza('frmFormulario.cbSubTipoCliente');
+                  //}else if( cbTipoCliente.disabled == false && document.all["capaCbTipoCLiente"].style.visibility != 'hidden' ){
+                  //	focaliza('frmFormulario.cbTipoCliente');
+                  }else{
+                           setSHTabFocus('cbSubTipoCliente');
+                           //focaliza('frmFormulario.cbTipoCampo');
+                  }
+    }else if(campo =='IngresoObligatorio'){
+                  if(cbNombreCampo.disabled == false){
+                           focaliza('frmFormulario.cbNombreCampo');
+                  }else{
+                           setSHTabFocus('cbNombreCampo');
+                  }
+    }else if(campo =='ModificableporUsuario'){
+                  focaliza('frmFormulario.IngresoObligatorio');
+    }else if(campo =='txtValorPorDefecto'){
+                  focaliza('frmFormulario.ModificableporUsuario');
+    }
+}
+
+  ]]> 
+</JAVASCRIPT>
+
+<VALIDACION>
+         <ELEMENTO name="cbTipoCampo" required="false" cod="1361"/>
+         <ELEMENTO name="cbTipoCliente" required="false" cod="1869"/>
+         <ELEMENTO name="cbSubTipoCliente" required="false" cod="595"/>
+         <ELEMENTO name="cbNombreCampo" required="false" cod="1285"/>
+         <ELEMENTO name="IngresoObligatorio" required="false" cod="1362"/>
+         <ELEMENTO name="ModificableporUsuario" required="false" cod="1363"/>
+         <ELEMENTO name="txtValorPorDefecto" required="true" cod="1286" format="t" chars=" abcdefghijklllmnñopqrstuvwxyz0123456789"/>		 
+</VALIDACION>
+
+<FORMULARIO nombre="frmFormulario" oculto="S">
+
+<VAR nombre="conectorAction" valor=""/>
+
+<VAR nombre="hCasoDeUso" valor=""/>
+<VAR nombre="accion" valor=""/>
+
+<VAR nombre="hOID" valor=""/>
+<VAR nombre="hTipoCampo" valor=""/>
+<VAR nombre="hNombreCampo" valor=""/>
+<VAR nombre="hObligatorio" valor=""/>
+<VAR nombre="hModificable" valor=""/>
+
+<VAR nombre="hValorPorDefecto" valor=""/>
+
+<VAR nombre="hTipoCliente" valor=""/>
+<VAR nombre="hSubtipoCliente" valor=""/>
+
+<VAR nombre="hFiltroTipo" valor=""/>
+<VAR nombre="hFiltroNombreCampo" valor=""/>
+<VAR nombre="hFiltroObligatorio" valor=""/>
+<VAR nombre="hFiltroModificable" valor=""/>
+<VAR nombre="hFiltroValorPorDefecto" valor=""/>
+<VAR nombre="hFiltroTipoCliente" valor=""/>
+<VAR nombre="hFiltroSubtipoCliente" valor=""/>
+
+<VAR nombre="errCodigo" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="exito" valor=""/>
+
+
+<CAPA nombre="capaEspacio" x="0" y="0">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+                <fieldset><legend class="legend"><LABELC nombre="lblDatosAlta" alto="13" filas="1" valor="" id="legend" cod="00127"/></legend>
+           <!---primera fila-->
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+           <tr> 
+             <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+           </tr>
+           <tr>
+             <td><IMG src="b.gif" width="8" height="8"/></td>
+             <td><LABELC nombre="lblTipoCampo" alto="13" filas="1" valor="" id="datosTitle" cod="1361"/></td>
+             <td><IMG src="b.gif" width="25" height="8"/></td>
+             <td>
+                <CAPA nombre="capaLblTipoCLiente" alto="50" ancho="100%" colorf="" borde="0" imagenf="" repeat="" padding="" visibilidad="visible" contravsb="" x="160" y="30" zindex=""> 
+                  <table width="100%" border="0">
+                    <tr>
+                      <td><LABELC nombre="lblTipoCliente" alto="13" filas="1" valor="" id="datosTitle" cod="1869"/></td>
+                     </tr>
+                  </table>
+                </CAPA>
+             </td>
+                           <td><IMG src="b.gif" width="25" height="8"/></td>
+                           <td>
+              <CAPA nombre="capaLblSubTipoCLiente" alto="50" ancho="100%" colorf="" borde="0" imagenf="" repeat="" padding="" visibilidad="visible" contravsb="" x="620" y="30" zindex=""> 
+                  <table width="100%" border="0">
+                    <tr>
+                      <td><LABELC nombre="lblSubtipoCliente" alto="13" filas="1" valor="" id="datosTitle" cod="595"/></td>
+                    </tr>
+                  </table>
+                </CAPA>
+             </td>
+                           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+           </tr> 
+           <tr>
+             <td><IMG src="b.gif" width="8" height="8"/></td>
+                           <td nowrap="nowrap">
+                <COMBO nombre="cbTipoCampo" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onchange="completarComboNombreCampo();habilitacionCombosCli();habilitarValidacionDeCampos();" ontab="setTabFocus('cbTipoCampo');" onshtab="setSHTabFocus('cbTipoCampo');">
+                                <ROWSET>
+                                </ROWSET>
+                             </COMBO>
+                           </td>
+                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                           <td nowrap="nowrap">
+                <CAPA nombre="capaCbTipoCLiente" alto="50" ancho="100%" colorf="" borde="0" imagenf="" repeat="" padding="" visibilidad="visible" contravsb="" x="160" y="43" zindex=""> 
+                  <table width="100%" border="0">
+                    <tr>
+                      <td nowrap="nowrap">
+                         <COMBO nombre="cbTipoCliente" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" onchange='completarComboSubtipoCliente();' ontab="setTabFocus('cbTipoCliente');" onshtab="setSHTabFocus('cbTipoCliente');">
+                                         <ROWSET>
+                                         </ROWSET>
+                                      </COMBO>
+                      </td>
+                    </tr>
+                  </table>
+                </CAPA>
+          
+                           </td>
+                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                           <td nowrap="nowrap">
+                <CAPA nombre="capaCbSubTipoCLiente" alto="50" ancho="100%" colorf="" borde="0" imagenf="" repeat="" padding="" visibilidad="visible" contravsb="" x="620" y="43" zindex=""> 
+                  <table width="100%" border="0">
+                    <tr>
+                      <td nowrap="nowrap">
+                                      <COMBO nombre="cbSubTipoCliente" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" ontab="setTabFocus('cbSubTipoCliente');" onshtab="setSHTabFocus('cbSubTipoCliente');">
+                                         <ROWSET>
+                                         </ROWSET>
+                                      </COMBO>
+                      </td>
+                    </tr>
+                  </table>
+                </CAPA>
+                           </td>
+             <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+           </tr>
+           <tr>
+             <td colspan="3"><IMG src="b.gif" width="8" height="7"/></td>
+           </tr>
+         </table>
+        <!---fin primera fila-->
+          <!---segunda fila-->
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+           <tr>
+             <td><IMG src="b.gif" width="8" height="8"/></td>
+             <td><LABELC nombre="lblNombreCampo" alto="13" filas="1" valor="" id="datosTitle" cod="1285"/></td>
+             <td><IMG src="b.gif" width="25" height="8"/></td>
+             <td><LABELC nombre="lblObligatorio" alto="13" filas="1" valor="" id="datosTitle" cod="1362"/></td>
+                           <td><IMG src="b.gif" width="25" height="8"/></td>
+                           <td><LABELC nombre="lblModificable" alto="13" filas="1" valor="" id="datosTitle" cod="1363"/></td>
+                           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+           </tr> 
+           <tr>
+             <td><IMG src="b.gif" width="8" height="8"/></td>
+                           <td nowrap="nowrap">
+                             <COMBO nombre="cbNombreCampo" id="datosCampos" size="1" multiple="N" req="S" valorinicial="" textoinicial="" ontab="setTabFocus('cbNombreCampo');" onshtab="setSHTabFocus('cbNombreCampo');">
+                                <ROWSET>
+                                </ROWSET>
+                             </COMBO>
+                           </td>
+                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                           <td nowrap="nowrap" class="datosCampos">
+                             <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                  <tr>
+                                  <RADIOB nombre="IngresoObligatorio" tipo="H" id="datosCampos" ontab="setTabFocus('IngresoObligatorio');" onshtab="setSHTabFocus('IngresoObligatorio');" req="S">
+                                           <RBINPUT valor="S" check="N" onfocus="" id="datosCampos" cod="117">S</RBINPUT>
+                                           <RBINPUT valor="N" onfocus="" id="datosCampos" cod="87">N</RBINPUT>
+                                         </RADIOB>
+                                </tr>
+                             </table>
+                           </td>
+                    <td><IMG src="b.gif" width="25" height="8"/></td>
+                           <td nowrap="nowrap" class="datosCampos">
+                             <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                  <tr>
+                                  <RADIOB nombre="ModificableporUsuario" tipo="H" id="datosCampos" ontab="setTabFocus('ModificableporUsuario');" onshtab="setSHTabFocus('ModificableporUsuario');" req="S">
+                                           <RBINPUT valor="S" check="N" onfocus="" id="datosCampos" cod="117">S</RBINPUT>
+                                           <RBINPUT valor="N" onfocus="" id="datosCampos" cod="87">N</RBINPUT>
+                                         </RADIOB>
+                                </tr>
+                             </table>
+                           </td>
+                           <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+           </tr>
+                  <tr> 
+             <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+           </tr> 
+         </table>
+         <!---segunda fila-->
+         <!---tercera fila-->
+         <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+           <tr>
+             <td><IMG src="b.gif" width="8" height="8"/></td>
+             <td>
+                <CAPA nombre="capaLblValorDefecto" alto="50" ancho="100%" colorf="" borde="0" imagenf="" repeat="" padding="" visibilidad="visible" contravsb="" x="24" y="112" zindex=""> 
+                  <table width="100%" border="0">
+                    <tr>
+                      <td nowrap="nowrap">
+                         <LABELC nombre="lblValorPorDefecto" alto="13" filas="1" valor="" id="datosTitle" cod="1286"/>
+                      </td>
+                    </tr>
+                  </table>
+                </CAPA>
+             </td>
+             <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+           </tr> 
+           <tr>
+             <td><IMG src="b.gif" width="8" height="8"/></td>
+                           <td nowrap="nowrap">
+                <CAPA nombre="capaTxtValorDefecto" alto="50" ancho="100%" colorf="" borde="0" imagenf="" repeat="" padding="" visibilidad="visible" contravsb="" x="24" y="125" zindex=""> 
+                  <table width="100%" border="0">
+                    <tr>
+                      <td nowrap="nowrap">
+                      <CTEXTO nombre="txtValorPorDefecto" id="datosCampos" max="40" tipo="" onchange="" req="S" size="40" valor="" validacion="" ontab="setTabFocus('txtValorPorDefecto');" onshtab="setSHTabFocus('txtValorPorDefecto');"/></td>
+                    </tr>
+                  </table>
+                </CAPA>
+             </td>  
+             <td width="100%"><IMG src="b.gif" width="8" height="30"/></td>
+           </tr>
+                  <tr> 
+             <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+           </tr> 
+         </table>
+         <!---tercera fila-->
+         </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr>  
+    <tr>
+         <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+         <td width="756" ><IMG src="b.gif"/></td>
+         <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+
+<CAPA nombre="capaListaOcultaNC" alto="100%" ancho="100%" colorf="#F0F0F0"  borde="0" imagenf="" repeat="" padding="" visibilidad="hidden" contravsb="" x="0" y="460" zindex="">
+         <LISTA seleccion="boton" nombre="listaOcultaNC" ancho="580" alto="100" entradax="" entraday="" colorf="#EFEFEF" oncolor="" chkcolor=""
+          visibilidad="" incx="10" incy="10" nmin="" nmax="1" multisel="1" accion="" sep="|" imagenon="close_up.gif" imagenoff="close_no.gif"
+          pixelsborde="1" colorborde="#CCCCCC" onSetDatos="" blockImg=""
+          x="12" y="0">
+                  <CABECERA nombre="cab1" height="20" ancho="662" colorf="#CCCCCC"> 
+                    <COL id="fondoCabecera" ancho="13"> </COL>
+                    <COL id="fondoCabecera" ancho="230"><LABELC nombre="lblElementoCampoCliProd" ancho="230" alto="20" filas="1" id="datosCamposCabecera"	cod="1285" enviaroculto="N"/></COL>
+                    <COL id="fondoCabecera" ancho="230"><LABELC nombre="lblTipoCliProd" ancho="230" alto="20" filas="1" id="datosCamposCabecera"	cod="755" enviaroculto="N"/></COL>
+
+                  </CABECERA>
+                  <PRESENTACION ancho="1383" filas="1" bloquesid="['datosCamposCenterImpar', 'datosCamposCenterPar']">
+                    <COL ancho="13"/>
+                    <COL ancho="230" caracteres="20"/>
+                    <COL ancho="230" caracteres="20"/>
+
+                  </PRESENTACION>
+                  <ROWSET>
+
+                  </ROWSET>
+         </LISTA>
+</CAPA>
+
+<CAPA nombre="capaListaOcultaSTC" alto="100%" ancho="100%" colorf="#F0F0F0"  borde="0" imagenf="" repeat="" padding="" visibilidad="hidden" contravsb="" x="0" y="565" zindex="">
+         <LISTA seleccion="boton" nombre="listaOcultaSTC" ancho="580" alto="100" entradax="" entraday="" colorf="#EFEFEF" oncolor="" chkcolor=""
+          visibilidad="" incx="10" incy="10" nmin="" nmax="1" multisel="1" accion="" sep="|" imagenon="close_up.gif" imagenoff="close_no.gif"
+          pixelsborde="1" colorborde="#CCCCCC" onSetDatos="" blockImg=""
+          x="12" y="0">
+                  <CABECERA nombre="cab2" height="20" ancho="662" colorf="#CCCCCC">
+                    <COL id="fondoCabecera" ancho="13"> </COL>
+                    <COL id="fondoCabecera" ancho="230"><LABELC nombre="lblValueTipoCliente" ancho="230" alto="20" filas="1" id="datosCamposCabecera"	cod="393" enviaroculto="N"/></COL>
+                    <COL id="fondoCabecera" ancho="230"><LABELC nombre="lblElementoSubtipoCliente" ancho="230" alto="20" filas="1" id="datosCamposCabecera"	cod="595" enviaroculto="N"/></COL>
+                  </CABECERA>
+                  <PRESENTACION ancho="1383" filas="1" bloquesid="['datosCamposCenterImpar', 'datosCamposCenterPar']">
+                    <COL ancho="13"/>
+                    <COL ancho="230" caracteres="20"/>
+                    <COL ancho="230" caracteres="20"/>
+                  </PRESENTACION>
+                  <ROWSET>
+
+                  </ROWSET>
+         </LISTA>
+</CAPA>
+
+</FORMULARIO>
+</PAGINA>                                                       

@@ -1,0 +1,393 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_mantenimiento_autorizaciones_consultar" cod="" titulo="" estilos="estilosB3.css" colorf="#F0F0F0"
+           msgle="" onload="onLoadPag();" xml:lang="es">
+
+
+<!-- Barra del caso de uso Consultar cod="RecAutor.query.label"-->
+<!-- Barra del caso de uso Modificar cod="RecAutor.update.label"-->
+<!-- Barra del caso de uso Eliminar cod="RecAutor.remove.label"-->
+
+
+<JS src="sicc_util.js"></JS> 
+<JS src="PaginacionSicc.js"></JS>
+<JS src="DruidaTransactionMare.js"></JS>
+<JS src="i18NJS.js"/>
+
+
+<JAVASCRIPT>
+<![CDATA[
+
+//---------------------------------------------------------------------------------------------------
+
+function onLoadPag() {
+	configurarMenuSecundario('formulario');
+	DrdEnsanchaConMargenDcho('listado1',12);
+	document.all["Cplistado1"].style.visibility='visible';
+	document.all["CpLin1listado1"].style.visibility='visible';
+	document.all["CpLin2listado1"].style.visibility='visible';
+	document.all["CpLin3listado1"].style.visibility='visible';
+	document.all["CpLin4listado1"].style.visibility='visible';
+	eval(ON_RSZ);
+}
+
+//---------------------------------------------------------------------------------------------------
+
+function ocultarBotonDetalle() {
+	document.all["btnDetalleDiv"].style.visibility = 'hidden';
+}
+
+//---------------------------------------------------------------------------------------------------
+
+function ocultarBotonModificar() {
+	document.all["btnModificarDiv"].style.visibility = 'hidden';
+}
+
+//---------------------------------------------------------------------------------------------------
+
+function ocultarBotonEliminar() {
+	btnProxy(4,'0');
+}
+
+//---------------------------------------------------------------------------------------------------
+
+function fEliminar() {
+	accionEliminar();
+}
+
+//---------------------------------------------------------------------------------------------------
+
+function onChangeOperacion() {
+	if (get('formulario.cbCodOperacion') != '') {
+		var array = new Array();
+		array[array.length] = new Array('oid', get('formulario.cbCodOperacion', 'V'));
+		array[array.length] = new Array('pais', get('formulario.varPais'));
+		array[array.length] = new Array('idioma',get('formulario.varIdioma'));
+
+		recargaCombo('formulario.cbTipoOperacion',
+					 'RECRecargaTipoOperacion',
+					 'es.indra.sicc.util.DTOOID',
+					 array,
+					 'setearCbTipoOperacion(datos)');
+	} else {
+		set_combo('formulario.cbTipoOperacion', new Array(['','']));
+	}
+
+}
+
+//---------------------------------------------------------------------------------------------------
+
+function setearCbTipoOperacion(datos) {
+	set_combo("formulario.cbTipoOperacion", datos);
+}
+
+//---------------------------------------------------------------------------------------------------
+
+function accionBuscar() {
+	var parametros = new Array();
+	array[0] = new Array('oidPais', get('formulario.varPais'));
+	array[1] = new Array('oidIdioma', get('formulario.varIdioma'));
+
+	var oidUsuario = get('formulario.cbCodUsuario','V');
+	if (oidUsuario != null) {
+		array[array.length] = new Array('oidUsuario',oidUsuario);
+	}
+
+	var oidOperacion = get('formulario.cbCodOperacion','V');
+	if (oidOperacion != null) {
+		array[array.length] = new Array('oidOperacion',oidOperacion);
+	}
+
+	var oidTipoOperacion = get('formulario.cbTipoOperacion','V');
+	if (oidTipoOperacion != null) {
+		array[array.length] = new Array('oidTipoOperacion',oidTipoOperacion);
+	}
+
+	configurarPaginado(mipgndo, 'RECBuscarAutorizaciones', 'ConectorBuscarAutorizaciones',
+						'es.indra.sicc.dtos.rec.DTOAutorizacion', parametros);
+
+}
+
+//---------------------------------------------------------------------------------------------------
+
+function accionDetalle() {
+
+	var cantSeleccionados = listado1.codSeleccionados().length;
+
+	if (cantSeleccionados == 1) {
+
+		var filaMarcada = listado1.filaSelecc;
+		var obj = new Object();
+
+		obj.opcionMenu = get('formulario.opcionMenu');
+		obj.accion = 'detalle';
+		obj.oidAutorizacion = listado1.datos[filaMarcada][0];
+
+		var retorno = mostrarModalSICC('LPMantenimientoAutorizacion', '', obj);
+
+	} else if (cantSeleccionados < 1) {
+		GestionarMensaje('4');
+	} else {
+		GestionarMensaje('8');
+	}
+}
+
+//---------------------------------------------------------------------------------------------------
+
+function accionModificar() {
+
+	if (listado1.codSeleccionados().length > 1) {
+		GestionarMensaje('8');
+		return;
+	} else if (listado1.codSeleccionados().length < 1) {
+		GestionarMensaje('4');
+		return;
+	}
+
+	var filaMarcada = listado1.filaSelecc;
+	var obj = new Object();
+
+	obj.opcionMenu = get('formulario.opcionMenu');
+	obj.accion = 'modificar';
+	obj.oidAutorizacion = listado1.datos[filaMarcada][0];
+
+	var retorno = mostrarModalSICC('LPMantenimientoAutorizacion', '', obj);
+	accionBuscar();
+}
+
+//---------------------------------------------------------------------------------------------------
+
+function accionEliminar() {
+
+	var seleccionados = listado1.codSeleccionados();
+
+	if (seleccionados.length > 0) {
+		eliminarFilas(seleccionados, 'RECEliminarAutorizacion', mipgndo);
+	} else {
+		GestionarMensaje('4');
+		return;
+	}
+}
+
+//---------------------------------------------------------------------------------------------------
+
+]]>
+</JAVASCRIPT>
+
+
+<VALIDACION>
+</VALIDACION>
+
+
+<FORMULARIO nombre="formulario" oculto = "N">
+
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="accion" valor=""/>
+<VAR nombre="errCodigo" valor=""/> 
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="varPais" valor=""/> 
+<VAR nombre="varIdioma" valor=""/>
+<VAR nombre="casoDeUso" valor="insertar"/>
+<VAR nombre="opcionMenu" valor=""/>
+
+
+<FORMULARIO nombre="formulario" oculto = "N">
+
+<CAPA nombre="capa1">
+  
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    
+          <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    
+          <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+           <fieldset><legend class="legend"><LABELC nombre="lblCriteriosBusqueda"  alto="13" filas="1" valor="" id="legend" cod="RecAutor.legend.label"/></legend>
+           <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                            
+                                    <tr><td>
+                                     
+                                    <table width="499" border="0" align="left" cellspacing="0" cellpadding="0">
+                 
+                                             <tr> 
+                                                      <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                                             </tr>
+                 
+                                             <tr>
+                                                        <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td colspan="3"><LABELC nombre="lblCodUsuario"  alto="13" filas="1" valor="" cod="RecAutor.codUsua.label" id="datosTitle"/></td>
+                     <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                 </tr>
+                  
+                                             <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                                                        <td nowrap="nowrap">
+                         <COMBO nombre="cbCodUsuario" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="xxxxxxxx1" onchange="">
+                           <ROWSET>
+                           </ROWSET>
+                         </COMBO>
+                     </td>
+                                              	 <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                 </tr>
+                 
+                                             <tr>
+                                                      <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                                             </tr>
+                 
+                              </table>
+             
+                                    </td></tr>
+             
+                                    <tr><td>
+                                    
+                                    <table width="499" border="0" align="left" cellspacing="0" cellpadding="0">
+                                    
+                                             <tr>
+                                                        <td><IMG src="b.gif" width="8" height="8"/></td>
+                                                        <td><LABELC nombre="lblCodOperacion"  alto="13" filas="1" valor="" id="datosTitle" cod="RecTiposOperaView.ropeOidOper.label"/></td>
+                                                        <td><IMG src="b.gif" width="25" height="8"/></td>
+                                                        <td><LABELC nombre="lblTipoOperacion"  alto="13" filas="1" valor="" id="datosTitle" cod="RecAutor.tiopOidTipoOper.label"/></td>
+                                                        <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                             </tr>
+                                             
+                                             <tr>
+                                              
+                                                        <td><IMG src="b.gif" width="8" height="8"/></td>
+                                                        
+                                                        <td nowrap="nowrap">
+                                                                 <COMBO nombre="cbCodOperacion" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="xxxxxxxx2" onchange="onChangeOperacion();">
+                                                                         <ROWSET>
+                                                                         </ROWSET>
+                                                                 </COMBO>
+                                                        </td>
+                                                        
+                                                        <td><IMG src="b.gif" width="25" height="8"/></td> 
+                                                        
+                                                        <td nowrap="nowrap">
+                                                                <COMBO nombre="cbTipoOperacion" id="datosCampos" size="1" multiple="N" req="N" valorinicial="" textoinicial="xxxxxxxx3" onchange="">
+                                                                         <ROWSET>
+                                                                         </ROWSET>
+                                                                 </COMBO>
+                                                        </td>
+                                                        
+                                                        <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                                              
+                                             </tr> 
+                 
+                                             <tr>
+                                                      <td colspan="4"><IMG src="b.gif" width="8" height="8"/></td>
+                                             </tr>
+                                    
+                                    </table>
+                                    
+                                    </td></tr>
+                              
+                            </table>
+           </fieldset>
+           
+                  <!--fin primer formulario-->
+
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    
+         
+         <!--agrego el boton de buscar-->
+         <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+                           <fieldset>
+                           <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                                    <tr>
+                                             <td class="botonera">
+                                                      <BOTON nombre="btnBuscar" ID="botonContenido" tipo="html" accion="accionBuscar();" cod="1" estado="false" ontab="" />
+                                             </td>
+                                    </tr>
+                           </table>          
+                           </fieldset>
+      </td>
+      <td><IMG src="b.gif" width="8" height="12"/></td>
+   </tr>
+    
+         <tr>
+         <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+         <td width="756" ><IMG src="b.gif"/></td>
+         <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+         </tr>
+
+</table>
+</CAPA>
+
+
+ <LISTAEDITABLE nombre="listado1" ancho="690" alto="317" x="12" y="145" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+          <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+          <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+          <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+      <LINEAS>
+          <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="0" horizTitulo="1" horizBase="1"/> 
+          <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00135" ID="datosTitle" />
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+                  
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+          <COL ancho="68" minimizable="S" minimizada="N"/> 
+          <COL ancho="68" minimizable="S" minimizada="N"/>
+          <COL ancho="68" minimizable="S" minimizada="N"/>
+          <COL ancho="68" minimizable="S" minimizada="N"/> 
+                           <COL ancho="68" minimizable="S" minimizada="N"/> 
+                           <COL ancho="68" minimizable="S" minimizada="N"/> 
+                  </COLUMNAS>
+                  
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+                           <COL colFondo="" ID="EstCab" cod="RecAutor.codUsua.label"></COL>
+                           <COL colFondo="" ID="EstCab" cod="RecAutor.tiopOidTipoOper.label"></COL>
+                           <COL colFondo="" ID="EstCab" cod="RecAutor.impMaxi.label"></COL>
+                           <COL colFondo="" ID="EstCab" cod="RecAutor.impMontMaxiDife.label"></COL>
+                           <COL colFondo="" ID="EstCab" cod="RecAutor.indIngr.label"></COL>
+                           <COL colFondo="" ID="EstCab" cod="RecAutor.indDesb.label"></COL>
+                  </CABECERA>
+                  
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+                coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+                onLoad="" colorSelecc="#D0D9E8">
+                           <COL tipo="texto" ID="EstDat"/> 
+                           <COL tipo="texto" ID="EstDat2"/>
+                           <COL tipo="texto" ID="EstDat"/> 
+                           <COL tipo="texto" ID="EstDat2"/>
+                           <COL tipo="texto" ID="EstDat"/> 
+                           <COL tipo="texto" ID="EstDat2"/>
+                  </DATOS>
+                    
+      <ROWSET></ROWSET>
+      <PAGINADO nombre="mipgndo" ancho="690" sep="$" x="12" class="botonera" y="514" control="|" conector="" rowset="" cargainicial="N" onload="procesarPaginado(mipgndo,msgError, ultima, rowset, 'muestraLista(ultima, rowset)')" >          
+          <BOTON nombre="ret1" x="37" y="443" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+          <BOTON nombre="ava1" x="52" y="443" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>
+
+          
+    </PAGINADO>
+  </LISTAEDITABLE>
+  <BOTON nombre="primera1" x="20" y="443" ID="botonContenido" img="primera_on" tipo="-2" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();" />      
+  <BOTON nombre="separa" x="59" y="439" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" /> 
+  <BOTON nombre="btnModificar" x="80" y="440" ID="botonContenido" tipo="html" estado="false" cod="2" accion="accionModificar();" ontab="" onshtab="" />
+  <BOTON nombre="btnDetalle" x="80" y="440" ID="botonContenido" tipo="html" estado="false" cod="3" accion="accionDetalle();" ontab="" onshtab="" />
+  
+          
+          <CAPA nombre="capaEspacio" alto="12" ancho="100%" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="444" zindex="">
+  </CAPA>  
+
+
+
+</FORMULARIO>
+</PAGINA>

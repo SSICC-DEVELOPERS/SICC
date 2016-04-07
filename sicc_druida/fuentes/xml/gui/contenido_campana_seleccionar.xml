@@ -1,0 +1,608 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_campana_seleccionar.xml,v 1.1 2009/12/03 18:45:50 pecbazalar Exp $
+   contenido CCC
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_campana_seleccionar" cod="0303" titulo="Simular Estimados Business Planning" estilos="estilosB3.css" colorf="#F0F0F0" 
+         msgle="" onload="onLoadPag();" xml:lang="es">
+<JS src="sicc_util.js"/>             
+<JS src="PaginacionSicc.js"/>    
+
+<JS src="DruidaTransactionMare.js"/>
+
+<JAVASCRIPT>
+<![CDATA[ 
+
+  function detalle()  {
+    if (listado1.numSelecc()== 0) {
+      GestionarMensaje('1021',null,null,null);
+      return false;
+    }
+
+    var vacio = new Array();
+    listado2.setDatos(vacio);
+
+    var cod = listado1.codSeleccionados();
+    var valor1 = listado1.extraeDato(cod, 6);
+    var valor2 = listado1.extraeDato(cod, 7);
+    var valor3 = listado1.extraeDato(cod, 8);
+          // Agregado por ssantana, 15/6/2005 - Inc. 18071
+          var valor4 = listado1.extraeDato(cod, 9);
+
+
+          set('formulario.campana', valor4);
+    set('formulario.marca',valor1);
+    set('formulario.tip_cli',valor2);
+    set('formulario.actividad',valor3);
+
+    set('formulario.conectorAction', 'LPSimularEstimadosBP');
+    eval('formulario').oculto='S';
+    set('formulario.accion', 'detalle');
+    enviaSICC('formulario');
+  }
+
+  function muestraListado1() {
+    DrdEnsanchaConMargenDcho('listado1',12);
+    document.all["Cplistado1"].style.visibility='';
+    document.all["CpLin1listado1"].style.visibility='';
+    document.all["CpLin2listado1"].style.visibility='';
+    document.all["CpLin3listado1"].style.visibility='';
+    document.all["CpLin4listado1"].style.visibility='';
+    document.all["separa1Div"].style.visibility='';
+    document.all["primera1Div"].style.visibility='';
+    document.all["ret1Div"].style.visibility='';
+    document.all["ava1Div"].style.visibility='';
+    document.all["btnDetalleDiv"].style.visibility='';
+  }
+
+  function muestraListado2() {
+    DrdEnsanchaConMargenDcho('listado2',12);
+    document.all["Cplistado2"].style.visibility='';
+    document.all["CpLin1listado2"].style.visibility='';
+    document.all["CpLin2listado2"].style.visibility='';
+    document.all["CpLin3listado2"].style.visibility='';
+    document.all["CpLin4listado2"].style.visibility='';
+    document.all["separa2Div"].style.visibility='';
+    document.all["primera2Div"].style.visibility='';
+    document.all["ret2Div"].style.visibility='hidden'; //Siempre invisibles
+    document.all["ava2Div"].style.visibility='hidden'; //Siempre invisibles
+    document.all["btnRecalcularDiv"].style.visibility='';
+  }
+
+  function ocultaListado2() {
+    //Oculta el listado2
+    DrdEnsanchaConMargenDcho('listado2',12);
+    document.all["Cplistado2"].style.visibility='hidden';
+    document.all["CpLin1listado2"].style.visibility='hidden';
+    document.all["CpLin2listado2"].style.visibility='hidden';
+    document.all["CpLin3listado2"].style.visibility='hidden';
+    document.all["CpLin4listado2"].style.visibility='hidden';
+    document.all["separa2Div"].style.visibility='hidden';
+    document.all["primera2Div"].style.visibility='hidden';
+    document.all["ret2Div"].style.visibility='hidden'; //Siempre invisibles
+    document.all["ava2Div"].style.visibility='hidden'; //Siempre invisibles
+    document.all["btnRecalcularDiv"].style.visibility='hidden';
+  }
+
+  function mostrarCodigoError()  {
+    var vErrCodigo = get('formulario.errCodigo');
+    var vErrDescrip = get('formulario.errDescripcion');
+    if (get('formulario.errDescripcion')!='')  {
+      var wnd = fMostrarMensajeError( vErrCodigo,vErrDescrip);
+    }
+  }
+
+  function onLoadPag()   {
+    configurarMenuSecundario("formulario");
+    mostrarCodigoError();
+    ocultaListado2();
+    var arrDatos = new Array();
+    arrDatos = armarArray();
+    muestraListado1();
+    eval (ON_RSZ);
+    listado1.maxSel=1;
+    listado2.maxSel=1;
+
+	// gPineda BELC300020326 13/09/06
+	listado2.ponColorFondoFila = ponColorFondoFila_Modificada;
+   listado2.repintaDat_simplificado = repintaDat_simplificado_Modificado;
+
+   configurarPaginado(mipgndo,"MAVCargarCampaniasSimularEstimadosBP","ConectorCargarCampaniasSimularEstimadosBP","es.indra.sicc.cmn.negocio.auditoria.DTOSiccPaginacion",arrDatos);
+   }
+
+  function datos ( datum ) {
+    set ('formulario.campana',datum);
+    var reg =datum.split('|');
+    var campo = 'nada';
+    var campo2 = new Array();
+
+    for (i = 0; i < reg.length-1; i++){
+      var fila = new Array();
+
+      campo = reg[i];
+      campo2 = campo.split('¬');
+
+// Modificado por ssantana, inc. 15618.
+      fila[0]= campo2[0];
+      fila[1]= campo2[1];
+      fila[2]= campo2[2];
+      fila[3]= campo2[4];
+      fila[4]= campo2[5];
+      fila[5]= campo2[7];
+      fila[6]= campo2[9];
+      fila[7]= campo2[21];
+      fila[8]= campo2[10];
+      fila[9]= campo2[11];
+      fila[10]= campo2[13];
+      fila[11]= campo2[14];
+      fila[12]= campo2[15];
+      fila[13]= campo2[6];
+      fila[14]= campo2[8];
+      fila[15]= campo2[23];
+      fila[16]= "false";
+
+      /*fila[0]= campo2[0];
+      fila[1]= campo2[1];
+      fila[2]= campo2[2];
+      fila[3]= campo2[4];
+      fila[4]= campo2[5];
+      fila[5]= campo2[7];
+      fila[6]= campo2[9];
+      fila[7]= campo2[21];
+      fila[8]= campo2[10];
+      fila[9]= campo2[11];
+      fila[10]= campo2[13];
+      fila[11]= campo2[14];
+      fila[12]= campo2[15];
+      fila[13]= campo2[6];
+      fila[14]= campo2[8];
+      fila[15]= campo2[23];
+      fila[16]= "false";*/
+
+
+      if(fila[0]=="null") fila[0]="";
+      if(fila[1]=="null") fila[1]="";
+      if(fila[2]=="null") fila[2]="";
+      if(fila[3]=="null") fila[3]="";
+      if(fila[4]=="null") fila[4]="";
+      if(fila[5]=="null") fila[5]="";
+      if(fila[6]=="null") fila[6]="";
+      if(fila[7]=="null") fila[7]="";
+      if(fila[8]=="null") fila[8]="";
+      if(fila[9]=="null") fila[9]="";
+      if(fila[10]=="null") fila[10]="";
+      if(fila[11]=="null") fila[11]="";
+      if(fila[12]=="null") fila[12]="";
+      if(fila[13]=="null") fila[13]="";
+      if(fila[14]=="null") fila[14]="";
+      if(fila[15]=="null") fila[15]="";
+      if(fila[16]=="null") fila[16]="";
+
+      listado2.insertar(fila);
+      //listado1.actualizaDat();
+      //listado1.repinta();
+    }
+    muestraListado2();
+    focalizaBotonHTML_XY('btnRecalcular');
+  }
+
+         function recalcular() {
+         if (listado2.numSelecc()== 0) {
+           GestionarMensaje('1021',null,null,null);
+           return false;
+         }
+         else {
+           var listado = listado2.datos;
+           var indice = listado2.selecc;
+           var obj = new Object();
+
+           for(var i =0; i<indice.length; i++) {
+             if(indice[i]==1) {
+                var oidDetalleMAV = listado[i][0];
+                var tipoClasificacion = listado[i][13];
+                var clasificacion = listado[i][14];
+                var oidsSubtipos = listado[i][15];
+                var recal = listado[i][16];
+
+                if(recal=="true") {
+                  var recalCodProducto = listado[i][1];
+                  var recalCodVenta = listado[i][2];
+                  var recalDesProducto = listado[i][3];
+                  var recalClientesEsti = listado[i][7];
+                  var recalUnidadesPro = listado[i][8];
+                  var recalUnidadesTot = listado[i][9];
+                  var recalUnidadesDis = listado[i][10];
+                  var recalCondicion = listado[i][11];
+                  var recalValCondicion = listado[i][12];
+
+                  obj.recalCodProducto = recalCodProducto;
+                  obj.recalCodVenta = recalCodVenta;
+                  obj.recalDesProducto = recalDesProducto;
+                  obj.recalClientesEsti = recalClientesEsti;
+                  obj.recalUnidadesPro = recalUnidadesPro;
+                  obj.recalUnidadesTot = recalUnidadesTot;
+                  obj.recalUnidadesDis = recalUnidadesDis;
+                  obj.recalCondicion = recalCondicion;
+                  obj.recalValCondicion = recalValCondicion;
+                }
+             }
+           }
+
+           var tip_cli = get('formulario.tip_cli');
+
+           obj.tip_cli = tip_cli;
+           obj.tipoClasificacion = tipoClasificacion;
+           obj.clasificacion = clasificacion;
+           obj.oidDetalleMAV = oidDetalleMAV;
+           obj.oidsSubtipos = oidsSubtipos;
+           obj.recal = recal;
+
+           var nuevosValores = mostrarModalSICC('LPSimularEstimadosBP','cargarPaginaDetalle',obj,800,350);
+           detalle(); //cargamos el detalle de la campaña
+           /*if(nuevosValores!=null) {
+             var limpia = new Array();
+             listado2.setDatos(limpia);
+             listado2.insertar(nuevosValores);
+           }*/
+         }
+    }
+
+   function armarArray(){
+      var arrDatos = new Array();
+      var i=0;
+
+      arrDatos[i] = new Array('oidPais',get('formulario.pais'));
+      i++;
+
+      arrDatos[i] = new Array('oidIdioma',get('formulario.idioma'));
+      i++;
+      return arrDatos;
+  }
+
+  function focoBotonDetalle() {
+    focalizaBotonHTML_XY('btnDetalle');
+  }
+
+  function focoBoton() {
+    if(document.all["btnRecalcularDiv"].style.visibility=='hidden') {
+      focalizaBotonHTML_XY('btnDetalle');
+    }
+    else {
+      focalizaBotonHTML_XY('btnRecalcular');
+    }
+  }
+
+  function muestraLista(ultima, rowset) {
+    var tamano = rowset.length;
+    if (tamano > 0) {
+      focoBotonDetalle();
+           return true;
+    }
+    else{
+      focoBotonDetalle();
+    }
+  }
+
+  function fLimpiar() {
+    ocultaListado2();
+    focoBotonDetalle();
+  }
+
+var ROJO_FONDO = "#FF6666";
+var ROJO_SELECCION = "#FF3333";
+
+// Criterio para cambiar el color de la fila
+function seModificaColor( fila ){
+	//Si (Unidades Disponibles < Unidades Totales)
+	if( listado2.datos[fila][10] < listado2.datos[fila][9] )
+		return true;
+	else
+		return false;
+}
+
+// gPineda BELC300020326
+// Se sobreescribe la función de Druida para que contemple
+// distintos colores por fila.
+function ponColorFondoFila_Modificada(fila,color){
+	var j,tab=document.all["tblDat"+listado2.nombre];
+	if( seModificaColor(fila) )
+		if(color=="")
+			color= ROJO_FONDO;
+		else
+			color= ROJO_SELECCION;
+
+	if (listado2.renderOptimizado) {
+		var fila=tab.rows(fila);
+		for (j=0;j<fila.cells.length;j++)
+			fila.cells(j).style.backgroundColor=color;
+	} else {
+		var fila;
+		if (listado2.GrHDat > 0)
+			fila=tab.rows(fila*2);
+		else
+			fila=tab.rows(fila);
+		for (j=0;j<fila.cells.length;j++) {
+			if (listado2.GrV==0 ||DrEsPar(j))
+				{ fila.cells(j).style.backgroundColor=color; }
+		}
+	}
+}
+
+// gPineda BELC300020326
+// Se sobreescribe la función de Druida para que contemple
+// distintos colores por fila.
+	function repintaDat_simplificado_Modificado() {//Función de render rápido (¿ menos funcionalidad ?)
+      var debeEscapar = /<|>|\"/;
+      var minombre=listado2.nombre;
+      var dat=listado2.datos;
+      var elOnMouseOverTabla="",elOnMouseOutTabla="",elOnClickTabla="",elOnDblClickTabla="";
+
+      if (listado2.colOn!="")   {
+         elOnMouseOverTabla=" onMouseOver="+minombre+".onMouseOverTabla() ";
+         elOnMouseOutTabla=" onMouseOut="+minombre+".onMouseOutTabla() ";
+         }
+
+      //if (listado2.colSel!="" || listado2.elOnClick!="") {
+      if ((listado2.colOn!="" || listado2.colSel!="") && listado2.tipoSeleccion=="fila") {
+         if (listado2.hayDobleClic)  {
+            elOnClickTabla=" onClick=window.TOSrcEvent=window.event.srcElement;"+minombre+".IDDBLCLICK=setTimeout('"+minombre+".onClickTabla(true)',"+listado2.msegDobleClick+") ";
+            elOnDblClickTabla=" ondblclick="+minombre+".onDblclickTabla() ";
+            }
+         else
+            elOnClickTabla=" onClick="+minombre+".onClickTabla() ";
+         }
+      var txt=[];
+      txt.mete("<FORM action=\"\" name=\"form"+minombre+"\">");
+      txt.mete("<TABLE ID=tblDat"+minombre+" border=0 cellspacing=0 cellpadding=0 class=brdTblDat"+minombre+" "+ elOnMouseOverTabla + elOnMouseOutTabla + elOnClickTabla + elOnDblClickTabla +">")
+      //Preproceso:
+      //preparo una matriz de columnas ocultas y minimizadas y de relación con el índice de la matriz de datos (por los botones)
+      var colVisible=[], colMinimizada=[], colIndEnDatos=[];//Indice de la columna de datos asociada a esa columna de la lista. Relacionado con los botones
+         //Hay que quitar la primera columna de los datos (codigo)
+         //Hay que asociar columnas de datos solo a los tipos de columna que los requieran (boton no lo requiere)
+      var columnaDatos=1;
+      for (var c=0,tam=listado2.tiposCol.length;c<tam;c++)   {
+         colVisible.mete( (listado2.estadoCol[c][0].toUpperCase()!="OCULTA")?true:false );
+         colMinimizada.mete( (listado2.estadoCol[c][0].toUpperCase()!="MINIMIZADA")?false:true );
+         if (listado2.tiposCol[c][0].toUpperCase() == "BOTON")
+            colIndEnDatos.mete(-1);//Al boton le asignamos un -1
+         else  {
+            colIndEnDatos.mete(columnaDatos);
+            columnaDatos++;
+            }
+         }
+      var elHhtmlTr=(listado2.altoFila!='')?"<TR height="+listado2.altoFila+">":"<TR>";
+      for (var f=0,tam=dat.length;f<tam;f++)   {//Por cada fila a partir de la segunda ...
+         txt.mete(elHhtmlTr);
+         for (var c=0,tam2=listado2.tiposCol.length;c<tam2;c++)   {//Por cada columna ...
+            if (colVisible[c]) {//Si la columna es visible
+               var cEst=listado2.estilosDat[c];
+               var estilotd=cEst[f%(cEst.length)];
+               txt.mete("<TD ID="+estilotd+">");
+               var eldato="";
+               if (colIndEnDatos[c]!=-1) { //Si no es boton
+                  var datoTemp = listado2.datos[f][colIndEnDatos[c]]+"";
+                  if(debeEscapar.test(datoTemp))
+                     eldato=DrdEscHTML(datoTemp);
+                  else
+                     eldato=datoTemp;
+                  }
+               if (!colMinimizada[c]) {
+                  var t2=listado2.nbsp+listado2.pintaElemento(listado2.tiposCol[c] , eldato ,f,c);
+                  if (t2=="")
+                     txt.mete("&nbsp;");//Para que se vean los estilos
+                  else
+                     txt.mete(t2);
+                  }
+               else
+                  txt.mete("&nbsp;");
+               if (f==0)
+                  txt.mete("<BR><div style=height:1;width:"+listado2.anchos[c]+"><x/></div>");
+               txt.mete("</TD>");
+               }
+            }
+         txt.mete("</TR>");
+         }
+      txt.mete("</TABLE>");
+      scroll_to('CpScroll'+minombre,txt.join(''));
+      if (!window.FLAG_SCR_NATIVO || window.FLAG_SCR_NATIVO!='S')
+         listado2.form=listado2.cpDat.document["form"+listado2.nombre];
+      else
+         listado2.form=document["form"+listado2.nombre];
+      listado2.cargaEstadoBotones(listado2.selecc);
+
+	// MODIFICADO: Al final pinta de vuelta las filas, donde se evaluará el color
+	  for (var i = 0; i < listado2.datos.length;i++ ) {listado2.ponColorFondoFila(i,""); } 
+      }
+
+]]> 
+</JAVASCRIPT>
+
+<FORMULARIO nombre="formulario">
+<VAR nombre="accion" valor=""/>
+<VAR nombre="casoDeUso" valor=""/>
+<VAR nombre="errCodigo" valor=""/>
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="conectorAction" valor=""/>
+
+<VAR nombre="idioma" valor=""/>
+<VAR nombre="pais" valor=""/>
+
+<VAR nombre="marca" valor=""/>
+<VAR nombre="tip_cli" valor=""/>
+<VAR nombre="actividad" valor=""/>
+<VAR nombre="campana" valor=""/>
+<VAR nombre="seleccion" valor=""/>
+<VAR nombre="oid_det" valor=""/>
+
+<VAR nombre="recal" valor=""/>
+
+<VAR nombre="recalCodProducto" valor=""/>
+<VAR nombre="recalCodVenta" valor=""/>
+<VAR nombre="recalDesProducto" valor=""/>
+<VAR nombre="recalClientesEsti" valor=""/>
+<VAR nombre="recalUnidadesPro" valor=""/>
+<VAR nombre="recalUnidadesTot" valor=""/>
+<VAR nombre="recalUnidadesDis" valor=""/>
+<VAR nombre="recalCondicion" valor=""/>
+<VAR nombre="recalValCondicion" valor=""/>
+
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="100%" ><IMG src="b.gif" width="424" height="8"/></td>
+    
+    </tr>
+ </table>
+
+<LISTAEDITABLE nombre="listado1" ancho="400" alto="317" x="12" y="12" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+         <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+         <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+         <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+      <LINEAS>
+         <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="0" horizTitulo="1" horizBase="1"/> 
+         <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00168" ID="datosTitle" />
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+         <COL ancho="30" minimizable="S" minimizada="N"/>
+         <COL ancho="50" minimizable="S" minimizada="N" orden="alfanumerico"/> 
+         <COL ancho="48" minimizable="S" minimizada="N"/> 
+         <COL ancho="10" minimizable="S" minimizada="N"/> 
+         <COL ancho="40" minimizable="S" minimizada="N"/> 
+         <COL ancho="48" minimizable="S" minimizada="N"/> 
+                  <COL ancho="30" minimizable="S" minimizada="N" oculta="S"/>
+                  <COL ancho="30" minimizable="S" minimizada="N" oculta="S"/>
+                  <COL ancho="30" minimizable="S" minimizada="N" oculta="S"/>
+                  <COL ancho="30" minimizable="S" minimizada="N" oculta="S"/>
+                  
+      </COLUMNAS>
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+         <COL colFondo="" ID="EstCab" align="center" cod="5">País</COL> 
+         <COL colFondo="" ID="EstCab" cod="6">Marca</COL>  
+         <COL colFondo="" ID="EstCab" cod="7">Canal</COL> 
+         <COL colFondo="" ID="EstCab" cod="276">Período</COL> 
+    <COL colFondo="" ID="EstCab" cod="173">Actividad</COL>
+         <COL colFondo="" ID="EstCab" cod="393">Tipo cliente</COL>
+         <COL colFondo="" ID="EstCab" >oidmarca</COL>
+         <COL colFondo="" ID="EstCab" >oidTipCli</COL>
+         <COL colFondo="" ID="EstCab" >oidactividad</COL>
+         <COL colFondo="" ID="EstCab" >oidPeriodo</COL>
+         
+      </CABECERA>
+                  <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+                                     coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+                                     onLoad="" colorSelecc="#D0D9E8">
+                                              <COL tipo="texto" ID="EstDat"/> 
+                                              <COL tipo="texto" ID="EstDat2"/> 
+                                              <COL tipo="texto" ID="EstDat"/> 
+                                              <COL tipo="texto" ID="EstDat2"/> 
+                                              <COL tipo="texto" ID="EstDat"/> 
+                                              <COL tipo="texto" ID="EstDat2"/> 
+                                              <COL tipo="texto" ID="EstDat"/> 
+                                              <COL tipo="texto" ID="EstDat2"/> 
+                                              <COL tipo="texto" ID="EstDat"/> 
+                                              <COL tipo="texto" ID="EstDat2"/> 
+                  </DATOS>
+      <ROWSET>
+         
+      </ROWSET>
+      <PAGINADO nombre="mipgndo" ancho="400" sep="$" x="12" class="botonera" y="306" control="|" conector="" rowset="" cargainicial="N" onload="procesarPaginado(mipgndo,msgError,ultima,rowset,'muestraLista(ultima,rowset)');">
+         
+         <BOTON nombre="ret1" x="37" y="310" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+         <BOTON nombre="ava1" x="52" y="310" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>
+         
+    </PAGINADO>
+  </LISTAEDITABLE>
+  <BOTON nombre="primera1" x="20" y="310" ID="botonContenido" img="primera_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();" />      
+  <BOTON nombre="separa1" x="59" y="306" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />      
+  <BOTON nombre="btnDetalle" x="80" y="307" ID="botonContenido" tipo="html" estado="false" cod="3" accion ="detalle();" ontab="focoBoton();" onshtab="focoBoton();"/> 
+        
+   
+ 
+  <LISTAEDITABLE nombre="listado2" ancho="400" alto="317" x="12" y="353" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+         <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+         <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+         <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+      <LINEAS>
+         <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="0" horizTitulo="1" horizBase="1"/> 
+         <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00169" ID="datosTitle" />
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+         <COL ancho="100" minimizable="S" minimizada="N"/>
+          <COL ancho="80" minimizable="S" minimizada="N" oculta="S" />   
+         <COL ancho="150" minimizable="S" minimizada="N"/> 
+         <COL ancho="150" minimizable="S" minimizada="N"/> 
+         <COL ancho="100" minimizable="S" minimizada="N"/> 
+         <COL ancho="100" minimizable="S" minimizada="N"/> 
+         <COL ancho="150" minimizable="S" minimizada="N"/> 
+         <COL ancho="150" minimizable="S" minimizada="N"/> 
+         <COL ancho="150" minimizable="S" minimizada="N"/> 
+         <COL ancho="120" minimizable="S" minimizada="N"/> 
+         <COL ancho="70" minimizable="S" minimizada="N"/> 
+         <COL ancho="110" minimizable="S" minimizada="N"/> 
+      </COLUMNAS>
+      <CABECERA alto="20" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+         <COL colFondo="" ID="EstCab" align="center" cod="337">Cód. producto</COL> 
+          <COL colFondo="" ID="EstCab" cod="336">Cód. venta</COL>   
+         <COL colFondo="" ID="EstCab" cod="338">Descripción producto</COL> 
+         <COL colFondo="" ID="EstCab" cod="595">Subtipo cliente</COL>
+         <COL colFondo="" ID="EstCab" cod="756">Tipo clasificación</COL>
+         <COL colFondo="" ID="EstCab" cod="550">Clasificación</COL>
+         <COL colFondo="" ID="EstCab" cod="931">Nº clientes estimados</COL>
+         <COL colFondo="" ID="EstCab" cod="1017">Unidades promedio</COL>
+         <COL colFondo="" ID="EstCab" cod="1015">Unidades totales</COL>
+         <COL colFondo="" ID="EstCab" cod="1011">Unidades disponibles</COL>
+         <COL colFondo="" ID="EstCab" cod="1376">Condición</COL>
+         <COL colFondo="" ID="EstCab" cod="1377">Valor condición</COL>
+      </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="-1" msgErrMaxSel="" 
+              coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+              onLoad="" colorSelecc="#D0D9E8">
+        <COL tipo="texto" ID="EstDat"/> 
+        <COL tipo="texto" ID="EstDat2"/>  
+        <COL tipo="texto" ID="EstDat"/> 
+        <COL tipo="texto" ID="EstDat2"/> 
+        <COL tipo="texto" ID="EstDat"/> 
+        <COL tipo="texto" ID="EstDat2"/> 
+        <COL tipo="texto" ID="EstDat"/> 
+        <COL tipo="texto" ID="EstDat2"/> 
+        <COL tipo="texto" ID="EstDat"/> 
+        <COL tipo="texto" ID="EstDat2"/> 
+        <COL tipo="texto" ID="EstDat"/> 
+        <COL tipo="texto" ID="EstDat2"/> 
+      </DATOS>
+      <ROWSET>
+         
+      </ROWSET>
+        <PAGINADO nombre="mipgndo2" ancho="400" sep="$" x="12" class="botonera" y="647" control="|" conector="conectorSandra1" rowset="" cargainicial="N">
+         
+         <BOTON nombre="ret2" x="37" y="651" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo2.retroceder();" /> 
+         <BOTON nombre="ava2" x="52" y="651" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo2.avanzar();"/>
+         
+    </PAGINADO>
+  </LISTAEDITABLE>
+  <BOTON nombre="primera2" x="20" y="651" ID="botonContenido" img="primera_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo2.retrocederPrimeraPagina();" />      
+  <BOTON nombre="separa2" x="59" y="647" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />      
+  <BOTON nombre="btnRecalcular" x="13" y="648" ID="botonContenido" tipo="html" estado="false" cod="978" accion ="recalcular();" onshtab="focoBotonDetalle();" ontab="focoBotonDetalle();"/> 
+        
+   
+ <CAPA nombre="capaEspacio" alto="12" ancho="100%" colorf="" borde="0" imagenf="" 
+      repeat="" padding="" visibilidad="visible" contravsb="" x="0" y="670" zindex="">
+  </CAPA>                                                                                                                                                                                   
+</FORMULARIO>
+</PAGINA>  
+

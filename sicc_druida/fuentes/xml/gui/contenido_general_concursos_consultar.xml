@@ -1,0 +1,820 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!--
+   INDRA/CAR/sic3
+   $Id: contenido_general_concursos_consultar.xml,v 1.1 2009/12/03 18:44:33 pecbazalar Exp $
+   EDU
+
+   DRUIDATARGET=/install/cvsiniciales
+-->
+
+<!DOCTYPE PAGINA SYSTEM "dtd/druida_3_0.dtd">
+
+<PAGINA nombre="contenido_general_concursos_consultar" cod="0945" titulo="" estilos="estilosB3.css" colorf="#F0F0F0" msgle="" onload="onLoadPag();" xml:lang="es">
+
+<JS src="sicc_util.js"></JS> 
+<JS src="PaginacionSicc.js"></JS>
+<JS src="DruidaTransactionMare.js"></JS>
+
+<JAVASCRIPT>    
+  <![CDATA[
+
+         var invocado = "";
+         
+         function onLoadPag() {        
+                  configurarMenuSecundario("formulario");
+                  ocultarLista();
+
+				  // vbongiov -- INC-014 -- 6/09/2008	
+				  if(get("formulario.txtCodCliente")!="") {
+
+				    invocado = "Call Center";
+
+					onChangectCodigoCliente();
+				  }
+
+                  focoCodigoCliente();
+    }
+
+         function fLimpiar() {
+                  set("formulario.varOidCliente", "");      
+                  set("formulario.oidConcurso", "");   
+                  onLoadPag();
+         }
+
+         function focoCodigoCliente() {
+                  focaliza("formulario.txtCodCliente");
+         }
+
+         function ocultarLista() {
+                  DrdEnsanchaConMargenDcho('listado1',12);      
+                  document.all["Cplistado1"].style.visibility='hidden'; 
+                  document.all["CpLin1listado1"].style.visibility='hidden';  
+                  document.all["CpLin2listado1"].style.visibility='hidden'; 
+                  document.all["CpLin3listado1"].style.visibility='hidden';
+                  document.all["CpLin4listado1"].style.visibility='hidden';         		
+                  document.all["primera1Div"].style.visibility='hidden'; 
+                  document.all["ret1Div"].style.visibility='hidden';
+                  document.all["ava1Div"].style.visibility='hidden';  
+                  document.all["separaDiv"].style.visibility='hidden';            
+                  document.getElementById("Detalle").style.visibility = "hidden";
+                  document.getElementById("PremiosProcesados").style.visibility = "hidden";
+                  document.getElementById("Recomendacion").style.visibility = "hidden";
+                  document.getElementById("PremiosSeleccionados").style.visibility = "hidden";
+                  document.getElementById("MotivosDescalificacion").style.visibility = "hidden";
+				  document.getElementById("PremiosAsociadosNivel").style.visibility = "hidden";
+                  eval (ON_RSZ);             
+         }
+
+         function mostrarListaResultados() {
+                  DrdEnsanchaConMargenDcho('listado1',12);      
+                  document.all["Cplistado1"].style.visibility='visible'; 
+                  document.all["CpLin1listado1"].style.visibility='visible';  
+                  document.all["CpLin2listado1"].style.visibility='visible'; 
+                  document.all["CpLin3listado1"].style.visibility='visible';
+                  document.all["CpLin4listado1"].style.visibility='visible';         		
+                  document.all["primera1Div"].style.visibility='visible'; 
+                  document.all["ret1Div"].style.visibility='visible';
+                  document.all["ava1Div"].style.visibility='visible';  
+                  document.all["separaDiv"].style.visibility='visible';            
+                  document.getElementById("Detalle").style.visibility = "visible";
+                  document.getElementById("PremiosProcesados").style.visibility = "visible";
+                  document.getElementById("Recomendacion").style.visibility = "visible";
+                  document.getElementById("PremiosSeleccionados").style.visibility = "visible";
+                  document.getElementById("MotivosDescalificacion").style.visibility = "visible";
+				  document.getElementById("PremiosAsociadosNivel").style.visibility = "visible";
+                  eval (ON_RSZ);             
+         }
+
+         function onClickboBusquedaCliente() {	
+             var obj = new Object();
+                  var whnd = mostrarModalSICC('LPBusquedaRapidaCliente','',obj);
+  
+                  if(whnd!=null){
+                    var oid = whnd[0];
+                var cod = whnd[1];      
+           	  var nombre1 = whnd[2];
+                var nombre2 = whnd[3];
+                    var apellido1 = whnd[4];
+                var apellido2 = whnd[5];
+
+                    var nombreCompleto = nombre1 + " " + nombre2 + " " + apellido1 
+                    + " " + apellido2
+      
+                    set("formulario.txtCodCliente", cod);
+                    set("formulario.varOidCliente", oid);      
+                    set("formulario.laNombreApellido", nombreCompleto);      		  
+                    txt_to('lbldtNombreApellidos', nombreCompleto);
+					onChangectCodigoCliente();
+                  }
+         }
+
+         function onChangectCodigoCliente() {		
+		  		  ocultarLista();
+                  clienteOnBlur();
+                  //Si cambio el codigo de cliente, se limpia la variable
+                  //oculta que tiene el oid, y el campo nombre-apellido
+                  set("formulario.varOidCliente", "");    
+                  txt_to('lbldtNombreApellidos', "");
+
+                  if(get("formulario.txtCodCliente")!="") {
+                           eval("formulario").oculto= "S";
+                           set("formulario.conectorAction", "LPConsultaGeneralConcurso");
+                           set("formulario.accion", "cargaClienteConcurso");
+                           set("formulario.codigoCliente", get("formulario.txtCodCliente"));
+                           set("formulario.numeroConcurso", get("formulario.txtNumconcurso"));
+                           enviaSICC('formulario', '', '', 'N');
+                  }		
+         }
+
+         function parseaCombo(str){	
+                  var arr = new Array();	
+                  var arrVacio = new Array();
+                  arrVacio[0] = "";
+                  arrVacio[1] = "";
+                  arr[0] = arrVacio;
+
+                  var filas = str.split('|');
+
+                  for(var i=0; i<filas.length; i++) {
+                           var campos = filas[i];
+                           var campo = campos.split(",");
+                           arrIn = new Array();
+                           arrIn[0] = campo[0];
+                           arrIn[1] = campo[1];                           
+                           arr[i+1] = arrIn;      		
+                  }
+
+                  return arr;
+         }  
+
+         function seteandoOidDefecto(oidDefault) {
+         var oidSeleccionado = new Array();
+         oidSeleccionado = oidDefault.split(",");             
+                  set("formulario.cbUnidadAdministrativa", oidSeleccionado);
+         }
+
+		 function finalizaCargaClienteConcurso(oidCliente, codigoCliente, 
+             nombresApellidos, oidConcurso, unidades, oidDefault, numeroConcurso) {
+             set_combo("formulario.cbUnidadAdministrativa", parseaCombo(unidades));
+                  if(oidDefault!="") {
+                           seteandoOidDefecto(oidDefault);
+                  }
+                  if(oidCliente!="") {
+                           set("formulario.varOidCliente", oidCliente);      
+                  }
+                  else {
+                           set("formulario.varOidCliente", "");      
+                  }
+
+                  if(codigoCliente!="") {
+                           set("formulario.txtCodCliente", codigoCliente);
+                  }
+                  else {
+                           set("formulario.txtCodCliente", "");
+                  }
+                  if(nombresApellidos!="") {
+                           set("formulario.laNombreApellido", nombresApellidos);      		  
+                           set("formulario.tempNombreApellido", nombresApellidos);      		  
+                  }
+                  else {
+                           set("formulario.laNombreApellido", "");      		  
+                           set("formulario.tempNombreApellido", "");      		  
+                  }
+                  if(nombresApellidos!="") {
+                           txt_to('lbldtNombreApellidos', nombresApellidos);
+                  }
+                  else {
+                           txt_to('lbldtNombreApellidos', nombresApellidos);
+                  }
+                  if(oidConcurso!="") {
+                           set("formulario.oidConcurso", oidConcurso);      	
+                  }
+                  else {
+                           set("formulario.oidConcurso", "");      	
+                  }
+                  
+                  if(numeroConcurso!="") {
+                           set("formulario.txtNumconcurso", numeroConcurso);      	
+                  }
+                  else { 
+                           set("formulario.txtNumconcurso", "");      	
+                  }
+                  eval("formulario").oculto= "N";
+                  focaliza("formulario.cbUnidadAdministrativa");	
+				  
+				  // vbongiov -- INC-014 -- 26/11/2008
+				  if(invocado == "Call Center"){
+					 onClickboBuscar();
+				  }
+         }
+
+         function errorFinalizaCargaClienteConcurso() {
+                  eval("formulario").oculto= "N";
+
+                  var arr = new Array();	
+                  var arrVacio = new Array();
+                  arrVacio[0] = "";
+                  arrVacio[1] = "";
+                  arr[0] = arrVacio;
+
+                  set_combo("formulario.cbUnidadAdministrativa", arr);
+                  set("formulario.txtCodCliente", "");		
+                  focoCodigoCliente();		
+         }
+
+         function errorAsignarOidsOcultos() {
+                  eval("formulario").oculto= "N";
+
+                  set("formulario.oidSeccion", "");
+                  set("formulario.oidZona", "");
+                  set("formulario.oidRegion", "");
+         }
+
+         function asignarOidsOcultos(oidSeccion, oidZona, oidRegion) {
+                  eval("formulario").oculto= "N";
+
+                  set("formulario.oidSeccion", oidSeccion);
+                  set("formulario.oidZona", oidZona);
+                  set("formulario.oidRegion", oidRegion);
+
+                  var arr = new Array();
+                  arr[arr.length] = 
+                  new Array("oidCliente", get("formulario.varOidCliente")+"");
+
+                  arr[arr.length] = 
+                  new Array("oidConcurso", get("formulario.oidConcurso")+""); 
+
+                  arr[arr.length] = 
+                  new Array("numeroConcurso", get("formulario.txtNumconcurso")+"");
+
+                  arr[arr.length] = 
+				  new Array("oidRegion", get("formulario.oidRegion")+""); 
+
+				  arr[arr.length] = 
+				  new Array("oidZona", get("formulario.oidZona")+"");
+
+				  arr[arr.length] = 
+				  new Array("oidSeccion", get("formulario.oidSeccion")+""); 
+
+				  // vbongiov -- INC-014 -- 6/09/2008
+				  arr[arr.length] = 
+				  new Array("oidTipoConcurso", get("formulario.cbTipoConcurso")+""); 
+
+				  arr[arr.length] = 
+				  new Array("oidEstadoConcurso", get("formulario.cbEstadoConcurso")+""); 
+           
+                  configurarPaginado(mipgndo,"INCBuscaConcursosConsultaIntegral", 
+                  "ConectorBuscaConcursosConsultaIntegral",
+                  "es.indra.sicc.dtos.inc.DTOCabeceraConsultaIntegral",arr);		
+         }
+
+         function onClickboBuscar() {
+                  if(!sicc_validaciones_generales('grupoCodigoCliente')) {
+                           return;
+                  }
+
+                  if(get("formulario.cbUnidadAdministrativa")!="") {
+                           eval("formulario").oculto= "S";
+                           set("formulario.conectorAction", "LPConsultaGeneralConcurso");
+                           set("formulario.accion", "recuperarValoresUA");
+                           set("formulario.oidUA", get("formulario.cbUnidadAdministrativa"));
+                           enviaSICC('formulario', '', '', 'N');
+                  }
+                  else {
+                           var arr = new Array();
+                           arr[arr.length] = 
+                           new Array("oidCliente", get("formulario.varOidCliente")+"");
+
+                           arr[arr.length] = 
+                           new Array("oidConcurso", get("formulario.oidConcurso")+""); 
+
+                           arr[arr.length] = 
+                           new Array("numeroConcurso", get("formulario.txtNumconcurso")+"");
+
+                           arr[arr.length] = 
+                           new Array("oidRegion", get("formulario.oidRegion")+""); 
+
+                           arr[arr.length] = 
+                           new Array("oidZona", get("formulario.oidZona")+"");
+
+                           arr[arr.length] = 
+                           new Array("oidSeccion", get("formulario.oidSeccion")+""); 
+							
+						   // vbongiov -- INC-014 -- 6/09/2008
+						   arr[arr.length] = 
+                           new Array("oidTipoConcurso", get("formulario.cbTipoConcurso")+""); 
+
+						   arr[arr.length] = 
+                           new Array("oidEstadoConcurso", get("formulario.cbEstadoConcurso")+""); 
+                    
+                           configurarPaginado(mipgndo,"INCBuscaConcursosConsultaIntegral", 
+                           "ConectorBuscaConcursosConsultaIntegral",
+                           "es.indra.sicc.dtos.inc.DTOCabeceraConsultaIntegral",arr);		
+                  }		
+         }
+
+         function obtenerPosicionListaEditable(clave, lista){
+                  this.posicion = 0;
+                  if (lista.codSeleccionados().length > 0){
+                           for(var k=0;k<lista.datos.length;k++) {
+                                    if (lista.datos[k][0] == clave) {
+                                             posicion=k;
+                                             break;
+                                    }
+                           }        
+                           return posicion;
+                  }
+   }
+
+         function obtenerValoresRegistro() {
+                  var obj = new Object();
+
+                  listado1.actualizaDat();
+                  datos = listado1.datos;
+
+                  // Obtengo el índice de la fila marcada 
+                  //(en este punto, solo una estará marcada)
+                  var filaMarcada = obtenerPosicionListaEditable(listado1.codSeleccionados(),listado1);
+
+                  //1° Obtengo el oid de concurso
+                  var oidConcurso = datos[filaMarcada][1]; 
+
+                  //2° Obtengo el numero de concurso
+                  var numeroConcurso = datos[filaMarcada][2]; 
+
+                  //3° Obtengo el nombre de concurso
+                  var nombreConcurso = datos[filaMarcada][3]; 
+
+                  //4° Obtengo el oid de periodo inicial
+                  var oidPeriodoInicial = datos[filaMarcada][4]; 
+
+                  //5° Obtengo el codigo de periodo inicial
+                  var periodoInicial = datos[filaMarcada][5]; 
+
+                  //6° Obtengo el oid de periodo final
+                  var oidPeriodoFinal = datos[filaMarcada][6]; 
+
+                  //7° Obtengo el codigo de periodo final
+                  var periodoFinal = datos[filaMarcada][7]; 
+
+                  //8° Obtengo fase calificacion
+                  var faseCalificacion = datos[filaMarcada][9]; 
+
+                  //9° Obtengo el oid de base de calculo
+                  var oidBaseCalculo = datos[filaMarcada][10]; 
+
+                  //10° Obtengo multinivel
+                  var multinivel = datos[filaMarcada][11]; 		
+
+                  //11° Obtengo oidPlantilla
+                  var oidPlantilla = datos[filaMarcada][13]; 		
+                  
+                  obj.oidConcurso = oidConcurso;
+                  obj.numeroConcurso = numeroConcurso;
+                  obj.nombreConcurso = nombreConcurso;
+                  obj.oidPeriodoInicial = oidPeriodoInicial;
+                  obj.periodoInicial = periodoInicial;
+                  obj.oidPeriodoFinal = oidPeriodoFinal;
+                  obj.periodoFinal = periodoFinal;
+                  obj.faseCalificacion = faseCalificacion;
+                  obj.oidBaseCalculo = oidBaseCalculo;
+                  obj.multinivel = multinivel;
+                  obj.oidPlantilla = oidPlantilla;
+
+                  return obj;
+         }
+
+         function onClickboDetalle() {
+                  if (listado1.numSelecc()!=1) {
+                           GestionarMensaje('INC037',null,null,null);
+                      return false;		
+             }	
+
+                  var obj = obtenerValoresRegistro();
+                  obj.varBotonPresionado = "detalle";
+                  var retorno = mostrarModalSICC('LPConsultaGeneralConcurso', 
+                  'direccionaPeticionDetalle', obj);
+         }
+
+         function obtenerValoresCriteriosBusqueda() {
+                  var obj = new Object();
+
+                  var busquedaCodClien = get("formulario.txtCodCliente");
+                  var busquedaOidClien = get("formulario.varOidCliente");
+                  var busquedaNomApe = get("formulario.tempNombreApellido");
+                  var busquedaNumConcu = get("formulario.txtNumconcurso");
+                  
+                  obj.busquedaCodClien = busquedaCodClien;
+                  obj.busquedaOidClien = busquedaOidClien;
+                  obj.busquedaNomApe = busquedaNomApe;
+                  obj.busquedaNumConcu = busquedaNumConcu;
+
+                  return obj; 
+         }
+
+         function onClickboPremiosProcesados() {		
+                  var obj = obtenerValoresCriteriosBusqueda();
+                  obj.varBotonPresionado = "premiosProcesados";
+                  var retorno = mostrarModalSICC('LPConsultaGeneralConcurso', 
+                  'direccionaPeticionDetalle', obj);
+         }
+		
+		 // vbongiov -- INC-014 -- 8/10/2008
+		 function onClickboPremiosAsociadosNivel() {
+			if (listado1.numSelecc() >= 1){
+			  if (listado1.numSelecc() == 1){   
+
+				  var obj = new Object();
+
+                  listado1.actualizaDat();
+                  datos = listado1.datos;
+
+                  // Obtengo el índice de la fila marcada 
+                  //(en este punto, solo una estará marcada)
+                  var filaMarcada = obtenerPosicionListaEditable(listado1.codSeleccionados(),listado1);
+
+                  //1° Obtengo el oid de concurso
+                  var oidConcurso = datos[filaMarcada][1]; 
+				  var busquedaCodClien = get("formulario.txtCodCliente");
+                  var busquedaOidClien = get("formulario.varOidCliente");
+                  var busquedaNomApe = get("formulario.tempNombreApellido");
+                  var busquedaNumConcu = get("formulario.txtNumconcurso");
+                  
+                  obj.busquedaCodClien = busquedaCodClien;
+                  obj.busquedaOidClien = busquedaOidClien;
+                  obj.busquedaNomApe = busquedaNomApe;
+                  obj.busquedaNumConcu = busquedaNumConcu;
+				  obj.oidConcurso = oidConcurso;
+
+                  obj.varBotonPresionado = "premiosAsociadosNivel";
+                  var retorno = mostrarModalSICC('LPConsultaGeneralConcurso', 
+                  'direccionaPeticionDetalle', obj);
+
+			   } else{
+					GestionarMensaje('8',null,null,null);
+			   }
+			} else{
+				   GestionarMensaje('4',null,null,null);                        
+			} 
+
+         }
+
+         function onClickboRecomendacion() {		
+                  var obj = obtenerValoresCriteriosBusqueda();
+                  obj.varBotonPresionado = "recomendacion";
+                  var retorno = mostrarModalSICC('LPConsultaGeneralConcurso', 
+                  'direccionaPeticionDetalle', obj);
+         }
+
+         function onClickboPremiosSeleccionados() {
+                  var obj = obtenerValoresCriteriosBusqueda();
+                  obj.varBotonPresionado = "premiosSeleccionados";
+                  var retorno = mostrarModalSICC('LPConsultaGeneralConcurso', 
+                  'direccionaPeticionDetalle', obj);
+         }
+
+         function onClickboMotivosDescalificacion() {
+                  var obj = obtenerValoresCriteriosBusqueda();
+                  obj.varBotonPresionado = "motivosDescalificacion";
+                  var retorno = mostrarModalSICC('LPConsultaGeneralConcurso', 
+                  'direccionaPeticionDetalle', obj);
+         }
+
+         function ontabBotonBuscar() {
+                  if(document.getElementById("Detalle").style.visibility == "hidden") {
+                           focoCodigoCliente();
+                  }
+                  else {
+                           focalizaBotonHTML('botonContenido','Detalle');
+                  }
+         }
+
+         function onshtabCodigoCliente() {
+                  if(document.getElementById("Detalle").style.visibility == "hidden") {
+                           focoBotonBuscar();
+                  }
+                  else {
+                           focalizaBotonHTML('botonContenido','PremiosAsociadosNivel');
+                  }
+         }
+
+         function ontabBotonMotivos() {
+                  focoCodigoCliente();
+         }
+
+         function onshtabBotonDetalle() {
+                  focoBotonBuscar();
+         }
+
+         function focoBotonBuscar() {
+                  focalizaBotonHTML('botonContenido','btnBuscar');
+         }
+
+         function muestraLista(ultima, rowset, error){
+                  var tamano = rowset.length;
+         
+                  if (tamano > 0) {
+                           mostrarListaResultados();
+                      eval (ON_RSZ);
+                           focoBotonBuscar();
+                           return true;
+                  }
+                  else {
+                           ocultarLista();
+                           eval (ON_RSZ);
+                           focoBotonBuscar();
+                      return false;
+                  }
+
+                  return true;
+         }
+
+         function clienteOnBlur() {
+                  var longiCod = get('formulario.hLongCliente');
+                  var elTexto  = get('formulario.txtCodCliente');
+
+                  if(elTexto.length!=0){
+                           var faltantes = longiCod -  elTexto.length;
+                           var resultCod = new String("");
+                           
+                           if(faltantes > 0){
+                                    for(var t = 0 ; t<faltantes; t++){
+                                             resultCod = resultCod + "0";
+                                    }
+                           }
+                           
+                           resultCod = resultCod + elTexto;
+                           set('formulario.txtCodCliente', resultCod);
+            }
+         } 
+
+  ]]>   
+</JAVASCRIPT>
+
+<VALIDACION>
+  <ELEMENTO name="txtCodCliente" group="grupoCodigoCliente" required="true" cod="263" format="t" min="0" max="15"/>
+</VALIDACION>
+
+<FORMULARIO nombre="formulario">
+<VAR nombre="conectorAction" valor=""/>
+<VAR nombre="accion" valor=""/>
+<VAR nombre="errCodigo" valor=""/> 
+<VAR nombre="errDescripcion" valor=""/>
+<VAR nombre="oidPais" valor=""/> 
+<VAR nombre="oidIdioma" valor=""/>
+
+<VAR nombre="codigoCliente" valor=""/>
+<VAR nombre="varOidCliente" valor=""/>
+<VAR nombre="laNombreApellido" valor=""/>
+<VAR nombre="tempNombreApellido" valor=""/>
+<VAR nombre="numeroConcurso" valor=""/>
+<VAR nombre="oidConcurso" valor=""/>
+
+<VAR nombre="nombreConcurso" valor=""/>
+<VAR nombre="oidPeriodoInicial" valor=""/>
+<VAR nombre="periodoInicial" valor=""/>
+<VAR nombre="oidPeriodoFinal" valor=""/>
+<VAR nombre="periodoFinal" valor=""/>
+<VAR nombre="faseCalificacion" valor=""/>
+<VAR nombre="oidBaseCalculo" valor=""/>
+<VAR nombre="multinivel" valor=""/>
+
+<VAR nombre="busquedaCodClien" valor=""/>
+<VAR nombre="busquedaOidClien" valor=""/>
+<VAR nombre="busquedaNomApe" valor=""/>
+<VAR nombre="busquedaNumConcu" valor=""/>
+
+<VAR nombre="oidPlantilla" valor=""/>
+<VAR nombre="hLongCliente" valor=""/>
+
+<VAR nombre="oidRegion" valor=""/>
+<VAR nombre="oidZona" valor=""/>
+<VAR nombre="oidSeccion" valor=""/>
+
+<VAR nombre="oidUA" valor=""/>
+
+<CAPA nombre="capa1">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+      <td width="750"><IMG src="b.gif"/></td>
+      <td width="12"><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+    <tr> 
+      <td><IMG src="b.gif"/></td>
+      <td>
+<!--primer formulario-->
+         <fieldset><legend class="legend"><LABELC nombre="lblCriteriosBusqueda" alto="13" filas="1" valor="" id="legend" cod="0075"/></legend>
+                <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">
+                  <tr> <td>
+                  <table width="575" border="0" align="left" cellspacing="0" cellpadding="0">
+                  <tr> 
+                    <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td><LABELC nombre="lblCodCliente" alto="13" filas="1" valor="" id="datosTitle" cod="263"/></td>
+                     <td><IMG src="b.gif" width="25" height="8"/></td>
+                     <td><LABELC nombre="lblNombreApellidos" alto="13" filas="1" valor="" id="datosTitle" cod="943"/></td>
+                     <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr> 
+                  <tr> 
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td nowrap="nowrap"><CTEXTO nombre="txtCodCliente" id="datosCampos" max="15" tipo="" 
+                     req="S" size="22" valor="" validacion="" onshtab="onshtabCodigoCliente();" onchange="onChangectCodigoCliente();" /></td>
+                     <td><IMG src="iconBuscar.gif" onclick="onClickboBusquedaCliente();" /></td>              
+                     <td><LABELC nombre="lbldtNombreApellidos" alto="13" filas="1" valor="" id="datosCampos" /></td> 
+                     <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                  <tr>
+                     <td colspan="3"><IMG src="b.gif" width="8" height="7"/></td>
+                  </tr>
+                </table>
+                </td>
+                  </tr>
+                <tr> <td>
+                  <table width="575" border="0" align="left" cellspacing="0" cellpadding="0">
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td><LABELC nombre="lblUnidadAdministrativa" alto="13" filas="1" valor="" id="datosTitle" cod="3070"/></td>
+                                                        <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr> 
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td>
+                        <COMBO nombre="cbUnidadAdministrativa" id="datosCampos" size="1" onchange="" multiple="N" req="N" valorinicial="" textoinicial="">
+                          <ROWSET>
+                          </ROWSET>
+                        </COMBO>
+                     </td>
+                     
+                     <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                  <tr> 
+                    <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr> 
+                </table>
+                </td>
+                  </tr> 
+                   <tr> <td>
+                  <table width="575" border="0" align="left" cellspacing="0" cellpadding="0">
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     <td><LABELC nombre="lblNumConcurso" alto="13" filas="1" valor="" id="datosTitle" cod="1604"/></td>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+					 <td><LABELC nombre="lblTipoConcurso" alto="13" filas="1" valor="" id="datosTitle" cod="2417"/></td>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+					 <td><LABELC nombre="lblEstadoConcurso" alto="13" filas="1" valor="" id="datosTitle" cod="1641"/></td>
+                     <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr> 
+                  <tr>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+                     
+                     <td><CTEXTO nombre="txtNumconcurso" id="datosCampos" max="6" tipo="" onchange="" req="N" size="6" valor="" validacion="" /></td>
+                     <td><IMG src="b.gif" width="8" height="8"/></td>
+					 <td>
+					 <COMBO nombre="cbTipoConcurso" id="datosCampos" size="1" onchange="" multiple="N" req="N" valorinicial="" textoinicial="">
+                          <ROWSET>
+                          </ROWSET>
+                      </COMBO>
+					  </td>
+					  <td><IMG src="b.gif" width="8" height="8"/></td>
+					   <td>
+					   <COMBO nombre="cbEstadoConcurso" id="datosCampos" size="1" onchange="" multiple="N" req="N" valorinicial="" textoinicial="">
+                          <ROWSET>
+                          </ROWSET>
+                      </COMBO>
+					  </td>
+					  <td width="100%"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr>
+                  <tr> 
+                    <td colspan="3"><IMG src="b.gif" width="8" height="8"/></td>
+                  </tr> 
+                </table>
+                </td>
+                  </tr> 
+                </table>
+         </fieldset>
+<!--fin primer formulario-->
+      </td>
+      <td><IMG src="b.gif" /></td>
+    </tr> 
+    <tr> 
+         <td><IMG src="b.gif"/></td>
+         <td>
+           <fieldset>
+             <table width="100%" border="0" align="center" cellspacing="0" cellpadding="0">         
+                <tr>
+                  <td class="botonera">
+                    <BOTON nombre="btnBuscar" ID="botonContenido" tipo="html" accion="onClickboBuscar();" estado="false" cod="1" ontab="ontabBotonBuscar();"/>
+                  </td>
+                </tr>    
+             </table>         
+           </fieldset>
+         </td>
+         <td><IMG src="b.gif" width="8" height="12"/></td>
+      </tr>         
+    <tr>
+         <td width="12" align="center"><IMG src="b.gif" width="12" height="12"/></td>
+         <td width="756" ><IMG src="b.gif"/></td>
+         <td width="12" ><IMG src="b.gif" width="12" height="1"/></td>
+    </tr>
+  </table>
+</CAPA>
+
+  <LISTAEDITABLE nombre="listado1" ancho="808" alto="317" x="12" y="202" colorFondo="#CECFCE" msgDebugJS="S">
+      <IMGBOTONES precarga="S" conROver="S">
+         <BTNSELECCION normal="btnLista2N.gif" rollOver="btnLista2S.gif" seleccionado="btnLista2M.gif" desactivado="btnLista2D.gif" /> 
+         <BTNMINIMIZAR minimizar="bot_pliega_columna_on.gif" minimROver="bot_pliega_columna_over.gif" maximizar="bot_despliega_columna_on.gif" maximROver="bot_despliega_columna_over.gif" /> 
+         <BTNORDENAR ordenar="ascendente_on.gif" ordenarInv="descendente_on.gif"/>   
+      </IMGBOTONES>
+      <LINEAS>
+         <GROSOR borde="1" horizDatos="1" horizCabecera="1" vertical="1" horizTitulo="1" horizBase="1"/> 
+         <COLOR borde="#999999" vertCabecera="#E0E0E0" vertDatos="#FFFFFF" horizDatos="#FFFFFF" horizCabecera="#999999" horizTitulo="#999999" horizBase="#999999" /> 
+      </LINEAS>
+      <TITULO colFondo="#CECFCE" alto="22" imgFondo="" cod="00135" ID="datosTitle" />
+      <BASE colFondo="#CECFCE" alto="22" imgFondo=""/>
+      <COLUMNAS ajustarMinimo="S" permiteOrdenar="S" blancosAInsertar="1" sinSaltoLinea="S" AnchoMinimizadas="20" botonOrdenar="S">
+         <COL ancho="100" minimizable="S" minimizada="N"  oculta="S"/> 
+         <COL ancho="100" minimizable="S" minimizada="N"/>
+         <COL ancho="100" minimizable="S" minimizada="N"/> 
+         <COL ancho="100" minimizable="S" minimizada="N"  oculta="S"/> 
+         <COL ancho="100" minimizable="S" minimizada="N"/>
+         <COL ancho="100" minimizable="S" minimizada="N" oculta="S"/> 
+         <COL ancho="100" minimizable="S" minimizada="N"/> 
+         <COL ancho="100" minimizable="S" minimizada="N"/> 
+         <COL ancho="100" minimizable="S" minimizada="N" oculta="S"/> 
+         <COL ancho="100" minimizable="S" minimizada="N" oculta="S"/> 
+         <COL ancho="100" minimizable="S" minimizada="N" oculta="S"/> 
+         <COL ancho="100" minimizable="S" minimizada="N"/> 
+         <COL ancho="100" minimizable="S" minimizada="N" oculta="S"/> 
+		 <COL ancho="100" minimizable="S" minimizada="N"/> 
+		 <COL ancho="100" minimizable="S" minimizada="N"/> 
+		 <COL ancho="100" minimizable="S" minimizada="N"/> 
+      </COLUMNAS>
+      <CABECERA alto="30" IDScroll="EstCab" imgFondo="" colFondo="#CCCCCC">
+                  <COL colFondo="" ID="EstCab"></COL> 
+                  <COL colFondo="" ID="EstCab" cod="1604"></COL> 
+                  <COL colFondo="" ID="EstCab" cod="9"></COL> 
+                  <COL colFondo="" ID="EstCab"></COL> 
+                  <COL colFondo="" ID="EstCab" cod="1241"></COL>
+                  <COL colFondo="" ID="EstCab"></COL> 
+                  <COL colFondo="" ID="EstCab" cod="967"></COL>
+                  <COL colFondo="" ID="EstCab" cod="6"></COL> 
+                  <COL colFondo="" ID="EstCab"></COL> 
+                  <COL colFondo="" ID="EstCab"></COL> 
+                  <COL colFondo="" ID="EstCab"></COL> 
+                  <COL colFondo="" ID="EstCab" cod="1641"></COL> 
+                  <COL colFondo="" ID="EstCab"></COL> 
+				  <COL colFondo="" ID="EstCab" cod="3370"></COL> 
+				  <COL colFondo="" ID="EstCab" cod="3371"></COL> 
+				  <COL colFondo="" ID="EstCab" cod="3372"></COL> 
+      </CABECERA>
+      <DATOS alto="22" accion="" tipoEnvio="edicion" formaEnvio="xml" maxSel="1" msgErrMaxSel="" 
+              coloresScrollNativo="#D4D0C8,black,white,#D4D0C8,#D4D0C8,#ECE9E4,black" colorROver="#D0D9E8" 
+              onLoad="" colorSelecc="#D0D9E8">
+        <COL tipo="texto" ID="EstDat"/> 
+        <COL tipo="texto" ID="EstDat"/> 
+        <COL tipo="texto" ID="EstDat2"/> 
+        <COL tipo="texto" ID="EstDat2"/> 
+        <COL tipo="texto" ID="EstDat"/> 
+        <COL tipo="texto" ID="EstDat"/> 
+        <COL tipo="texto" ID="EstDat2"/>
+        <COL tipo="texto" ID="EstDat"/> 
+        <COL tipo="texto" ID="EstDat2"/> 
+        <COL tipo="texto" ID="EstDat2"/> 
+        <COL tipo="texto" ID="EstDat2"/> 
+        <COL tipo="texto" ID="EstDat2"/> 
+        <COL tipo="texto" ID="EstDat2"/> 
+		<COL tipo="texto" ID="EstDat"/> 
+		<COL tipo="texto" ID="EstDat2"/> 
+		<COL tipo="texto" ID="EstDat"/> 
+      </DATOS>
+      <ROWSET>
+      </ROWSET>
+      <PAGINADO nombre="mipgndo" ancho="878" sep="$" x="12" class="botonera" y="496" control="|" conector="" rowset="" cargainicial="N" onload="procesarPaginado(mipgndo,msgError, ultima, rowset, 'muestraLista(ultima, rowset)')">
+         <BOTON nombre="ret1" x="37" y="500" ID="botonContenido" img="retroceder_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retroceder();" /> 
+         <BOTON nombre="ava1" x="52" y="500" ID="botonContenido" img="avanzar_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.avanzar();"/>         
+      </PAGINADO>
+   </LISTAEDITABLE>
+
+    <BOTON nombre="primera1" x="20" y="500" ID="botonContenido" img="primera_on" tipo="0" estado="false" alt="" codigo="" accion="mipgndo.retrocederPrimeraPagina();"/>  
+    <BOTON nombre="separa" x="59" y="496" ID="botonContenido" img="separa_base" tipo="0" estado="false" alt="" codigo="" accion="" />        
+
+<CAPA nombre="capaCombo" x="77" y="494">
+  <table>
+    <tr>
+      <td>
+         <BOTON nombre="Detalle" ID="botonContenido" img="" tipo="html" estado="false" alt="" cod="3" accion="onClickboDetalle();" onshtab="onshtabBotonDetalle();"/>        
+         <BOTON nombre="PremiosProcesados" ID="botonContenido" img="" tipo="html" estado="false" alt="" cod="2871" accion="onClickboPremiosProcesados();" />        
+         <BOTON nombre="Recomendacion" ID="botonContenido" img="" tipo="html" estado="false" alt="" cod="2872" accion="onClickboRecomendacion();" />        
+         <BOTON nombre="PremiosSeleccionados" ID="botonContenido" img="" tipo="html" estado="false" alt="" cod="2873" accion="onClickboPremiosSeleccionados();" />        
+         <BOTON nombre="MotivosDescalificacion" ID="botonContenido" img="" tipo="html" estado="false" alt="" cod="2874" accion="onClickboMotivosDescalificacion();"/>    
+		 <BOTON nombre="PremiosAsociadosNivel" ID="botonContenido" img="" tipo="html" estado="false" alt="" cod="3373" accion="onClickboPremiosAsociadosNivel();" ontab="ontabBotonMotivos();"/>    
+      </td>      
+    </tr>  
+  </table>    
+</CAPA>
+
+</FORMULARIO>
+</PAGINA>
