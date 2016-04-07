@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by TEAM (RENEGADE) -->  
+<ReportSourceDefinition Id="RSD_REP-138" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="PAIS" Description="PAIS" DataType="STRING" Calculated="false" Expression="" ExternalData="PAIS"/>  
+		<DimensionSourceDefinition Name="SOCIEDAD" Description="SOCIEDAD" DataType="STRING" Calculated="false" Expression="" ExternalData="SOCIEDAD"/>  
+		<DimensionSourceDefinition Name="PROCESO" Description="PROCESO" DataType="STRING" Calculated="false" Expression="" ExternalData="PROCESO"/>  
+		<DimensionSourceDefinition Name="FEC_DOCU" Description="FEC_DOCU" DataType="DATETIME" Calculated="false" Expression="" ExternalData="FEC_DOCU"/>  
+		<DimensionSourceDefinition Name="COMPROBANTE" Description="COMPROBANTE" DataType="STRING" Calculated="false" Expression="" ExternalData="COMPROBANTE"/>  
+		<DimensionSourceDefinition Name="OBSERVACIONES" Description="OBSERVACIONES" DataType="STRING" Calculated="false" Expression="" ExternalData="OBSERVACIONES"/>  
+		<DimensionSourceDefinition Name="REGISTROS" Description="REGISTROS" DataType="STRING" Calculated="false" Expression="" ExternalData="REGISTROS"/>  
+		<DimensionSourceDefinition Name="SUBPROCESO" Description="SUBPROCESO" DataType="STRING" Calculated="false" Expression="" ExternalData="SUBPROCESO"/>  
+		<DimensionSourceDefinition Name="CONSULTORA" Description="CONSULTORA" DataType="STRING" Calculated="false" Expression="" ExternalData="CONSULTORA"/>  
+		<DimensionSourceDefinition Name="VAL_APE1" Description="VAL_APE1" DataType="STRING" Calculated="false" Expression="" ExternalData="VAL_APE1"/>  
+		<DimensionSourceDefinition Name="VAL_APE2" Description="VAL_APE2" DataType="STRING" Calculated="false" Expression="" ExternalData="VAL_APE2"/>  
+		<DimensionSourceDefinition Name="NOMBRE" Description="NOMBRE" DataType="STRING" Calculated="false" Expression="" ExternalData="NOMBRE"/>  
+		<DimensionSourceDefinition Name="NUM_ABONO" Description="NUM_ABONO" DataType="STRING" Calculated="false" Expression="" ExternalData="NUM_ABONO"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="IMPORTE" Description="IMPORTE" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="IMPORTE" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="IMPORTE_CAB" Description="IMPORTE_CAB" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="IMPORTE_CAB" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="IDIOMA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PAIS" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="PROCESO" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="TIPOCARGOABONO" Visual="FALSE"/>  
+		<FilterDefinition DataType="STRING" FilterType="EQUALTO" Name="FORMATOFECHA" Visual="FALSE"/>  
+		<FilterDefinition DataType="DATE" FilterType="EQUALTO" Name="FECHADESDE" Visual="FALSE"/>  
+		<FilterDefinition DataType="DATE" FilterType="EQUALTO" Name="FECHAHASTA" Visual="FALSE"/>  
+		<FilterDefinition DataType="STRING" FilterType="EQUALTO" Name="NUMEROCOMPROBANTE" Visual="FALSE"/>  
+	</FilterDefinitions>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="REP-138" SourceType="SQL" Expression="  
+  
+SELECT DETALLE.PAIS,  
+	   DETALLE.SOCIEDAD,  
+	   DETALLE.PROCESO,  
+	   DETALLE.FEC_DOCU,  
+	   DETALLE.COMPROBANTE,  
+	   DETALLE.OBSERVACIONES,  
+	   RESUMEN.IMPORTE_CAB,  
+	   RESUMEN.REGISTROS,  
+	   DETALLE.SUBPROCESO,  
+	   DETALLE.CONSULTORA,  
+	   DETALLE.VAL_APE1,  
+	   DETALLE.VAL_APE2,  
+	   DETALLE.NOMBRE,  
+	   DETALLE.NUM_ABONO,  
+	   DETALLE.IMPORTE     
+FROM  
+(  
+	SELECT SUBP.OID_PAIS,  
+		   GEN_PAIS.VAL_I18N PAIS,  
+		   SUBP.SOCI,  
+		   GEN_SOCI.VAL_I18N SOCIEDAD,  
+		   SUBP.PROCESO,  
+		   SUBP.FEC_DOCU,  
+		   SUBP.COMPROBANTE,  
+		   SUBP.OBSERVACIONES,  
+		   SUBP.ORDENSUB,  
+		   SUBP.SUBPROCESO,  
+		   SUBP.CONSULTORA,  
+		   SUBP.VAL_APE1,  
+		   SUBP.VAL_APE2,  
+		   SUBP.NOMBRE,  
+		   SUBP.NUM_ABONO,  
+		   SUBP.IMPORTE  
+	FROM  
+	(  
+		(  
+			SELECT *  
+			FROM  
+			(  
+				SELECT CAB_CAR.PAIS_OID_PAIS OID_PAIS,  
+					   CAB_CAR.SOCI_OID_SOCI SOCI,  
+					   PRO.DES_proc PROCESO ,  
+					   CAB_CAR.FEC_DOCU,  
+					   cab_car.ANIO||cab_car.VAL_PERI_MES||cab_car.NUM_CABE COMPROBANTE,  
+					   CAB_CAR.VAL_OBSE OBSERVACIONES,  
+					   'A' ORDENSUB,  
+					   'CANCELACION DE DEUDA' SUBPROCESO,  
+					   TO_CHAR(CLI.COD_CLIE) CONSULTORA,  
+					   CLI.VAL_APE1,  
+					   CLI.VAL_APE2,  
+					   CLI.VAL_NOM1||' '||CLI.VAL_NOM2 NOMBRE,  
+					   MOV_CCC.VAL_EJER_CUOT||'/'||MOV_CCC.NUM_IDEN_CUOT||'/'||MOV_CCC.NUM_ORDE_CUOT NUM_ABONO,  
+					   DET_CAR.IMP IMPORTE	   	     	   	     
+				FROM CCC_CABEC_CARGA_ABONO_DIREC CAB_CAR,  
+					 CCC_PROCE PRO,  
+					 CCC_DETAL_CARGO_ABONO_DIREC DET_CAR,  
+					 CCC_TIPO_ABONO_SUBPR TIP_ABO,  
+					 CCC_SUBPR SUBP,  
+					 MAE_CLIEN CLI,  
+					 CCC_MOVIM_CUENT_CORRI MOV_CCC  
+				WHERE CAB_CAR.CCPR_OID_proc= PRO.OID_PROC   
+					  AND PRO.IND_CV_DIRE = 1  
+					  AND DET_CAR.CCAD_OID_CABE_CARG = CAB_CAR.OID_CABE_CARG  
+					  AND TIP_ABO.OID_TIPO_ABON_SUBP = DET_CAR.TASP_OID_TIPO_ABON_SUBP  
+					  AND TIP_ABO.SUBP_OID_SUBP = SUBP.OID_SUBP  
+					  AND CLI.OID_CLIE = CAB_CAR.CLIE_OID_CLIE  
+					  AND DET_CAR.MVCC_OID_MOVI_CC = MOV_CCC.OID_MOVI_CC  
+					  AND SUBP.COD_SUBP = 1  
+					  AND CAB_CAR.PAIS_OID_PAIS = %value_PAISVALUE%  
+					  %start_PROCESOVALUES% AND PRO.OID_proc IN (%value_PROCESOVALUES%) %end_PROCESOVALUES%  
+					  %start_TIPOCARGOABONOVALUES% AND TIP_ABO.OID_TIPO_ABON_SUBP IN (%value_TIPOCARGOABONOVALUES%) %end_TIPOCARGOABONOVALUES%  
+					  AND TO_DATE(CAB_CAR.FEC_DOCU) BETWEEN TO_DATE(%value_FECHADESDEVALUE%,%value_FORMATOFECHAVALUE%)  
+				 	  	  							AND TO_DATE(%value_FECHAHASTAVALUE%,%value_FORMATOFECHAVALUE%) 	 	  
+					  %start_NUMEROCOMPROBANTEVALUE% AND cab_car.ANIO||cab_car.VAL_PERI_MES||cab_car.NUM_CABE = %value_NUMEROCOMPROBANTEVALUE% %end_NUMEROCOMPROBANTEVALUE%  
+				ORDER BY CONSULTORA,  
+					 	 NUM_ABONO  
+			)  
+		)  
+		UNION   
+		(  
+			SELECT *  
+			FROM  
+			(  
+				SELECT CAB_CAR.PAIS_OID_PAIS OID_PAIS,  
+					   CAB_CAR.SOCI_OID_SOCI SOCI,  
+					   PRO.DES_proc PROCESO,  
+					   CAB_CAR.FEC_DOCU,  
+					   cab_car.ANIO||cab_car.VAL_PERI_MES||cab_car.NUM_CABE COMPROBANTE,  
+	   				   CAB_CAR.VAL_OBSE OBSERVACIONES,  
+					   'C' ORDENSUB,  
+					   'APLICACION DE TESORERIA' SUBPROCESO,  
+					   TO_CHAR(DET_CAR.CCBA_OID_CUEN_CORR_BANC) CUENTA,  
+					   CCC_BAN.DES_CC,  
+					   '' AS VAL_APE2,  
+					   '' AS NOMBRE,  
+					   MOV_BAN.NUM_LOTE||'/'||MOV_BAN.NUM_CONS_TRAN MOVIMIENTO,  
+					   DET_CAR.IMP IMPORTE	   	     
+				FROM CCC_CABEC_CARGA_ABONO_DIREC CAB_CAR,  
+					 CCC_PROCE PRO,  
+					 CCC_DETAL_CARGO_ABONO_DIREC DET_CAR,  
+					 CCC_TIPO_ABONO_SUBPR TIP_ABO,  
+					 CCC_SUBPR SUBP,  
+					 CCC_MOVIM_BANCA MOV_BAN,  
+					 CCC_CUENT_CORRI_BANCA CCC_BAN  
+				WHERE CAB_CAR.CCPR_OID_proc= PRO.OID_PROC   
+					  AND PRO.IND_CV_DIRE = 1  
+					  AND DET_CAR.CCAD_OID_CABE_CARG = CAB_CAR.OID_CABE_CARG  
+					  AND TIP_ABO.OID_TIPO_ABON_SUBP = DET_CAR.TASP_OID_TIPO_ABON_SUBP  
+					  AND TIP_ABO.SUBP_OID_SUBP = SUBP.OID_SUBP  
+					  AND CCC_BAN.OID_CUEN_CORR_BANC = CAB_CAR.CCBA_OID_CUEN_CORR_BANC  
+					  AND MOV_BAN.CCBA_OID_CC_BANC = CCC_BAN.OID_CUEN_CORR_BANC  
+					  AND SUBP.COD_SUBP = 2  
+					  AND CAB_CAR.PAIS_OID_PAIS = %value_PAISVALUE%  
+					  %start_PROCESOVALUES% AND PRO.OID_proc IN (%value_PROCESOVALUES%) %end_PROCESOVALUES%  
+					  %start_TIPOCARGOABONOVALUES% AND TIP_ABO.OID_TIPO_ABON_SUBP IN (%value_TIPOCARGOABONOVALUES%) %end_TIPOCARGOABONOVALUES%  
+					  AND TO_DATE(CAB_CAR.FEC_DOCU) BETWEEN TO_DATE(%value_FECHADESDEVALUE%,%value_FORMATOFECHAVALUE%)  
+				 	  	  							AND TO_DATE(%value_FECHAHASTAVALUE%,%value_FORMATOFECHAVALUE%) 	 	  
+					  %start_NUMEROCOMPROBANTEVALUE% AND cab_car.ANIO||cab_car.VAL_PERI_MES||cab_car.NUM_CABE = %value_NUMEROCOMPROBANTEVALUE% %end_NUMEROCOMPROBANTEVALUE%  
+				ORDER BY CUENTA,  
+					     MOVIMIENTO	   	   	     
+			)  
+		)  
+		UNION   
+		(  
+			SELECT *  
+			FROM  
+			(  
+				SELECT CAB_CAR.PAIS_OID_PAIS OID_PAIS,  
+					   CAB_CAR.SOCI_OID_SOCI SOCI,  
+					   PRO.DES_proc PROCESO ,  
+					   CAB_CAR.FEC_DOCU,  
+					   cab_car.ANIO||cab_car.VAL_PERI_MES||cab_car.NUM_CABE COMPROBANTE,  
+	   				   CAB_CAR.VAL_OBSE OBSERVACIONES,  
+   					   'B' ORDENSUB,  
+					   'CARGOS/ABONOS DIRECTOS' SUBPROCESO,  
+					   TO_CHAR(TIP_CAR.COD_TIPO_CARG_ABON) TIP_ABONO,  
+					   DET_CAR.VAL_GLOS_CONT GLOSA,  
+					   '' AS VAL_APE2,  
+					   '' AS NOMBRE,  
+					   CCC_CON.COD_CUEN_CONT CUENTA_CONTABLE,  
+					   DET_CAR.IMP IMPORTE 	   	   	     
+				FROM CCC_CABEC_CARGA_ABONO_DIREC CAB_CAR,  
+					 CCC_PROCE PRO,  
+					 CCC_DETAL_CARGO_ABONO_DIREC DET_CAR,  
+					 CCC_TIPO_ABONO_SUBPR TIP_ABO,  
+					 CCC_SUBPR SUBP,  
+					 CCC_TIPO_CARGO_ABONO TIP_CAR,  
+					 CCC_CUENT_CONTA CCC_CON  
+				WHERE CAB_CAR.CCPR_OID_proc= PRO.OID_PROC   
+					  AND PRO.IND_CV_DIRE = 1  
+					  AND DET_CAR.CCAD_OID_CABE_CARG = CAB_CAR.OID_CABE_CARG  
+					  AND TIP_ABO.OID_TIPO_ABON_SUBP = DET_CAR.TASP_OID_TIPO_ABON_SUBP  
+					  AND TIP_ABO.SUBP_OID_SUBP = SUBP.OID_SUBP  
+					  AND TIP_CAR.OID_TIPO_CARG_ABON = TIP_ABO.TCAB_OID_TCAB  
+					  AND CCC_CON.OID_CUEN_CONT = TIP_ABO.CUCO_OID_CUEN_CONT  
+					  AND SUBP.COD_SUBP = 3  
+					  AND CAB_CAR.PAIS_OID_PAIS = %value_PAISVALUE%  
+					  %start_PROCESOVALUES% AND PRO.OID_proc IN (%value_PROCESOVALUES%) %end_PROCESOVALUES%  
+					  %start_TIPOCARGOABONOVALUES% AND TIP_ABO.OID_TIPO_ABON_SUBP IN (%value_TIPOCARGOABONOVALUES%) %end_TIPOCARGOABONOVALUES%  
+					  AND TO_DATE(CAB_CAR.FEC_DOCU) BETWEEN TO_DATE(%value_FECHADESDEVALUE%,%value_FORMATOFECHAVALUE%)  
+				 	  	  							AND TO_DATE(%value_FECHAHASTAVALUE%,%value_FORMATOFECHAVALUE%) 	 	  
+					  %start_NUMEROCOMPROBANTEVALUE% AND cab_car.ANIO||cab_car.VAL_PERI_MES||cab_car.NUM_CABE = %value_NUMEROCOMPROBANTEVALUE% %end_NUMEROCOMPROBANTEVALUE%  
+				ORDER BY TIP_ABONO,  
+					     IMPORTE 	   	   	     
+			)  
+		)  
+		UNION   
+		(  
+			SELECT *  
+			FROM  
+			(  
+				SELECT CAB_CAR.PAIS_OID_PAIS OID_PAIS,  
+					   CAB_CAR.SOCI_OID_SOCI SOCI,  
+					   PRO.DES_proc PROCESO ,  
+					   CAB_CAR.FEC_DOCU,  
+					   cab_car.ANIO||cab_car.VAL_PERI_MES||cab_car.NUM_CABE COMPROBANTE,  
+					   CAB_CAR.VAL_OBSE OBSERVACIONES,  
+   					   'D' ORDENSUB,  
+					   'GENERACION DE DEUDA' SUBPROCESO,  
+					   TO_CHAR(CLI.COD_CLIE) CONSULTORA,  
+					   CLI.VAL_APE1,  
+					   CLI.VAL_APE2,  
+					   CLI.VAL_NOM1||' '||CLI.VAL_NOM2 NOMBRE,  
+					   MOV_CCC.VAL_EJER_CUOT||'/'||MOV_CCC.NUM_IDEN_CUOT||'/'||MOV_CCC.NUM_ORDE_CUOT NUM_ABONO,  
+					   DET_CAR.IMP IMPORTE	   	  	   	     
+				FROM CCC_CABEC_CARGA_ABONO_DIREC CAB_CAR,  
+					 CCC_PROCE PRO,  
+					 CCC_DETAL_CARGO_ABONO_DIREC DET_CAR,  
+					 CCC_TIPO_ABONO_SUBPR TIP_ABO,  
+					 CCC_SUBPR SUBP,  
+				 	 MAE_CLIEN CLI,  
+				 	 CCC_MOVIM_CUENT_CORRI MOV_CCC  
+				WHERE CAB_CAR.CCPR_OID_proc= PRO.OID_PROC   
+					  AND PRO.IND_CV_DIRE = 1  
+					  AND DET_CAR.CCAD_OID_CABE_CARG = CAB_CAR.OID_CABE_CARG  
+					  AND TIP_ABO.OID_TIPO_ABON_SUBP = DET_CAR.TASP_OID_TIPO_ABON_SUBP  
+					  AND TIP_ABO.SUBP_OID_SUBP = SUBP.OID_SUBP  
+				 	  AND CLI.OID_CLIE = CAB_CAR.CLIE_OID_CLIE  
+				 	  AND DET_CAR.MVCC_OID_MOVI_CC = MOV_CCC.OID_MOVI_CC  
+					  AND SUBP.COD_SUBP = 4  
+					  AND CAB_CAR.PAIS_OID_PAIS = %value_PAISVALUE%  
+					  %start_PROCESOVALUES% AND PRO.OID_proc IN (%value_PROCESOVALUES%) %end_PROCESOVALUES%  
+					  %start_TIPOCARGOABONOVALUES% AND TIP_ABO.OID_TIPO_ABON_SUBP IN (%value_TIPOCARGOABONOVALUES%) %end_TIPOCARGOABONOVALUES%  
+					  AND TO_DATE(CAB_CAR.FEC_DOCU) BETWEEN TO_DATE(%value_FECHADESDEVALUE%,%value_FORMATOFECHAVALUE%)  
+				 	  	  							AND TO_DATE(%value_FECHAHASTAVALUE%,%value_FORMATOFECHAVALUE%) 	 	  
+					  %start_NUMEROCOMPROBANTEVALUE% AND cab_car.ANIO||cab_car.VAL_PERI_MES||cab_car.NUM_CABE = %value_NUMEROCOMPROBANTEVALUE% %end_NUMEROCOMPROBANTEVALUE%  
+				ORDER BY CONSULTORA,  
+						 NUM_ABONO	   	   	  	   	     
+			)  
+		)  
+	) SUBP,  
+	(  
+		SELECT GEN.VAL_OID, GEN.VAL_I18N   
+		FROM V_GEN_I18N_SICC GEN  
+		WHERE GEN.ATTR_ENTI = 'SEG_PAIS'  
+			  AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%  
+	) GEN_PAIS,  
+                 (SELECT gen.OID_SOCI val_oid, gen.VAL_DENO val_i18n  
+                    FROM SEG_SOCIE gen ) gen_soci  
+	WHERE SUBP.OID_PAIS = GEN_PAIS.VAL_OID(+)  
+		  AND SUBP.SOCI = GEN_SOCI.VAL_OID  
+) DETALLE,  
+(				     
+	SELECT CAB_CAR.SOCI_OID_SOCI SOCI,  
+		   PRO.DES_proc PROCESO,  
+		   CAB_CAR.FEC_DOCU,  
+  		   cab_car.ANIO||cab_car.VAL_PERI_MES||cab_car.NUM_CABE COMPROBANTE,  
+		   NVL((COUNT(*)), 0) REGISTROS,  
+		   NVL((SUM(DET_CAR.IMP)), 0) IMPORTE_CAB  
+	FROM CCC_CABEC_CARGA_ABONO_DIREC CAB_CAR,  
+		 CCC_PROCE PRO,  
+		 CCC_DETAL_CARGO_ABONO_DIREC DET_CAR,  
+		 CCC_TIPO_ABONO_SUBPR TIP_ABO,  
+		 CCC_SUBPR SUBP,  
+		 MAE_CLIEN CLI,  
+		 CCC_MOVIM_CUENT_CORRI MOV_CCC  
+	WHERE CAB_CAR.CCPR_OID_proc= PRO.OID_PROC   
+		  AND PRO.IND_CV_DIRE = 1  
+		  AND DET_CAR.CCAD_OID_CABE_CARG = CAB_CAR.OID_CABE_CARG  
+		  AND TIP_ABO.OID_TIPO_ABON_SUBP = DET_CAR.TASP_OID_TIPO_ABON_SUBP  
+		  AND TIP_ABO.SUBP_OID_SUBP = SUBP.OID_SUBP  
+		  AND CLI.OID_CLIE = CAB_CAR.CLIE_OID_CLIE  
+		  AND DET_CAR.MVCC_OID_MOVI_CC = MOV_CCC.OID_MOVI_CC  
+		  AND SUBP.COD_SUBP = 1  
+		  AND CAB_CAR.PAIS_OID_PAIS = %value_PAISVALUE%  
+		  %start_PROCESOVALUES% AND PRO.OID_proc IN (%value_PROCESOVALUES%) %end_PROCESOVALUES%  
+		  %start_TIPOCARGOABONOVALUES% AND TIP_ABO.OID_TIPO_ABON_SUBP IN (%value_TIPOCARGOABONOVALUES%) %end_TIPOCARGOABONOVALUES%  
+		  AND TO_DATE(CAB_CAR.FEC_DOCU) BETWEEN TO_DATE(%value_FECHADESDEVALUE%,%value_FORMATOFECHAVALUE%)  
+	 	  	  							AND TO_DATE(%value_FECHAHASTAVALUE%,%value_FORMATOFECHAVALUE%) 	 	  
+		  %start_NUMEROCOMPROBANTEVALUE% AND cab_car.ANIO||cab_car.VAL_PERI_MES||cab_car.NUM_CABE = %value_NUMEROCOMPROBANTEVALUE% %end_NUMEROCOMPROBANTEVALUE%  
+	GROUP BY CAB_CAR.PAIS_OID_PAIS,  
+		   CAB_CAR.SOCI_OID_SOCI,  
+		   PRO.DES_proc,  
+		   CAB_CAR.FEC_DOCU,  
+		   cab_car.ANIO||cab_car.VAL_PERI_MES||cab_car.NUM_CABE,  
+		   CAB_CAR.VAL_OBSE  
+) RESUMEN  
+WHERE DETALLE.FEC_DOCU = RESUMEN.FEC_DOCU(+)  
+	  AND DETALLE.SOCI = RESUMEN.SOCI(+)  
+	  AND DETALLE.PROCESO = RESUMEN.PROCESO(+)  
+	  AND DETALLE.COMPROBANTE = RESUMEN.COMPROBANTE(+)    
+ORDER BY DETALLE.SOCIEDAD,  
+	     DETALLE.PROCESO,  
+	     DETALLE.FEC_DOCU,  
+	     DETALLE.COMPROBANTE,  
+	     DETALLE.ORDENSUB	" ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.100:1523:SICCP" ExternalConnectionDistributedUrl="" ExternalConnectionUser="usu_peru" ExternalConnectionPassword="usu_peru" DatePattern="dd/MM/yyyy" DateTimePattern=""/>  
+	</DataSourceDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="IDIOMA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="PAIS" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="PROCESO" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="TIPOCARGOABONO" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="dd/MM/yyyy" FilterDefinitionName="FORMATOFECHA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="01/01/2000" FilterDefinitionName="FECHADESDE" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="31/12/2999" FilterDefinitionName="FECHAHASTA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="NUMEROCOMPROBANTE" FilterParameter="VALUE"/>  
+	</ParameterValues>  
+	<Localizations/>  
+</ReportSourceDefinition>  
+

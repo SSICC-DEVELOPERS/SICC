@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by team (renegade) -->  
+<ReportSourceDefinition Id="RSD_REP-063_02" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="NRO_CONCURSO" Description="NRO_CONCURSO" DataType="STRING" Calculated="false" Expression="" ExternalData="NRO_CONCURSO"/>  
+		<DimensionSourceDefinition Name="DESC_CONCURSO" Description="DESC_CONCURSO" DataType="STRING" Calculated="false" Expression="" ExternalData="DESC_CONCURSO"/>  
+		<DimensionSourceDefinition Name="CAM_INI_CONCU" Description="CAM_INI_CONCU" DataType="STRING" Calculated="false" Expression="" ExternalData="CAM_INI_CONCU"/>  
+		<DimensionSourceDefinition Name="CAM_FIN_CONCU" Description="CAM_FIN_CONCU" DataType="STRING" Calculated="false" Expression="" ExternalData="CAM_FIN_CONCU"/>  
+		<DimensionSourceDefinition Name="PUESTO" Description="PUESTO" DataType="STRING" Calculated="false" Expression="" ExternalData="PUESTO"/>  
+		<DimensionSourceDefinition Name="PUNTAJE" Description="PUNTAJE" DataType="STRING" Calculated="false" Expression="" ExternalData="PUNTAJE"/>  
+		<DimensionSourceDefinition Name="COD_CLIE" Description="COD_CLIE" DataType="STRING" Calculated="false" Expression="" ExternalData="COD_CLIE"/>  
+		<DimensionSourceDefinition Name="NOMBRE" Description="NOMBRE" DataType="STRING" Calculated="false" Expression="" ExternalData="NOMBRE"/>  
+		<DimensionSourceDefinition Name="PERIODO" Description="PERIODO" DataType="STRING" Calculated="false" Expression="" ExternalData="PERIODO"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="PROMEDIO_PUNTOS" Description="PROMEDIO_PUNTOS" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="PROMEDIO_PUNTOS" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="PUNTOS" Description="PUNTOS" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="PUNTOS" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PAIS" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="MARCA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="CANAL" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="TIPOCLIENTE" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="SUBTIPOCLIENTE" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="TIPOCLASIFICACION" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="CLASIFICACION" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="NUMEROCONCURSO" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PERIODODESDE" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PERIODOHASTA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="NUMEROPUESTOS" Visual="FALSE"/>  
+	</FilterDefinitions>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="REP-063_02" SourceType="SQL" Expression="  
+SELECT  
+	NRO_CONCURSO,  
+	DESC_CONCURSO,  
+	CAM_INI_CONCU,  
+	CAM_FIN_CONCU,  
+	PUESTO,  
+	PUNTAJE,  
+	COD_CLIE,  
+	NOMBRE,  
+	PERIODO,  
+	PROMEDIO_PUNTOS,  
+	PUNTOS    	     
+FROM  
+	(  
+	SELECT  
+		NRO_CONCURSO,  
+		DESC_CONCURSO,  
+		CAM_INI_CONCU,  
+		CAM_FIN_CONCU,  
+		COD_CLIE,  
+		NOMBRE,  
+		PERIODO,  
+		PUNTOS,  
+		PUNTAJE,  
+		PUNTAJE/COUNT(*) OVER (PARTITION BY NRO_CONCURSO, COD_CLIE ORDER BY 1) PROMEDIO_PUNTOS,   
+		DENSE_RANK() OVER (PARTITION BY NRO_CONCURSO ORDER BY PUNTAJE DESC, COD_CLIE) PUESTO  
+	FROM  
+		(	  
+		SELECT  
+			CPG.NUM_CONC NRO_CONCURSO,  
+			CPG.VAL_NOMB DESC_CONCURSO,  
+			PERI2.VAL_NOMB_PERI CAM_INI_CONCU,  
+			PERI3.VAL_NOMB_PERI CAM_FIN_CONCU,  
+			CLI.COD_CLIE,  
+			CLI.VAL_NOM1||' '||CLI.VAL_APE1||' '||CLI.VAL_APE2 NOMBRE,  
+			PERI.VAL_NOMB_PERI PERIODO,  
+			SUM(CCP.NUM_PUNT) PUNTOS,  
+			SUM(SUM(CCP.NUM_PUNT)) OVER (PARTITION BY CPG.NUM_CONC,CLI.COD_CLIE ORDER BY 1) PUNTAJE  
+		FROM  
+			INC_CONCU_PARAM_GENER CPG,  
+			MAE_CLIEN CLI,  
+			MAE_CLIEN_TIPO_SUBTI CLI_SUB,  
+%start_TIPOCLASIFICACIONVALUE%      /*%value_TIPOCLASIFICACIONVALUE%*/    
+			MAE_CLIEN_CLASI CLA,   
+%end_TIPOCLASIFICACIONVALUE%			  
+			INC_CUENT_CORRI_PUNTO CCP,  
+			ZON_SUB_GEREN_VENTA SUBG,  
+			ZON_REGIO REG,  
+			ZON_ZONA ZONA,  
+			ZON_SECCI SEC,  
+			ZON_TERRI_ADMIN TA,  
+			ZON_TERRI TER,  
+			MAE_CLIEN_UNIDA_ADMIN CUA,  
+			(  
+			SELECT P.FEC_INIC  
+			FROM CRA_PERIO P  
+			WHERE P.OID_PERI = %value_PERIODODESDEVALUE%   
+			) FI,  
+			(  
+			SELECT P.FEC_FINA  
+			FROM CRA_PERIO P  
+			WHERE P.OID_PERI =  %value_PERIODOHASTAVALUE%   
+			) FF,  
+			CRA_PERIO PERI,  
+			CRA_PERIO PERI2,  
+			CRA_PERIO PERI3  
+		WHERE	  
+			CLI.OID_CLIE = CLI_SUB.CLIE_OID_CLIE  
+			AND CCP.CLIE_OID_CLIE = CLI.OID_CLIE   
+			AND CCP.COPA_OID_PARA_GRAL = CPG.OID_PARA_GRAL   
+			AND ((CCP.TMOV_OID_TIPO_MOVI = 1) OR (CCP.TMOV_OID_TIPO_MOVI = 2 AND (CPG.IND_ANUL = 1 OR CPG.IND_DEVO = 1)))  
+			AND PERI.FEC_INIC >= FI.FEC_INIC  
+			AND PERI.FEC_FINA &lt; = FF.FEC_FINA  
+			AND PERI.OID_PERI = CCP.PERD_OID_PERI  
+			AND PERI2.OID_PERI = CPG.PERD_OID_PERI_DESD  
+			AND PERI3.OID_PERI = CPG.PERD_OID_PERI_HAST  
+			AND SUBG.OID_SUBG_VENT = REG.ZSGV_OID_SUBG_VENT  
+			AND REG.OID_REGI = ZONA.ZORG_OID_REGI  
+			AND ZONA.OID_ZONA = SEC.ZZON_OID_ZONA  
+			AND SEC.OID_SECC = TA.ZSCC_OID_SECC  
+			AND TER.OID_TERR = TA.TERR_OID_TERR  
+			AND CUA.ZTAD_OID_TERR_ADMI = TA.OID_TERR_ADMI  
+			AND CUA.CLIE_OID_CLIE = CCP.CLIE_OID_CLIE  
+			AND CUA.IND_ACTI = 1  
+			AND PERI.PAIS_OID_PAIS = %value_PAISVALUE%   
+			AND PERI.MARC_OID_MARC = %value_MARCAVALUE%   
+			AND PERI.CANA_OID_CANA = %value_CANALVALUE%  
+			%start_SUBTIPOCLIENTEVALUE%  	   AND CLI_SUB.SBTI_OID_SUBT_CLIE = %value_SUBTIPOCLIENTEVALUE%   %end_SUBTIPOCLIENTEVALUE%   
+			AND CLI_SUB.TICL_OID_TIPO_CLIE = %value_TIPOCLIENTEVALUE%   
+%start_TIPOCLASIFICACIONVALUE%        
+			AND CLA.CTSU_OID_CLIE_TIPO_SUBT = CLI_SUB.OID_CLIE_TIPO_SUBT  
+			AND CLA.IND_PPAL = 1  
+			AND CLA.TCCL_OID_TIPO_CLASI =  %value_TIPOCLASIFICACIONVALUE%  
+%end_TIPOCLASIFICACIONVALUE%   
+%start_CLASIFICACIONVALUE%	AND CLA.CLAS_OID_CLAS = %value_CLASIFICACIONVALUE% %end_CLASIFICACIONVALUE%     
+			AND CPG.OID_PARA_GRAL IN (%value_NUMEROCONCURSOVALUES%)   
+			AND CCP.VAL_DESC not like '%Entrega de Premio%'  
+		GROUP BY  
+			CPG.NUM_CONC,  
+			CPG.VAL_NOMB,  
+			PERI2.VAL_NOMB_PERI,  
+			PERI3.VAL_NOMB_PERI,  
+			CLI.COD_CLIE,  
+			CLI.VAL_NOM1||' '||CLI.VAL_APE1||' '||CLI.VAL_APE2,  
+			PERI.VAL_NOMB_PERI   
+		ORDER BY  
+			NRO_CONCURSO,  
+			PUNTAJE DESC	  	    
+		)	    
+	)  
+%start_NUMEROPUESTOSVALUE%  
+WHERE  
+	PUESTO &lt; = %value_NUMEROPUESTOSVALUE%  
+%end_NUMEROPUESTOSVALUE%   
+  
+	" ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.106:1523:SICCV3D" ExternalConnectionDistributedUrl="" ExternalConnectionUser="own_peru" ExternalConnectionPassword="peru_own" DatePattern="" DateTimePattern=""/>  
+	</DataSourceDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="PAIS" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="MARCA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="CANAL" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="2" FilterDefinitionName="TIPOCLIENTE" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="SUBTIPOCLIENTE" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="TIPOCLASIFICACION" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="CLASIFICACION" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="2" FilterDefinitionName="NUMEROCONCURSO" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="74" FilterDefinitionName="PERIODODESDE" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="76" FilterDefinitionName="PERIODOHASTA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="NUMEROPUESTOS" FilterParameter="VALUE"/>  
+	</ParameterValues>  
+	<Localizations/>  
+</ReportSourceDefinition>  
+

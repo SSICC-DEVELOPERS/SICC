@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by tito (tito) -->  
+<ReportSourceDefinition Id="RSD_REP-112_01" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="OID_ZONA" Description="OID_ZONA" DataType="STRING" Calculated="false" Expression="" ExternalData="OID_ZONA"/>  
+		<DimensionSourceDefinition Name="DES_ZONA" Description="DES_ZONA" DataType="STRING" Calculated="false" Expression="" ExternalData="DES_ZONA"/>  
+		<DimensionSourceDefinition Name="OID_OPER" Description="OID_OPER" DataType="STRING" Calculated="false" Expression="" ExternalData="OID_OPER"/>  
+		<DimensionSourceDefinition Name="OPERACION" Description="OPERACION" DataType="STRING" Calculated="false" Expression="" ExternalData="OPERACION"/>  
+		<DimensionSourceDefinition Name="PERIODO_N" Description="PERIODO_N" DataType="STRING" Calculated="false" Expression="" ExternalData="PERIODO_N"/>  
+		<DimensionSourceDefinition Name="PERIODO_N_1" Description="PERIODO_N_1" DataType="STRING" Calculated="false" Expression="" ExternalData="PERIODO_N_1"/>  
+		<DimensionSourceDefinition Name="PERIODO_N_2" Description="PERIODO_N_2" DataType="STRING" Calculated="false" Expression="" ExternalData="PERIODO_N_2"/>  
+		<DimensionSourceDefinition Name="PERIODO_N_3" Description="PERIODO_N_3" DataType="STRING" Calculated="false" Expression="" ExternalData="PERIODO_N_3"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="UNIDADES_RECLAMADAS" Description="UNIDADES_RECLAMADAS" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="UNIDADES_RECLAMADAS" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="UNIDADES_N" Description="UNIDADES_N" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="UNIDADES_N" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="UNIDADES_N_1" Description="UNIDADES_N_1" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="UNIDADES_N_1" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="UNIDADES_N_2" Description="UNIDADES_N_2" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="UNIDADES_N_2" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="UNIDADES_N_3" Description="UNIDADES_N_3" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="UNIDADES_N_3" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="IDIOMA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PAIS" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PERIODO" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="OPERACION" Visual="FALSE"/>  
+	</FilterDefinitions>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="REP-112_01" SourceType="SQL" Expression="  
+SELECT UNID_RECLA_TOTAL.OID_ZONA,  
+	              UNID_RECLA_TOTAL.DES_ZONA,  
+				  UNID_RECLA_TOTAL.OID_OPER,  
+				  UNID_RECLA_TOTAL.OPERACION,  
+				  UNID_RECLA_TOTAL.PERIODO_N,  
+				  PERIODOS.PERIODO_N_1,  
+ 				  PERIODOS.PERIODO_N_2,  
+   				  PERIODOS.PERIODO_N_3,  
+				  UNID_RECLA_TOTAL.UNIDADES_RECLAMADAS,  
+				  PERIODOS_N.UNID_RECLA_N UNIDADES_N,  
+				  PERIODOS_N_1.UNID_RECLA_N_1 UNIDADES_N_1,  
+				  PERIODOS_N_2.UNID_RECLA_N_2 UNIDADES_N_2,  
+				  PERIODOS_N_3.UNID_RECLA_N_3 UNIDADES_N_3  
+FROM  
+(				    
+				SELECT ZON.OID_ZONA,   
+					   			  ZON.DES_ZONA,   
+								  OP.COD_OPER OID_OPER,  
+		                   		  GEN_OP.OPERACION,  
+		                   		  PERIODOS.VAL_NOMB_PERI PERIODO_N,  
+		                   		  NVL (SUM (LIN_REC.NUM_UNID_RECL), 0) UNIDADES_RECLAMADAS  
+		       FROM REC_CABEC_RECLA CAB_REC,  
+		                   REC_OPERA_RECLA OP_REC,  
+		                   REC_LINEA_OPERA_RECLA LIN_REC,  
+		                   REC_TIPOS_OPERA T_OP,  
+		                   REC_OPERA OP,  
+		                   ZON_TERRI_ADMIN TER_ADM,  
+		                   ZON_SECCI SEC,  
+		                   ZON_ZONA ZON,  
+		                   ZON_REGIO REG,  
+						   CRA_PERIO PERIODOS,  
+		                   (  
+								   SELECT VAL_OID, VAL_I18N OPERACION  
+		  	                       FROM V_GEN_I18N_SICC  
+				                   WHERE ATTR_ENTI = 'REC_OPERA'   
+										 		    AND IDIO_OID_IDIO = %value_IDIOMAVALUE%  
+							 ) GEN_OP  
+		             WHERE CAB_REC.OID_CABE_RECL = OP_REC.CARE_OID_CABE_RECL  
+		               AND CAB_REC.ZTAD_OID_TERR_ADMI = TER_ADM.OID_TERR_ADMI  
+		               AND SEC.OID_SECC = TER_ADM.ZSCC_OID_SECC  
+		               AND ZON.OID_ZONA = SEC.ZZON_OID_ZONA  
+		               AND REG.OID_REGI = ZON.ZORG_OID_REGI  
+		               AND OP_REC.PERD_OID_PERI_RECL = PERIODOS.OID_PERI  
+		               AND LIN_REC.OPRE_OID_OPER_RECL = OP_REC.OID_OPER_RECL  
+		               AND OP_REC.TIOP_OID_TIPO_OPER = T_OP.OID_TIPO_OPER  
+		               AND OP.OID_OPER = T_OP.ROPE_OID_OPER  
+		               AND GEN_OP.VAL_OID(+) = OP.OID_OPER  
+		               AND CAB_REC.PAIS_OID_PAIS = %value_PAISVALUE%  
+				       AND OP.OID_OPER = %value_OPERACIONVALUE%   
+					   AND PERIODOS.OID_PERI = %value_PERIODOVALUE%  
+		          GROUP BY ZON.OID_ZONA,  
+		                   ZON.DES_ZONA,  
+		                   OP.COD_OPER,  
+		                   GEN_OP.OPERACION,  
+		                   PERIODOS.VAL_NOMB_PERI  
+) UNID_RECLA_TOTAL,  
+(  
+				SELECT ZON.OID_ZONA,   
+								  OP.COD_OPER OID_OPER,  
+		                   		  NVL (SUM (LIN_REC.NUM_UNID_RECL), 0) UNID_RECLA_N,  
+		                   		  PERIODOS.VAL_NOMB_PERI PERIODO_N  
+		       FROM REC_CABEC_RECLA CAB_REC,  
+		                   REC_OPERA_RECLA OP_REC,  
+		                   REC_LINEA_OPERA_RECLA LIN_REC,  
+		                   REC_TIPOS_OPERA T_OP,  
+		                   REC_OPERA OP,  
+		                   ZON_TERRI_ADMIN TER_ADM,  
+		                   ZON_SECCI SEC,  
+		                   ZON_ZONA ZON,  
+		                   ZON_REGIO REG,  
+						   CRA_PERIO PERIODOS  
+		             WHERE CAB_REC.OID_CABE_RECL = OP_REC.CARE_OID_CABE_RECL  
+		               AND CAB_REC.ZTAD_OID_TERR_ADMI = TER_ADM.OID_TERR_ADMI  
+		               AND SEC.OID_SECC = TER_ADM.ZSCC_OID_SECC  
+		               AND ZON.OID_ZONA = SEC.ZZON_OID_ZONA  
+		               AND REG.OID_REGI = ZON.ZORG_OID_REGI  
+		               AND CAB_REC.PERD_OID_PERI_DOCU_REFE = PERIODOS.OID_PERI  
+		               AND OP_REC.PERD_OID_PERI_RECL = PERIODOS.OID_PERI  
+		               AND LIN_REC.OPRE_OID_OPER_RECL = OP_REC.OID_OPER_RECL  
+		               AND OP_REC.TIOP_OID_TIPO_OPER = T_OP.OID_TIPO_OPER  
+		               AND OP.OID_OPER = T_OP.ROPE_OID_OPER  
+		               AND CAB_REC.PAIS_OID_PAIS = %value_PAISVALUE%  
+					   AND OP.OID_OPER = %value_OPERACIONVALUE%                                                                                                                                        
+					   AND PERIODOS.OID_PERI = %value_PERIODOVALUE%  
+       GROUP BY ZON.OID_ZONA,  
+		                   OP.COD_OPER,  
+		                   PERIODOS.VAL_NOMB_PERI  
+) PERIODOS_N,  
+(  
+			SELECT ZON.OID_ZONA,   
+							  OP.COD_OPER OID_OPER,  
+	                   		  NVL (SUM (LIN_REC.NUM_UNID_RECL), 0) UNID_RECLA_N_1,  
+	                   		  PERIODOS_N_1.VAL_NOMB_PERI PERIODO_N_1  
+	       FROM REC_CABEC_RECLA CAB_REC,  
+	                   REC_OPERA_RECLA OP_REC,  
+	                   REC_LINEA_OPERA_RECLA LIN_REC,  
+	                   REC_TIPOS_OPERA T_OP,  
+	                   REC_OPERA OP,  
+	                   ZON_TERRI_ADMIN TER_ADM,  
+	                   ZON_SECCI SEC,  
+	                   ZON_ZONA ZON,  
+	                   ZON_REGIO REG,  
+					    (  
+					   		  	  SELECT PE.OID_PERI , PE.VAL_NOMB_PERI   
+	                              FROM CRA_PERIO PE  
+	                             WHERE PE.OID_PERI =  
+	                                      (  
+										     SELECT PQ_APL_REP.FN_008_CALC_OID_PER_ANT(P.PAIS_OID_PAIS,P.MARC_OID_MARC,P.CANA_OID_CANA,P.OID_PERI,2)  
+	                                         FROM CRA_PERIO P  
+	                                         WHERE P.OID_PERI = %value_PERIODOVALUE%  
+											)  
+						) PERIODOS_N_1  
+	             WHERE CAB_REC.OID_CABE_RECL = OP_REC.CARE_OID_CABE_RECL  
+	               AND CAB_REC.ZTAD_OID_TERR_ADMI = TER_ADM.OID_TERR_ADMI  
+	               AND SEC.OID_SECC = TER_ADM.ZSCC_OID_SECC  
+	               AND ZON.OID_ZONA = SEC.ZZON_OID_ZONA  
+	               AND REG.OID_REGI = ZON.ZORG_OID_REGI  
+	               AND CAB_REC.PERD_OID_PERI_DOCU_REFE = PERIODOS_N_1.OID_PERI  
+	               AND OP_REC.PERD_OID_PERI_RECL = %value_PERIODOVALUE%  
+	               AND LIN_REC.OPRE_OID_OPER_RECL = OP_REC.OID_OPER_RECL  
+	               AND OP_REC.TIOP_OID_TIPO_OPER = T_OP.OID_TIPO_OPER  
+	               AND OP.OID_OPER = T_OP.ROPE_OID_OPER  
+	               AND CAB_REC.PAIS_OID_PAIS = %value_PAISVALUE%  
+	               AND OP.OID_OPER = %value_OPERACIONVALUE%               
+        GROUP BY ZON.OID_ZONA,  
+	                   OP.COD_OPER,  
+	                   PERIODOS_N_1.VAL_NOMB_PERI  
+) PERIODOS_N_1,  
+(  
+			SELECT ZON.OID_ZONA,   
+							  OP.COD_OPER OID_OPER,  
+	                   		  NVL (SUM (LIN_REC.NUM_UNID_RECL), 0) UNID_RECLA_N_2,  
+	                   		  PERIODOS_N_2.VAL_NOMB_PERI PERIODO_N_2  
+	       FROM REC_CABEC_RECLA CAB_REC,  
+	                   REC_OPERA_RECLA OP_REC,  
+	                   REC_LINEA_OPERA_RECLA LIN_REC,  
+	                   REC_TIPOS_OPERA T_OP,  
+	                   REC_OPERA OP,  
+	                   ZON_TERRI_ADMIN TER_ADM,  
+	                   ZON_SECCI SEC,  
+	                   ZON_ZONA ZON,  
+	                   ZON_REGIO REG,  
+					    (  
+					   		  	  SELECT PE.OID_PERI , PE.VAL_NOMB_PERI   
+	                              FROM CRA_PERIO PE  
+	                             WHERE PE.OID_PERI =  
+	                                      (  
+										     SELECT PQ_APL_REP.FN_008_CALC_OID_PER_ANT(P.PAIS_OID_PAIS,P.MARC_OID_MARC,P.CANA_OID_CANA,P.OID_PERI,3)  
+	                                         FROM CRA_PERIO P  
+	                                         WHERE P.OID_PERI = %value_PERIODOVALUE%  
+											)  
+						) PERIODOS_N_2  
+	             WHERE CAB_REC.OID_CABE_RECL = OP_REC.CARE_OID_CABE_RECL  
+	               AND CAB_REC.ZTAD_OID_TERR_ADMI = TER_ADM.OID_TERR_ADMI  
+	               AND SEC.OID_SECC = TER_ADM.ZSCC_OID_SECC  
+	               AND ZON.OID_ZONA = SEC.ZZON_OID_ZONA  
+	               AND REG.OID_REGI = ZON.ZORG_OID_REGI  
+	               AND CAB_REC.PERD_OID_PERI_DOCU_REFE = PERIODOS_N_2.OID_PERI  
+	               AND OP_REC.PERD_OID_PERI_RECL = %value_PERIODOVALUE%  
+	               AND LIN_REC.OPRE_OID_OPER_RECL = OP_REC.OID_OPER_RECL  
+	               AND OP_REC.TIOP_OID_TIPO_OPER = T_OP.OID_TIPO_OPER  
+	               AND OP.OID_OPER = T_OP.ROPE_OID_OPER  
+	               AND CAB_REC.PAIS_OID_PAIS = %value_PAISVALUE%  
+	               AND OP.OID_OPER = %value_OPERACIONVALUE%               
+        GROUP BY ZON.OID_ZONA,  
+	                   OP.COD_OPER,  
+	                   PERIODOS_N_2.VAL_NOMB_PERI  
+) PERIODOS_N_2,  
+(  
+				SELECT ZON.OID_ZONA,   
+								  OP.COD_OPER OID_OPER,  
+		                   		  NVL (SUM (LIN_REC.NUM_UNID_RECL), 0) UNID_RECLA_N_3,  
+		                   		  PERIODOS.PERIODO_N_3  
+		       FROM REC_CABEC_RECLA CAB_REC,  
+		                   REC_OPERA_RECLA OP_REC,  
+		                   REC_LINEA_OPERA_RECLA LIN_REC,  
+		                   REC_TIPOS_OPERA T_OP,  
+		                   REC_OPERA OP,  
+		                   ZON_TERRI_ADMIN TER_ADM,  
+		                   ZON_SECCI SEC,  
+		                   ZON_ZONA ZON,  
+		                   ZON_REGIO REG,  
+						   (  
+									   SELECT *   
+									   FROM   
+					                           (SELECT PE.OID_PERI OID_PERI_N_1, PE.VAL_NOMB_PERI PERIODO_N_1  
+					                              FROM CRA_PERIO PE  
+					                             WHERE PE.OID_PERI =  
+					                                      (SELECT PQ_APL_REP.FN_008_CALC_OID_PER_ANT(P.PAIS_OID_PAIS,P.MARC_OID_MARC,P.CANA_OID_CANA,P.OID_PERI,2)  
+					                                         FROM CRA_PERIO P  
+					                                        WHERE P.OID_PERI = %value_PERIODOVALUE%)) ,  
+					                           (SELECT PE.OID_PERI OID_PERI_N_2, PE.VAL_NOMB_PERI PERIODO_N_2  
+					                              FROM CRA_PERIO PE  
+					                             WHERE PE.OID_PERI =  
+					                                      (SELECT PQ_APL_REP.FN_008_CALC_OID_PER_ANT(P.PAIS_OID_PAIS,P.MARC_OID_MARC,P.CANA_OID_CANA,P.OID_PERI,3)  
+					                                         FROM CRA_PERIO P  
+					                                        WHERE P.OID_PERI = %value_PERIODOVALUE%)) ,  
+					                           (SELECT PE.OID_PERI OID_PERI_N_3, PE.VAL_NOMB_PERI PERIODO_N_3  
+					                              FROM CRA_PERIO PE  
+					                             WHERE PE.OID_PERI =  
+					                                      (SELECT PQ_APL_REP.FN_008_CALC_OID_PER_ANT(P.PAIS_OID_PAIS,P.MARC_OID_MARC,P.CANA_OID_CANA,P.OID_PERI,4)  
+					                                         FROM CRA_PERIO P  
+					                                        WHERE P.OID_PERI = %value_PERIODOVALUE%))   
+							) PERIODOS  
+		             WHERE CAB_REC.OID_CABE_RECL = OP_REC.CARE_OID_CABE_RECL  
+		               AND CAB_REC.ZTAD_OID_TERR_ADMI = TER_ADM.OID_TERR_ADMI  
+		               AND SEC.OID_SECC = TER_ADM.ZSCC_OID_SECC  
+		               AND ZON.OID_ZONA = SEC.ZZON_OID_ZONA  
+		               AND REG.OID_REGI = ZON.ZORG_OID_REGI  
+		               AND ((CAB_REC.PERD_OID_PERI_DOCU_REFE &lt;> PERIODOS.OID_PERI_N_1)   
+					   AND (CAB_REC.PERD_OID_PERI_DOCU_REFE &lt;> %value_PERIODOVALUE%)   
+					   AND (CAB_REC.PERD_OID_PERI_DOCU_REFE &lt;> PERIODOS.OID_PERI_N_2))  
+		               AND OP_REC.PERD_OID_PERI_RECL = %value_PERIODOVALUE%  
+		               AND LIN_REC.OPRE_OID_OPER_RECL = OP_REC.OID_OPER_RECL  
+		               AND OP_REC.TIOP_OID_TIPO_OPER = T_OP.OID_TIPO_OPER  
+		               AND OP.OID_OPER = T_OP.ROPE_OID_OPER  
+		               AND CAB_REC.PAIS_OID_PAIS = %value_PAISVALUE%  
+		               AND OP.OID_OPER = %value_OPERACIONVALUE%               
+		          GROUP BY ZON.OID_ZONA,  
+		                   OP.COD_OPER,  
+		                   PERIODOS.PERIODO_N_3  
+) PERIODOS_N_3,  
+(  
+		   SELECT *   
+		   FROM   
+                         (SELECT PE.OID_PERI OID_PERI_N_1, PE.VAL_NOMB_PERI PERIODO_N_1  
+                            FROM CRA_PERIO PE  
+                           WHERE PE.OID_PERI =  
+                                    (SELECT PQ_APL_REP.FN_008_CALC_OID_PER_ANT(P.PAIS_OID_PAIS,P.MARC_OID_MARC,P.CANA_OID_CANA,P.OID_PERI,2)  
+                                       FROM CRA_PERIO P  
+                                      WHERE P.OID_PERI = %value_PERIODOVALUE%)) ,  
+                         (SELECT PE.OID_PERI OID_PERI_N_2, PE.VAL_NOMB_PERI PERIODO_N_2  
+                            FROM CRA_PERIO PE  
+                           WHERE PE.OID_PERI =  
+                                    (SELECT PQ_APL_REP.FN_008_CALC_OID_PER_ANT(P.PAIS_OID_PAIS,P.MARC_OID_MARC,P.CANA_OID_CANA,P.OID_PERI,3)  
+                                       FROM CRA_PERIO P  
+                                      WHERE P.OID_PERI = %value_PERIODOVALUE%)) ,  
+                         (SELECT PE.OID_PERI OID_PERI_N_3, PE.VAL_NOMB_PERI PERIODO_N_3  
+                            FROM CRA_PERIO PE  
+                           WHERE PE.OID_PERI =  
+                                    (SELECT PQ_APL_REP.FN_008_CALC_OID_PER_ANT(P.PAIS_OID_PAIS,P.MARC_OID_MARC,P.CANA_OID_CANA,P.OID_PERI,4)  
+                                       FROM CRA_PERIO P  
+                                      WHERE P.OID_PERI = %value_PERIODOVALUE%))   
+) PERIODOS  
+WHERE UNID_RECLA_TOTAL.OID_ZONA = PERIODOS_N.OID_ZONA(+)  
+	  			 AND UNID_RECLA_TOTAL.OID_OPER = PERIODOS_N.OID_OPER(+)  
+				 AND UNID_RECLA_TOTAL.OID_ZONA = PERIODOS_N_1.OID_ZONA(+)  
+	  			 AND UNID_RECLA_TOTAL.OID_OPER = PERIODOS_N_1.OID_OPER(+)  
+				 AND UNID_RECLA_TOTAL.OID_ZONA = PERIODOS_N_2.OID_ZONA(+)  
+	  			 AND UNID_RECLA_TOTAL.OID_OPER = PERIODOS_N_2.OID_OPER(+)  
+				 AND UNID_RECLA_TOTAL.OID_ZONA = PERIODOS_N_3.OID_ZONA(+)  
+	  			 AND UNID_RECLA_TOTAL.OID_OPER = PERIODOS_N_3.OID_OPER(+)		  
+ORDER BY DES_ZONA, OPERACION  
+			 " ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.106:1523:SICCV3D" ExternalConnectionDistributedUrl="" ExternalConnectionUser="own_peru" ExternalConnectionPassword="peru_own" DatePattern="" DateTimePattern=""/>  
+	</DataSourceDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="IDIOMA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="PAIS" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="57" FilterDefinitionName="PERIODO" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1058" FilterDefinitionName="OPERACION" FilterParameter="VALUE"/>  
+	</ParameterValues>  
+	<Localizations/>  
+</ReportSourceDefinition>  
+

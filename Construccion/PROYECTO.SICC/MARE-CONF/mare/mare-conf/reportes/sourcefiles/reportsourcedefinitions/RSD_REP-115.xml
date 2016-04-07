@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by tito (tito) -->  
+<ReportSourceDefinition Id="RSD_REP-115" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="COD_ZONA" Description="COD_ZONA" DataType="STRING" Calculated="false" Expression="" ExternalData="COD_ZONA"/>  
+		<DimensionSourceDefinition Name="DES_ZONA" Description="DES_ZONA" DataType="STRING" Calculated="false" Expression="" ExternalData="DES_ZONA"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="RECLAMOS" Description="RECLAMOS" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="RECLAMOS" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="FACTURACION" Description="FACTURACION" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="FACTURACION" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="PORCENTAJE" Description="PORCENTAJE" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="PORCENTAJE" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PAIS" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PERIODODESDE" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PERIODOHASTA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="CANAL" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="MARCA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="OPERACION" Visual="FALSE"/>  
+		<FilterDefinition DataType="STRING" FilterType="EQUALTO" Name="TIPOOPERACION" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="CANTIDADZONAS" Visual="FALSE"/>  
+	</FilterDefinitions>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="REP-115" SourceType="SQL" Expression="  
+SELECT COD_ZONA,  
+		DES_ZONA,  
+	   RECLAMOS,  
+	   FACTURACION,  
+      TRUNC(DECODE(NVL(FACTURACION,0), 0, 0,(RECLAMOS/FACTURACION)*100), 2) PORCENTAJE	   
+FROM  
+(  
+	SELECT ZONA.COD_ZONA,  
+			ZONA.DES_ZONA,  
+		   NVL(COUNT(OP_REC.OID_OPER_RECL), 0) RECLAMOS,  
+		   (  
+	             SELECT COUNT (*)  
+                    FROM FAC_DOCUM_CONTA_CABEC fac,  
+				    CRA_PERIO PER  
+                    WHERE fac.zzon_oid_zona = zona.oid_zona  
+   		 		  AND FAC.PERD_OID_PERI = PER.OID_PERI  
+         			  AND per.fec_inic >= per_ini.fec_inic  
+				  AND per.fec_fina &lt;= per_fin.fec_fina  
+		     	 	  AND PER.pais_oid_pais = %value_PAISVALUE%  
+		               AND per.cana_oid_cana = %value_CANALVALUE%	  
+				  AND per.marc_oid_marc = %value_MARCAVALUE%  
+		   ) FACTURACION  
+	FROM REC_CABEC_RECLA CAB_REC,  
+		 CRA_PERIO PERI,  
+		 REC_OPERA OP,  
+		 REC_TIPOS_OPERA TIP_OP,  
+		 REC_OPERA_RECLA OP_REC,  
+		 ZON_ZONA ZONA,  
+	     (  
+			 SELECT FEC_INIC  
+			 FROM CRA_PERIO  
+			 WHERE OID_PERI = %value_PERIODODESDEVALUE%		  
+		 )PER_INI,  
+		 (  
+			 SELECT FEC_FINA  
+			 FROM CRA_PERIO  
+			 WHERE 1 = 1    
+			  AND OID_PERI = CASE WHEN (-1= %value_PERIODOHASTAVALUE%) THEN			  
+			  	  		   	 	  	   		   						   (  
+																	   		SELECT OID_PERI  
+																			FROM  
+																			(  
+																				 SELECT OID_PERI  
+																	   			 FROM  
+																	   			 (  
+																				 SELECT *  
+																				 FROM CRA_PERIO P  
+																				 WHERE P.PAIS_OID_PAIS = %value_PAISVALUE%			 			  
+																					  AND P.CANA_OID_CANA = %value_CANALVALUE%	  
+																					  AND P.MARC_OID_MARC = %value_MARCAVALUE%  
+																					  AND FEC_INIC &lt;= SYSDATE  
+																					  AND FEC_FINA >= SYSDATE  
+ 																				 )  
+																				 ORDER BY FEC_FINA DESC  
+																		)   
+																		WHERE ROWNUM =1  
+																	   )   
+														ELSE  
+																	  %value_PERIODOHASTAVALUE%  
+														END  
+		 )PER_FIN ,  
+		 ZON_TERRI_ADMIN ZTA,  
+		 ZON_SECCI SEC		  
+WHERE PERI.FEC_INIC >= PER_INI.FEC_INIC  
+		  AND PERI.FEC_FINA &lt;= PER_FIN.FEC_FINA   
+		  AND CAB_REC.PERD_OID_PERI_RECL = PERI.OID_PERI  
+	      AND CAB_REC.OID_CABE_RECL = OP_REC.CARE_OID_CABE_RECL  
+	      AND TIP_OP.ROPE_OID_OPER = OP.OID_OPER  
+		  AND CAB_REC.ZTAD_OID_TERR_ADMI = ZTA.OID_TERR_ADMI  
+		  AND ZTA.ZSCC_OID_SECC = SEC.OID_SECC  
+		  AND SEC.ZZON_OID_ZONA = ZONA.OID_ZONA  
+	      AND OP_REC.TIOP_OID_TIPO_OPER = TIP_OP.OID_TIPO_OPER  
+	      AND CAB_REC.PAIS_OID_PAIS = PERI.PAIS_OID_PAIS  
+		  AND CAB_REC.PAIS_OID_PAIS = %value_PAISVALUE%			   
+		  AND PERI.CANA_OID_CANA = %value_CANALVALUE%	  
+		  AND PERI.MARC_OID_MARC = %value_MARCAVALUE%  
+		 AND OP.OID_OPER = %value_OPERACIONVALUE% 											  
+		%start_TIPOOPERACIONVALUE%   AND TIP_OP.OID_TIPO_OPER = (%value_TIPOOPERACIONVALUE%)	%end_TIPOOPERACIONVALUE% 				  
+	GROUP BY ZONA.COD_ZONA, ZONA.DES_ZONA,ZONA.OID_ZONA,per_ini.fec_inic,per_FIN.fec_FINA		    
+	 ORDER BY RECLAMOS DESC  
+)	    
+WHERE ROWNUM &lt;= %value_CANTIDADZONASVALUE%		   
+" ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.106:1523:SICCV3D" ExternalConnectionDistributedUrl="" ExternalConnectionUser="usu_peru" ExternalConnectionPassword="peru" DatePattern="" DateTimePattern=""/>  
+	</DataSourceDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="PAIS" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="57" FilterDefinitionName="PERIODODESDE" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="-1" FilterDefinitionName="PERIODOHASTA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="CANAL" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="MARCA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1058" FilterDefinitionName="OPERACION" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="TIPOOPERACION" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="23" FilterDefinitionName="CANTIDADZONAS" FilterParameter="VALUE"/>  
+	</ParameterValues>  
+	<Localizations/>  
+</ReportSourceDefinition>  
+

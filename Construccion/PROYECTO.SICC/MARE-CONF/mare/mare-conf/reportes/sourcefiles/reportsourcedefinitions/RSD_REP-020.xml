@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<ReportSourceDefinition Id="RSD_REP-020" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="DES_MARC" Description="DES_MARC" DataType="STRING" Calculated="false" Expression="" ExternalData="DES_MARC"/>  
+		<DimensionSourceDefinition Name="CANAL" Description="CANAL" DataType="STRING" Calculated="false" Expression="" ExternalData="CANAL"/>  
+		<DimensionSourceDefinition Name="VAL_NOMB_PERI" Description="VAL_NOMB_PERI" DataType="STRING" Calculated="false" Expression="" ExternalData="VAL_NOMB_PERI"/>  
+		<DimensionSourceDefinition Name="NOMBRE_USUARIO" Description="NOMBRE_USUARIO" DataType="STRING" Calculated="false" Expression="" ExternalData="NOMBRE_USUARIO"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="CV_INGRESOS" Description="CV_INGRESOS" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="CV_INGRESOS" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="DOC_INGRESOS" Description="DOC_INGRESOS" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="DOC_INGRESOS" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="PORC_INGRESOS" Description="PORC_INGRESOS" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="PORC_INGRESOS" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="HORAS_INGRESOS" Description="HORAS_INGRESOS" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="HORAS_INGRESOS" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="CV_VERIFICACION" Description="CV_VERIFICACION" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="CV_VERIFICACION" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="DOC_VERIFICACION" Description="DOC_VERIFICACION" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="DOC_VERIFICACION" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="HORAS_VERIFICACION" Description="HORAS_VERIFICACION" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="HORAS_VERIFICACION" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="INGRESADO_HORAS" Description="INGRESADO_HORAS" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="INGRESADO_HORAS" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="VERIFICADO_HORAS" Description="VERIFICADO_HORAS" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="VERIFICADO_HORAS" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="PROMEDIO" Description="PROMEDIO" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="PROMEDIO" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="IDIOMA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PAIS" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="MARCA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="CANAL" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="ACCESO" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="SUBACCESO" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="PERIODO" Visual="FALSE"/>  
+	</FilterDefinitions>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="REP-020" SourceType="SQL" Expression="select  
+  	  mar.DES_MARC,  
+	  gen_can.canal,  
+	  per.VAL_NOMB_PERI,  
+	  usu.VAL_NOM1||' '||usu.VAL_NOM2||' '||usu.VAL_APEL_PATE nombre_usuario,  
+	  sum(decode(pro.COD_proc,'P115',est_dig.NUM_CV,0))cv_ingresos,  
+	  sum(decode(pro.COD_proc,'P115',est_dig.NUM_OC,0))doc_ingresos,  
+	  decode(sum(decode(pro.COD_proc,'P115',est_dig.NUM_CV,0)),0,0,sum(decode(pro.COD_proc,'P115',est_dig.NUM_ERRO_CV,0)) / sum(decode(pro.COD_proc,'P115',est_dig.NUM_CV,0))*100)porc_ingresos,  
+	  sum(decode(pro.cod_proc,'P115',(est_dig.FEC_FIN_SESI - est_dig.FEC_INIC_SESI)*24,0))horas_ingresos,  
+	  sum(decode(pro.COD_proc,'P120',est_dig.NUM_CV,0))cv_verificacion,  
+  	  sum(decode(pro.COD_proc,'P120',est_dig.NUM_OC,0))doc_verificacion,  
+	  sum(decode(pro.cod_proc,'P120',(est_dig.FEC_FIN_SESI - est_dig.FEC_INIC_SESI)*24,0))horas_verificacion,  
+   	  decode( sum(decode(pro.cod_proc,'P115',(est_dig.FEC_FIN_SESI - est_dig.FEC_INIC_SESI)*24,0)) ,0, 0, sum(decode(pro.COD_proc,'P115',est_dig.NUM_CV,0)) / sum(decode(pro.cod_proc,'P115',(est_dig.FEC_FIN_SESI - est_dig.FEC_INIC_SESI)*24,0)) )ingresado_horas,  
+   	  decode( sum(decode(pro.cod_proc,'P120',(est_dig.FEC_FIN_SESI - est_dig.FEC_INIC_SESI)*24,0)) ,0, 0, sum(decode(pro.COD_proc,'P120',est_dig.NUM_CV,0)) / sum(decode(pro.cod_proc,'P120',(est_dig.FEC_FIN_SESI - est_dig.FEC_INIC_SESI)*24,0)) )verificado_horas,  
+	  (decode( sum(decode(pro.cod_proc,'P115',(est_dig.FEC_FIN_SESI - est_dig.FEC_INIC_SESI)*24,0)) ,0, 0, sum(decode(pro.COD_proc,'P115',est_dig.NUM_CV,0)) / sum(decode(pro.cod_proc,'P115',(est_dig.FEC_FIN_SESI - est_dig.FEC_INIC_SESI)*24,0)) ) +   
+   	  decode( sum(decode(pro.cod_proc,'P120',(est_dig.FEC_FIN_SESI - est_dig.FEC_INIC_SESI)*24,0)) ,0, 0, sum(decode(pro.COD_proc,'P120',est_dig.NUM_CV,0)) / sum(decode(pro.cod_proc,'P120',(est_dig.FEC_FIN_SESI - est_dig.FEC_INIC_SESI)*24,0)) )) *0.04 promedio  
+from   
+	 ped_tipo_solic t_sol,  
+	 ped_tipo_solic_pais t_sol_p,  
+	 ped_estad_digit est_dig,  
+	 seg_marca mar,  
+	 seg_acces acc,  
+	 seg_subac subac,  
+	 V_REP_USUAR_LARGO usu,  
+	 cra_perio per,  
+	 ped_proce pro,  
+	 (  
+	 select gen.val_oid, gen.VAL_I18N canal  
+	 from v_gen_i18n_sicc gen  
+	 where gen.ATTR_ENTI = 'SEG_CANAL'  
+	 	   and gen.IDIO_OID_IDIO = %value_IDIOMAVALUE%  
+	 )gen_can  
+where   
+	  est_dig.TSPA_OID_TIPO_SOLI_PAIS = t_sol_p.OID_TIPO_SOLI_PAIS  
+	  and t_sol_p.pais_oid_pais = %value_PAISVALUE%  
+	  and t_sol_p.TSOL_OID_TIPO_SOLI = t_sol.OID_TIPO_SOLI  
+	  and t_sol.ACCE_OID_ACCE = acc.OID_ACCE  
+	  and t_sol.MARC_OID_MARC = mar.OID_MARC  
+	  and acc.OID_ACCE = subac.ACCE_OID_ACCE  
+	  and est_dig.VAL_USUA = usu.VAL_NOMB_USUA  
+	  and est_dig.PERD_OID_PERI = per.OID_PERI  
+	  and acc.CANA_OID_CANA = gen_can.val_oid(+)  
+	  and est_dig.PROC_OID_PROC= pro.OID_PROC  
+	  and t_sol.MARC_OID_MARC = %value_MARCAVALUE%  
+	  and acc.CANA_OID_CANA = %value_CANALVALUE%  
+	  %start_ACCESOVALUES% and t_sol.ACCE_OID_ACCE IN (%value_ACCESOVALUES%) %end_ACCESOVALUES%  
+	  %start_SUBACCESOVALUES% and subac.OID_SBAC IN (%value_SUBACCESOVALUES%) %end_SUBACCESOVALUES%  
+	  and per.oid_peri in (%value_PERIODOVALUES%) 	    
+group by  
+  	  mar.DES_MARC,  
+	  gen_can.canal,  
+	  per.VAL_NOMB_PERI,  
+	  usu.VAL_NOM1||' '||usu.VAL_NOM2||' '||usu.VAL_APEL_PATE" ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.106:1523:SICCV3D" ExternalConnectionDistributedUrl="" ExternalConnectionUser="usu_peru" ExternalConnectionPassword="PERU" DatePattern="" DateTimePattern=""/>  
+	</DataSourceDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="IDIOMA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="PAIS" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="MARCA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="CANAL" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="ACCESO" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="SUBACCESO" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="52,57" FilterDefinitionName="PERIODO" FilterParameter="VALUES"/>  
+	</ParameterValues>  
+	<Localizations/>  
+</ReportSourceDefinition>  
+

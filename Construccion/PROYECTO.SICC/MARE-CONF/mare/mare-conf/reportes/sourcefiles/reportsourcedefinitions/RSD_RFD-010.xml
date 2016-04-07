@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by tito (tito) -->  
+<ReportSourceDefinition Id="RSD_RFD-010" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="SOCIEDAD_DEFECTO" Description="SOCIEDAD_DEFECTO" DataType="STRING" Calculated="false" Expression="" ExternalData="SOCIEDAD_DEFECTO"/>  
+		<DimensionSourceDefinition Name="MES" Description="MES" DataType="STRING" Calculated="false" Expression="" ExternalData="MES"/>  
+		<DimensionSourceDefinition Name="REGION" Description="REGION" DataType="STRING" Calculated="false" Expression="" ExternalData="REGION"/>  
+		<DimensionSourceDefinition Name="ZONA" Description="ZONA" DataType="STRING" Calculated="false" Expression="" ExternalData="ZONA"/>  
+		<DimensionSourceDefinition Name="SECCION" Description="SECCION" DataType="STRING" Calculated="false" Expression="" ExternalData="SECCION"/>  
+		<DimensionSourceDefinition Name="TERRITORIO" Description="TERRITORIO" DataType="STRING" Calculated="false" Expression="" ExternalData="TERRITORIO"/>  
+		<DimensionSourceDefinition Name="NOMBRE" Description="NOMBRE" DataType="STRING" Calculated="false" Expression="" ExternalData="NOMBRE"/>  
+		<DimensionSourceDefinition Name="TEL1" Description="TEL1" DataType="STRING" Calculated="false" Expression="" ExternalData="TEL1"/>  
+		<DimensionSourceDefinition Name="CAMP_INGRESO" Description="CAMP_INGRESO" DataType="STRING" Calculated="false" Expression="" ExternalData="CAMP_INGRESO"/>  
+		<DimensionSourceDefinition Name="CUMPLE_DIA" Description="CUMPLE_DIA" DataType="STRING" Calculated="false" Expression="" ExternalData="CUMPLE_DIA"/>  
+		<DimensionSourceDefinition Name="CUMPLE_MES" Description="CUMPLE_MES" DataType="STRING" Calculated="false" Expression="" ExternalData="CUMPLE_MES"/>  
+		<DimensionSourceDefinition Name="SEGMENTO" Description="SEGMENTO" DataType="STRING" Calculated="false" Expression="" ExternalData="SEGMENTO"/>  
+		<DimensionSourceDefinition Name="OBSERVACIONES" Description="OBSERVACIONES" DataType="STRING" Calculated="false" Expression="" ExternalData="OBSERVACIONES"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="CANTIDAD" Description="CANTIDAD" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="CANTIDAD" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="RFD-010" SourceType="SQL" Expression="SELECT *  
+FROM  
+(  
+ 	SELECT SOC.VAL_DENO SOCIEDAD_DEFECTO  
+	FROM PRINCIPALS PRI,  
+		PROPERTYVALUES PRO,  
+		SEG_SOCIE SOC			  
+	WHERE PRI.NAME = %value_ZONEUSERVALUE%  
+		 AND PRO.IDPROPERTY = 48  
+		 AND PRO.IDPRINCIPAL = PRI.IDPRINCIPAL  
+		 AND PRO.STRINGVALUE = SOC.OID_SOCI  
+),  
+	(  
+	SELECT TO_CHAR (CLI_DAT.FEC_NACI, 'DD/MM/') ||  ANIO.VAL_ANIO AS MES,  
+		   REG.DES_REGI REGION,  
+		   ZONA.DES_ZONA ZONA,  
+		   SEC.COD_SECC SECCION,  
+		   TER.COD_TERR TERRITORIO,  
+		   SUBSTR(CLI.VAL_APE1||' '||CLI.VAL_APE2||' '||CLI.VAL_NOM1||' '||CLI.VAL_NOM2, 0, 40) NOMBRE,  
+		   (  
+		   SELECT CLI_COM.VAL_TEXT_COMU  
+		   FROM MAE_CLIEN_COMUN CLI_COM,  
+		   		MAE_TIPO_COMUN TIP_COM  
+		   WHERE CLI_COM.CLIE_OID_CLIE = CLI.OID_CLIE  
+		   		 AND CLI_COM.TICM_OID_TIPO_COMU = TIP_COM.OID_TIPO_COMU  
+		  		 AND TIP_COM.COD_TIPO_COMU = 'TF'  
+	 	   ) TEL1,  
+		   (  
+		   SELECT PERI.VAL_NOMB_PERI  
+		   FROM MAE_CLIEN_HISTO_ESTAT EST,  
+		   		CRA_PERIO PERI,  
+				MAE_ESTAT_CLIEN EST_CLI  
+		   WHERE EST.CLIE_OID_CLIE = CLI.OID_CLIE  
+		   		 AND EST.ESTA_OID_ESTA_CLIE = EST_CLI.OID_ESTA_CLIE  
+				 AND EST_CLI.COD_ESTA_CLIE = '02'  
+				 AND PERI.OID_PERI = EST.PERD_OID_PERI  
+				 AND ROWNUM = 1  
+		   ) CAMP_INGRESO,  
+		   TO_CHAR(CLI_DAT.FEC_NACI, 'DD') CUMPLE_DIA,  
+		   TO_CHAR(CLI_DAT.FEC_NACI, 'MM') CUMPLE_MES,   
+		   (  
+		   SELECT NIVEL.VAL_DESC  
+		   FROM DTR_SEGME_CLIEN SEG,  
+		   		DTR_NIVEL_SEGME NIVEL  
+		   WHERE SEG.CLIE_OID_CLIE = CLI.OID_CLIE  
+		   		 AND SEG.ZORG_OID_REGI = REG.OID_REGI  
+				 AND SEG.ZZON_OID_ZONA = ZONA.OID_ZONA  
+				 AND SEG.PERD_OID_PERI = %value_PERIODOHASTAVALUE%  
+				 AND SEG.NVSG_OID_NIVE_SEGM = NIVEL.OID_NIVE_SEGM   
+		   ) SEGMENTO,  
+		  NULL AS OBSERVACIONES,  
+		   1 AS CANTIDAD	   	     
+	FROM CRA_PERIO PERI,  
+		 MAE_CLIEN_UNIDA_ADMIN CLI_UNI,  
+		 MAE_CLIEN_DATOS_ADICI CLI_DAT,  
+		 MAE_CLIEN CLI,  
+		 ZON_ZONA ZONA,  
+		 ZON_REGIO REG,  
+		 ZON_SECCI SEC,  
+		 ZON_TERRI_ADMIN TER_ADM,  
+		 ZON_TERRI TER,  
+		 (	 	    
+			SELECT DISTINCT PER_COR.VAL_ANIO,  
+				   FI.FEC_INIC,  
+				   FF.FEC_FINA  
+			FROM CRA_PERIO PERI,  
+				 SEG_PERIO_CORPO PER_COR,  
+				 (  
+				 SELECT FEC_INIC  
+				 FROM CRA_PERIO  
+				 WHERE OID_PERI = %value_PERIODODESDEVALUE%  
+				 ) FI,  
+				 (  
+				 SELECT FEC_FINA  
+				 FROM CRA_PERIO  
+				 WHERE OID_PERI = %value_PERIODOHASTAVALUE%  
+				 ) FF  
+			WHERE FI.FEC_INIC &lt;= PERI.FEC_INIC  
+				  AND FF.FEC_FINA >=PERI.FEC_FINA  
+				  AND PERI.PERI_OID_PERI = PER_COR.OID_PERI  
+				  AND PERI.PAIS_OID_PAIS = %value_PAISVALUE%  
+				  AND PERI.CANA_OID_CANA = %value_CANALVALUE%  
+				  AND PERI.MARC_OID_MARC = %value_MARCAVALUE%  
+		 ) ANIO  
+	WHERE PERI.OID_PERI = CLI_UNI.PERD_OID_PERI_INI  
+		  AND CLI_UNI.CLIE_OID_CLIE = CLI_DAT.CLIE_OID_CLIE  
+		  AND CLI_DAT.CLIE_OID_CLIE = CLI.OID_CLIE  
+		  AND CLI_DAT.FEC_NACI IS NOT NULL  
+		  AND ANIO.FEC_INIC &lt;= TO_DATE(TO_CHAR(CLI_DAT.FEC_NACI, 'DD/MM')||'/'||ANIO.VAL_ANIO, 'DD/MM/YYYY')  
+		  AND ANIO.FEC_FINA >= TO_DATE(TO_CHAR(CLI_DAT.FEC_NACI, 'DD/MM')||'/'||ANIO.VAL_ANIO, 'DD/MM/YYYY')   
+		  %start_MESVALUE% AND TO_CHAR(CLI_DAT.FEC_NACI, 'MM') = %value_MESVALUE% %end_MESVALUE%  
+		  AND CLI_UNI.IND_ACTI = 1  
+		  AND CLI_UNI.ZTAD_OID_TERR_ADMI = TER_ADM.OID_TERR_ADMI  
+		  AND TER_ADM.ZSCC_OID_SECC = SEC.OID_SECC  
+		  AND TER.OID_TERR = TER_ADM.TERR_OID_TERR  
+		  AND SEC.ZZON_OID_ZONA = ZONA.OID_ZONA  
+		  AND REG.OID_REGI = ZONA.ZORG_OID_REGI  
+					  AND REG.PAIS_OID_PAIS =  PERI.PAIS_OID_PAIS  
+					  AND REG.MARC_OID_MARC =  PERI.MARC_OID_MARC   
+					  AND REG.CANA_OID_CANA = PERI.CANA_OID_CANA  
+		  %start_ZONAVALUE% AND ZONA.OID_ZONA = %value_ZONAVALUE% %end_ZONAVALUE%  
+		  %start_REGIONVALUE% AND REG.OID_REGI = %value_REGIONVALUE% %end_REGIONVALUE%  
+		  AND PERI.PAIS_OID_PAIS = %value_PAISVALUE%  
+		  AND PERI.CANA_OID_CANA = %value_CANALVALUE%  
+		  AND PERI.MARC_OID_MARC = %value_MARCAVALUE%  
+	ORDER BY MES,  
+		  	 REGION,  
+		  	 ZONA,  
+			 TO_DATE(TO_CHAR(CLI_DAT.FEC_NACI, 'DD/MM')||'/'||ANIO.VAL_ANIO, 'DD/MM/YYYY'), 	    
+			 CLI.COD_CLIE  
+)			  " ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.106:1523:SICCV3D" ExternalConnectionDistributedUrl="" ExternalConnectionUser="usu_peru" ExternalConnectionPassword="peru" DatePattern="" DateTimePattern=""/>  
+	</DataSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PAIS" Visual="false"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="MARCA" Visual="false"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="CANAL" Visual="false"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PERIODODESDE" Visual="false"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PERIODOHASTA" Visual="false"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="REGION" Visual="false"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="ZONA" Visual="false"/>  
+		<FilterDefinition DataType="STRING" FilterType="EQUALTO" Name="MES" Visual="false"/>  
+		<FilterDefinition DataType="STRING" FilterType="EQUALTO" Name="ZONEUSER" Visual="false"/>  
+	</FilterDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="PAIS" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="MARCA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="CANAL" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="55" FilterDefinitionName="PERIODODESDE" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="91" FilterDefinitionName="PERIODOHASTA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="REGION" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="ZONA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="MES" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="USUARIO1" FilterDefinitionName="ZONEUSER" FilterParameter="VALUE"/>  
+	</ParameterValues>  
+	<Localizations/>  
+</ReportSourceDefinition>  
+

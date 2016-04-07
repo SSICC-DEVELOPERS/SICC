@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by tito (tito) -->  
+<ReportSourceDefinition Id="RSD_REP-064_01" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="NUM_CONC" Description="NUM_CONC" DataType="STRING" Calculated="false" Expression="" ExternalData="NUM_CONC"/>  
+		<DimensionSourceDefinition Name="CONCURSO" Description="CONCURSO" DataType="STRING" Calculated="false" Expression="" ExternalData="CONCURSO"/>  
+		<DimensionSourceDefinition Name="DES_SUBG_VENT" Description="DES_SUBG_VENT" DataType="STRING" Calculated="false" Expression="" ExternalData="DES_SUBG_VENT"/>  
+		<DimensionSourceDefinition Name="DES_REGI" Description="DES_REGI" DataType="STRING" Calculated="false" Expression="" ExternalData="DES_REGI"/>  
+		<DimensionSourceDefinition Name="PERIODO_INICIAL" Description="PERIODO_INICIAL" DataType="STRING" Calculated="false" Expression="" ExternalData="PERIODO_INICIAL"/>  
+		<DimensionSourceDefinition Name="PERIODO_FINAL" Description="PERIODO_FINAL" DataType="STRING" Calculated="false" Expression="" ExternalData="PERIODO_FINAL"/>  
+		<DimensionSourceDefinition Name="NIVEL_ALCANZADO" Description="NIVEL_ALCANZADO" DataType="STRING" Calculated="false" Expression="" ExternalData="NIVEL_ALCANZADO"/>  
+		<DimensionSourceDefinition Name="TOTAL_CLIENTES" Description="TOTAL_CLIENTES" DataType="STRING" Calculated="false" Expression="" ExternalData="TOTAL_CLIENTES"/>  
+		<DimensionSourceDefinition Name="COD_CLIE" Description="COD_CLIE" DataType="STRING" Calculated="false" Expression="" ExternalData="COD_CLIE"/>  
+		<DimensionSourceDefinition Name="APELLIDO_PATERNO" Description="APELLIDO_PATERNO" DataType="STRING" Calculated="false" Expression="" ExternalData="APELLIDO_PATERNO"/>  
+		<DimensionSourceDefinition Name="APELLIDO_MATERNO" Description="APELLIDO_MATERNO" DataType="STRING" Calculated="false" Expression="" ExternalData="APELLIDO_MATERNO"/>  
+		<DimensionSourceDefinition Name="NOMBRES" Description="NOMBRES" DataType="STRING" Calculated="false" Expression="" ExternalData="NOMBRES"/>  
+		<DimensionSourceDefinition Name="RANKING" Description="RANKING" DataType="STRING" Calculated="false" Expression="" ExternalData="RANKING"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="PUNTOS_ACUM" Description="PUNTOS_ACUM" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="PUNTOS_ACUM" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="PUNTOS_FALT_PROX_NIVEL" Description="PUNTOS_FALT_PROX_NIVEL" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="PUNTOS_FALT_PROX_NIVEL" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PAIS" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="MARCA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="CANAL" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="REGION" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="SUBGERENCIAVENTA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="TIPOCLIENTE" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="SUBTIPOCLIENTE" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="TIPOCLASIFICACION" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="CLASIFICACION" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="NUMEROCONCURSO" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PERIODODESDE" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PERIODOHASTA" Visual="FALSE"/>  
+	</FilterDefinitions>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="REP-064_01" SourceType="SQL" Expression="  
+SELECT   
+	   num_conc,  
+	   concurso,  
+	   DES_SUBG_VENT,  
+	   DES_REGI,  
+	   periodo_inicial,  
+	   periodo_final,  
+	   nivel_alcanzado,  
+	   total_clientes,  
+	   cod_clie,  
+	   apellido_paterno,  
+	   apellido_materno,  
+	   nombres,  
+	   rank() over ( PARTITBY num_conc, concurso, DES_SUBG_VENT, DES_REGI, periodo_inicial,  
+	   periodo_final,  
+	   nivel_alcanzado ORDER BY puntos_acum DESC) AS ranking,  
+	   puntos_acum,  
+	   puntos_falt_prox_nivel  
+FROM  
+(   
+	SELECT num_conc,  
+		   concurso,  
+		   DES_SUBG_VENT,  
+		   DES_REGI,  
+		   periodo_inicial,  
+		   periodo_final,  
+		   DECODE(nivel_alcanzado,0,0,nivel_alcanzado) AS nivel_alcanzado,  
+		   COUNT(COD_CLIE) AS total_clientes,  
+		   DECODE(nivel_alcanzado,0,NULL,cod_clie) AS cod_clie,  
+		   DECODE(nivel_alcanzado,0,NULL,apellido_paterno) AS apellido_paterno,  
+		   DECODE(nivel_alcanzado,0,NULL,apellido_materno) AS apellido_materno,  
+		   DECODE(nivel_alcanzado,0,NULL,nombres) AS nombres,  
+		   SUM(puntos_acum) AS puntos_acum,  
+		   DECODE(nivel_alcanzado,0,NULL,puntos_falt_prox_nivel) AS puntos_falt_prox_nivel  
+	FROM  
+	(  
+		SELECT 	num_conc,  
+				concurso,  
+				DES_SUBG_VENT,  
+				DES_REGI,  
+				periodo_inicial,  
+				periodo_final,  
+				COD_CLIE,  
+				apellido_paterno,  
+				apellido_materno,  
+				nombres,  
+				puntos_acum,  
+OID_PARA_GENE_PREM,  
+(				     
+SELECT NVL(MAX(niv_pre.NUM_NIVE),0)  
+FROM INC_PARAM_NIVEL_PREMI niv_pre  
+WHERE   
+niv_pre.PAGP_OID_PARA_GENE_PREM = OID_PARA_GENE_PREM  
+AND DECODE(niv_pre.NUM_CANT_FIJA_PUNT,NULL,niv_pre.NUM_CANT_INIC_PUNT,niv_pre.NUM_CANT_FIJA_PUNT) &lt;= puntos_acum  
+)nivel_alcanzado,  
+(  
+SELECT MIN(DECODE(niv_pre.NUM_CANT_FIJA_PUNT,NULL,niv_pre.NUM_CANT_INIC_PUNT,niv_pre.NUM_CANT_FIJA_PUNT)) - puntos_acum  
+FROM INC_PARAM_NIVEL_PREMI niv_pre  
+WHERE   
+niv_pre.PAGP_OID_PARA_GENE_PREM = OID_PARA_GENE_PREM  
+AND DECODE(niv_pre.NUM_CANT_FIJA_PUNT,NULL,niv_pre.NUM_CANT_INIC_PUNT,niv_pre.NUM_CANT_FIJA_PUNT) > puntos_acum  
+)puntos_falt_prox_nivel  
+		FROM   
+		(  
+			SELECT   
+				   con.IND_DEVO,  
+				   con.IND_ANUL,  
+				   con.num_conc,  
+				   con.VAL_NOMB AS concurso,  
+				   con.oid_para_gral,  
+				   par_pre.OID_PARA_GENE_PREM,  
+				   cli.OID_CLIE,  
+				   con.VAL_NOMB,  
+				   subg.DES_SUBG_VENT,  
+				   reg.DES_REGI,  
+				   per_ini.val_nomb_peri AS periodo_inicial,  
+				   per_fin.val_nomb_peri AS periodo_final,  
+				   cli.COD_CLIE,  
+				   cli.VAL_APE1 AS apellido_paterno,  
+				   cli.VAL_APE2 AS apellido_materno,   
+				   cli.VAL_NOM1||' '||cli.VAL_NOM2 AS nombres,  
+				   SUM(  
+				   (  
+				   	SELECT SUM(pun.NUM_PUNT)  
+					FROM INC_CUENT_CORRI_PUNTO pun  
+					WHERE pun.CLIE_OID_CLIE = cli.OID_CLIE  
+						  AND pun.COPA_OID_PARA_GRAL = con.OID_PARA_GRAL  
+						  AND pun.PERD_OID_PERI = per.oid_peri  
+						  AND ( pun.TMOV_OID_TIPO_MOVI = 3 OR pun.TMOV_OID_TIPO_MOVI = 1   
+						  	  OR ( pun.TMOV_OID_TIPO_MOVI = 2 AND (con.IND_ANUL = 1 OR con.IND_DEVO = 1) ))  
+				   )) over (PARTITION BY con.oid_para_gral, subg.DES_SUBG_VENT, reg.DES_REGI, cod_clie) puntos_acum   
+			FROM INC_CONCU_PARAM_GENER con,  
+				 INC_PARAM_GENER_PREMI par_pre,  
+				 INC_CUENT_CORRI_PUNTO CC_PUNTO,  
+				 MAE_CLIEN cli,  
+				 MAE_CLIEN_UNIDA_ADMIN un_adm,  
+				 MAE_CLIEN_TIPO_SUBTI subt,  
+				 MAE_CLIEN_CLASI cla,  
+				 ZON_TERRI_ADMIN ter_adm,  
+				 ZON_TERRI ter,  
+				 ZON_SECCI sec,  
+				 ZON_ZONA zon,  
+				 ZON_REGIO reg,  
+				 ZON_SUB_GEREN_VENTA subg,  
+				 CRA_PERIO per_ini,  
+				 CRA_PERIO per_fin,  
+				 CRA_PERIO per,  
+				 (  
+				  SELECT  
+								   MIN(P.FEC_INIC) AS FEC_INIC,  
+								   MAX(P.FEC_FINA) AS FEC_FINA  
+				  FROM  
+				  	  	   		   CRA_PERIO P,  
+								   CRA_PERIO D,  
+				 				   CRA_PERIO H  
+				  WHERE  
+				  	   			   D.OID_PERI = %value_PERIODODESDEVALUE%  
+				  				   AND H.OID_PERI = %value_PERIODOHASTAVALUE%  
+								   AND P.PAIS_OID_PAIS = D.PAIS_OID_PAIS  
+								   AND P.MARC_OID_MARC = D.MARC_OID_MARC  
+								   AND P.CANA_OID_CANA = D.CANA_OID_CANA  
+								   AND P.FEC_INIC >= D.FEC_INIC  
+								   AND P.FEC_FINA &lt;= H.FEC_FINA  
+				 ) PER_FILTRO  
+			WHERE   
+						par_pre.COPA_OID_PARA_GRAL = con.OID_PARA_GRAL  
+						AND CC_PUNTO.CLIE_OID_CLIE = CLI.OID_CLIE  
+						AND CC_PUNTO.COPA_OID_PARA_GRAL = con.OID_PARA_GRAL  
+						AND un_adm.clie_oid_clie = cli.oid_clie  
+						AND un_adm.IND_ACTI = 1  
+						  
+						AND un_adm.ZTAD_OID_TERR_ADMI = ter_adm.OID_TERR_ADMI  
+						AND ter_adm.TERR_OID_TERR = ter.OID_TERR  
+						AND ter_adm.ZSCC_OID_SECC = sec.OID_SECC  
+						AND sec.ZZON_OID_ZONA = zon.OID_ZONA  
+						AND zon.ZORG_OID_REGI = reg.OID_REGI  
+						AND subg.pais_oid_pais =  %value_PAISVALUE%  
+						AND reg.ZSGV_OID_SUBG_VENT = subg.oid_subg_vent  
+						AND con.PERD_OID_PERI_DESD = per_ini.oid_peri  
+						AND con.PERD_OID_PERI_HAST = per_fin.oid_peri  
+						AND per_ini.fec_inic &lt;= per.fec_inic  
+						AND per_fin.fec_fina >= per.fec_fina  
+						AND PER.FEC_INIC >= PER_FILTRO.FEC_INIC  
+						AND PER.FEC_FINA &lt;= PER_FILTRO.FEC_FINA  
+						AND per.pais_oid_pais = con.pais_oid_pais  
+						AND per.marc_oid_marc = con.marc_oid_marc  
+						AND per.cana_oid_cana = con.cana_oid_cana  
+						%start_SUBGERENCIAVENTAVALUES%  AND SUBG.OID_SUBG_VENT IN  (%value_SUBGERENCIAVENTAVALUES%) %end_SUBGERENCIAVENTAVALUES%   
+						%start_REGIONVALUES%   AND REG.OID_REGI IN (%value_REGIONVALUES%) %end_REGIONVALUES%   
+						AND con.oid_para_gral IN (%value_NUMEROCONCURSOVALUES%)   
+						AND con.pais_oid_pais = %value_PAISVALUE%  
+						AND con.marc_oid_marc = %value_MARCAVALUE%  
+						AND con.cana_oid_cana = %value_CANALVALUE%  
+						AND cli.oid_clie = subt.CLIE_OID_CLIE  
+						AND subt.OID_CLIE_TIPO_SUBT = cla.CTSU_OID_CLIE_TIPO_SUBT (+)  
+						AND subt.TICL_OID_TIPO_CLIE = %value_TIPOCLIENTEVALUE%  
+						%start_SUBTIPOCLIENTEVALUE%  	  AND subt.SBTI_OID_SUBT_CLIE  = %value_SUBTIPOCLIENTEVALUE%   %end_SUBTIPOCLIENTEVALUE%   
+						%start_CLASIFICACIONVALUE%  	  AND CLA.CLAS_OID_CLAS = %value_CLASIFICACIONVALUE% %end_CLASIFICACIONVALUE%     
+						%start_TIPOCLASIFICACIONVALUE%      AND CLA.TCCL_OID_TIPO_CLASI =  %value_TIPOCLASIFICACIONVALUE% %end_TIPOCLASIFICACIONVALUE%   
+						  
+						  
+		)  
+	)  
+	GROUP BY num_conc,  
+		   concurso,  
+		   DES_SUBG_VENT,  
+		   DES_REGI,  
+		   periodo_inicial,  
+		   periodo_final,  
+		   DECODE(nivel_alcanzado,0,NULL,COD_CLIE),  
+		   DECODE(nivel_alcanzado,0,NULL,apellido_paterno),  
+		   DECODE(nivel_alcanzado,0,NULL,apellido_materno),  
+		   DECODE(nivel_alcanzado,0,NULL,nombres),  
+		   DECODE(nivel_alcanzado,0,0,nivel_alcanzado),  
+		   DECODE(nivel_alcanzado,0,NULL,puntos_falt_prox_nivel)  
+)  
+	ORDER BY num_conc,   
+		   concurso,  
+		   DES_SUBG_VENT,  
+		   DES_REGI,  
+		   periodo_inicial,  
+		   periodo_final,  
+		   nivel_alcanzado,  
+		   puntos_acum DESC  
+		   			" ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.106:1523:SICCV3D" ExternalConnectionDistributedUrl="" ExternalConnectionUser="own_peru" ExternalConnectionPassword="peru_own" DatePattern="" DateTimePattern=""/>  
+	</DataSourceDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="PAIS" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="MARCA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="CANAL" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="REGION" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="SUBGERENCIAVENTA" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="2" FilterDefinitionName="TIPOCLIENTE" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="SUBTIPOCLIENTE" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="TIPOCLASIFICACION" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="CLASIFICACION" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1453, 1396" FilterDefinitionName="NUMEROCONCURSO" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="1363" FilterDefinitionName="PERIODODESDE" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1364" FilterDefinitionName="PERIODOHASTA" FilterParameter="VALUE"/>  
+	</ParameterValues>  
+	<Localizations/>  
+</ReportSourceDefinition>  
+   
+

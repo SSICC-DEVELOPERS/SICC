@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by tito (tito) -->  
+<ReportSourceDefinition Id="RSD_REP-137" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="PAIS" Description="PAIS" DataType="STRING" Calculated="false" Expression="" ExternalData="PAIS"/>  
+		<DimensionSourceDefinition Name="SOCI" Description="SOCI" DataType="STRING" Calculated="false" Expression="" ExternalData="SOCI"/>  
+		<DimensionSourceDefinition Name="BANCO" Description="BANCO" DataType="STRING" Calculated="false" Expression="" ExternalData="BANCO"/>  
+		<DimensionSourceDefinition Name="CUENTA_CC" Description="CUENTA_CC" DataType="STRING" Calculated="false" Expression="" ExternalData="CUENTA_CC"/>  
+		<DimensionSourceDefinition Name="FEC_LIQUIDA" Description="FEC_LIQUIDA" DataType="DATETIME" Calculated="false" Expression="" ExternalData="FEC_LIQUIDA"/>  
+		<DimensionSourceDefinition Name="COMPROBANTE" Description="COMPROBANTE" DataType="STRING" Calculated="false" Expression="" ExternalData="COMPROBANTE"/>  
+		<DimensionSourceDefinition Name="COD_CONS" Description="COD_CONS" DataType="STRING" Calculated="false" Expression="" ExternalData="COD_CONS"/>  
+		<DimensionSourceDefinition Name="APE_PAT" Description="APE_PAT" DataType="STRING" Calculated="false" Expression="" ExternalData="APE_PAT"/>  
+		<DimensionSourceDefinition Name="APE_MAT" Description="APE_MAT" DataType="STRING" Calculated="false" Expression="" ExternalData="APE_MAT"/>  
+		<DimensionSourceDefinition Name="NOMBRE" Description="NOMBRE" DataType="STRING" Calculated="false" Expression="" ExternalData="NOMBRE"/>  
+		<DimensionSourceDefinition Name="FEC_PAGO" Description="FEC_PAGO" DataType="DATETIME" Calculated="false" Expression="" ExternalData="FEC_PAGO"/>  
+		<DimensionSourceDefinition Name="NUM_ABONO" Description="NUM_ABONO" DataType="STRING" Calculated="false" Expression="" ExternalData="NUM_ABONO"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="IMP_PAGO" Description="IMP_PAGO" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="IMP_PAGO" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="REG_CORRECTOS" Description="REG_CORRECTOS" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="REG_CORRECTOS" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="IMP_CORRECTOS" Description="IMP_CORRECTOS" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="IMP_CORRECTOS" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="IDIOMA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PAIS" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="BANCO" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="CUENTACORRIENTE" Visual="FALSE"/>  
+		<FilterDefinition DataType="STRING" FilterType="EQUALTO" Name="FORMATOFECHA" Visual="FALSE"/>  
+		<FilterDefinition DataType="DATE" FilterType="EQUALTO" Name="FECHA" Visual="FALSE"/>  
+		<FilterDefinition DataType="STRING" FilterType="EQUALTO" Name="NUMEROCOMPROBANTE" Visual="FALSE"/>  
+	</FilterDefinitions>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="REP-137" SourceType="SQL" Expression="  
+SELECT   
+	   GEN_PAIS.VAL_I18N PAIS,  
+	   SOC.VAL_DENO SOCI,  
+	   BANCO.DES_BANC BANCO,  
+	   CCC_BAN.DES_CC CUENTA_CC,  
+	   MOV_BAN.FEC_PAGO FEC_LIQUIDA,  
+	   MOV_BAN.NUM_LOTE COMPROBANTE,  
+	   MOV_BAN.COD_CONS,  
+	   CLI.VAL_APE1 APE_PAT,  
+	   CLI.VAL_APE2 APE_MAT,  
+	   CLI.VAL_NOM1||' '||CLI.VAL_NOM2 NOMBRE,  
+	   MOV_BAN.FEC_PAGO,  
+	   DECODE(DECODE(MOV_BAN.NUM_FACT_BOLE, NULL, MOV_BAN.NUM_CUPO, MOV_BAN.NUM_FACT_BOLE), NULL, MOV_BAN.NUM_CONS_TRAN,DECODE(MOV_BAN.NUM_FACT_BOLE, NULL, MOV_BAN.NUM_CUPO, MOV_BAN.NUM_FACT_BOLE)) NUM_ABONO,  
+	   MOV_BAN.IMP_PAGO,  
+	   DECODE(MOV_BAN.COD_CONS, NULL, 0, 1) REG_CORRECTOS,  
+       DECODE(MOV_BAN.COD_CONS, NULL, 0, MOV_BAN.IMP_PAGO) IMP_CORRECTOS  
+FROM CCC_MOVIM_BANCA MOV_BAN,  
+     CCC_CUENT_CORRI_BANCA CCC_BAN,  
+	 CCC_SUCUR SUC,  
+	 CCC_BANCO BANCO,  
+	 MAE_CLIEN CLI,  
+	SEG_SOCIE SOC,  
+	 (  
+	 SELECT GEN.VAL_OID, GEN.VAL_I18N  
+	 FROM V_GEN_I18N_SICC GEN  
+	 WHERE GEN.ATTR_ENTI = 'SEG_PAIS'  
+	 	   AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%  
+	 ) GEN_PAIS  
+WHERE CCC_BAN.OID_CUEN_CORR_BANC = MOV_BAN.CCBA_OID_CC_BANC  
+	  AND SUC.OID_SUCU = CCC_BAN.SUCU_OID_SUCU  
+	  AND BANCO.OID_BANC = SUC.CBAN_OID_BANC  
+	  AND MOV_BAN.COD_CONS = CLI.COD_CLIE(+)  
+	  AND CLI.PAIS_OID_PAIS = MOV_BAN.PAIS_OID_PAIS  
+	  AND MOV_BAN.SOCI_OID_SOCI = SOC.OID_SOCI  
+	  AND MOV_BAN.PAIS_OID_PAIS = GEN_PAIS.VAL_OID(+)  
+	  AND MOV_BAN.PAIS_OID_PAIS = %value_PAISVALUE%  
+ 	  AND BANCO.OID_BANC IN (%value_BANCOVALUES%)  
+	  %start_CUENTACORRIENTEVALUES% AND CCC_BAN.OID_CUEN_CORR_BANC IN (%value_CUENTACORRIENTEVALUES%) %end_CUENTACORRIENTEVALUES%  
+	  AND MOV_BAN.COD_IDEN_proc &lt;> 'T'  
+	  AND TO_DATE(MOV_BAN.FEC_PAGO) = TO_DATE(%value_FECHAVALUE%,%value_FORMATOFECHAVALUE%)	  
+	  %start_NUMEROCOMPROBANTEVALUE% AND MOV_BAN.NUM_LOTE = %value_NUMEROCOMPROBANTEVALUE% %end_NUMEROCOMPROBANTEVALUE%  
+ORDER BY PAIS,  
+	  	 SOCI,  
+		 BANCO,  
+		 CUENTA_CC,  
+		 FEC_LIQUIDA,  
+		 COMPROBANTE,  
+		 COD_CONS,  
+		 IMP_PAGO  
+" ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.106:1523:SICCV3D" ExternalConnectionDistributedUrl="" ExternalConnectionUser="usu_peru" ExternalConnectionPassword="peru" DatePattern="dd/MM/yyyy" DateTimePattern=""/>  
+	</DataSourceDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="IDIOMA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="PAIS" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1,2,3,4,5,6" FilterDefinitionName="BANCO" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="CUENTACORRIENTE" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="dd/MM/yyyy" FilterDefinitionName="FORMATOFECHA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="25/04/2005" FilterDefinitionName="FECHA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="NUMEROCOMPROBANTE" FilterParameter="VALUE"/>  
+	</ParameterValues>  
+	<Localizations/>  
+</ReportSourceDefinition>  
+

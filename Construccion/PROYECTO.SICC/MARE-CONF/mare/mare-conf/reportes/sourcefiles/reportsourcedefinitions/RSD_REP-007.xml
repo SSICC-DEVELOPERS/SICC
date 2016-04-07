@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by tito (tito) -->  
+<ReportSourceDefinition Id="RSD_REP-007" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="1019" Description="PAIS" DataType="STRING" Calculated="false" Expression="" ExternalData="PAIS"/>  
+		<DimensionSourceDefinition Name="1074" Description="VAL_ANIO" DataType="STRING" Calculated="false" Expression="" ExternalData="VAL_ANIO"/>  
+		<DimensionSourceDefinition Name="1078" Description="VAL_NOMB_PERI" DataType="STRING" Calculated="false" Expression="" ExternalData="VAL_NOMB_PERI"/>  
+		<DimensionSourceDefinition Name="1022" Description="DES_REGI" DataType="STRING" Calculated="false" Expression="" ExternalData="DES_REGI"/>  
+		<DimensionSourceDefinition Name="1023" Description="COD_ZONA" DataType="STRING" Calculated="false" Expression="" ExternalData="COD_ZONA"/>  
+		<DimensionSourceDefinition Name="1076" Description="GRUPO" DataType="STRING" Calculated="false" Expression="" ExternalData="GRUPO"/>  
+		<DimensionSourceDefinition Name="1077" Description="ACTIVIDAD" DataType="STRING" Calculated="false" Expression="" ExternalData="ACTIVIDAD"/>  
+		<DimensionSourceDefinition Name="ANIO" Description="ANIO" DataType="STRING" Calculated="false" Expression="" ExternalData="ANIO"/>  
+		<DimensionSourceDefinition Name="ACTI1" Description="ACTI1" DataType="STRING" Calculated="false" Expression="" ExternalData="ACTI1"/>  
+		<DimensionSourceDefinition Name="ACTI2" Description="ACTI2" DataType="STRING" Calculated="false" Expression="" ExternalData="ACTI2"/>  
+		<DimensionSourceDefinition Name="ACTI3" Description="ACTI3" DataType="STRING" Calculated="false" Expression="" ExternalData="ACTI3"/>  
+		<DimensionSourceDefinition Name="ACTI4" Description="ACTI4" DataType="STRING" Calculated="false" Expression="" ExternalData="ACTI4"/>  
+		<DimensionSourceDefinition Name="ACTIVIDAD1" Description="ACTIVIDAD1" DataType="STRING" Calculated="false" Expression="" ExternalData="ACTIVIDAD1"/>  
+		<DimensionSourceDefinition Name="ACTIVIDAD2" Description="ACTIVIDAD2" DataType="STRING" Calculated="false" Expression="" ExternalData="ACTIVIDAD2"/>  
+		<DimensionSourceDefinition Name="ACTIVIDAD3" Description="ACTIVIDAD3" DataType="STRING" Calculated="false" Expression="" ExternalData="ACTIVIDAD3"/>  
+		<DimensionSourceDefinition Name="ACTIVIDAD4" Description="ACTIVIDAD4" DataType="STRING" Calculated="false" Expression="" ExternalData="ACTIVIDAD4"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="1079" Description="ESTIMADO" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="ESTIMADO" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="IDIOMA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PAIS" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="MARCA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="CANAL" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="REGION" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PERIODO" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="ACTIVIDAD" Visual="FALSE"/>  
+	</FilterDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="IDIOMA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="PAIS" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="MARCA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="CANAL" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="7" FilterDefinitionName="REGION" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="62" FilterDefinitionName="PERIODO" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1,2,1005,1364" FilterDefinitionName="ACTIVIDAD" FilterParameter="VALUES"/>  
+	</ParameterValues>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="REP-007" SourceType="SQL" Expression="SELECT DATOS.PAIS,  
+				   DATOS.VAL_ANIO,  
+				   DATOS.VAL_NOMB_PERI,  
+				   	DATOS.DES_REGI,  
+					DATOS.COD_ZONA,  
+					DATOS.GRUPO,  
+					MIN(ACTI1) ACTI1,  
+ 					MIN( ACTI2) ACTI2,  
+					MIN(ACTI3) ACTI3 ,  
+					MIN(ACTI4) ACTI4,  
+					DATOS.ANIO,  
+	 actividad1 ,  
+ actividad2,  
+  actividad3,  
+   actividad4,	   
+					DATOS.ESTIMADO  
+					  
+FROM (  
+SELECT  DATOS.PAIS,  
+				   DATOS.VAL_ANIO,  
+				   DATOS.VAL_NOMB_PERI,  
+				   	DATOS.DES_REGI,  
+					DATOS.COD_ZONA,  
+					DATOS.GRUPO,  
+					DATOS.FECHA ,  
+					CASE WHEN ACTI.NUM = 1 THEN DATOS.FECHA ELSE '' END ACTI1,  
+ 					CASE WHEN ACTI.NUM = 2 THEN DATOS.FECHA ELSE '' END ACTI2,  
+					CASE WHEN ACTI.NUM = 3 THEN DATOS.FECHA ELSE '' END ACTI3,  
+					CASE WHEN ACTI.NUM = 4 THEN DATOS.FECHA ELSE '' END ACTI4,  
+					DATOS.ANIO,  
+						(  SELECT actividad  
+FROM (  
+SELECT gen.val_i18n actividad, ROWNUM num  
+FROM   
+  (SELECT g.val_oid, g.val_i18n  
+           FROM gen_i18n_sicc g  
+           WHERE g.attr_enti = 'CRA_ACTIV' AND g.idio_oid_idio = %value_IDIOMAVALUE%) gen  
+WHERE gen.val_oid  IN (%value_ACTIVIDADVALUES%)  
+) WHERE NUM = 1  
+) actividad1,  
+(  SELECT actividad  
+FROM (  
+SELECT gen.val_i18n actividad, ROWNUM num  
+FROM   
+  (SELECT g.val_oid, g.val_i18n  
+           FROM gen_i18n_sicc g  
+           WHERE g.attr_enti = 'CRA_ACTIV' AND g.idio_oid_idio = %value_IDIOMAVALUE%) gen  
+WHERE gen.val_oid  IN (%value_ACTIVIDADVALUES%)  
+) WHERE NUM = 2  
+) actividad2 ,  
+(  SELECT actividad  
+FROM (  
+SELECT gen.val_i18n actividad, ROWNUM num  
+FROM   
+  (SELECT g.val_oid, g.val_i18n  
+           FROM gen_i18n_sicc g  
+           WHERE g.attr_enti = 'CRA_ACTIV' AND g.idio_oid_idio = %value_IDIOMAVALUE%) gen  
+WHERE gen.val_oid  IN (%value_ACTIVIDADVALUES%)  
+) WHERE NUM = 3  
+) actividad3,  
+(  SELECT actividad  
+FROM (  
+SELECT gen.val_i18n actividad, ROWNUM num  
+FROM   
+  (SELECT g.val_oid, g.val_i18n  
+           FROM gen_i18n_sicc g  
+           WHERE g.attr_enti = 'CRA_ACTIV' AND g.idio_oid_idio = %value_IDIOMAVALUE%) gen  
+WHERE gen.val_oid  IN (%value_ACTIVIDADVALUES%)  
+) WHERE NUM = 4  
+) actividad4,  
+					DATOS.ESTIMADO  
+FROM (  
+SELECT   gen_pais.pais, cor.val_anio, per.val_nomb_peri, reg.des_regi,act.oid_acti,  
+         zon.cod_zona, gen_grupo.grupo, gen_act.actividad,  
+         TO_CHAR (cro.fec_inic, 'DD/MM/YYYY') fecha,  
+         TO_CHAR (cro.fec_inic, 'YYYY') anio, estimado.num_pedi estimado  
+    FROM CRA_CRONO cro,  
+         CRA_PERIO per,  
+         cra_activ act,  
+         ZON_ZONA zon,  
+         ZON_REGIO reg,  
+         CRA_DETAL_GRUPO_ZONA det,  
+         CRA_CABEC_GRUPO_ZONA cab,  
+         (SELECT fvt.num_pedi, fvt.zzon_oid_zona  
+            FROM INT_FUENT_VENTA_PREVI_SAP fvt  
+           WHERE fvt.perd_oid_peri = %value_PERIODOVALUE%) estimado,  
+         seg_perio_corpo cor,  
+         (SELECT gen.val_i18n actividad, gen.val_oid  
+            FROM v_gen_i18n_sicc gen  
+           WHERE gen.attr_enti = 'CRA_ACTIV' AND gen.idio_oid_idio = %value_IDIOMAVALUE%) gen_act,  
+         (SELECT gen.val_i18n pais, gen.val_oid  
+            FROM v_gen_i18n_sicc gen  
+           WHERE gen.attr_enti = 'SEG_PAIS' AND gen.idio_oid_idio =%value_IDIOMAVALUE%) gen_pais,  
+         (SELECT gen.val_i18n grupo, gen.val_oid  
+            FROM v_gen_i18n_sicc gen  
+           WHERE gen.attr_enti = 'CRA_CABEC_GRUPO_ZONA'  
+             AND gen.idio_oid_idio = %value_IDIOMAVALUE%) gen_grupo  
+   WHERE cro.perd_oid_peri(+) = per.oid_peri  
+     AND cro.cact_oid_acti = act.oid_acti  
+ AND per.PAIS_OID_PAIS = %value_PAISVALUE%  
+	  AND per.CANA_OID_CANA = %value_CANALVALUE%  
+	  AND per.MARC_OID_MARC = %value_MARCAVALUE%  
+	  AND act.OID_ACTI IN (%value_ACTIVIDADVALUES%)  
+	  AND per.OID_PERI = %value_PERIODOVALUE%  
+	  AND reg.OID_REGI = %value_REGIONVALUE%  
+	       AND act.oid_acti = gen_act.val_oid(+)  
+     AND act.pais_oid_pais = gen_pais.val_oid(+)  
+     AND cab.oid_cabe_grup_zona = gen_grupo.val_oid(+)  
+     AND cro.zzon_oid_zona = zon.oid_zona(+)  
+     AND zon.zorg_oid_regi = reg.oid_regi(+)  
+     AND zon.pais_oid_pais = reg.pais_oid_pais  
+     AND zon.marc_oid_marc = reg.marc_oid_marc  
+     AND zon.cana_oid_cana = reg.cana_oid_cana  
+     AND zon.oid_zona = det.zzon_oid_zona  
+     AND det.cgzo_oid_cabe_grup_zona = cab.oid_cabe_grup_zona  
+     AND cab.pais_oid_pais = per.pais_oid_pais  
+     AND cab.cana_oid_cana = per.cana_oid_cana  
+     AND cab.marc_oid_marc = per.marc_oid_marc  
+     AND estimado.zzon_oid_zona(+) = zon.oid_zona  
+     AND per.peri_oid_peri = cor.oid_peri  
+	   
+) DATOS,  
+(  
+SELECT ROWNUM AS NUM, ACT.COD_ACTI,act.oid_acti   
+    FROM          cra_activ act  
+   WHERE      act.oid_acti IN (%value_ACTIVIDADVALUES%)  
+   ORDER BY oid_acti  
+)  ACTI  
+  
+WHERE ACTI.oid_acti = DATOS.oid_acti  
+) DATOS  
+GROUP BY DATOS.PAIS,  
+				   DATOS.VAL_ANIO,  
+				   DATOS.VAL_NOMB_PERI,  
+				   	DATOS.DES_REGI,  
+					DATOS.COD_ZONA,  
+					DATOS.GRUPO,  
+					DATOS.ANIO,  
+					DATOS.ESTIMADO " ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.106:1523:SICCV3D" ExternalConnectionDistributedUrl="" ExternalConnectionUser="usu_peru" ExternalConnectionPassword="peru" DatePattern="" DateTimePattern=""/>  
+	</DataSourceDefinitions>  
+	<Localizations/>  
+</ReportSourceDefinition>  
+

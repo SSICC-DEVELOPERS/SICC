@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by team (renegade) -->  
+<ReportSourceDefinition Id="RSD_REP-078_02" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="NUM_CONC" Description="NUM_CONC" DataType="STRING" Calculated="false" Expression="" ExternalData="NUM_CONC"/>  
+		<DimensionSourceDefinition Name="VAL_NOMB" Description="VAL_NOMB" DataType="STRING" Calculated="false" Expression="" ExternalData="VAL_NOMB"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="CONSULTORAS_CON_METAS" Description="CONSULTORAS_CON_METAS" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="CONSULTORAS_CON_METAS" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="CONS_GANADORAS" Description="CONS_GANADORAS" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="CONS_GANADORAS" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="POR_GANADORAS" Description="POR_GANADORAS" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="POR_GANADORAS" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PAIS" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="MARCA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="CANAL" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="NUMEROCONCURSO" Visual="FALSE"/>  
+	</FilterDefinitions>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="REP-078_02" SourceType="SQL" Expression="  
+SELECT  
+	NUM_CONC,  
+	VAL_NOMB,  
+	SUM(consultoras_con_metas) AS consultoras_con_metas,  
+	SUM(cons_ganadoras)AS cons_ganadoras,  
+	SUM(DECODE(consultoras_con_metas,0,0,cons_ganadoras / consultoras_con_metas) * 100) por_ganadoras  
+FROM   
+	(  
+	SELECT   
+		con.NUM_CONC,  
+		con.VAL_NOMB,  
+		COUNT(*) AS consultoras_con_metas,  
+		(  
+		   	SELECT  
+				COUNT(*)  
+			FROM  
+				inc_ganad gan,  
+				inc_param_nivel_premi niv,  
+				inc_param_gener_premi par_pre  
+			WHERE  
+				gan.PANP_OID_PARA_NIVE_PREM = niv.OID_PARA_NIVE_PREM  
+				AND niv.PAGP_OID_PARA_GENE_PREM = par_pre.OID_PARA_GENE_PREM  
+				AND par_pre.COPA_OID_PARA_GRAL = con.OID_PARA_GRAL   
+		) cons_ganadoras  
+	FROM  
+		inc_concu_param_gener con,  
+		(  
+			SELECT *  
+			FROM  
+				(  
+					(  
+						SELECT *  
+						FROM inc_metas_tipo_venta met2  
+						WHERE met2.copa_oid_para_gral = %value_NUMEROCONCURSOVALUE%   
+					)  
+					MINUS   
+					(  
+						SELECT  
+							met.*  
+						FROM  
+							inc_metas_tipo_venta met,  
+							inc_desca des,  
+							inc_causa_desca cau_des  
+						WHERE  
+							met.CLIE_OID_CLIE = des.clie_oid_clie  
+							AND met.COPA_OID_PARA_GRAL = des.COPA_OID_PARA_GRAL  
+							AND des.CADE_OID_CAUS_DESC = cau_des.OID_CAUS_DESC  
+							AND cau_des.COD_CAUS in ('FA','FC')  
+							AND met.COPA_OID_PARA_GRAL = %value_NUMEROCONCURSOVALUE%   
+					)  
+				)  
+		 ) cons_totales  
+	WHERE  
+		cons_totales.COPA_OID_PARA_GRAL = con.OID_PARA_GRAL  
+	    and con.PAIS_OID_PAIS =  %value_PAISVALUE%   
+		and con.MARC_OID_MARC =  %value_MARCAVALUE%   
+		and con.CANA_OID_CANA = %value_CANALVALUE% 	  
+		and con.OID_PARA_GRAL = %value_NUMEROCONCURSOVALUE%   
+	GROUP BY  
+		con.NUM_CONC,  
+		con.VAL_NOMB,  
+		con.OID_PARA_GRAL  
+	)  
+GROUP BY  
+	NUM_CONC,  
+	VAL_NOMB  
+	  
+		" ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.100:1523:SICCV3P" ExternalConnectionDistributedUrl="" ExternalConnectionUser="own_peru" ExternalConnectionPassword="own_peru" DatePattern="" DateTimePattern=""/>  
+	</DataSourceDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="PAIS" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="MARCA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="CANAL" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1042" FilterDefinitionName="NUMEROCONCURSO" FilterParameter="VALUE"/>  
+	</ParameterValues>  
+	<Localizations/>  
+</ReportSourceDefinition>  
+

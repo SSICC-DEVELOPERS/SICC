@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by tito (tito) -->  
+<ReportSourceDefinition Id="RSD_REP-114" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="SOCIEDAD_DEFECTO" Description="SOCIEDAD_DEFECTO" DataType="STRING" Calculated="false" Expression="" ExternalData="SOCIEDAD_DEFECTO"/>  
+		<DimensionSourceDefinition Name="PAIS" Description="PAIS" DataType="STRING" Calculated="false" Expression="" ExternalData="PAIS"/>  
+		<DimensionSourceDefinition Name="PERIODO" Description="PERIODO" DataType="STRING" Calculated="false" Expression="" ExternalData="PERIODO"/>  
+		<DimensionSourceDefinition Name="REGION" Description="REGION" DataType="STRING" Calculated="false" Expression="" ExternalData="REGION"/>  
+		<DimensionSourceDefinition Name="SOCI_OID_SOCI" Description="SOCI_OID_SOCI" DataType="STRING" Calculated="false" Expression="" ExternalData="SOCI_OID_SOCI"/>  
+		<DimensionSourceDefinition Name="SOCIEDAD" Description="SOCIEDAD" DataType="STRING" Calculated="false" Expression="" ExternalData="SOCIEDAD"/>  
+		<DimensionSourceDefinition Name="FEC_FACT" Description="FEC_FACT" DataType="DATETIME" Calculated="false" Expression="" ExternalData="FEC_FACT"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="UNID_DEMANDA" Description="UNID_DEMANDA" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="UNID_DEMANDA" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="UNID_FALTANTES" Description="UNID_FALTANTES" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="UNID_FALTANTES" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="PORC_UNID_FALTANTES" Description="PORC_UNID_FALTANTES" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="PORC_UNID_FALTANTES" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="CANT_PEDIDOS" Description="CANT_PEDIDOS" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="CANT_PEDIDOS" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="PEDIDOS_FALTANTES" Description="PEDIDOS_FALTANTES" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="PEDIDOS_FALTANTES" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="PORC_PEDIDOS_FAL" Description="PORC_PEDIDOS_FAL" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="PORC_PEDIDOS_FAL" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="IDIOMA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PAIS" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="MARCA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="CANAL" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PERIODODESDE" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PERIODOHASTA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="REGION" Visual="FALSE"/>  
+		<FilterDefinition DataType="STRING" FilterType="EQUALTO" Name="ZONEUSER" Visual="FALSE"/>  
+	</FilterDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="IDIOMA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="PAIS" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="MARCA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="CANAL" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="57" FilterDefinitionName="PERIODODESDE" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="-1" FilterDefinitionName="PERIODOHASTA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="REGION" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="ZONEUSER" FilterDefinitionName="ZONEUSER" FilterParameter="VALUE"/>  
+	</ParameterValues>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="REP-114" SourceType="SQL" Expression="SELECT *  
+FROM  
+	(  
+	   SELECT SOC.VAL_DENO  SOCIEDAD_DEFECTO  
+	   FROM PRINCIPALS PRI,  
+			PROPERTYVALUES PRO,  
+			SEG_SOCIE SOC				  
+	   WHERE PRI.NAME = %value_ZONEUSERVALUE%									     
+			 AND PRO.IDPROPERTY = 48  
+			 AND PRO.IDPRINCIPAL = PRI.IDPRINCIPAL  
+			 AND SOC.OID_SOCI = PRO.STRINGVALUE  
+	),  
+	(  
+	 SELECT GEN_PAIS.VAL_I18N PAIS,  
+	        VAL_NOMB_PERI PERIODO,  
+	        DES_REGI REGION,  
+	 	   SOCI_OID_SOCI,  
+	        GEN_SOCI.VAL_I18N SOCIEDAD,  
+	        FEC_FACT,  
+	 	   SUM(NUM_UNID_DEMA) UNID_DEMANDA,  
+	 	   SUM(UNID_FALTANTES) UNID_FALTANTES,  
+	           TRUNC(DECODE(SUM(NUM_UNID_DEMA), 0, 0, SUM(UNID_FALTANTES) / SUM(NUM_UNID_DEMA))*100, 2) PORC_UNID_FALTANTES,  
+	           COUNT(DISTINCT PED) CANT_PEDIDOS,  
+	        decode( SUM(UNID_FALTANTES),0,0,COUNT(DISTINCT PED))PEDIDOS_FALTANTES,  
+	 	   TRUNC(DECODE(COUNT(DISTINCT PED), 0, 0, decode( SUM(UNID_FALTANTES),0,0,COUNT(DISTINCT PED)) / COUNT(DISTINCT PED))*100, 2) PORC_PEDIDOS_FAL  
+	 FROM  
+	 (  
+	 	SELECT SOL_CAB.PAIS_OID_PAIS,  
+	 		   SOL_CAB.SOCI_OID_SOCI,  
+	 		   PERI.VAL_NOMB_PERI,  
+	 		   REG.DES_REGI,  
+	 		   SOL_CAB.FEC_FACT,  
+	 		   NVL(SOL_POS.NUM_UNID_DEMA, 0) NUM_UNID_DEMA,  
+	 		   CASE WHEN(SOL_POS.IND_CTRL_STOC = 1) THEN  
+	 			   NVL(SOL_POS.NUM_UNID_DEMA, 0) - NVL(SOL_POS.NUM_UNID_COMPR, 0)  
+	 		   ELSE  
+	 	   	   	   NVL(SOL_POS.NUM_UNID_POR_ATEN, 0) - NVL(SOL_POS.NUM_UNID_COMPR, 0)  
+	 		   END AS UNID_FALTANTES,  
+	 		   SOL_CAB.OID_SOLI_CABE PED			   	     
+	 	FROM PED_SOLIC_CABEC SOL_CAB,  
+	 		 CRA_PERIO PERI,  
+	 		 ZON_REGIO REG,  
+	 		 ZON_ZONA ZONA,  
+	 		 PED_SOLIC_POSIC SOL_POS,  
+		 (  
+			 SELECT FEC_INIC  
+			 FROM CRA_PERIO  
+			 WHERE OID_PERI = %value_PERIODODESDEVALUE%  
+		 ) PER_INI,  
+		 (  
+			 SELECT FEC_FINA  
+			 FROM CRA_PERIO  
+			 WHERE OID_PERI = DECODE(%value_PERIODOHASTAVALUE%, -1, %value_PERIODODESDEVALUE%, %value_PERIODOHASTAVALUE%)  
+		 ) PER_FIN  
+	 	WHERE PERI.FEC_INIC >= PER_INI.FEC_INIC  
+	 		  AND PERI.FEC_FINA &lt;= PER_FIN.FEC_FINA  
+	 		  AND SOL_CAB.ZZON_OID_ZONA = ZONA.OID_ZONA  
+	 		  AND SOL_CAB.OID_SOLI_CABE = SOL_POS.SOCA_OID_SOLI_CABE  
+	 		  AND SOL_CAB.PERD_OID_PERI = PERI.OID_PERI  
+	 		  AND SOL_CAB.IND_OC = 1  
+	 		  AND REG.OID_REGI = ZONA.ZORG_OID_REGI  
+	 		  AND SOL_POS.IND_RECU_OBLI = 1  
+		  	  AND PERI.CANA_OID_CANA = %value_CANALVALUE%  
+		  	  AND PERI.MARC_OID_MARC = %value_MARCAVALUE%  
+		  	  AND SOL_CAB.PAIS_OID_PAIS = %value_PAISVALUE%  
+		  	  %start_REGIONVALUES% AND ZONA.ZORG_OID_REGI IN (%value_REGIONVALUES%) %end_REGIONVALUES%  
+	 ) DATOS,  
+	 (  
+	 	SELECT GEN.VAL_OID, GEN.VAL_I18N  
+	 	FROM V_GEN_I18N_SICC GEN  
+	 	WHERE GEN.ATTR_ENTI = 'SEG_PAIS'  
+	 		  AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%  	 			  
+	 ) GEN_PAIS,  
+	 (  
+	 	SELECT GEN.OID_SOCI VAL_OID, GEN.VAL_DENO VAL_I18N  
+	 	FROM SEG_SOCIE GEN  
+	 ) GEN_SOCI  
+	 WHERE DATOS.PAIS_OID_PAIS = GEN_PAIS.VAL_OID(+)  
+	 	  AND DATOS.SOCI_OID_SOCI = GEN_SOCI.VAL_OID		  	    
+	 GROUP BY GEN_PAIS.VAL_I18N,  
+	 		 VAL_NOMB_PERI,  
+	 	   	 DES_REGI,  
+	 		 SOCI_OID_SOCI,  
+	 	   	 GEN_SOCI.VAL_I18N,  
+	 		 FEC_FACT  
+	 ORDER BY PAIS,  
+	 	  	 PERIODO,  
+	 		 REGION	    
+	)  " ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.106:1523:SICCV3D" ExternalConnectionDistributedUrl="" ExternalConnectionUser="usu_peru" ExternalConnectionPassword="peru" DatePattern="dd/MM/yyyy" DateTimePattern=""/>  
+	</DataSourceDefinitions>  
+</ReportSourceDefinition>  
+

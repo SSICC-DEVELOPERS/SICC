@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by team (renegade) -->  
+<ReportSourceDefinition Id="RSD_REP-015" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="DES_MARC" Description="DES_MARC" DataType="STRING" Calculated="false" Expression="" ExternalData="DES_MARC"/>  
+		<DimensionSourceDefinition Name="OID_CLIE" Description="OID_CLIE" DataType="STRING" Calculated="false" Expression="" ExternalData="OID_CLIE"/>  
+		<DimensionSourceDefinition Name="COD_CLIE" Description="COD_CLIE" DataType="STRING" Calculated="false" Expression="" ExternalData="COD_CLIE"/>  
+		<DimensionSourceDefinition Name="NOMBRE_COMPLETO" Description="NOMBRE_COMPLETO" DataType="STRING" Calculated="false" Expression="" ExternalData="NOMBRE_COMPLETO"/>  
+		<DimensionSourceDefinition Name="COD_TIPO_CLIE" Description="COD_TIPO_CLIE" DataType="STRING" Calculated="false" Expression="" ExternalData="COD_TIPO_CLIE"/>  
+		<DimensionSourceDefinition Name="COD_SUBT_CLIE" Description="COD_SUBT_CLIE" DataType="STRING" Calculated="false" Expression="" ExternalData="COD_SUBT_CLIE"/>  
+		<DimensionSourceDefinition Name="COD_CURS" Description="COD_CURS" DataType="STRING" Calculated="false" Expression="" ExternalData="COD_CURS"/>  
+		<DimensionSourceDefinition Name="CURSO" Description="CURSO" DataType="STRING" Calculated="false" Expression="" ExternalData="CURSO"/>  
+		<DimensionSourceDefinition Name="TIPO_CURSO" Description="TIPO_CURSO" DataType="STRING" Calculated="false" Expression="" ExternalData="TIPO_CURSO"/>  
+		<DimensionSourceDefinition Name="PLANTILLA" Description="PLANTILLA" DataType="STRING" Calculated="false" Expression="" ExternalData="PLANTILLA"/>  
+		<DimensionSourceDefinition Name="FEC_DISP_CURS" Description="FEC_DISP_CURS" DataType="DATETIME" Calculated="false" Expression="" ExternalData="FEC_DISP_CURS"/>  
+		<DimensionSourceDefinition Name="FEC_LANZ" Description="FEC_LANZ" DataType="DATETIME" Calculated="false" Expression="" ExternalData="FEC_LANZ"/>  
+		<DimensionSourceDefinition Name="FEC_FIN_CURS" Description="FEC_FIN_CURS" DataType="DATETIME" Calculated="false" Expression="" ExternalData="FEC_FIN_CURS"/>  
+		<DimensionSourceDefinition Name="FEC_ASIS" Description="FEC_ASIS" DataType="DATETIME" Calculated="false" Expression="" ExternalData="FEC_ASIS"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="IND_BLOQ_EXTE" Description="IND_BLOQ_EXTE" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="IND_BLOQ_EXTE" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="IND_INVIT" Description="IND_INVIT" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="IND_INVIT" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="TOTAL_FINAL" Description="TOTAL_FINAL" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="TOTAL_FINAL" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="TOTALCURSO" Description="TOTALCURSO" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="TOTALCURSO" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="IDIOMA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PAIS" Visual="FALSE"/>  
+		<FilterDefinition DataType="STRING" FilterType="EQUALTO" Name="CODIGOCLIENTE" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="TIPOCLIENTE" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="SUBTIPOCLIENTE" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="MARCA" Visual="FALSE"/>  
+	</FilterDefinitions>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="REP-15" SourceType="SQL" Expression="select  
+	   MARCA.DES_MARC,cli.oid_clie,   
+	   cli.COD_CLIE,  
+	   cli.VAL_APE1||' '||cli.VAL_APE2||' '||cli.VAL_NOM1||' '||cli.VAL_NOM2 nombre_completo,  
+	   GEN_tipo_cliEN.VAL_I18N COD_TIPO_CLIE,  
+	   GEN_stipo_cliEN.VAL_I18N COD_SUBT_CLIE,  
+	   mat_cur.COD_CURS,  
+	   gen_curso.curso,  
+	   gen_tipo_curso.tipo_curso,  
+	   gen_plant.plantilla,  
+	   mat_cur.FEC_DISP_CURS,  
+	   mat_cur.FEC_LANZ,  
+	   mat_cur.FEC_FIN_CURS,  
+	   his_cur.FEC_ASIS,  
+	   mat_cur.IND_BLOQ_EXTE,  
+	   his_cur.IND_INVIT,  
+	   decode(his_cur.IND_ASIS,0,0,1) as total_final,  
+	   1 as totalcurso  
+	     
+from edu_histo_curso his_cur,  
+	 edu_matri_curso mat_cur,  
+	 edu_tipo_curso tipo_cur,  
+	 edu_plant_curso_cabec plant,  
+	 mae_clien cli,  
+	 mae_tipo_clien tipo_cli,  
+	 mae_subti_clien stipo_cli,  
+	 SEG_MARCA MARCA,  
+	 (  
+	 select gen.val_oid, gen.val_i18n curso  
+	 from v_gen_i18n_sicc gen  
+	 where gen.attr_enti = 'EDU_MATRI_CURSO'  
+	 	   and gen.idio_oid_idio =  %value_IDIOMAVALUE%  
+	 )gen_curso,  
+	 (  
+	 select gen.val_oid, gen.val_i18n plantilla  
+	 from v_gen_i18n_sicc gen  
+	 where gen.attr_enti = 'EDU_PLANT_CURSO_CABEC'  
+	 	   and gen.idio_oid_idio =  %value_IDIOMAVALUE%  
+	 )gen_plant,  
+	 (  
+	 select gen.val_oid, gen.val_i18n tipo_curso  
+	 from v_gen_i18n_sicc gen  
+	 where gen.attr_enti = 'EDU_TIPO_CURSO'  
+	 	   and gen.idio_oid_idio =  %value_IDIOMAVALUE%  
+	 )gen_tipo_curso,  
+	 (  
+	 select gen.val_oid, gen.val_i18n   
+	 from v_gen_i18n_sicc gen  
+	 where gen.attr_enti = 'MAE_TIPO_CLIEN'  
+	 	   and gen.idio_oid_idio =  %value_IDIOMAVALUE%  
+	 )gen_tipo_clien,  
+	 	 (  
+	 select gen.val_oid, gen.val_i18n   
+	 from v_gen_i18n_sicc gen  
+	 where gen.attr_enti = 'MAE_SUBTI_CLIEN'  
+	 	   and gen.idio_oid_idio =  %value_IDIOMAVALUE%  
+	 )gen_Stipo_CLIEN  
+where his_cur.CLIE_OID_CLIE = cli.OID_CLIE  
+	  and his_cur.SBTI_OID_SUBT_CLIE = stipo_cli.OID_SUBT_CLIE  
+	  and stipo_cli.TICL_OID_TIPO_CLIE = tipo_cli.OID_TIPO_CLIE  
+	  AND STIPO_CLI.OID_SUBT_CLIE = GEN_STIPO_CLIEN.VAL_OID(+)  
+	  AND TIPO_CLI.OID_TIPO_CLIE = GEN_TIPO_CLIEN.VAL_OID(+)  
+	  and his_cur.MCUR_OID_CURS = mat_cur.OID_CURS  
+	  and mat_cur.OID_CURS = gen_curso.val_oid(+)  
+	  and mat_cur.TICU_OID_TIPO_CURS = tipo_cur.OID_TIPO_CURS(+)  
+	  and mat_cur.CPLC_OID_CABE_PLAN_CURS = plant.OID_CABE  
+	  and plant.oid_cabe = gen_plant.val_oid(+)  
+	  and tipo_cur.OID_TIPO_CURS = gen_tipo_curso.val_oid(+)  
+	  AND MARCA.OID_MARC = mat_cur.MARC_OID_MARC  
+	  %start_PAISVALUE% and mat_cur.PAIS_OID_PAIS = %value_PAISVALUE% %end_PAISVALUE%  
+	  %start_TIPOCLIENTEVALUE% and tipo_cli.OID_TIPO_CLIE = %value_TIPOCLIENTEVALUE% %end_TIPOCLIENTEVALUE%  
+	  %start_SUBTIPOCLIENTEVALUE% and stipo_cli.OID_SUBT_CLIE = %value_SUBTIPOCLIENTEVALUE% %end_SUBTIPOCLIENTEVALUE%  
+	  %start_CODIGOCLIENTEVALUE% and cli.COD_CLIE = %value_CODIGOCLIENTEVALUE% %end_CODIGOCLIENTEVALUE%  
+	  %start_MARCAVALUE% and mat_cur.MARC_OID_MARC = %value_MARCAVALUE% %end_MARCAVALUE%  
+order by  
+	   MARCA.DES_MARC,   
+	   cli.COD_CLIE,  
+	   cli.VAL_APE1||' '||cli.VAL_APE2||' '||cli.VAL_NOM1||' '||cli.VAL_NOM2,  
+	   tipo_cli.COD_TIPO_CLIE,  
+	   stipo_cli.COD_SUBT_CLIE,  
+	   mat_cur.COD_CURS,  
+	   gen_curso.curso,  
+	   gen_plant.plantilla   " ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.106:1523:SICCV3D" ExternalConnectionDistributedUrl="" ExternalConnectionUser="usu_peru" ExternalConnectionPassword="peru" DatePattern="" DateTimePattern=""/>  
+	</DataSourceDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="IDIOMA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="PAIS" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="CODIGOCLIENTE" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="TIPOCLIENTE" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="SUBTIPOCLIENTE" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="MARCA" FilterParameter="VALUE"/>  
+	</ParameterValues>  
+	<Localizations/>  
+</ReportSourceDefinition>  
+

@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by tito (tito) -->  
+<ReportSourceDefinition Id="RSD_REP-145" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="COMISION" Description="COMISION" DataType="STRING" Calculated="false" Expression="" ExternalData="COMISION"/>  
+		<DimensionSourceDefinition Name="DES_SUBG_VENT" Description="DES_SUBG_VENT" DataType="STRING" Calculated="false" Expression="" ExternalData="DES_SUBG_VENT"/>  
+		<DimensionSourceDefinition Name="DES_REGI" Description="DES_REGI" DataType="STRING" Calculated="false" Expression="" ExternalData="DES_REGI"/>  
+		<DimensionSourceDefinition Name="PER_COMISION" Description="PER_COMISION" DataType="STRING" Calculated="false" Expression="" ExternalData="PER_COMISION"/>  
+		<DimensionSourceDefinition Name="GERENTE" Description="GERENTE" DataType="STRING" Calculated="false" Expression="" ExternalData="GERENTE"/>  
+		<DimensionSourceDefinition Name="COD_CLIE" Description="COD_CLIE" DataType="STRING" Calculated="false" Expression="" ExternalData="COD_CLIE"/>  
+		<DimensionSourceDefinition Name="CLIENTE" Description="CLIENTE" DataType="STRING" Calculated="false" Expression="" ExternalData="CLIENTE"/>  
+		<DimensionSourceDefinition Name="POR_RECUPERADO" Description="POR_RECUPERADO" DataType="STRING" Calculated="false" Expression="" ExternalData="POR_RECUPERADO"/>  
+		<DimensionSourceDefinition Name="NUMERO_FACTURA" Description="NUMERO_FACTURA" DataType="STRING" Calculated="false" Expression="" ExternalData="NUMERO_FACTURA"/>  
+		<DimensionSourceDefinition Name="FECHA_FACTURA" Description="FECHA_FACTURA" DataType="DATETIME" Calculated="false" Expression="" ExternalData="FECHA_FACTURA"/>  
+		<DimensionSourceDefinition Name="FECHA_PAGO" Description="FECHA_PAGO" DataType="DATETIME" Calculated="false" Expression="" ExternalData="FECHA_PAGO"/>  
+		<DimensionSourceDefinition Name="IMP_MONT_PAGA" Description="IMP_MONT_PAGA" DataType="STRING" Calculated="false" Expression="" ExternalData="IMP_MONT_PAGA"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="MONTO_NETO" Description="MONTO_NETO" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="MONTO_NETO" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="MONTO_RECUPERADO" Description="MONTO_RECUPERADO" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="MONTO_RECUPERADO" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="MONTO_ABONAR" Description="MONTO_ABONAR" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="MONTO_ABONAR" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="REP-145" SourceType="SQL" Expression="  
+select gen_comis.val_i18n comision,  
+         subg.DES_SUBG_VENT,  
+         reg.DES_REGI,  
+         per3.VAL_NOMB_PERI as per_comision,  
+         cli.VAL_APE1||' '||cli.VAL_APE2||' '||cli.VAL_NOM1||' '||cli.VAL_NOM2 as gerente,  
+         cli2.cod_clie,  
+         cli2.VAL_APE1||' '||cli2.VAL_APE2||' '||cli2.VAL_NOM1||' '||cli2.VAL_NOM2 as cliente,  
+    	   com_cli.IMP_MONT_PAGA,  
+         cpt.NUM_IMPO as monto_neto,  
+         cpt.NUM_IMPO_PAGO as monto_recuperado,  
+         cpt.NUM_IMPO_PAGO * 100 / cpt.NUM_IMPO as por_recuperado,  
+         cpt.NUM_IMPO_PAGO * com_cli.VAL_PORC_COMI / 100 as monto_abonar,  
+         cpt.VAL_EJER_CUOT||'-'||cpt.ID_CUOTA as numero_factura,  
+         cpt.FEC_FECH_DOCU as fecha_factura,  
+         cpt.FEC_FECH_VALO as fecha_pago  
+from zon_regio reg,  
+       zon_sub_geren_venta subg,  
+       cra_perio per3,  
+       mae_clien cli,  
+       mae_clien cli2,  
+       com_comis_cobra_acumu_clien com_cli,  
+       com_comis_cobra_acumu com_acu,  
+       com_cuota_por_tramo_com_calcu cpt,  
+       (  
+        select gen.val_oid, gen.val_i18n  
+        from v_gen_i18n_sicc gen  
+        where gen.attr_enti = 'COM_COMIS'  
+                  and gen.idio_oid_idio = %value_IDIOMAVALUE%  
+       ) gen_comis  
+where  
+      reg.ZSGV_OID_SUBG_VENT = subg.OID_SUBG_VENT  
+       and reg.clie_oid_clie(+) = cli.oid_clie  
+       and com_cli.COC2_OID_COMI_COBR_ACUM = com_acu.OID_COMI_COBR_ACUM  
+       and cpt.ACTR_OID_COMI_COBR_ACUM = com_cli.OID_COMI_COBR_ACUM  
+       and com_acu.CLIE_OID_CLIE = cli.oid_clie  
+       and com_acu.COMI_OID_COMI = gen_comis.val_oid(+)  
+       and com_acu.PERD_OID_PERI = per3.oid_peri  
+       and cpt.CLIE_OID_CLIE = cli2.oid_clie  
+ 	    AND (INSTR(  
+	    (  
+		    CASE WHEN (REG.PERD_OID_PERI_FINA IS NOT NULL) THEN  
+	   		 	 (  
+				  	 SELECT PQ_APL_REP.FN_013_FACDTR_CONCAT_PERI(REG.PERD_OID_PERI_INIC, REG.PERD_OID_PERI_FINA)  
+					 FROM DUAL  
+				 ) 	  
+		  	ELSE  
+	   		 	 (  
+				  	 SELECT PQ_APL_REP.FN_013_FACDTR_CONCAT_PERI(REG.PERD_OID_PERI_INIC,(  
+																		SELECT *  
+																		FROM  
+																			(		  
+																			SELECT P.OID_PERI      
+																				FROM CRA_PERIO P         
+																				WHERE P.MARC_OID_MARC =  1            
+																				AND P.CANA_OID_CANA = 1      
+																				AND  P.PAIS_OID_PAIS =  1     
+																				AND SYSDATE &lt;= P.FEC_FINA          
+																				AND SYSDATE >= P.FEC_INIC  
+																			ORDER BY FEC_FINA DESC 	  
+																			)  
+																		WHERE ROWNUM = 1  
+																		))  
+					 FROM DUAL  
+				 ) 	  
+			END  
+		),  
+			 	    	  	 ','||%value_PERIODOVALUE%||','					  
+		) > 0)  
+ 	   %start_REGIONVALUES% and reg.OID_REGI in (%value_REGIONVALUES%) %end_REGIONVALUES%  
+  	AND  COM_ACU.PERD_OID_PERI = %value_PERIODOVALUE%  
+       and subg.OID_SUBG_VENT in (%value_SUBGERENCIAVENTAVALUES%)  
+       and com_acu.COMI_OID_COMI = %value_COMISIONVALUE%  
+       and com_cli.VAL_NIVE_TRAM = %value_NIVELTRAMOVALUE%  
+		 " ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.106:1523:SICCV3D" ExternalConnectionDistributedUrl="" ExternalConnectionUser="usu_peru" ExternalConnectionPassword="peru" DatePattern="" DateTimePattern=""/>  
+	</DataSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="IDIOMA" Visual="false"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PAIS" Visual="false"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="MARCA" Visual="false"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="CANAL" Visual="false"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PERIODO" Visual="false"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="COMISION" Visual="false"/>  
+		<FilterDefinition DataType="STRING" FilterType="EQUALTO" Name="NIVELTRAMO" Visual="false"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="SUBGERENCIAVENTA" Visual="false"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="REGION" Visual="false"/>  
+	</FilterDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="IDIOMA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="PAIS" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="MARCA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="CANAL" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="57" FilterDefinitionName="PERIODO" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1319" FilterDefinitionName="COMISION" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="NIVELTRAMO" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1,2,3,4,5,65,7,8,9,10" FilterDefinitionName="SUBGERENCIAVENTA" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="REGION" FilterParameter="VALUES"/>  
+	</ParameterValues>  
+</ReportSourceDefinition>  
+

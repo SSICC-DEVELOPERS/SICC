@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by a (a) -->  
+<ReportSourceDefinition Id="RSD_REP-011" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="DES_MARC" Description="DES_MARC" DataType="STRING" Calculated="false" Expression="" ExternalData="DES_MARC"/>  
+		<DimensionSourceDefinition Name="CANAL" Description="CANAL" DataType="STRING" Calculated="false" Expression="" ExternalData="CANAL"/>  
+		<DimensionSourceDefinition Name="PERIODO_INICIO" Description="PERIODO_INICIO" DataType="STRING" Calculated="false" Expression="" ExternalData="PERIODO_INICIO"/>  
+		<DimensionSourceDefinition Name="PERIODO_FIN" Description="PERIODO_FIN" DataType="STRING" Calculated="false" Expression="" ExternalData="PERIODO_FIN"/>  
+		<DimensionSourceDefinition Name="DES_REGI" Description="DES_REGI" DataType="STRING" Calculated="false" Expression="" ExternalData="DES_REGI"/>  
+		<DimensionSourceDefinition Name="DES_ZONA" Description="DES_ZONA" DataType="STRING" Calculated="false" Expression="" ExternalData="DES_ZONA"/>  
+		<DimensionSourceDefinition Name="PERIODO" Description="PERIODO" DataType="STRING" Calculated="false" Expression="" ExternalData="PERIODO"/>  
+		<DimensionSourceDefinition Name="COD_CLIE" Description="COD_CLIE" DataType="STRING" Calculated="false" Expression="" ExternalData="COD_CLIE"/>  
+		<DimensionSourceDefinition Name="NOMBRE_COMPLETO" Description="NOMBRE_COMPLETO" DataType="STRING" Calculated="false" Expression="" ExternalData="NOMBRE_COMPLETO"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="CATALOGO" Description="CATALOGO" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="CATALOGO" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="GANANCIA" Description="GANANCIA" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="GANANCIA" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="IDIOMA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PAIS" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="MARCA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="CANAL" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="REGION" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="ZONA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="CURSO" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PERIODODESDE" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PERIODOHASTA" Visual="FALSE"/>  
+	</FilterDefinitions>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="REP-011" SourceType="SQL" Expression="select   
+	   mar.DES_MARC, gen_canal.canal,  
+	   per.VAL_NOMB_PERI periodo_inicio,   
+	   per2.VAL_NOMB_PERI periodo_fin,   
+	   reg.DES_REGI, zon.DES_ZONA,  
+	   per3.VAL_NOMB_PERI periodo,  
+	   cli.COD_CLIE,   
+	   cli.VAL_APE1 ||' '||cli.VAL_APE2||' '||cli.VAL_NOM1||' '||cli.VAL_NOM2 as nombre_completo,   
+	   sum(fac.VAL_PREC_CATA_TOTA_DOCU)/ count(distinct sol.OID_SOLI_CABE) as catalogo,  
+	   sum(his_dto.VAL_PORC_APLI)/count(distinct sol.OID_SOLI_CABE) as ganancia  
+from edu_histo_curso his,  
+	 mae_clien_unida_admin adm,  
+	 zon_terri_admin ter_adm, zon_secci sec, zon_zona zon, zon_regio reg,  
+	 mae_clien cli,  
+	 edu_matri_curso cur,  
+	 cra_perio per,   
+	 cra_perio per2,  
+	 cra_perio per3,  
+ 	 fac_docum_conta_cabec fac,   
+	 mae_clien_histo_estat his_est,  
+	 mae_estat_clien est,  
+	 ped_solic_cabec sol,  
+	 dto_histo_dto his_dto,  
+	 dto_descu des,  
+	 seg_marca mar,  
+	 (  
+	 select gen.VAL_OID, gen.VAL_I18N canal   
+	 from v_gen_i18n_sicc gen  
+	 where gen.ATTR_ENTI = 'SEG_CANAL'  
+	 	   and gen.IDIO_OID_IDIO = %value_IDIOMAVALUE%  
+	 )gen_canal,  
+	 (  
+	 select per.FEC_INIC,per.pais_oid_pais, per.cana_oid_cana, per.marc_oid_marc   
+	 from cra_perio per  
+	 where per.oid_peri = %value_PERIODODESDEVALUE%  
+	 )per_inic,  
+	 (  
+	 select per.fec_fina ,per.pais_oid_pais, per.cana_oid_cana, per.marc_oid_marc   
+	 from cra_perio per  
+	 where per.oid_peri = %value_PERIODOHASTAVALUE%  
+	 )per_fina  
+where his.CLIE_OID_CLIE = adm.CLIE_OID_CLIE  
+	  and adm.ZTAD_OID_TERR_ADMI = ter_adm.OID_TERR_ADMI  
+	  and ter_adm.ZSCC_OID_SECC = sec.OID_SECC  
+	  and sec.ZZON_OID_ZONA = zon.OID_ZONA  
+	  and zon.ZORG_OID_REGI = reg.OID_REGI  
+	  %start_ZONAVALUE% and zon.OID_ZONA = %value_ZONAVALUE% %end_ZONAVALUE%  
+	  %start_REGIONVALUE% and reg.OID_REGI = %value_REGIONVALUE% %end_REGIONVALUE%  
+	  and cur.PAIS_OID_PAIS = %value_PAISVALUE%  
+	  and cur.MARC_OID_MARC = %value_MARCAVALUE%  
+	  and cur.CANA_OID_CANA = %value_CANALVALUE%  
+      and cur.OID_CURS = %value_CURSOVALUE%  
+	  and cur.CANA_OID_CANA = gen_canal.val_oid(+)  
+	  and cur.MARC_OID_MARC = mar.OID_MARC  
+	  and his.CLIE_OID_CLIE = cli.OID_CLIE  
+	  and his.MCUR_OID_CURS = cur.OID_CURS  
+	  and adm.PERD_OID_PERI_INI = per.OID_PERI(+)  
+	  and adm.PERD_OID_PERI_FIN = per2.oid_peri(+)  
+	  and fac.PERD_OID_PERI = per3.OID_PERI  
+	  and fac.PAIS_OID_PAIS = cur.PAIS_OID_PAIS  
+	  and fac.SOCA_OID_SOLI_CABE = sol.OID_SOLI_CABE  
+	  and sol.CLIE_OID_CLIE = his.CLIE_OID_CLIE  
+	  and his_est.CLIE_OID_CLIE = his.CLIE_OID_CLIE  
+	  and his_est.PERD_OID_PERI = per3.OID_PERI  
+      and his_est.ESTA_OID_ESTA_CLIE = est.OID_ESTA_CLIE  
+ 	  and est.OID_ESTA_CLIE &lt;> 7   
+	  and his_dto.CLIE_OID_CLIE = his.CLIE_OID_CLIE  
+	  and his_dto.PAIS_OID_PAIS = cur.PAIS_OID_PAIS  
+	  and his_dto.DCTO_OID_DESC = des.OID_DESC  
+	  and des.PERD_OID_PERI = per3.OID_PERI  
+	  and per.FEC_INIC >= per_inic.fec_inic  
+	  and per.pais_oid_pais = per_inic.pais_oid_pais  
+	  and per.cana_oid_cana = per_inic.cana_oid_cana  
+	  and per.marc_oid_marc = per_inic.marc_oid_marc  
+	  AND PER3.PAIS_OID_PAIS = PER.PAIS_OID_PAIS  
+	  AND PER3.CANA_OID_CANA = PER.CANA_OID_CANA  
+	  AND PER3.MARC_OID_MARC = PER.MARC_OID_MARC  
+	  and per2.fec_fina &lt;= per_fina.fec_fina  
+	  AND PER2.PAIS_OID_PAIS = PER_FINA.PAIS_OID_PAIS  
+	  AND PER2.MARC_OID_MARC = PER_FINA.MARC_OID_MARC  
+	  AND PER3.CANA_OID_CANA = PER_FINA.CANA_OID_CANA  
+	  and per3.FEC_INIC >= per_inic.fec_inic  
+	  and per3.fec_fina &lt;= per_fina.fec_fina  
+group by per3.VAL_NOMB_PERI,  
+	  mar.DES_MARC, gen_canal.canal,   
+	  per.VAL_NOMB_PERI, per2.VAL_NOMB_PERI,  
+	  reg.DES_REGI, zon.DES_ZONA,  
+	  cli.COD_CLIE, cli.VAL_APE1 ||' '||cli.VAL_APE2||' '||cli.VAL_NOM1||' '||cli.VAL_NOM2  
+order by per3.VAL_NOMB_PERI,  
+	  per.VAL_NOMB_PERI, per2.VAL_NOMB_PERI,  
+	  reg.DES_REGI, zon.DES_ZONA,  
+	  cli.COD_CLIE, cli.VAL_APE1 ||' '||cli.VAL_APE2||' '||cli.VAL_NOM1||' '||cli.VAL_NOM2   
+" ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.106:1523:SICCV3DG" ExternalConnectionDistributedUrl="" ExternalConnectionUser="usu_peru" ExternalConnectionPassword="usu_peru" DatePattern="" DateTimePattern=""/>  
+	</DataSourceDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="IDIOMA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="PAIS" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="MARCA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="CANAL" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1042" FilterDefinitionName="CURSO" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="REGION" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1379" FilterDefinitionName="PERIODODESDE" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="71" FilterDefinitionName="PERIODOHASTA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="ZONA" FilterParameter="VALUE"/>  
+	</ParameterValues>  
+	<Localizations/>  
+</ReportSourceDefinition>  
+

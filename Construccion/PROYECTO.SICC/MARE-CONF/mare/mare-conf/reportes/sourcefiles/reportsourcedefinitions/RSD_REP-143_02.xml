@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by team (renegade) -->  
+<ReportSourceDefinition Id="RSD_REP-143_02" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="PAIS" Description="PAIS" DataType="STRING" Calculated="false" Expression="" ExternalData="PAIS"/>  
+		<DimensionSourceDefinition Name="SOCI" Description="SOCI" DataType="STRING" Calculated="false" Expression="" ExternalData="SOCI"/>  
+		<DimensionSourceDefinition Name="NEGOCIO" Description="NEGOCIO" DataType="STRING" Calculated="false" Expression="" ExternalData="NEGOCIO"/>  
+		<DimensionSourceDefinition Name="CODIGO_P" Description="CODIGO_P" DataType="STRING" Calculated="false" Expression="" ExternalData="CODIGO_P"/>  
+		<DimensionSourceDefinition Name="PRODU" Description="PRODU" DataType="STRING" Calculated="false" Expression="" ExternalData="PRODU"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="UNIDADES" Description="UNIDADES" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="UNIDADES" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="VALOR_VENTA" Description="VALOR_VENTA" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="VALOR_VENTA" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="COSTO" Description="COSTO" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="COSTO" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="IDIOMA" Visual="false"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PAIS" Visual="false"/>  
+		<FilterDefinition DataType="STRING" FilterType="EQUALTO" Name="FORMATOFECHA" Visual="false"/>  
+		<FilterDefinition DataType="DATE" FilterType="EQUALTO" Name="FECHADEVALORDESDE" Visual="false"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="CANAL" Visual="false"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="TERRITORIODESDE" Visual="false"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="TERRITORIOHASTA" Visual="false"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="REGION" Visual="false"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="ZONA" Visual="false"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="MARCA" Visual="false"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="SECCION" Visual="false"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="CLASE" Visual="false"/>  
+		<FilterDefinition DataType="DATE" FilterType="EQUALTO" Name="FECHADEVALORHASTA" Visual="false"/>  
+		<FilterDefinition DataType="STRING" FilterType="IN" Name="CODIGOPRODUCTO" Visual="false"/>  
+	</FilterDefinitions>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="REP-143_02" SourceType="SQL" Expression="SELECT GEN_PAIS.VAL_I18N PAIS,  
+	   GEN_SOCI.VAL_I18N SOCI,  
+	   GEN_NEGO.VAL_I18N NEGOCIO,  
+	   PROD.COD_SAP CODIGO_P,  
+	   GEN_PROD.VAL_I18N PRODU,  
+	   NVL(SUM(SOL_POS.NUM_UNID_ATEN), 0) UNIDADES,  
+	   NVL(SUM(SOL_POS.VAL_PREC_CATA_TOTA_LOCA), 0) VALOR_VENTA,  
+	   NVL((SUM(SOL_POS.NUM_UNID_ATEN)*PROD.VAL_COST_ESTD), 0) COSTO  
+FROM PED_SOLIC_CABEC SOL_CAB,  
+	 ZON_SUB_GEREN_VENTA SUBG,  
+	 ZON_REGIO REG,  
+	 ZON_ZONA ZONA,  
+	 ZON_SECCI SEC,  
+	 ZON_TERRI TER,  
+	 ZON_TERRI_ADMIN TER_ADM,  
+	 PED_SOLIC_POSIC SOL_POS,  
+	 PED_ESTAD_POSIC EST_POS,  
+	 MAE_PRODU PROD,  
+	 (  
+	 SELECT GEN.VAL_OID, GEN.VAL_I18N  
+	 FROM V_GEN_I18N_SICC GEN  
+	 WHERE GEN.ATTR_ENTI = 'SEG_PAIS'  
+	  AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%			  
+	 ) GEN_PAIS,  
+ 	 (  
+	 SELECT GEN.OID_SOCI VAL_OID, GEN.VAL_DENO VAL_I18N  
+	 FROM SEG_SOCIE GEN  
+ 	) GEN_SOCI,  
+ 	 (  
+	 SELECT GEN.VAL_OID, GEN.VAL_I18N  
+	 FROM V_GEN_I18N_SICC GEN  
+	 WHERE GEN.ATTR_ENTI = 'MAE_NEGOC'  
+	 	AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%			  
+	 ) GEN_NEGO,  
+ 	 (  
+	 SELECT GEN.VAL_OID, GEN.VAL_I18N  
+	 FROM V_GEN_I18N_SICC GEN  
+	 WHERE GEN.ATTR_ENTI = 'MAE_PRODU'  
+	 	  AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%			  
+	 ) GEN_PROD  
+WHERE SOL_CAB.IND_TS_NO_CONSO = 1  
+	  AND SOL_CAB.IND_PEDI_PRUE &lt;&gt; 1  
+	  AND SOL_CAB.FEC_FACT IS NOT NULL  
+	  AND SUBG.PAIS_OID_PAIS = SOL_CAB.PAIS_OID_PAIS   
+	  AND SUBG.OID_SUBG_VENT = REG.ZSGV_OID_SUBG_VENT  
+	  AND ZONA.ZORG_OID_REGI = REG.OID_REGI  
+	  AND SOL_CAB.ZZON_OID_ZONA = ZONA.OID_ZONA  
+	  AND SEC.ZZON_OID_ZONA = ZONA.OID_ZONA  
+	  AND SOL_CAB.ZTAD_OID_TERR_ADMI = TER_ADM.OID_TERR_ADMI  
+	  AND TER_ADM.ZSCC_OID_SECC = SEC.OID_SECC  
+	  AND TER_ADM.TERR_OID_TERR = TER.OID_TERR  
+	  AND SOL_POS.SOCA_OID_SOLI_CABE = SOL_CAB.OID_SOLI_CABE   
+	  AND SOL_POS.ESPO_OID_ESTA_POSI = EST_POS.OID_ESTA_POSI  
+	  AND EST_POS.COD_ESTA_POSI &lt;&gt; 'AN'  
+	  AND SOL_POS.PROD_OID_PROD = PROD.OID_PROD  
+	  AND SOL_CAB.PAIS_OID_PAIS = GEN_PAIS.VAL_OID(+)  
+	  AND SOL_CAB.SOCI_OID_SOCI = GEN_SOCI.VAL_OID  
+	  AND PROD.NEGO_OID_NEGO = GEN_NEGO.VAL_OID(+)  
+	  AND PROD.OID_PROD = GEN_PROD.VAL_OID(+)  
+	  %start_CODIGOPRODUCTOVALUES%  AND PROD.COD_SAP IN (%value_CODIGOPRODUCTOVALUES%) %end_CODIGOPRODUCTOVALUES%    
+	  AND TO_DATE(SOL_CAB.FEC_CRON) &gt;= TO_DATE(%value_FECHADEVALORDESDEVALUE%,%value_FORMATOFECHAVALUE%)                         AND TO_DATE(SOL_CAB.FEC_CRON) &lt;= TO_DATE(%value_FECHADEVALORHASTAVALUE%,%value_FORMATOFECHAVALUE%)                         AND SOL_CAB.PAIS_OID_PAIS =  %value_PAISVALUE%	  
+	  AND SUBG.CANA_OID_CANA IN (%value_CANALVALUES%)								  
+	  AND SUBG.MARC_OID_MARC IN (%value_MARCAVALUES%)       
+	  %start_REGIONVALUES%   AND REG.OID_REGI IN(%value_REGIONVALUES% ) %end_REGIONVALUES%	                                        %start_ZONAVALUES% AND ZONA.OID_ZONA IN (%value_ZONAVALUES% ) %end_ZONAVALUES%   
+	  %start_SECCIONVALUES%     AND SEC.OID_SECC IN (%value_SECCIONVALUES% ) %end_SECCIONVALUES%                                    %start_TERRITORIODESDEVALUE%    AND TER.COD_TERR &gt; %value_TERRITORIODESDEVALUE%  %end_TERRITORIODESDEVALUE%                %start_TERRITORIOHASTAVALUE%    AND TER.COD_TERR &lt; %value_TERRITORIOHASTAVALUE%  %end_TERRITORIOHASTAVALUE%		  %start_CLASEVALUES%   AND PROD.NEGO_OID_NEGO IN (%value_CLASEVALUES%) %end_CLASEVALUES%					  %and_prefilter% GROUP BY GEN_PAIS.VAL_I18N,  
+	     GEN_SOCI.VAL_I18N,  
+	  	 GEN_NEGO.VAL_I18N,  
+		 PROD.COD_SAP,  
+		 GEN_PROD.VAL_I18N,  
+		 PROD.VAL_COST_ESTD  
+" ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.106:1523:SICCV3D" ExternalConnectionDistributedUrl="" ExternalConnectionUser="usu_peru" ExternalConnectionPassword="peru" DatePattern="dd/MM/yyyy" DateTimePattern=""/>  
+	</DataSourceDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="IDIOMA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="PAIS" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="dd/MM/yyyy" FilterDefinitionName="FORMATOFECHA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="CANAL" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="TERRITORIODESDE" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="TERRITORIOHASTA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="REGION" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="ZONA" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="SECCION" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="MARCA" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="21/11/2001" FilterDefinitionName="FECHADEVALORDESDE" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="21/12/2051" FilterDefinitionName="FECHADEVALORHASTA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="CLASE" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="CODIGOPRODUCTO" FilterParameter="VALUES"/>  
+	</ParameterValues>  
+	<Localizations/>  
+</ReportSourceDefinition>  
+

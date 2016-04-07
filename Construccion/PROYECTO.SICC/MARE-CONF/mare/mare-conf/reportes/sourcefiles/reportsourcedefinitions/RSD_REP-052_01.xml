@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by a (a) -->  
+<ReportSourceDefinition Id="RSD_REP-052_01" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="NUM_CONC" Description="NUM_CONC" DataType="STRING" Calculated="false" Expression="" ExternalData="NUM_CONC"/>  
+		<DimensionSourceDefinition Name="PER_DESDE" Description="PER_DESDE" DataType="STRING" Calculated="false" Expression="" ExternalData="PER_DESDE"/>  
+		<DimensionSourceDefinition Name="PER_HASTA" Description="PER_HASTA" DataType="STRING" Calculated="false" Expression="" ExternalData="PER_HASTA"/>  
+		<DimensionSourceDefinition Name="PAIS" Description="PAIS" DataType="STRING" Calculated="false" Expression="" ExternalData="PAIS"/>  
+		<DimensionSourceDefinition Name="DES_SUBG_VENT" Description="DES_SUBG_VENT" DataType="STRING" Calculated="false" Expression="" ExternalData="DES_SUBG_VENT"/>  
+		<DimensionSourceDefinition Name="DES_REGI" Description="DES_REGI" DataType="STRING" Calculated="false" Expression="" ExternalData="DES_REGI"/>  
+		<DimensionSourceDefinition Name="COD_TERR" Description="COD_TERR" DataType="STRING" Calculated="false" Expression="" ExternalData="COD_TERR"/>  
+		<DimensionSourceDefinition Name="COD_CLIE" Description="COD_CLIE" DataType="STRING" Calculated="false" Expression="" ExternalData="COD_CLIE"/>  
+		<DimensionSourceDefinition Name="APYNO" Description="APYNO" DataType="STRING" Calculated="false" Expression="" ExternalData="APYNO"/>  
+		<DimensionSourceDefinition Name="DESCRIPCION" Description="DESCRIPCION" DataType="STRING" Calculated="false" Expression="" ExternalData="DESCRIPCION"/>  
+		<DimensionSourceDefinition Name="CANTIDAD" Description="CANTIDAD" DataType="STRING" Calculated="false" Expression="" ExternalData="CANTIDAD"/>  
+		<DimensionSourceDefinition Name="CANT_POR_CONCURSO_ZONA" Description="CANT_POR_CONCURSO_ZONA" DataType="STRING" Calculated="false" Expression="" ExternalData="CANT_POR_CONCURSO_ZONA"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="PUNTOS_TOTALES" Description="PUNTOS_TOTALES" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="PUNTOS_TOTALES" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="PAIS" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="IDIOMA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="SUBGERENCIAVENTA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="REGION" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="ZONA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="NUMEROCONCURSO" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="SELECCIONOPREMIO" Visual="FALSE"/>  
+	</FilterDefinitions>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="REP-052_01" SourceType="SQL" Expression="select con.NUM_CONC,  
+	   per1.VAL_NOMB_PERI as per_desde,  
+	   per2.VAL_NOMB_PERI as per_hasta,  
+	   gen_pais.pais,  
+	   subg.DES_SUBG_VENT,  
+	   reg.DES_REGI,  
+   	   ter.COD_TERR,  
+	   cli.cod_clie,  
+	   cli.VAL_APE1||' '||cli.VAL_APE2||' '||cli.VAL_NOM1 as apyno,  
+	   v_pre.TIPO_PREMIO||' '||v_pre.DESCRIPCION||' '||v_pre.cantidad as descripcion,  
+	   sum(gan.NUM_UNID) as cantidad,  
+	   count(*) over (partition by REG.des_REGI, con.OID_PARA_GRAL, v_pre.TIPO_PREMIO||' '||v_pre.DESCRIPCION||' '||v_pre.cantidad order by 1  RANGE UNBOUNDED PRECEDING)	   cant_por_concurso_zona,  
+	   sum(cc_pun.NUM_PUNT) as puntos_totales	   
+from inc_concu_param_gener con,  
+	 inc_param_gener_premi par_gen_pre,  
+	 inc_cuent_corri_punto cc_pun,  
+	 inc_ganad gan,  
+	 inc_premi_elegi pre_el,  
+	 mae_clien cli,  
+	 mae_clien_unida_admin un_adm,  
+	 v_rep_premios v_pre,  
+	 zon_terri_admin ter_adm,  
+	 zon_secci sec,  
+	 zon_zona zon,  
+	 zon_regio reg,  
+	 zon_terri ter,  
+	 zon_sub_geren_venta subg,  
+	 cra_perio per1,  
+	 cra_perio per2,  
+	 (  
+	  select val_oid, val_i18n pais  
+	  from v_gen_i18n_sicc  
+	  where attr_enti = 'SEG_PAIS'  
+	  		and idio_oid_idio  = %value_IDIOMAVALUE%  
+	 )gen_pais  
+where con.OID_PARA_GRAL = cc_pun.COPA_OID_PARA_GRAL  
+	  and cc_pun.CLIE_OID_CLIE = un_adm.CLIE_OID_CLIE  
+	  and un_adm.clie_oid_clie = cli.OID_CLIE  
+	  and un_adm.IND_ACTI = 1  
+	  and con.IND_ACTI = 1  
+	  and par_gen_pre.COPA_OID_PARA_GRAL = con.OID_PARA_GRAL  
+ and par_gen_pre.OID_PARA_GENE_PREM = v_pre.PAGP_OID_PARA_GENE_PREM  
+ 	and v_pre.IDIO_TIPO_PREMIO = %value_IDIOMAVALUE%   
+	  and pre_el.COPA_OID_PARA_GRAL = con.OID_PARA_GRAL  
+	  and pre_el.clie_oid_clie = cli.oid_clie  
+	  and pre_el.PANP_OID_PARA_NIVE_PREM = v_pre.OID_PARA_NIVE_PREM(+)  
+	  and gan.CLIE_OID_CLIE = cli.oid_clie  
+	  and gan.PANP_OID_PARA_NIVE_PREM = pre_el.PANP_OID_PARA_NIVE_PREM  
+	  and con.PERD_OID_PERI_DESD = per1.oid_peri  
+	  and con.PERD_OID_PERI_HAST = per2.oid_peri  
+	  and con.pais_oid_pais in (%value_PAISVALUES%)   
+	  and con.pais_oid_pais = gen_pais.val_oid(+)  
+ and con.oid_para_gral in  (%value_NUMEROCONCURSOVALUES%)   
+and v_pre.IDIO_TIPO_PREMIO = %value_IDIOMAVALUE%  
+	  and un_adm.ZTAD_OID_TERR_ADMI = ter_adm.OID_TERR_ADMI  
+	  and ter_adm.ZSCC_OID_SECC = sec.OID_SECC  
+	  and sec.ZZON_OID_ZONA = zon.OID_ZONA  
+	  and zon.ZORG_OID_REGI = reg.OID_REGI  
+	  and ter_adm.TERR_OID_TERR = ter.OID_TERR  
+	  and reg.ZSGV_OID_SUBG_VENT = subg.OID_SUBG_VENT  
+	%start_SUBGERENCIAVENTAVALUES%     and reg.ZSGV_OID_SUBG_VENT in  (%value_SUBGERENCIAVENTAVALUES%)  %end_SUBGERENCIAVENTAVALUES%  
+	%start_REGIONVALUES%   and reg.oid_regi in  (%value_REGIONVALUES%)  %end_REGIONVALUES%   
+      %start_ZONAVALUES%      and zon.OID_ZONA in (%value_ZONAVALUES%)  %end_ZONAVALUES%   
+	%start_SELECCIONOPREMIOVALUE%    and nvl(v_pre.OID_PARA_NIVE_PREM,0)   &lt;> case when %value_SELECCIONOPREMIOVALUE%  = 0 then 1 else 0 end  %end_SELECCIONOPREMIOVALUE%   
+	  and ( cc_pun.TMOV_OID_TIPO_MOVI = 1 or ( cc_pun.TMOV_OID_TIPO_MOVI = 2 and ( con.IND_ANUL = 1 or con.IND_DEVO = 1) ) or cc_pun.TMOV_OID_TIPO_MOVI = 3 )  
+group by  con.IND_ANUL, con.IND_DEVO, v_pre.TIPO_PREMIO||' '||v_pre.DESCRIPCION,  
+	  cli.cod_clie,  
+	   v_pre.cantidad, cli.VAL_APE1||' '||cli.VAL_APE2||' '||cli.VAL_NOM1,  
+	   ter.COD_TERR, con.NUM_CONC,  
+          per1.VAL_NOMB_PERI,  
+	   per2.VAL_NOMB_PERI,  
+	   con.OID_PARA_GRAL,  
+   	   v_pre.OID_PARA_NIVE_PREM,  
+	   gen_pais.pais,  
+   	   subg.DES_SUBG_VENT,  
+	   reg.DES_REGI  
+" ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.106:1523:SICCV3D" ExternalConnectionDistributedUrl="" ExternalConnectionUser="own_peru" ExternalConnectionPassword="peru_own" DatePattern="" DateTimePattern=""/>  
+	</DataSourceDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="PAIS" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="IDIOMA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="SUBGERENCIAVENTA" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="REGION" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="ZONA" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="NUMEROCONCURSO" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="SELECCIONOPREMIO" FilterParameter="VALUE"/>  
+	</ParameterValues>  
+	<Localizations/>  
+</ReportSourceDefinition>  
+

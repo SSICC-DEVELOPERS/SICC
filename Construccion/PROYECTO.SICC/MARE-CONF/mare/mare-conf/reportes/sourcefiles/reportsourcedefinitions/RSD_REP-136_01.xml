@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by a (a) -->  
+<ReportSourceDefinition Id="RSD_REP-136_01" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="PAIS_OID_PAIS" Description="PAIS_OID_PAIS" DataType="STRING" Calculated="false" Expression="" ExternalData="PAIS_OID_PAIS"/>  
+		<DimensionSourceDefinition Name="PAIS" Description="PAIS" DataType="STRING" Calculated="false" Expression="" ExternalData="PAIS"/>  
+		<DimensionSourceDefinition Name="SOCI_OID_SOCI" Description="SOCI_OID_SOCI" DataType="STRING" Calculated="false" Expression="" ExternalData="SOCI_OID_SOCI"/>  
+		<DimensionSourceDefinition Name="SOC" Description="SOC" DataType="STRING" Calculated="false" Expression="" ExternalData="SOC"/>  
+		<DimensionSourceDefinition Name="FEC_PAGO" Description="FEC_PAGO" DataType="DATETIME" Calculated="false" Expression="" ExternalData="FEC_PAGO"/>  
+		<DimensionSourceDefinition Name="DES_CC" Description="DES_CC" DataType="STRING" Calculated="false" Expression="" ExternalData="DES_CC"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="IMPORTE" Description="IMPORTE" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="IMPORTE" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="REG" Description="REG" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="REG" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="IDIOMA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PAIS" Visual="FALSE"/>  
+		<FilterDefinition DataType="STRING" FilterType="EQUALTO" Name="FORMATOFECHA" Visual="FALSE"/>  
+		<FilterDefinition DataType="DATE" FilterType="EQUALTO" Name="FECHADESDE" Visual="FALSE"/>  
+		<FilterDefinition DataType="DATE" FilterType="EQUALTO" Name="FECHAHASTA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="BANCO" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="CUENTACORRIENTE" Visual="FALSE"/>  
+	</FilterDefinitions>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="REP-136_01" SourceType="SQL" Expression="SELECT BANCO.PAIS_OID_PAIS,   
+	   GEN_PAIS.VAL_I18N PAIS,  
+	   MOV_BAN.SOCI_OID_SOCI,  
+	   GEN_SOC.VAL_I18N SOC,  
+	   MOV_BAN.FEC_PAGO,  
+	   CCC_BAN.DES_CC,  
+	   SUM(MOV_BAN.IMP_PAGO) IMPORTE,   
+	   COUNT(*) REG  
+FROM CCC_MOVIM_BANCA MOV_BAN,  
+	 CCC_SUCUR SUC,  
+	 CCC_CUENT_CORRI_BANCA CCC_BAN,  
+	 CCC_BANCO BANCO,  
+ 	 (  
+	 SELECT GEN.OID_SOCI VAL_OID, GEN.VAL_DENO VAL_I18N  
+	 FROM SEG_SOCIE GEN  
+	 ) GEN_SOC,  
+	 (  
+	 SELECT GEN.VAL_OID, GEN.VAL_I18N  
+	 FROM V_GEN_I18N_SICC GEN  
+	 WHERE GEN.ATTR_ENTI = 'SEG_PAIS'  
+	 	   AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%  
+	 ) GEN_PAIS  
+WHERE   
+	  BANCO.OID_BANC = SUC.CBAN_OID_BANC  
+	  AND SUC.OID_SUCU = CCC_BAN.SUCU_OID_SUCU  
+	  AND MOV_BAN.COD_IDEN_proc &lt;> 'T'  
+	  AND CCC_BAN.OID_CUEN_CORR_BANC = MOV_BAN.CCBA_OID_CC_BANC  
+	  AND MOV_BAN.SOCI_OID_SOCI = GEN_SOC.VAL_OID  
+	  AND BANCO.PAIS_OID_PAIS = GEN_PAIS.VAL_OID(+)  
+  	  AND TO_DATE(MOV_BAN.FEC_PAGO) BETWEEN TO_DATE(%value_FECHADESDEVALUE%,%value_FORMATOFECHAVALUE%)   
+	AND TO_DATE(%value_FECHAHASTAVALUE%,%value_FORMATOFECHAVALUE%)  
+	  AND BANCO.PAIS_OID_PAIS = %value_PAISVALUE%  
+	  %start_BANCOVALUES% AND BANCO.OID_BANC IN (%value_BANCOVALUES%) %end_BANCOVALUES%  
+	  %start_CUENTACORRIENTEVALUES% AND CCC_BAN.OID_CUEN_CORR_BANC IN (%value_CUENTACORRIENTEVALUES%) %end_CUENTACORRIENTEVALUES%  
+GROUP BY BANCO.PAIS_OID_PAIS,   
+         GEN_PAIS.VAL_I18N,  
+         MOV_BAN.SOCI_OID_SOCI,  
+         GEN_SOC.VAL_I18N,  
+	     MOV_BAN.FEC_PAGO,  
+		 CCC_BAN.DES_CC  
+ORDER BY GEN_PAIS.VAL_I18N,  
+         GEN_SOC.VAL_I18N" ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.100:1523:SICCV3P" ExternalConnectionDistributedUrl="" ExternalConnectionUser="own_peru" ExternalConnectionPassword="own_peru" DatePattern="dd/MM/yyyy" DateTimePattern=""/>  
+	</DataSourceDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="IDIOMA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="PAIS" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="01/01/2000" FilterDefinitionName="FECHADESDE" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="dd/MM/yyyy" FilterDefinitionName="FORMATOFECHA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="01/01/2050" FilterDefinitionName="FECHAHASTA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="BANCO" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="CUENTACORRIENTE" FilterParameter="VALUES"/>  
+	</ParameterValues>  
+	<Localizations/>  
+</ReportSourceDefinition>  
+

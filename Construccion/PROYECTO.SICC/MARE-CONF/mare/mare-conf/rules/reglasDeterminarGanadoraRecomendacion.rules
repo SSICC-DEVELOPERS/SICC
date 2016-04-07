@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<rule-set xmlns="http://drools.org/rules"
+          xmlns:java="http://drools.org/semantics/java"
+          xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
+          name="ReglasDeterminarGanadoraRecomendacion"
+          xs:schemaLocation="http://drools.org/rules rules.xsd 
+          http://drools.org/semantics/java java.xsd">
+   <java:import>es.indra.sicc.logicanegocio.inc.ConstantesINC</java:import>
+   
+   <!--
+              REGLA 1: 'ValidarExigenciasMinimasPedidoRecomendante' 
+              @author Sergio Platas
+              @date 19/05/2005
+			  //jrivas 8/9/2006 Inc. Aceptacion (F3 Inc. 5)
+
+   <rule name="ValidarExigenciasMinimasPedidoRecomendante" salience="70">
+      <parameter identifier="pedRecomendacion">
+         <java:class>es.indra.sicc.logicanegocio.inc.PedidoRecomendacion</java:class>
+      </parameter>
+      <parameter identifier="clieRecomendante">
+         <java:class>es.indra.sicc.logicanegocio.inc.ClientePremiacionConcurso</java:class>
+      </parameter>
+      <parameter identifier="con">
+         <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+      </parameter>
+      <java:condition> 
+        con.print("ValidarExigenciasMinimasPedidoRecomendante")
+      </java:condition>
+      <java:condition> 
+        con.print("%%% clieRecomendante.getPedidosRecomendacion().contains(pedRecomendacion) " + clieRecomendante.getPedidosRecomendacion().contains(pedRecomendacion))
+      </java:condition>
+      <java:condition>
+	clieRecomendante.getPedidosRecomendacion().contains(pedRecomendacion)
+      </java:condition>
+      <java:condition> 
+        con.print("%%% pedRecomendacion.getMontoPedido() " + pedRecomendacion.getMontoPedido())
+      </java:condition>
+      <java:condition> 
+        con.print("%%% con.getMontoMinimoPedido() " + con.getMontoMinimoPedido())
+      </java:condition>
+      <java:condition>
+	(pedRecomendacion.getMontoPedido().doubleValue() >= con.getMontoMinimoPedido().doubleValue())
+      </java:condition>
+      <java:condition> 
+        con.print("%%% pedRecomendacion.getUnidadesPedido() " + pedRecomendacion.getUnidadesPedido())
+      </java:condition>
+      <java:condition> 
+        con.print("%%% con.getUnidadesMinimasPedido() " + con.getUnidadesMinimasPedido())
+      </java:condition>
+      <java:condition>
+	(pedRecomendacion.getUnidadesPedido().doubleValue() >= con.getUnidadesMinimasPedido().doubleValue())
+      </java:condition>
+      <java:consequence>
+      con.print("########   Consecuencia ValidarExigenciasMinimasPedidoRecomendante concurso: " + con.getOidConcurso() + " , Gerente: " + clieRecomendante.getGerente());
+      clieRecomendante.setTotalPedidosRecomendante(
+                     new Long(clieRecomendante.getTotalPedidosRecomendante().longValue() + 1));
+  	</java:consequence>
+   </rule>
+     -->
+   
+   <!--
+              REGLA 2: 'ValidarExigenciasMonto1' 
+              @author Sergio Platas
+              @date 19/05/2005
+     -->
+   <rule name="ValidarExigenciasMonto1" salience="80">
+      <parameter identifier="con">
+         <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+      </parameter>
+      <parameter identifier="clieRecomendado">
+         <java:class>es.indra.sicc.logicanegocio.inc.ClientePremiacionRecomendado</java:class>
+      </parameter>
+      <parameter identifier="pedRecomendacion">
+         <java:class>es.indra.sicc.logicanegocio.inc.PedidoRecomendacion</java:class>
+      </parameter>
+      <parameter identifier="tipoMonto">
+         <java:class>es.indra.sicc.logicanegocio.inc.TipoMonto</java:class>
+      </parameter>
+      <java:condition> 
+        con.print("ValidarExigenciasMonto1")
+      </java:condition>
+      <java:condition> 
+      (pedRecomendacion.getValido() == true)
+  	</java:condition>
+      <java:condition> 
+      clieRecomendado.getPedidosRecomendacion().contains(pedRecomendacion)
+  	</java:condition>
+      <java:condition>
+      (ConstantesINC.MONTO_TIPO1.equals( tipoMonto.getTipo() ))
+   </java:condition>
+      <java:condition> 
+        con.print("%% ValidarExigenciasMonto1 pedRecomendacion.getMontoPedido() " + pedRecomendacion.getMontoPedido())
+      </java:condition>
+      <java:condition> 
+        con.print("%% ValidarExigenciasMonto1 tipoMonto.cantidad " + tipoMonto.cantidad)
+      </java:condition>
+      <java:condition>
+      !((pedRecomendacion.getMontoPedido().doubleValue() > 0) &amp;&amp;  
+        (pedRecomendacion.getMontoPedido().doubleValue()+pedRecomendacion.getMontoRetail().doubleValue()  >=
+        tipoMonto.cantidad.doubleValue()))
+   </java:condition>
+      <java:consequence>
+      con.print("########   Consecuencia ValidarExigenciasMonto1   concurso: " + con.getOidConcurso() + " ,clieRecomendado: " + clieRecomendado.getOidClienteRecomendado());
+      pedRecomendacion.setValido(false);
+      drools.modifyObject(pedRecomendacion); 
+  	</java:consequence>
+   </rule>
+   
+   <!--
+              REGLA 3: 'ValidarExigenciasMonto2' 
+              @author Sergio Platas
+              @date 19/05/2005
+     -->
+   <rule name="ValidarExigenciasMonto2" salience="80">
+      <parameter identifier="con">
+         <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+      </parameter>
+      <parameter identifier="clieRecomendado">
+         <java:class>es.indra.sicc.logicanegocio.inc.ClientePremiacionRecomendado</java:class>
+      </parameter>
+      <parameter identifier="pedRecomendacion">
+         <java:class>es.indra.sicc.logicanegocio.inc.PedidoRecomendacion</java:class>
+      </parameter>
+      <parameter identifier="tipoMonto">
+         <java:class>es.indra.sicc.logicanegocio.inc.TipoMonto</java:class>
+      </parameter>
+      <java:condition> 
+        con.print("ValidarExigenciasMonto2")
+      </java:condition>
+      <java:condition> 
+      (pedRecomendacion.getValido() == true)
+  	</java:condition>
+      <java:condition> 
+      clieRecomendado.getPedidosRecomendacion().contains(pedRecomendacion)
+  	</java:condition>
+      <java:condition>
+      (ConstantesINC.MONTO_TIPO2.equals(tipoMonto.getTipo()))
+   </java:condition>
+      <java:condition> 
+        con.print("%% ValidarExigenciasMonto2 pedRecomendacion.getUnidadesPedido() " + pedRecomendacion.getUnidadesPedido())
+      </java:condition>
+      <java:condition> 
+        con.print("%% ValidarExigenciasMonto2 tipoMonto.cantidad " + tipoMonto.cantidad)
+      </java:condition>
+      <java:condition>
+      !(pedRecomendacion.getUnidadesPedido().doubleValue() >=
+        tipoMonto.cantidad.doubleValue() )
+   </java:condition>
+      <java:consequence>
+      con.print("########   Consecuencia ValidarExigenciasMonto2   concurso: " + con.getOidConcurso() + " ,clieRecomendado: " + clieRecomendado.getOidClienteRecomendado());
+      pedRecomendacion.setValido(false);
+      drools.modifyObject(pedRecomendacion); 
+  	</java:consequence>
+   </rule>
+  
+   <!--
+              REGLA 4: 'ValidarExigenciasMonto3' 
+              @author Sergio Platas
+              @date 19/05/2005
+     -->
+   <rule name="ValidarExigenciasMonto3" salience="100">
+      <parameter identifier="con">
+         <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+      </parameter>
+      <parameter identifier="clieRecomendado">
+         <java:class>es.indra.sicc.logicanegocio.inc.ClientePremiacionRecomendado</java:class>
+      </parameter>
+      <parameter identifier="tipoMonto">
+         <java:class>es.indra.sicc.logicanegocio.inc.TipoMonto</java:class>
+      </parameter>
+      <java:condition> 
+        con.print("ValidarExigenciasMonto3")
+      </java:condition>
+      <java:condition> 
+      (ConstantesINC.MONTO_TIPO3.equals(tipoMonto.getTipo()))
+  	</java:condition>
+      <java:condition> 
+        con.print("%% ValidarExigenciasMonto3 clieRecomendado.calcularSumaMontoPedidosRecomendacion() " + clieRecomendado.calcularSumaMontoPedidosRecomendacion())
+      </java:condition>
+      <java:condition> 
+        con.print("%% ValidarExigenciasMonto3 tipoMonto.cantidad " + tipoMonto.cantidad)
+      </java:condition>
+      <java:condition> 
+      !((clieRecomendado.calcularSumaMontoPedidosRecomendacion().doubleValue() > 0) &amp;&amp;
+        (clieRecomendado.calcularSumaMontoPedidosRecomendacion().doubleValue()+clieRecomendado.calcularSumaMontoRetailRecomendacion().doubleValue() >=
+        tipoMonto.cantidad.doubleValue()))
+  	</java:condition>
+      <java:consequence>
+      con.print("########   Consecuencia ValidarExigenciasMonto3 concurso: " + con.getOidConcurso() + " ,clieRecomendado: " + clieRecomendado.getOidClienteRecomendado());
+      clieRecomendado.anularPedidos();
+      drools.retractObject(clieRecomendado); 
+  	</java:consequence>
+   </rule>
+   
+   <!--
+              REGLA 5: 'ValidarExigenciasMonto4' 
+              @author Sergio Platas
+              @date 19/05/2005
+     -->
+   <rule name="ValidarExigenciasMonto4" salience="100">
+      <parameter identifier="con">
+         <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+      </parameter>
+      <parameter identifier="clieRecomendado">
+         <java:class>es.indra.sicc.logicanegocio.inc.ClientePremiacionRecomendado</java:class>
+      </parameter>
+      <parameter identifier="tipoMonto">
+         <java:class>es.indra.sicc.logicanegocio.inc.TipoMonto</java:class>
+      </parameter>
+      <java:condition> 
+        con.print("ValidarExigenciasMonto4")
+      </java:condition>
+      <java:condition> 
+      (ConstantesINC.MONTO_TIPO4.equals(tipoMonto.getTipo()))
+  	</java:condition>
+      <java:condition> 
+        con.print("%% ValidarExigenciasMonto4 clieRecomendado.calcularPromedioVenta() " + clieRecomendado.calcularPromedioVenta())
+      </java:condition>
+      <java:condition> 
+        con.print("%% ValidarExigenciasMonto4 tipoMonto.cantidad " + tipoMonto.cantidad)
+      </java:condition>
+      <java:condition> 
+      !(clieRecomendado.calcularPromedioVenta().doubleValue()  >=
+        tipoMonto.cantidad.doubleValue())
+  	</java:condition>
+      <java:consequence>
+      con.print("########   Consecuencia ValidarExigenciasMonto4 concurso: " + con.getOidConcurso() + " ,clieRecomendado: " + clieRecomendado.getOidClienteRecomendado());
+      clieRecomendado.anularPedidos();
+      drools.retractObject(clieRecomendado);
+   </java:consequence>
+   </rule>
+   
+   <!--
+              REGLA 6: 'ValidarExigenciasMonto' 
+              @author Sergio Platas
+              @date 08/06/2005
+     -->
+   <rule name="ValidarExigenciasMonto" salience="90">
+      <parameter identifier="clieRecomendado">
+         <java:class>es.indra.sicc.logicanegocio.inc.ClientePremiacionRecomendado</java:class>
+      </parameter>
+      <java:condition> 
+        clieRecomendado.print("ValidarExigenciasMonto")
+      </java:condition>
+      <java:consequence>
+      clieRecomendado.print("########   Consecuencia ValidarExigenciasMonto clieRecomendado: " + clieRecomendado.getOidClienteRecomendado());
+      for(int i=0; ( i != (clieRecomendado.getPedidosRecomendacion().size()) ); i++  ){
+            drools.assertObject(clieRecomendado.getPedidosRecomendacion().get(i));   
+      }
+  	</java:consequence>
+   </rule>
+   
+</rule-set>

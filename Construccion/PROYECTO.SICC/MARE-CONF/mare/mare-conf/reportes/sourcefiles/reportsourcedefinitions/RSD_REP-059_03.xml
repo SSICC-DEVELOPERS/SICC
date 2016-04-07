@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by team (renegade) -->  
+<ReportSourceDefinition Id="RSD_REP-059_03" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="NUM_CONCURSO" Description="NUM_CONCURSO" DataType="STRING" Calculated="false" Expression="" ExternalData="NUM_CONCURSO"/>  
+		<DimensionSourceDefinition Name="DESC_CONCURSO" Description="DESC_CONCURSO" DataType="STRING" Calculated="false" Expression="" ExternalData="DESC_CONCURSO"/>  
+		<DimensionSourceDefinition Name="CAMP_INI_CONCU" Description="CAMP_INI_CONCU" DataType="STRING" Calculated="false" Expression="" ExternalData="CAMP_INI_CONCU"/>  
+		<DimensionSourceDefinition Name="CAMP_FIN_CONCU" Description="CAMP_FIN_CONCU" DataType="STRING" Calculated="false" Expression="" ExternalData="CAMP_FIN_CONCU"/>  
+		<DimensionSourceDefinition Name="TIPO_VENTA" Description="TIPO_VENTA" DataType="STRING" Calculated="false" Expression="" ExternalData="TIPO_VENTA"/>  
+		<DimensionSourceDefinition Name="NIVEL" Description="NIVEL" DataType="STRING" Calculated="false" Expression="" ExternalData="NIVEL"/>  
+		<DimensionSourceDefinition Name="COD_CLIENTE" Description="COD_CLIENTE" DataType="STRING" Calculated="false" Expression="" ExternalData="COD_CLIENTE"/>  
+		<DimensionSourceDefinition Name="NOMBRE" Description="NOMBRE" DataType="STRING" Calculated="false" Expression="" ExternalData="NOMBRE"/>  
+		<DimensionSourceDefinition Name="DESC_PREMIO" Description="DESC_PREMIO" DataType="STRING" Calculated="false" Expression="" ExternalData="DESC_PREMIO"/>  
+		<DimensionSourceDefinition Name="CANTIDAD" Description="CANTIDAD" DataType="STRING" Calculated="false" Expression="" ExternalData="CANTIDAD"/>  
+		<DimensionSourceDefinition Name="CAMP_DESPACHO" Description="CAMP_DESPACHO" DataType="STRING" Calculated="false" Expression="" ExternalData="CAMP_DESPACHO"/>  
+		<DimensionSourceDefinition Name="NUM_FILA" Description="NUM_FILA" DataType="STRING" Calculated="false" Expression="" ExternalData="NUM_FILA"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="VENTA_CONCURSO" Description="VENTA_CONCURSO" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="VENTA_CONCURSO" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="CUENTA" Description="CUENTA" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="CUENTA" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="REP-059_03" SourceType="SQL" Expression="  
+		  
+SELECT  
+	num_concurso,  
+	desc_concurso,  
+	camp_ini_concu,  
+	camp_fin_concu,  
+	tipo_venta,  
+	nivel,  
+	cod_cliente,  
+	nombre,  
+	desc_premio,  
+	cantidad,  
+	camp_despacho,  
+	CASE  
+		WHEN (control = 1)  THEN  
+			venta_concurso  
+	END  
+		venta_concurso,  
+	DECODE(control,1,1,null) AS cuenta,  
+	ROWNUM AS num_fila  
+FROM  
+	(  
+	SELECT  
+		con_gen.num_conc AS num_concurso,  
+		con_gen.val_nomb AS desc_concurso,  
+		peri1.val_nomb_peri AS camp_ini_concu,  
+		peri2.val_nomb_peri AS camp_fin_concu,  
+		gen_tv.val_i18n AS tipo_venta,  
+		par_niv.num_nive AS nivel,  
+		cli.cod_clie AS cod_cliente,  
+		cli.val_nom1||' '||cli.val_nom2||' '||cli.val_ape1||' '||cli.val_ape2 AS nombre,  
+		DECODE(vista.oid_tipo_prem,2,'',vista.tipo_premio||' ')  
+				||vista.descripcion||' '||vista.cantidad  
+			AS desc_premio,  
+		gan.num_unid AS cantidad,  
+		peri3.val_nomb_peri AS camp_despacho,  
+		pq_apl_rep.fn_083_cu_obt_venta(con_gen.oid_para_gral,cli_ua.clie_oid_clie,pla_con.tven_oid_tipo_vent)  
+			AS venta_concurso,  
+		SUM(1) OVER  
+				(PARTITION BY con_gen.num_conc, par_niv.num_nive, cli.cod_clie  
+				ORDER BY ROWNUM)  
+			AS control  
+	FROM  
+		inc_concu_param_gener con_gen,  
+		inc_param_gener_premi par_gen,  
+		inc_param_nivel_premi par_niv,  
+		inc_plant_concu pla_con,  
+		inc_ganad gan,  
+		zon_sub_geren_venta subg,  
+		zon_regio reg,  
+		zon_zona zona,  
+		zon_secci sec,  
+		zon_terri_admin ter_adm,  
+		zon_terri ter,  
+		mae_clien_unida_admin cli_ua,  
+		mae_clien cli,  
+		v_rep_premios vista,  
+		cra_perio peri1,  
+		cra_perio peri2,  
+		cra_perio peri3,  
+		(  
+		SELECT gen.val_oid, gen.val_i18n  
+		FROM v_gen_i18n_sicc gen  
+		WHERE gen.attr_enti = 'INC_TIPO_VENTA'  
+		   AND gen.idio_oid_idio = %value_IDIOMAVALUE%  
+		) gen_tv	   
+	WHERE  
+		con_gen.plc2_oid_plan_conc = pla_con.oid_plan_conc  
+		AND par_gen.copa_oid_para_gral = con_gen.oid_para_gral  
+		AND par_gen.oid_para_gene_prem = par_niv.pagp_oid_para_gene_prem   
+		AND gan.panp_oid_para_nive_prem = par_niv.oid_para_nive_prem  
+		AND gan.perd_oid_peri = peri3.oid_peri  
+		AND subg.oid_subg_vent = reg.zsgv_oid_subg_vent  
+		AND reg.oid_regi = zona.zorg_oid_regi  
+		AND zona.oid_zona = sec.zzon_oid_zona  
+		AND sec.oid_secc = ter_adm.zscc_oid_secc  
+		AND ter.oid_terr = ter_adm.terr_oid_terr  
+		AND cli_ua.ztad_oid_terr_admi = ter_adm.oid_terr_admi  
+		AND cli_ua.clie_oid_clie = gan.clie_oid_clie  
+		AND par_niv.oid_para_nive_prem = vista.oid_para_nive_prem  
+		AND con_gen.perd_oid_peri_desd = peri1.oid_peri  
+		AND con_gen.perd_oid_peri_hast = peri2.oid_peri  
+		AND pla_con.tven_oid_tipo_vent = gen_tv.val_oid  
+		AND cli_ua.clie_oid_clie = cli.oid_clie  
+		AND cli_ua.ind_acti = 1  
+		AND (vista.idio_tipo_premio = %value_IDIOMAVALUE% OR vista.idio_tipo_premio IS NULL)  
+		AND con_gen.OID_PARA_GRAL IN (%value_NUMEROCONCURSOVALUES%)  
+		AND par_niv.oid_para_nive_prem IN (%value_NIVELESCONCURSOVALUES%)  
+		AND con_gen.pais_oid_pais = %value_PAISVALUE%  
+	)  
+ORDER BY  
+	num_concurso,  
+	cod_cliente   
+  
+		   
+" ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.106:1523:SICCV3D" ExternalConnectionDistributedUrl="" ExternalConnectionUser="own_peru" ExternalConnectionPassword="peru_own" DatePattern="" DateTimePattern=""/>  
+	</DataSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="IDIOMA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PAIS" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="NUMEROCONCURSO" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="NIVELESCONCURSO" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="TIPOVENTA" Visual="FALSE"/>  
+	</FilterDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="IDIOMA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="PAIS" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="NUMEROCONCURSO" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="1,2,3,4,5,6,7,8,9" FilterDefinitionName="NIVELESCONCURSO" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="TIPOVENTA" FilterParameter="VALUE"/>  
+	</ParameterValues>  
+</ReportSourceDefinition>  
+

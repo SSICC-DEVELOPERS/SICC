@@ -1,0 +1,2427 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<rule-set xmlns="http://drools.org/rules"
+          xmlns:java="http://drools.org/semantics/java"
+          xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
+          name="ReglasCalificacion"
+          xs:schemaLocation="http://drools.org/rules rules.xsd 
+          http://drools.org/semantics/java java.xsd">
+
+        <java:import>es.indra.sicc.logicanegocio.inc.ConstantesINC</java:import>
+
+  <!--
+                REGLAS RECOMENDADAS
+  -->
+  <!--
+              REGLA 1: ValidarFinEvaluacionRecomendacion
+              @author Gustavo Viñales
+              @date 06/04/2005
+  -->
+  <rule name="ValidarFinEvaluacionRecomendacion">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud</java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("ValidarFinEvaluacionRecomendacion")
+    </java:condition>
+    <java:condition> 
+      !sol.getRechazado( con.getOidConcurso() )
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_CONSULTORA.equals( con.getDirigidoA() )
+    </java:condition>
+    <java:condition>
+      ConstantesINC.OID_BASE_CALCULO_RECOMENDADAS.equals(con.getBaseCalculo())
+    </java:condition>
+    <java:condition>
+      sol.getSolicitudConcurso( con.getOidConcurso() ).getFinEvaluacion()      
+    </java:condition>
+    <java:condition>
+	!sol.getIndDevolucion()
+    </java:condition>
+    <java:consequence> 
+      sol.print("########   Consecuencia ValidarFinEvaluacionRecomendacion concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.setRechazado(con.getOidConcurso()); 
+      drools.modifyObject(sol); 
+    </java:consequence>
+  </rule>
+  
+  <!--
+                REGLA 2: ValidarTipoVinculoNinguno
+                @author Gustavo Viñales
+                @date 06/04/2005
+
+//Comentado por jrivas  4/7/2005
+//Falta resolucion de INC 19644
+
+  <rule name="ValidarTipoVinculoNinguno">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("ValidarTipoVinculoNinguno")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_CONSULTORA.equals( con.getDirigidoA() )
+    </java:condition>
+    <java:condition>
+      ConstantesINC.OID_BASE_CALCULO_RECOMENDADAS.equals(con.getBaseCalculo())
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_VINC_NINGUNO.equals(sol.getSolicitudConcurso(con.getOidConcurso()).getTipoVinculo())
+    </java:condition>
+    <java:condition> 
+      ( !(sol.getCliente().getClienteRecomendante() != null) ||
+          !con.getPeriodoDesde().antesDe( sol.getCliente().getClienteRecomendante().getFechaInicio()) )
+    </java:condition>
+    <java:condition>
+	!sol.getIndDevolucion()
+    </java:condition>
+    <java:consequence> 
+      sol.print("########   Consecuencia ValidarTipoVinculoNinguno concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.setRechazado(con.getOidConcurso());
+      drools.modifyObject(sol);
+    </java:consequence>
+  </rule>
+  -->
+  
+  <!--
+                REGLA 3: ValidarTipoVinculoNingunoActualizaciones
+                @author Gustavo Viñales
+                @date 07/04/2005
+  -->
+ <rule name="ValidarTipoVinculoNingunoActualizaciones">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("ValidarTipoVinculoNingunoActualizaciones")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_CONSULTORA.equals( con.getDirigidoA() )
+    </java:condition>
+    <java:condition>
+      ConstantesINC.OID_BASE_CALCULO_RECOMENDADAS.equals(con.getBaseCalculo())
+    </java:condition>
+    <java:condition> 
+     sol.print("sol.getSolicitudConcurso(con.getOidConcurso()).getTipoVinculo() " + sol.getSolicitudConcurso(con.getOidConcurso()).getTipoVinculo())
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_VINC_NINGUNO.equals(sol.getSolicitudConcurso(con.getOidConcurso()).getTipoVinculo())
+    </java:condition>
+    <java:condition> 
+      sol.getCliente().getClienteRecomendante() != null
+    </java:condition>
+    <java:condition> 
+     sol.print("sol.getCliente().getClienteRecomendante().getFechaInicio() " + sol.getCliente().getClienteRecomendante().getFechaInicio())
+    </java:condition>
+<!-- JVM
+    <java:condition> 
+     sol.print("con.getPeriodoDesde().getFechaDesde(): " + con.getPeriodoDesde().getFechaDesde())
+    </java:condition>
+    <java:condition> 
+      con.getPeriodoDesde().antesDe(sol.getCliente().getClienteRecomendante().getFechaInicio())
+    </java:condition>
+-->
+    <java:condition>
+      !sol.getIndDevolucion()
+    </java:condition>
+    <java:consequence> 
+      sol.print("########   Consecuencia ValidarTipoVinculoNingunoActualizaciones concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.getSolicitudConcurso(con.getOidConcurso()).setCambioTipoVinculo(true);
+      sol.getSolicitudConcurso(con.getOidConcurso()).setTipoVinculo(ConstantesINC.TIPO_VINC_RECOMENDADO);
+    </java:consequence>
+  </rule>
+
+  <!--
+                REGLA 3.5: ValidarJVM
+                @author Jose Vargas
+                @date 07/04/2005
+  -->
+  <rule name="ValidarJVM">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition>
+        sol.print("ValidarJVM")
+    </java:condition>
+    <java:condition>
+        sol.print("JVMDato lstRecomendado="+sol.getCliente().getClienteRecomendado().size())
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_CONSULTORA.equals( con.getDirigidoA() )
+    </java:condition>
+    <java:condition>
+      ConstantesINC.OID_BASE_CALCULO_RECOMENDADAS.equals(con.getBaseCalculo())
+    </java:condition>
+    <java:condition>
+      sol.getCliente().getClienteRecomendado().size() > 0
+    </java:condition>
+    <java:condition>
+      !(sol.getCliente().getClienteRecomendante() != null)
+    </java:condition>
+    <java:condition>
+      (sol.getCliente().getClienteRecomendador() != null)
+    </java:condition>
+<!--
+    <java:condition>
+      con.getPeriodoDesde().antesDe(sol.getCliente().getClienteRecomendador().getFechaInicio())
+    </java:condition>
+-->
+    <java:condition>	
+      !sol.getIndDevolucion()
+    </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia ValidarJVM concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.getSolicitudConcurso(con.getOidConcurso()).setCambioTipoVinculo(true);
+      sol.getSolicitudConcurso(con.getOidConcurso()).setTipoVinculo(ConstantesINC.TIPO_VINC_RECOMENDANTE);
+    </java:consequence>
+  </rule>
+  
+  <!--
+                REGLA 3.7: ValidarJVM2
+                @author Jose Vargas
+                @date 07/04/2005
+  -->
+  <rule name="ValidarJVM2">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition>
+        sol.print("ValidarJVM2")
+    </java:condition>
+    <java:condition>
+        sol.print("JVMDato lstRecomendado="+sol.getCliente().getClienteRecomendado().size())
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_CONSULTORA.equals( con.getDirigidoA() )
+    </java:condition>
+    <java:condition>
+      ConstantesINC.OID_BASE_CALCULO_RECOMENDADAS.equals(con.getBaseCalculo())
+    </java:condition>
+    <java:condition>
+      sol.getCliente().getClienteRecomendado().size() > 0
+    </java:condition>
+    <java:condition>
+      (sol.getCliente().getClienteRecomendante() != null)
+    </java:condition>
+<!--
+    <java:condition>
+      con.getPeriodoDesde().antesDe(sol.getCliente().getClienteRecomendante().getFechaInicio())
+    </java:condition>
+-->
+    <java:condition>	
+      !sol.getIndDevolucion()
+    </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia ValidarJVM2 concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.getSolicitudConcurso(con.getOidConcurso()).setCambioTipoVinculo(true);
+      sol.getSolicitudConcurso(con.getOidConcurso()).setTipoVinculo(ConstantesINC.TIPO_VINC_AMBOS);
+    </java:consequence>
+  </rule>
+  
+  <!--
+                REGLA 4: ValidarTipoVinculoNingunoActualizacionesAmbas
+                @author Gustavo Viñales
+                @date 07/04/2005
+  -->
+  <rule name="ValidarTipoVinculoNingunoActualizacionesAmbas">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("ValidarTipoVinculoNingunoActualizacionesAmbas")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_CONSULTORA.equals( con.getDirigidoA() )
+    </java:condition>
+    <java:condition>
+      ConstantesINC.OID_BASE_CALCULO_RECOMENDADAS.equals(con.getBaseCalculo())
+    </java:condition>
+    <java:condition>
+     (( ( ConstantesINC.TIPO_VINC_RECOMENDANTE.equals(sol.getSolicitudConcurso(con.getOidConcurso()).getTipoVinculo())) || sol.getCliente().getClienteRecomendado().size() > 0)||
+       (con.getMultiNivel()  &amp;&amp; ConstantesINC.TIPO_VINC_AMBOS.equals(sol.getSolicitudConcurso(con.getOidConcurso()).getTipoVinculo())) )
+    </java:condition>
+    <java:condition> 
+      sol.getCliente().getClienteRecomendante() != null
+    </java:condition>
+    <java:condition> 
+      con.getPeriodoDesde().antesDe(sol.getCliente().getClienteRecomendante().getFechaInicio())
+    </java:condition>
+    <java:condition>
+	    !sol.getIndDevolucion()
+    </java:condition>
+    <java:consequence> 
+      sol.print("########   Consecuencia ValidarTipoVinculoNingunoActualizacionesAmbas concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.getSolicitudConcurso(con.getOidConcurso()).setCambioTipoVinculo(true); 
+      sol.getSolicitudConcurso(con.getOidConcurso()).setTipoVinculo(ConstantesINC.TIPO_VINC_AMBOS);
+    </java:consequence>
+  </rule>
+  
+  <!--
+                REGLAS PERIODO 
+  -->
+  <!--
+                REGLA 5: ValidarPeriodoNumeroPedidos 
+                @author Gustavo Viñales
+                @date 07/04/2005
+  -->
+  <rule name="ValidarPeriodoNumeroPedidos">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("ValidarPeriodoNumeroPedidos")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+       !con.getIndRanking()
+    </java:condition>
+    <java:condition>
+      ( ConstantesINC.TIPO_CONSULTORA.equals( con.getDirigidoA() ) || 
+        ConstantesINC.TIPO_GERENTE.equals( con.getDirigidoA() ) )
+    </java:condition>
+    <java:condition>
+      (ConstantesINC.OID_BASE_CALCULO_NPEDIDOS.equals(con.getBaseCalculo()) &amp;&amp; !con.getProgramaNuevas())
+    </java:condition>
+    <java:condition> 
+      !sol.getPeriodo().contenidoEn(con.getPeriodoDesde(), con.getPeriodoHasta())
+    </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia ValidarPeriodoNumeroPedidos concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.setRechazado(con.getOidConcurso());
+      drools.modifyObject(sol);
+    </java:consequence>
+  </rule>
+  
+  <!--
+                REGLA 6: ValidarPeriodoPuntajesConsultoraNoDevolucion  
+                @author Gustavo Viñales
+                @date 07/04/2005
+  -->
+  <rule name="ValidarPeriodoPuntajesConsultoraNoDevolucion">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("ValidarPeriodoPuntajesConsultoraNoDevolucion")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+       !con.getIndRanking()
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA())
+    </java:condition>
+    <java:condition>
+      (ConstantesINC.OID_BASE_CALCULO_MONTO.equals(con.getBaseCalculo()) || 
+       ConstantesINC.OID_BASE_CALCULO_UNIDADES.equals(con.getBaseCalculo()))
+    </java:condition>
+    <java:condition>
+      !con.getProgramaNuevas()
+    </java:condition>
+    <java:condition>
+      !con.getMultiNivel()
+    </java:condition>
+    <java:condition>
+      !sol.getDentroPeriodo(con.getPeriodoDesde(), con.getPeriodoHasta())
+    </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia ValidarPeriodoPuntajesConsultoraNoDevolucion");
+      sol.print("########   Consecuencia ValidarPeriodoPuntajesConsultoraNoDevolucion-- oidconcurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.setRechazado(con.getOidConcurso());
+      drools.modifyObject(sol);
+    </java:consequence>
+  </rule>
+  
+  <!--
+                REGLA 7: ValidarPeriodoPuntajesConsultoraDevolucionDespacho  
+                @author Gustavo Viñales
+                @date 07/04/2005
+  -->
+  <rule name="ValidarPeriodoPuntajesConsultoraDevolucionDespacho">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("ValidarPeriodoPuntajesConsultoraDevolucionDespacho")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+       !con.getIndRanking()
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_CONSULTORA.equals( con.getDirigidoA())
+    </java:condition>
+    <java:condition>
+      (ConstantesINC.OID_BASE_CALCULO_MONTO.equals(con.getBaseCalculo()) || 
+            ConstantesINC.OID_BASE_CALCULO_UNIDADES.equals(con.getBaseCalculo()))
+    </java:condition>
+    <java:condition>
+      !con.getProgramaNuevas()
+    </java:condition>
+    <java:condition>
+      !con.getMultiNivel()
+    </java:condition>
+    <java:condition>
+      sol.getIndDevolucion()
+    </java:condition>
+    <java:condition>
+      con.getNumeroPeriodos() != null
+    </java:condition>
+    <java:condition>
+      !sol.getPeriodo().contenidoEn(con.getPeriodoDesde(), con.getPeriodoDeDespacho())
+    </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia ValidarPeriodoPuntajesConsultoraDevolucionDespacho concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.setRechazado(con.getOidConcurso());
+      drools.modifyObject(sol);
+    </java:consequence>
+  </rule>
+  
+  <!--
+                REGLA 8: ValidarPeriodoPuntajesConsultoraDevolucionNumPeriodos  
+                @author Gustavo Viñales
+                @date 07/04/2005
+  -->
+  <rule name="ValidarPeriodoPuntajesConsultoraDevolucionNumPeriodos">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("ValidarPeriodoPuntajesConsultoraDevolucionNumPeriodos")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+       !con.getIndRanking()
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA())
+    </java:condition>
+    <java:condition>
+      (ConstantesINC.OID_BASE_CALCULO_MONTO.equals(con.getBaseCalculo()) || 
+            ConstantesINC.OID_BASE_CALCULO_UNIDADES.equals(con.getBaseCalculo()))
+    </java:condition>
+    <java:condition>
+      !con.getProgramaNuevas()
+    </java:condition>
+    <java:condition>
+      !con.getMultiNivel()
+    </java:condition>
+    <java:condition>
+      sol.getIndDevolucion()
+    </java:condition>
+    <java:condition>
+      con.getNumeroPeriodos() != null
+    </java:condition>
+    <java:condition>
+      !sol.getPeriodo().contenidoEn(con.getPeriodoDesde(), con.getUltimoPeriodoPremiacion())
+    </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia ValidarPeriodoPuntajesConsultoraDevolucionNumPeriodos concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.setRechazado(con.getOidConcurso());
+      drools.modifyObject(sol);
+    </java:consequence>
+  </rule>
+  
+  <!--
+                REGLA 9: ValidarPeriodoNuevasRecomendadas   
+                @author Gustavo Viñales
+                @date 07/04/2005
+  -->
+  <rule name="ValidarPeriodoNuevasRecomendadas ">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("ValidarPeriodoNuevasRecomendadas")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+       !con.getIndRanking()
+    </java:condition>
+    <java:condition>
+      ( ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA())  ||
+            ConstantesINC.TIPO_GERENTE.equals( con.getDirigidoA() ) )
+    </java:condition>
+    <java:condition>
+      (ConstantesINC.OID_BASE_CALCULO_NPEDIDOS.equals(con.getBaseCalculo()) &amp;&amp; 
+                  con.getProgramaNuevas() ) || 
+                  ConstantesINC.OID_BASE_CALCULO_RECOMENDADAS.equals(con.getBaseCalculo())
+    </java:condition>
+    <java:condition>
+      !con.getMultiNivel()
+    </java:condition>
+    <java:condition>
+      !sol.getPeriodo().contenidoEn(con.getPeriodoDesde(), con.getUltimoPeridoEvaluar())
+    </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia ValidarPeriodoNuevasRecomendadas concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.setRechazado(con.getOidConcurso());
+      drools.modifyObject(sol);
+    </java:consequence>
+  </rule>
+  
+  <!--
+                REGLA 9.1: ValidarPeriodoMultinivel   
+                @author Sergio Platas
+                @date 02/06/2005
+  -->
+  <rule name="ValidarPeriodoMultinivel ">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("ValidarPeriodoMultinivel")
+    </java:condition>
+    <java:condition>
+      (!sol.getRechazado(con.getOidConcurso()))
+    </java:condition>
+    <java:condition>
+       !con.getIndRanking()
+    </java:condition>
+    <java:condition>
+      (ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA()))
+    </java:condition>
+    <java:condition>
+      ((ConstantesINC.BASE_CALCULO_MONTO.equals(con.getBaseCalculo()))   || 
+        (ConstantesINC.BASE_CALCULO_UNIDADES.equals(con.getBaseCalculo())) )
+    </java:condition>
+    <java:condition>
+      !con.getProgramaNuevas()
+    </java:condition>
+    <java:condition>
+      con.getMultiNivel()
+    </java:condition>
+    <java:condition>
+      (!sol.getDentroPeriodo(con.getPeriodoDesde(), con.getPeriodoLimiteEsperaParaCalculo()))
+    </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia ValidarPeriodoMultinivel concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.setRechazado(con.getOidConcurso());
+      drools.modifyObject(sol);
+    </java:consequence>
+  </rule>
+  
+  <!--
+                REGLAS AMBITO GEOGRAFICO
+  -->
+  <!--
+                REGLA 10: ValidarAmbitoGeografico
+                @author Gustavo Viñales
+                @date 07/04/2005
+  -->
+  <rule name="ValidarAmbitoGeografico">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("ValidarAmbitoGeografico")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_CONSULTORA.equals( con.getDirigidoA() )
+    </java:condition>
+    <java:condition> 
+        sol.print("### ValidarAmbitoGeografico con.getIndAmbitoGeograficoCompleto() " + con.getIndAmbitoGeograficoCompleto())
+    </java:condition>
+    <java:condition>
+      !con.getIndAmbitoGeograficoCompleto()
+    </java:condition>
+    <java:condition> 
+        sol.print("### ValidarAmbitoGeografico con.cumpleAmbitoGeografico(sol.getCliente().getAmbitoGeografico()) " + con.cumpleAmbitoGeografico(sol.getCliente().getAmbitoGeografico()))
+    </java:condition>
+    <java:condition>
+      !con.cumpleAmbitoGeografico(sol.getCliente().getAmbitoGeografico())
+    </java:condition>
+    <java:condition>
+      (!ConstantesINC.OID_BASE_CALCULO_RECOMENDADAS.equals(con.getBaseCalculo()) ||
+       (ConstantesINC.OID_BASE_CALCULO_RECOMENDADAS.equals(con.getBaseCalculo()) &amp;&amp; 
+          sol.getCliente().getIndRecomendadosEnMAE()))
+    </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia ValidarAmbitoGeografico concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.setRechazado(con.getOidConcurso());
+      drools.modifyObject(sol);
+    </java:consequence>
+  </rule>
+  
+  <!--
+                REGLA 10.1: ValidarAmbitoGeograficoGerentesSubgerente
+                @author Sergio Platas
+                @date 05/05/2005
+  -->
+  <rule name="ValidarAmbitoGeograficoGerentesSubgerente">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("ValidarAmbitoGeograficoGerentesSubgerente")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+       !con.getIndRanking()
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA())
+    </java:condition>
+    <java:condition>
+      ( (sol.getCliente().getAmbitoGeografico() != null) &amp;&amp; 
+		(sol.getSolicitudConcurso(con.getOidConcurso()).getGerenteParticipante(sol.getCliente().getAmbitoGeografico().getSubgerente())) )
+    </java:condition>
+    <java:condition>
+      !con.getIndAmbitoGeograficoCompleto()
+    </java:condition>
+    <java:condition>
+       ( (sol.getCliente().getAmbitoGeografico() != null) &amp;&amp; 
+		(!con.cumpleAmbitoGeograficoGerentes(sol.getCliente().getAmbitoGeografico(), sol.getCliente().getAmbitoGeografico().getSubgerente().getOidCliente()) ) )
+    </java:condition>  
+    <java:consequence>
+      sol.print("########   Consecuencia ValidarAmbitoGeograficoGerentesSubgerente concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.getSolicitudConcurso(con.getOidConcurso()).setGerenteParticipante(sol.getCliente()
+                        .getAmbitoGeografico().getSubgerente().getOidCliente(),  false);
+      drools.modifyObject(sol);
+    </java:consequence>
+  </rule>
+  
+  <!--
+                REGLA 10.2:  
+                @author Sergio Platas
+                @date 05/05/2005
+  -->
+  <rule name="ValidarAmbitoGeograficoGerentesRegion">
+   <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+   </parameter>
+   <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+   </parameter>
+   <java:condition> 
+        sol.print("ValidarAmbitoGeograficoGerentesRegion")
+   </java:condition>
+   <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+   </java:condition>
+   <java:condition>
+     !con.getIndRanking()
+   </java:condition>
+   <java:condition>
+      ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA())
+   </java:condition>
+   <java:condition>
+      ( (sol.getCliente().getAmbitoGeografico() != null) &amp;&amp; 
+	      (sol.getSolicitudConcurso(con.getOidConcurso()).getGerenteParticipante(sol.getCliente().getAmbitoGeografico().getGerenteRegion())) )
+   </java:condition>
+   <java:condition>
+      !con.getIndAmbitoGeograficoCompleto()
+   </java:condition>
+   <java:condition>
+       ( (sol.getCliente().getAmbitoGeografico() != null) &amp;&amp; 
+	      (!con.cumpleAmbitoGeograficoGerentes(sol.getCliente().getAmbitoGeografico(), sol.getCliente().getAmbitoGeografico().getGerenteRegion().getOidCliente()) ) )
+   </java:condition>
+   <java:consequence>
+      sol.print("########   Consecuencia ValidarAmbitoGeograficoGerentesRegion concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.getSolicitudConcurso(con.getOidConcurso())
+                                    .setGerenteParticipante(sol.getCliente()
+                                       .getAmbitoGeografico()
+                                          .getGerenteRegion()
+                                             .getOidCliente(),
+                     false);
+      drools.modifyObject(sol);
+   </java:consequence>
+  </rule>
+  
+  <!--
+                REGLA 10.3:  ValidarAmbitoGeograficoGerentesZona
+                @author Sergio Platas
+                @date 05/05/2005
+  -->
+  <rule name="ValidarAmbitoGeograficoGerentesZona">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("ValidarAmbitoGeograficoGerentesZona")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+       !con.getIndRanking()
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA())
+    </java:condition>
+    <java:condition>
+      ( (sol.getCliente().getAmbitoGeografico() != null) &amp;&amp; 
+	      (sol.getSolicitudConcurso(con.getOidConcurso()).getGerenteParticipante(sol.getCliente().getAmbitoGeografico().getGerenteZona())) )
+    </java:condition>
+    <java:condition>
+      !con.getIndAmbitoGeograficoCompleto()
+    </java:condition>
+    <java:condition>
+      ( (sol.getCliente().getAmbitoGeografico() != null) &amp;&amp; 
+	      (!con.cumpleAmbitoGeograficoGerentes(sol.getCliente().getAmbitoGeografico(), sol.getCliente().getAmbitoGeografico().getGerenteZona().getOidCliente()) ) )
+    </java:condition>  
+    <java:consequence>
+      sol.print("########   Consecuencia ValidarAmbitoGeograficoGerentesZona concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.getSolicitudConcurso(con.getOidConcurso())
+                  .setGerenteParticipante(
+                           sol.getCliente().getAmbitoGeografico().getGerenteZona().getOidCliente(),
+                           false);
+      drools.modifyObject(sol);
+    </java:consequence>
+  </rule>
+  
+  <!--
+                REGLA 10.4: ValidarAmbitoGeograficoGerentesLider 
+                @author Sergio Platas
+                @date 06/05/2005
+  -->
+  <rule name="ValidarAmbitoGeograficoGerentesLider">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("ValidarAmbitoGeograficoGerentesLider")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+       !con.getIndRanking()
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA())
+    </java:condition>
+    <java:condition>
+      ( (sol.getCliente().getAmbitoGeografico() != null) &amp;&amp; 
+	      (sol.getSolicitudConcurso(con.getOidConcurso()).getGerenteParticipante(sol.getCliente().getAmbitoGeografico().getLider())) )
+    </java:condition>
+    <java:condition>
+      !con.getIndAmbitoGeograficoCompleto()
+    </java:condition>
+    <java:condition>
+      ( (sol.getCliente().getAmbitoGeografico() != null) &amp;&amp; 
+	      (!con.cumpleAmbitoGeograficoGerentes(sol.getCliente().getAmbitoGeografico(), sol.getCliente().getAmbitoGeografico().getLider().getOidCliente()) ) )
+    </java:condition>  
+    <java:consequence>
+      sol.print("########   Consecuencia ValidarAmbitoGeograficoGerentesLider concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.getSolicitudConcurso(con.getOidConcurso())
+                  .setGerenteParticipante(sol.getCliente().getAmbitoGeografico()
+                     .getLider().getOidCliente()
+            ,false);
+      drools.modifyObject(sol);
+    </java:consequence>
+  </rule>
+  
+  <!--
+                REGLAS ESTATUS
+  -->
+  <!--
+                REGLA 11: VerificarEstatusClienteNueva
+                @author Gustavo Viñales
+                @date 08/04/2005
+-->
+  <rule name="VerificarEstatusClienteNueva">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("VerificarEstatusClienteNueva")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_CONSULTORA.equals( con.getDirigidoA() )
+    </java:condition>
+    <java:condition> 
+       con.getProgramaNuevas()
+    </java:condition>
+    <java:condition>
+      ConstantesINC.ESTATUS_FUTURO_NUEVA.equals(sol.getCliente().getOidEstatusFuturo())
+    </java:condition>
+    <java:condition> 
+       sol.print("sol.obtenerNumeroPeriodosEvaluados(con.getOidConcurso()) " + sol.obtenerNumeroPeriodosEvaluados(con.getOidConcurso()))
+    </java:condition>
+    <java:condition>
+      sol.obtenerNumeroPeriodosEvaluados(con.getOidConcurso()) == 0
+    </java:condition>
+   <java:condition>
+      sol.getPeriodo().getFechaDesde().getTime() > con.getPeriodoHasta().getFechaDesde().getTime()
+   </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia VerificarEstatusClienteNueva concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.setRechazado(con.getOidConcurso());
+      drools.modifyObject(sol);
+    </java:consequence>
+  </rule> 
+  
+  <!--
+                REGLA 12: VerificarEstatusClienteConsultora 
+                @author Gustavo Viñales
+                @date 08/04/2005
+  -->
+  <rule name="VerificarEstatusClienteConsultora ">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("VerificarEstatusClienteConsultora")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_CONSULTORA.equals( con.getDirigidoA() )
+    </java:condition>   
+    <java:condition> 
+       !con.getProgramaNuevas()
+    </java:condition>
+    <java:condition> 
+        sol.print("con.validarEstatusCliente(sol) " + con.validarEstatusCliente(sol))
+    </java:condition>
+    <java:condition>
+      !con.validarEstatusCliente(sol)
+    </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia VerificarEstatusClienteConsultora concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.setRechazado(con.getOidConcurso());
+      drools.modifyObject(sol);
+   </java:consequence>
+  </rule>
+ 
+  <!--
+                REGLAS ACTIVIDAD CONSTANCIA
+  -->
+  <!--
+                REGLA 13: VerificarActividad 
+                @author Gustavo Viñales
+                @date 08/04/2005
+  -->
+ <rule name="VerificarActividad">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("VerificarActividad")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      !sol.getRechazadoActividadConstancia(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_CONSULTORA.equals( con.getDirigidoA() )
+    </java:condition>    
+    <java:condition> 
+      !con.getProgramaNuevas()
+    </java:condition>
+    <java:condition>
+      !ConstantesINC.OID_BASE_CALCULO_RECOMENDADAS.equals(con.getBaseCalculo())
+    </java:condition>
+    <java:condition> 
+        sol.print("VerificarActividad  con.getIndActividad() " + con.getIndActividad())
+    </java:condition>
+    <java:condition>
+      con.getIndActividad()
+    </java:condition>
+    <java:condition> 
+        sol.print("VerificarActividad  con.esActivo(sol) " + con.esActivo(sol))
+    </java:condition>
+    <java:condition>
+      !con.esActivo(sol)
+    </java:condition>
+    <java:condition>
+      !sol.getDescalificado(con.getOidConcurso())
+    </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia VerificarActividad concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.setRechazadoActividadConstancia(con.getOidConcurso());
+      drools.modifyObject(sol);
+      sol.getSolicitudConcurso(con.getOidConcurso()).setDescalificaClientePorSolicitud(ConstantesINC.CAUSA_DESCALIF_ACTIVIDAD);
+    </java:consequence>
+  </rule> 
+  
+  <!--
+                REGLA 14: VerificarConstancia 
+                @author Gustavo Viñales
+                @date 08/04/2005
+                
+  -->
+  <rule name="VerificarConstancia">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("VerificarConstancia")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      !sol.getRechazadoActividadConstancia(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_CONSULTORA.equals( con.getDirigidoA() )
+    </java:condition>    
+    <java:condition> 
+       !con.getProgramaNuevas()
+    </java:condition>
+    <java:condition>
+      !ConstantesINC.OID_BASE_CALCULO_RECOMENDADAS.equals(con.getBaseCalculo())
+    </java:condition>
+    <java:condition> 
+        sol.print("VerificarConstancia  con.getIndConstancia() " + con.getIndConstancia())
+    </java:condition>
+    <java:condition>
+      con.getIndConstancia()
+    </java:condition>
+    <java:condition> 
+        sol.print("VerificarConstancia  con.esConstante(sol) " + con.esConstante(sol))
+    </java:condition>
+    <java:condition>
+      !con.esConstante(sol)
+    </java:condition>
+    <java:condition>
+      !sol.getDescalificado(con.getOidConcurso())
+    </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia VerificarConstancia concurso:" + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.setRechazadoActividadConstancia(con.getOidConcurso());
+      drools.modifyObject(sol);
+      sol.getSolicitudConcurso(con.getOidConcurso()).setDescalificaClientePorSolicitud(ConstantesINC.CAUSA_DESCALIF_CONSTANCIA);
+    </java:consequence>
+  </rule>
+  
+  <!--
+                REGLA 15: VerificarConstanciaNuevas
+                @author Gustavo Viñales
+                @date 08/04/2005
+  -->
+  <rule name="VerificarConstanciaNuevas">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("VerificarConstanciaNuevas")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      !sol.getRechazadoActividadConstancia(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA())
+    </java:condition>
+    <java:condition> 
+       con.getProgramaNuevas()
+    </java:condition>
+    <java:condition>
+      !ConstantesINC.OID_BASE_CALCULO_RECOMENDADAS.equals(con.getBaseCalculo())
+    </java:condition>
+    <java:condition>
+      sol.obtenerNumeroPeriodosEvaluados(con.getOidConcurso()) > 0
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_EXIGENCIA_CONSTANCIA.equals(con.getOidTipoExigencia())
+    </java:condition>
+    <java:condition>
+      !con.esConstante(sol)
+    </java:condition>
+    <java:condition>
+      !sol.getDescalificado(con.getOidConcurso())
+    </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia VerificarConstanciaNuevas concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.setRechazadoActividadConstancia(con.getOidConcurso());
+      drools.modifyObject(sol);
+      sol.getSolicitudConcurso(con.getOidConcurso()).setDescalificaClientePorSolicitud(ConstantesINC.CAUSA_DESCALIF_CONSTANCIA);
+    </java:consequence>
+  </rule>
+  
+  <!--
+                REGLA 16: VerificarActividadNuevas 
+                @author Gustavo Viñales
+                @date 08/04/2005
+  -->
+ <rule name="VerificarActividadNuevas">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("VerificarActividadNuevas")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      !sol.getRechazadoActividadConstancia(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA())
+    </java:condition>
+    <java:condition> 
+       con.getProgramaNuevas()
+    </java:condition>
+    <java:condition>
+      !ConstantesINC.OID_BASE_CALCULO_RECOMENDADAS.equals(con.getBaseCalculo())
+    </java:condition>
+    <java:condition>
+      sol.obtenerNumeroPeriodosEvaluados(con.getOidConcurso()) > 0
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_EXIGENCIA_ACTIVIDAD.equals(con.getOidTipoExigencia())
+    </java:condition>
+    <java:condition>
+      !con.esActivo(sol)
+    </java:condition>
+    <java:condition>
+      !sol.getDescalificado(con.getOidConcurso())
+    </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia VerificarActividadNuevas concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.setRechazadoActividadConstancia(con.getOidConcurso());
+      drools.modifyObject(sol);
+      sol.getSolicitudConcurso(con.getOidConcurso()).setDescalificaClientePorSolicitud(ConstantesINC.CAUSA_DESCALIF_ACTIVIDAD);
+    </java:consequence>
+  </rule>
+ 
+  <!--
+                REGLA 17: VerificarActividadRecomendada 
+                @author Gustavo Viñales
+                @date 08/04/2005
+  -->
+  <rule name="VerificarActividadRecomendada">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("VerificarActividadRecomendada")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      !sol.getRechazadoActividadConstancia(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA())
+    </java:condition>    
+    <java:condition> 
+       !con.getProgramaNuevas()
+    </java:condition>
+    <java:condition>
+      ConstantesINC.OID_BASE_CALCULO_RECOMENDADAS.equals(con.getBaseCalculo())
+    </java:condition>
+    <java:condition> 
+        sol.print("VerificarActividadRecomendada  con.getIndActividad() " + con.getIndActividad())
+    </java:condition>
+    <java:condition> 
+        sol.print("VerificarActividadRecomendada  con.esActivoRecomendada(sol) " + con.esActivo(sol))
+    </java:condition>
+    <java:condition>
+      con.getIndActividad()
+    </java:condition>
+    <java:condition>
+      !con.esActivoRecomendada(sol)
+    </java:condition>
+    <java:condition>
+      !sol.getDescalificado(con.getOidConcurso())
+    </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia VerificarActividadRecomendada concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.setRechazadoActividadConstancia(con.getOidConcurso());
+      drools.modifyObject(sol);
+      sol.getSolicitudConcurso(con.getOidConcurso()).setDescalificaClientePorSolicitud(ConstantesINC.CAUSA_DESCALIF_ACTIVIDAD);
+     </java:consequence>
+  </rule>
+ 
+  <!--
+                REGLA 18: VerificarConstanciaRecomendada 
+                @author Gustavo Viñales
+                @date 08/04/2005
+  -->
+ <rule name="VerificarConstanciaRecomendada">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("VerificarConstanciaRecomendada")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      !sol.getRechazadoActividadConstancia(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA())
+    </java:condition> 
+    <java:condition> 
+       !con.getProgramaNuevas()
+    </java:condition>    
+    <java:condition>
+      ConstantesINC.OID_BASE_CALCULO_RECOMENDADAS.equals(con.getBaseCalculo())
+    </java:condition>
+    <java:condition> 
+        sol.print("VerificarConstanciaRecomendada  con.getIndConstancia() " + con.getIndConstancia())
+    </java:condition>
+    <java:condition> 
+        sol.print("VerificarConstanciaRecomendada  con.esConstanteRecomendada(sol) " + con.esConstanteRecomendada(sol))
+    </java:condition>
+    <java:condition>
+      con.getIndConstancia()
+    </java:condition>
+    <java:condition>
+      !con.esConstanteRecomendada(sol)
+    </java:condition>
+    <java:condition>
+      !sol.getDescalificado(con.getOidConcurso())
+    </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia VerificarConstanciaRecomendada concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.setRechazadoActividadConstancia(con.getOidConcurso());
+      drools.modifyObject(sol);
+      sol.getSolicitudConcurso(con.getOidConcurso()).setDescalificaClientePorSolicitud(ConstantesINC.CAUSA_DESCALIF_CONSTANCIA);
+    </java:consequence>
+  </rule>
+  
+  <!--
+                REGLA 19: VerificarClienteDescalificado 
+                @author Gustavo Viñales
+                @date 08/04/2005
+  -->
+  <rule name="VerificarClienteDescalificado" salience="90">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("VerificarClienteDescalificado")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA())
+    </java:condition>
+    <java:condition>
+      sol.getDescalificado(con.getOidConcurso())
+    </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia VerificarClienteDescalificado concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.setRechazado(con.getOidConcurso());
+      drools.modifyObject(sol);
+    </java:consequence>
+  </rule>
+  
+  <!--
+                REGLA 20: VerificarParticipanteConcurso 
+                @author Gustavo Viñales
+                @date 08/04/2005
+  -->
+  <rule name="VerificarParticipanteConcurso">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("VerificarParticipanteConcurso")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA())
+    </java:condition>
+    <java:condition>
+      !con.getParticipacionParticipantesCompleta()
+    </java:condition>
+    <java:condition>
+      !con.getIndDuplaCyzone()
+    </java:condition>
+    <java:condition>
+      !con.getClienteParticipanteConcurso( sol.getCliente() )
+    </java:condition>
+    <java:condition>
+      (!ConstantesINC.OID_BASE_CALCULO_RECOMENDADAS.equals(con.getBaseCalculo()) ||
+       (ConstantesINC.OID_BASE_CALCULO_RECOMENDADAS.equals(con.getBaseCalculo()) &amp;&amp; 
+          sol.getCliente().getIndRecomendadosEnMAE()))
+    </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia VerificarParticipanteConcurso concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.setRechazado(con.getOidConcurso());
+      drools.modifyObject(sol);
+     </java:consequence>
+  </rule>
+ 
+  <!--
+                REGLA 20.1: VerificarParticipanteConcursoGerentesSubgerente
+                @author Sergio Platas
+                @date 06/05/2005
+  -->
+ <rule name="VerificarParticipanteConcursoGerentesSubgerente">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("VerificarParticipanteConcursoGerentesSubgerente")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA())
+    </java:condition>
+     <java:condition> 
+        sol.print("sol.getCliente() a evaluar: " + sol.getCliente())
+    </java:condition>
+    <java:condition>
+      ( (sol.getCliente().getAmbitoGeografico() != null) &amp;&amp; 
+		(sol.getSolicitudConcurso(con.getOidConcurso()).getGerenteParticipante(sol.getCliente().getAmbitoGeografico().getSubgerente())) )
+    </java:condition>
+    <java:condition>
+      !con.getParticipacionParticipantesCompleta()
+    </java:condition>
+    <java:condition>
+       ( (sol.getCliente().getAmbitoGeografico() != null) &amp;&amp; 
+		(!con.getClienteParticipanteConcurso(sol.getCliente().getAmbitoGeografico().getSubgerente())) )
+    </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia VerificarParticipanteConcursoGerentesSubgerente concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.getSolicitudConcurso(con.getOidConcurso())
+            .setGerenteParticipante(sol.getCliente()
+                                          .getAmbitoGeografico()
+                                          .getSubgerente()
+                                          .getOidCliente()
+            ,false);
+      drools.modifyObject(sol);
+    </java:consequence>
+  </rule>
+  
+  <!--
+                REGLA 20.2:  VerificarParticipanteConcursoGerentesRegion
+                @author Sergio Platas
+                @date 06/05/2005
+  -->
+  <rule name="VerificarParticipanteConcursoGerentesRegion">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("VerificarParticipanteConcursoGerentesRegion")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA())
+    </java:condition>
+    <java:condition>
+      ( (sol.getCliente().getAmbitoGeografico() != null) &amp;&amp; 
+		(sol.getSolicitudConcurso(con.getOidConcurso()).getGerenteParticipante(sol.getCliente().getAmbitoGeografico().getGerenteRegion())) )
+    </java:condition>
+    <java:condition>
+      !con.getParticipacionParticipantesCompleta()
+    </java:condition>
+    <java:condition>
+       ( (sol.getCliente().getAmbitoGeografico() != null) &amp;&amp; 
+		(!con.getClienteParticipanteConcurso(sol.getCliente().getAmbitoGeografico().getGerenteRegion())) )
+    </java:condition>  
+    <java:consequence>
+      sol.print("########   Consecuencia VerificarParticipanteConcursoGerentesRegion concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.getSolicitudConcurso(con.getOidConcurso())
+               .setGerenteParticipante(sol.getCliente()
+                                             .getAmbitoGeografico()
+                                                .getGerenteRegion()
+                                                   .getOidCliente()
+         ,false);
+      drools.modifyObject(sol);
+    </java:consequence>
+  </rule>
+  
+  <!--
+                REGLA 20.3:  VerificarParticipanteConcursoGerentesZona
+                @author Sergio Platas
+                @date 06/05/2005
+  -->
+ <rule name="VerificarParticipanteConcursoGerentesZona">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("VerificarParticipanteConcursoGerentesZona")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA())
+    </java:condition>
+    <java:condition>
+      ( (sol.getCliente().getAmbitoGeografico() != null) &amp;&amp; 
+		(sol.getSolicitudConcurso(con.getOidConcurso()).getGerenteParticipante(sol.getCliente().getAmbitoGeografico().getGerenteZona())) )
+    </java:condition>
+    <java:condition>
+      !con.getParticipacionParticipantesCompleta()
+    </java:condition>
+    <java:condition>
+       ( (sol.getCliente().getAmbitoGeografico() != null) &amp;&amp; 
+		(!con.getClienteParticipanteConcurso(sol.getCliente().getAmbitoGeografico().getGerenteZona())) )
+    </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia VerificarParticipanteConcursoGerentesZona concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.getSolicitudConcurso(con.getOidConcurso())
+               .setGerenteParticipante(sol.getCliente().getAmbitoGeografico().getGerenteZona().getOidCliente()
+         ,false);
+      drools.modifyObject(sol);
+    </java:consequence>
+  </rule>
+  
+  <!--
+                REGLA 20.4:  VerificarParticipanteConcursoGerentesLider
+                @author Sergio Platas
+                @date 06/05/2005
+  -->
+   <rule name="VerificarParticipanteConcursoGerentesLider">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("VerificarParticipanteConcursoGerentesLider")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA())
+    </java:condition>
+    <java:condition>
+      ( (sol.getCliente().getAmbitoGeografico() != null) &amp;&amp; 
+		(sol.getSolicitudConcurso(con.getOidConcurso()).getGerenteParticipante(sol.getCliente().getAmbitoGeografico().getLider())) )
+    </java:condition>
+    <java:condition>
+      !con.getParticipacionParticipantesCompleta()
+    </java:condition>
+    <java:condition>
+       ( (sol.getCliente().getAmbitoGeografico() != null) &amp;&amp; 
+		(!con.getClienteParticipanteConcurso(sol.getCliente().getAmbitoGeografico().getLider())) )
+    </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia VerificarParticipanteConcursoGerentesLider concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.getSolicitudConcurso(con.getOidConcurso())
+               .setGerenteParticipante(sol.getCliente().getAmbitoGeografico().getLider().getOidCliente()
+         ,false);
+      drools.modifyObject(sol);
+    </java:consequence>
+  </rule>
+  
+  <!--
+                REGLA 21: ValidarCanal 
+                @author Gustavo Viñales
+                @date 08/04/2005
+  -->
+ <rule name="ValidarCanal" salience="100">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("ValidarCanal")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA()) || 
+      ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA())
+    </java:condition>
+    <java:condition>
+      !con.getOidCanal().equals(sol.getOidCanal())
+    </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia ValidarCanal concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.setRechazado(con.getOidConcurso());
+      drools.modifyObject(sol);
+     </java:consequence>
+  </rule>
+ 
+  <!--
+                REGLA 22: ValidarPais 
+                @author Gustavo Viñales
+                @date 08/04/2005
+  -->
+   <rule name="ValidarPais" salience="100">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("ValidarPais")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA()) || 
+      ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA())
+    </java:condition>
+    <java:condition>
+      !con.getOidPais().equals(sol.getOidPais())
+    </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia ValidarPais concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.setRechazado(con.getOidConcurso());
+      drools.modifyObject(sol);
+    </java:consequence>
+  </rule>
+  
+  <!--
+                REGLA 23: ValidarMarca 
+                @author Gustavo Viñales
+                @date 08/04/2005
+  -->
+  <rule name="ValidarMarca" salience="100">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("ValidarMarca")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA()) || 
+      ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA())
+    </java:condition>
+    <java:condition>
+      !con.getOidMarca().equals(sol.getOidMarca())
+    </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia ValidarMarca concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.setRechazado(con.getOidConcurso());
+      drools.modifyObject(sol);
+    </java:consequence>
+  </rule>
+  
+  <!--
+                REGLA 24: ValidarOrdenCompra 
+                @author Gustavo Viñales
+                @date 08/04/2005
+  -->
+  <rule name="ValidarOrdenCompra" salience="100">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("ValidarOrdenCompra")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA()) || 
+      ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA())
+    </java:condition>
+    <java:condition>
+      !sol.getOrdenDeCompra()
+    </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia ValidarOrdenCompra concurso:" + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.setRechazado(con.getOidConcurso());
+      drools.modifyObject(sol);
+      //drools.retractObject(sol); 
+    </java:consequence>
+  </rule>
+ 
+  <!--
+                REGLA 25: ValidarAcceso 
+                @author Gustavo Viñales
+                @date 08/04/2005
+  -->
+  <rule name="ValidarAcceso" salience="100">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("ValidarAcceso")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA()) || 
+      ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA())
+    </java:condition>
+    <java:condition>
+      !con.contieneAcceso(sol.getOidAcceso())
+    </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia ValidarAcceso concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.setRechazado(con.getOidConcurso());
+      drools.modifyObject(sol);
+    </java:consequence>
+  </rule>
+ 
+  <!--
+                REGLA 26: ValidarAnulacion 
+                @author Gustavo Viñales
+                @date 08/04/2005
+  -->
+  <rule name="ValidarAnulacion" salience="100">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("ValidarAnulacion")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA()) || 
+      ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA())
+    </java:condition>  
+    <java:condition>
+      sol.getIndAnulacion()
+    </java:condition>
+     <java:condition> 
+      !ConstantesINC.OID_FORMA_CALC_VARIABLES_VTA.equals(con.getFormaCalculo())
+    </java:condition>
+    <java:condition>
+	!sol.getIndDevolucion()
+    </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia ValidarAnulacion concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.setRechazado(con.getOidConcurso());
+      drools.modifyObject(sol);
+   </java:consequence>
+  </rule>
+  
+  <!--
+                REGLA 27: ValidarDevolucion 
+                @author Gustavo Viñales
+                @date 08/04/2005
+  -->
+  <rule name="ValidarDevolucion" salience="100">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("ValidarDevolucion")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA()) || 
+      ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA())
+    </java:condition>   
+    <java:condition>
+      sol.getIndDevolucion()
+    </java:condition>
+    <java:condition>
+      !con.getIndDevolucion() || ConstantesINC.OID_BASE_CALCULO_NPEDIDOS.equals(con.getBaseCalculo())
+    </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia ValidarDevolucion concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.setRechazado(con.getOidConcurso());
+      drools.modifyObject(sol);
+    </java:consequence>
+  </rule>
+
+  <!--
+                REGLA 28: VerificarPeriodosRecomendacionMultinivel
+                @author Viviana Bongiovanni
+                @date 23/09/2005
+  -->
+  <rule name="VerificarPeriodosRecomendacionMultinivel">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("VerificarPeriodosRecomendacionMultinivel")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      !con.getIndRanking()
+    </java:condition>
+     <java:condition>
+      con.getMultiNivel()
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA())
+    </java:condition>
+    <java:condition>
+      !con.getProgramaNuevas()
+    </java:condition>
+    <java:condition>
+      (ConstantesINC.OID_BASE_CALCULO_MONTO.equals(con.getBaseCalculo()) || 
+       ConstantesINC.OID_BASE_CALCULO_UNIDADES.equals(con.getBaseCalculo()))
+    </java:condition>
+    <java:condition>
+      sol.getCliente().getIndRecomendante()
+    </java:condition>
+    <java:condition>
+      !sol.getDentroPeriodo(con.getPeriodoDesdeMultinivel(), con.getPeriodoHastaMultinivel())
+    </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia VerificarPeriodosRecomendacionMultinivel");
+      sol.print("########   Consecuencia VerificarPeriodosRecomendacionMultinivel-- oidconcurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.setRechazado(con.getOidConcurso());
+      drools.modifyObject(sol);
+    </java:consequence>
+  </rule>
+
+  
+  <!--
+                REGLA 29: VerificarConsultoraNueva
+                @author Julián Rivas
+                @date 08/03/2006
+		INC 22695
+  -->
+  <rule name="VerificarConsultoraNueva">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+    </java:class>
+    </parameter>
+    <java:condition> 
+      sol.print("VerificarConsultoraNueva")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      con.getProgramaNuevas()
+    </java:condition>
+    <java:condition>
+      !ConstantesINC.ESTATUS_FUTURO_NUEVA.equals(sol.getCliente().getOidEstatusFuturo())
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_CONSULTORA.equals( con.getDirigidoA() )
+    </java:condition>
+    <java:condition>
+      sol.obtenerNumeroPeriodosEvaluados( con.getOidConcurso() ) == 0
+    </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia VerificarConsultoraNueva concurso: " + con.getOidConcurso() + " Cliente: " + sol.getCliente().getOidCliente());
+      sol.setRechazado(con.getOidConcurso());
+      drools.modifyObject(sol);
+    </java:consequence>
+  </rule>
+
+  <!--
+                REGLA 30: ValidarAmbitoGeograficoGerentesLiderRanking
+                @author Viviana Bongiovanni
+                @date 19/04/2006
+  -->
+  <rule name="ValidarAmbitoGeograficoGerentesLiderRanking">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("ValidarAmbitoGeograficoGerentesLiderRanking")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+       con.getIndRanking()
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA())
+    </java:condition>
+    <java:condition>
+      ( (sol.getCliente().getAmbitoGeografico() != null) &amp;&amp; 
+	      (sol.getSolicitudConcurso(con.getOidConcurso()).getGerenteParticipante(sol.getCliente().getAmbitoGeografico().getLider())) )
+    </java:condition>
+    <java:condition>
+      !con.getIndAmbitoGeograficoCompleto()
+    </java:condition>
+    <java:condition>
+      ( (sol.getCliente().getAmbitoGeografico() != null) &amp;&amp; 
+	      (!con.cumpleAmbitoGeografico(sol.getCliente().getAmbitoGeografico().getLider().getAmbitoGeografico())) )
+    </java:condition>  
+    <java:condition>
+	!sol.getIndDevolucion()
+    </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia ValidarAmbitoGeograficoGerentesLiderRanking concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.getSolicitudConcurso(con.getOidConcurso())
+                  .setGerenteParticipante(sol.getCliente().getAmbitoGeografico()
+                     .getLider().getOidCliente()
+            ,false);
+      drools.modifyObject(sol);
+    </java:consequence>
+  </rule>
+
+  <!--
+                REGLA 31: ValidarAmbitoGeograficoGerentesRegionRanking
+                @author Viviana Bongiovanni
+                @date 19/04/2006
+  -->
+  <rule name="ValidarAmbitoGeograficoGerentesRegionRanking">
+   <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+   </parameter>
+   <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+   </parameter>
+   <java:condition> 
+        sol.print("ValidarAmbitoGeograficoGerentesRegionRanking")
+   </java:condition>
+   <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+   </java:condition>
+   <java:condition>
+       con.getIndRanking()
+    </java:condition>
+   <java:condition>
+      ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA())
+   </java:condition>
+   <java:condition>
+      ( (sol.getCliente().getAmbitoGeografico() != null) &amp;&amp; 
+	      (sol.getSolicitudConcurso(con.getOidConcurso()).getGerenteParticipante(sol.getCliente().getAmbitoGeografico().getGerenteRegion())) )
+   </java:condition>
+   <java:condition>
+      !con.getIndAmbitoGeograficoCompleto()
+   </java:condition>
+   <java:condition>
+       ( (sol.getCliente().getAmbitoGeografico() != null) &amp;&amp; 
+	      (!con.cumpleAmbitoGeografico(sol.getCliente().getAmbitoGeografico().getGerenteRegion().getAmbitoGeografico())) )
+   </java:condition>
+    <java:condition>
+	!sol.getIndDevolucion()
+    </java:condition>
+   <java:consequence>
+      sol.print("########   Consecuencia ValidarAmbitoGeograficoGerentesRegionRanking concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.getSolicitudConcurso(con.getOidConcurso())
+                                    .setGerenteParticipante(sol.getCliente()
+                                       .getAmbitoGeografico()
+                                          .getGerenteRegion()
+                                             .getOidCliente(),
+                     false);
+      drools.modifyObject(sol);
+   </java:consequence>
+  </rule>
+
+  <!--
+                REGLA 32: ValidarAmbitoGeograficoGerentesSubgerenteRanking
+                @author Viviana Bongiovanni
+                @date 19/04/2006
+  -->
+  <rule name="ValidarAmbitoGeograficoGerentesSubgerenteRankingRanking">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("ValidarAmbitoGeograficoGerentesSubgerenteRanking")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+       con.getIndRanking()
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA())
+    </java:condition>
+    <java:condition>
+      ( (sol.getCliente().getAmbitoGeografico() != null) &amp;&amp; 
+		(sol.getSolicitudConcurso(con.getOidConcurso()).getGerenteParticipante(sol.getCliente().getAmbitoGeografico().getSubgerente())) )
+    </java:condition>
+    <java:condition>
+      !con.getIndAmbitoGeograficoCompleto()
+    </java:condition>
+    <java:condition>
+       ( (sol.getCliente().getAmbitoGeografico() != null) &amp;&amp; 
+		(!con.cumpleAmbitoGeografico(sol.getCliente().getAmbitoGeografico().getSubgerente().getAmbitoGeografico())) )
+    </java:condition>  
+    <java:condition>
+	!sol.getIndDevolucion()
+    </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia ValidarAmbitoGeograficoGerentesSubgerenteRanking concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.getSolicitudConcurso(con.getOidConcurso()).setGerenteParticipante(sol.getCliente()
+                        .getAmbitoGeografico().getSubgerente().getOidCliente(),  false);
+      drools.modifyObject(sol);
+    </java:consequence>
+  </rule>
+
+  <!--
+                REGLA 33:  ValidarAmbitoGeograficoGerentesZonaRanking
+                @author Viviana Bongiovanni
+                @date 19/04/2006
+  -->
+  <rule name="ValidarAmbitoGeograficoGerentesZonaRanking">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("ValidarAmbitoGeograficoGerentesZonaRanking")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+       con.getIndRanking()
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA())
+    </java:condition>
+    <java:condition>
+      ( (sol.getCliente().getAmbitoGeografico() != null) &amp;&amp; 
+	      (sol.getSolicitudConcurso(con.getOidConcurso()).getGerenteParticipante(sol.getCliente().getAmbitoGeografico().getGerenteZona())) )
+    </java:condition>
+    <java:condition>
+      !con.getIndAmbitoGeograficoCompleto()
+    </java:condition>
+    <java:condition>
+      ( (sol.getCliente().getAmbitoGeografico() != null) &amp;&amp; 
+	      (!con.cumpleAmbitoGeografico(sol.getCliente().getAmbitoGeografico().getGerenteZona().getAmbitoGeografico())) )
+    </java:condition>  
+    <java:condition>
+	!sol.getIndDevolucion()
+    </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia ValidarAmbitoGeograficoGerentesZonaRanking concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.getSolicitudConcurso(con.getOidConcurso())
+                  .setGerenteParticipante(
+                           sol.getCliente().getAmbitoGeografico().getGerenteZona().getOidCliente(),
+                           false);
+      drools.modifyObject(sol);
+    </java:consequence>
+  </rule>
+
+  <!--
+                REGLA 34: VerificarSolicitudValidaPorExigencias  
+                @author Juli?Rivas
+                @date 25/07/2006
+  -->
+  <rule name="VerificarSolicitudValidaPorExigencias">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("VerificarSolicitudValidaPorExigencias")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      !con.getMultiNivel()
+    </java:condition>
+    <java:condition>
+       !con.getIndRanking()
+    </java:condition>
+    <java:condition>
+      !con.getProgramaNuevas()
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA())
+    </java:condition>
+    <java:condition> 
+      ConstantesINC.OID_FORMA_CALC_BASE_CALC.equals(con.getFormaCalculo())
+    </java:condition> 
+    <java:condition>
+      (ConstantesINC.OID_BASE_CALCULO_MONTO.equals(con.getBaseCalculo()) || 
+       ConstantesINC.OID_BASE_CALCULO_UNIDADES.equals(con.getBaseCalculo()))
+    </java:condition>
+   <java:condition>
+      ( ((con.getMontoMinimoPedido().doubleValue() > 0) &amp;&amp; 
+         (con.getMontoMinimoPedido().doubleValue() > sol.getMontoAcumuladoPedido().doubleValue())) ||
+         ((con.getUnidadesMinimasPedido().doubleValue() > 0) &amp;&amp; 
+         (con.getUnidadesMinimasPedido().doubleValue() > sol.getUnidadesAcumuladasPedido().doubleValue())) )
+   </java:condition>
+    <java:condition>
+	!sol.getIndDevolucion()
+    </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia VerificarSolicitudValidaPorExigencias");
+      sol.print("########   Consecuencia VerificarSolicitudValidaPorExigencias oidconcurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.setRechazado(con.getOidConcurso());
+      drools.modifyObject(sol);
+    </java:consequence>
+  </rule>
+
+  <!--
+                REGLA 35: ValidarAnulacionVariablesVenta 
+                @author Viviana Bongiovanni
+                @date 01/08/2006
+  -->
+  <rule name="ValidarAnulacionVariablesVenta" salience="100">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("ValidarAnulacionVariablesVenta")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA()) || 
+      ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA())
+    </java:condition>  
+    <java:condition>
+      sol.getIndAnulacion()
+    </java:condition>
+    <java:condition>
+      !con.getIndAnulacion()
+    </java:condition>
+     <java:condition> 
+      ConstantesINC.OID_FORMA_CALC_VARIABLES_VTA.equals(con.getFormaCalculo())
+    </java:condition>
+    <java:condition>
+	!sol.getIndDevolucion()
+    </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia ValidarAnulacionVariablesVenta concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.setRechazado(con.getOidConcurso());
+      drools.modifyObject(sol);
+   </java:consequence>
+  </rule>
+  
+ <!--
+                REGLA 36: ValidarRecomendacionGerentes 
+                @author Juli?Rivas
+                @date 31/08/2006
+  -->
+  <rule name="ValidarRecomendacionGerentes">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("ValidarRecomendacionGerentes")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA())
+    </java:condition>  
+    <java:condition>
+      ConstantesINC.OID_BASE_CALCULO_RECOMENDADAS.equals(con.getBaseCalculo())
+    </java:condition>
+    <java:condition>
+	!sol.getIndDevolucion()
+    </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia ValidarRecomendacionGerentes concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.getSolicitudConcurso(con.getOidConcurso()).setActualizarGerentesRecomendacion(true);
+   </java:consequence>
+  </rule>  
+  
+ <!--
+                REGLA 37: ValidarClienteRecomendacionGerente 
+                @author Juli?Rivas
+                @date 31/08/2006
+  -->
+  <rule name="ValidarClienteRecomendacionGerente">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("ValidarClienteRecomendacionGerente")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA())
+    </java:condition>  
+    <java:condition>
+      ConstantesINC.OID_BASE_CALCULO_RECOMENDADAS.equals(con.getBaseCalculo())
+    </java:condition>
+    <java:condition> 
+      sol.getCliente().getIndRecomendado()
+	</java:condition>    
+    <java:condition>
+	!sol.getIndDevolucion()
+    </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia ValidarClienteRecomendacionGerente concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.getSolicitudConcurso(con.getOidConcurso()).setActualizarClienteRecomendacionGerente(true);
+   </java:consequence>
+  </rule>  
+  
+
+  <!--
+                REGLA 38: ValidarPeriodoTipoVinculoNingunoActualizaciones
+                @author Juli?Rivas
+                @date 07/11/2006
+  -->
+<!-- JVM
+ <rule name="ValidarPeriodoTipoVinculoNingunoActualizaciones">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("ValidarPeriodoTipoVinculoNingunoActualizaciones")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_CONSULTORA.equals( con.getDirigidoA() )
+    </java:condition>
+    <java:condition>
+      ConstantesINC.OID_BASE_CALCULO_RECOMENDADAS.equals(con.getBaseCalculo())
+    </java:condition>
+    <java:condition>
+      (ConstantesINC.TIPO_VINC_NINGUNO.equals(sol.getSolicitudConcurso(con.getOidConcurso()).getTipoVinculo())
+         ||
+      (sol.getSolicitudConcurso(con.getOidConcurso()).getCambioTipoVinculo() &amp;&amp;
+      ConstantesINC.TIPO_VINC_RECOMENDADO.equals(sol.getSolicitudConcurso(con.getOidConcurso()).getTipoVinculo())))
+    </java:condition>
+    <java:condition> 
+      sol.getCliente().getClienteRecomendante() != null
+    </java:condition>
+    <java:condition> 
+      !sol.getPeriodo().contenidoEn(con.getPeriodoDesde(), con.getPeriodoHasta())
+    </java:condition>
+    <java:consequence> 
+      sol.print("########   Consecuencia ValidarPeriodoTipoVinculoNingunoActualizaciones concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.getSolicitudConcurso(con.getOidConcurso()).setCambioTipoVinculo(false);
+      sol.setRechazado(con.getOidConcurso()); 
+      drools.modifyObject(sol); 
+    </java:consequence>
+  </rule>
+-->
+  
+  <!--
+                REGLA 39: ValidarPeriodoTipoVinculoNingunoActualizacionesAmbas
+                @author Juli?Rivas
+                @date 07/11/2006
+  -->
+<!--
+  <rule name="ValidarPeriodoTipoVinculoNingunoActualizacionesAmbas">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("ValidarPeriodoTipoVinculoNingunoActualizacionesAmbas")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_CONSULTORA.equals( con.getDirigidoA() )
+    </java:condition>
+    <java:condition>
+      ConstantesINC.OID_BASE_CALCULO_RECOMENDADAS.equals(con.getBaseCalculo())
+    </java:condition>
+    <java:condition>
+      (ConstantesINC.TIPO_VINC_RECOMENDANTE.equals(sol.getSolicitudConcurso(con.getOidConcurso()).getTipoVinculo())
+          ||
+      (sol.getSolicitudConcurso(con.getOidConcurso()).getCambioTipoVinculo() &amp;&amp;
+      ConstantesINC.TIPO_VINC_AMBOS.equals(sol.getSolicitudConcurso(con.getOidConcurso()).getTipoVinculo())))
+    </java:condition>
+    <java:condition> 
+      sol.getCliente().getClienteRecomendante() != null
+    </java:condition>
+    <java:condition> 
+      !sol.getPeriodo().contenidoEn(con.getPeriodoDesde(), con.getPeriodoHasta())
+    </java:condition>
+    <java:consequence> 
+      sol.print("########   Consecuencia ValidarPeriodoTipoVinculoNingunoActualizacionesAmbas concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.getSolicitudConcurso(con.getOidConcurso()).setCambioTipoVinculo(false);
+      sol.setRechazado(con.getOidConcurso()); 
+      drools.modifyObject(sol); 
+    </java:consequence>
+  </rule>
+-->
+
+  <!--
+                REGLA 40: VerificarParticipanteCalificacion
+		@jrivas 25/1/2007 Cambio Dupla Cizone
+		@author Juli?Rivas
+                @date 25/01/2007
+  -->
+  <rule name="VerificarParticipanteCalificacion">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("VerificarParticipanteCalificacion")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA())
+    </java:condition>
+    <java:condition>
+      !con.getParticipacionParticipantesCompleta()
+    </java:condition>
+    <java:condition>
+      con.getIndDuplaCyzone()
+    </java:condition>
+    <java:condition>
+      !con.getClienteParticipanteCalificacion( sol.getCliente() )
+    </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia VerificarParticipanteCalificacion concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.setRechazado(con.getOidConcurso());
+      drools.modifyObject(sol);
+     </java:consequence>
+  </rule>
+
+  <!--
+                REGLA 41: ValidarOrdenCompra 
+                @author Sergio Apaza
+                @date 19/08/2013
+  -->
+  <rule name="ValidarPremioEntregado" salience="100">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("ValidarPremioEntregado")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+       !con.getIndRanking()
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA())
+    </java:condition>
+    <java:condition>
+      (ConstantesINC.OID_BASE_CALCULO_MONTO.equals(con.getBaseCalculo()) || 
+       ConstantesINC.OID_BASE_CALCULO_UNIDADES.equals(con.getBaseCalculo()))
+    </java:condition>
+    <java:condition>
+      !con.getProgramaNuevas()
+    </java:condition>
+    <java:condition>
+      !con.getMultiNivel()
+    </java:condition>
+    <java:condition>
+      (con.getIndDespachoPremio()==null || con.getIndDespachoPremio().intValue()==0)
+    </java:condition>
+    <java:condition>
+      sol.getSolicitudConcurso(con.getOidConcurso()).isPremioDespachado()
+    </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia ValidarPremioEntregado concurso:" + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.setRechazado(con.getOidConcurso());
+      drools.modifyObject(sol);
+    </java:consequence>
+  </rule>
+  
+  <rule name="validarExigenciaCampanaAnterior">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud
+      </java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso
+      </java:class>
+    </parameter>
+    <java:condition> 
+        sol.print("validarExigenciaCampanaAnterior")
+    </java:condition>
+    <java:condition>
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA())
+    </java:condition>
+    <java:condition>
+      con.isIndExigCampAnte()
+    </java:condition>
+    <java:condition>
+      !con.validarExigCampAnterior(sol)
+    </java:condition>
+    <java:consequence>
+      sol.print("########   Consecuencia validarExigenciaCampanaAnterior concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.setRechazado(con.getOidConcurso());
+      drools.modifyObject(sol);
+     </java:consequence>
+  </rule>
+  
+</rule-set>

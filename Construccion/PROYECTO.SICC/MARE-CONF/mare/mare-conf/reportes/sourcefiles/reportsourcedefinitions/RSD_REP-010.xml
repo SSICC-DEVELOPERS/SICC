@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by TEAM (RENEGADE) -->  
+<ReportSourceDefinition Id="RSD_REP-010" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="PERIODO" Description="PERIODO" DataType="STRING" Calculated="false" Expression="" ExternalData="PERIODO"/>  
+		<DimensionSourceDefinition Name="DES_CURS" Description="DES_CURS" DataType="STRING" Calculated="false" Expression="" ExternalData="DES_CURS"/>  
+		<DimensionSourceDefinition Name="DES_REGI" Description="DES_REGI" DataType="STRING" Calculated="false" Expression="" ExternalData="DES_REGI"/>  
+		<DimensionSourceDefinition Name="DES_ZONA" Description="DES_ZONA" DataType="STRING" Calculated="false" Expression="" ExternalData="DES_ZONA"/>  
+		<DimensionSourceDefinition Name="DES_SECCI" Description="DES_SECCI" DataType="STRING" Calculated="false" Expression="" ExternalData="DES_SECCI"/>  
+		<DimensionSourceDefinition Name="COD_TERR" Description="COD_TERR" DataType="STRING" Calculated="false" Expression="" ExternalData="COD_TERR"/>  
+		<DimensionSourceDefinition Name="FEC_DISP_CURS" Description="FEC_DISP_CURS" DataType="DATETIME" Calculated="false" Expression="" ExternalData="FEC_DISP_CURS"/>  
+		<DimensionSourceDefinition Name="FEC_LANZ" Description="FEC_LANZ" DataType="DATETIME" Calculated="false" Expression="" ExternalData="FEC_LANZ"/>  
+		<DimensionSourceDefinition Name="FEC_FIN_CURS" Description="FEC_FIN_CURS" DataType="DATETIME" Calculated="false" Expression="" ExternalData="FEC_FIN_CURS"/>  
+		<DimensionSourceDefinition Name="DESC_REGALO" Description="DESC_REGALO" DataType="STRING" Calculated="false" Expression="" ExternalData="DESC_REGALO"/>  
+		<DimensionSourceDefinition Name="MODALIDAD" Description="MODALIDAD" DataType="STRING" Calculated="false" Expression="" ExternalData="MODALIDAD"/>  
+		<DimensionSourceDefinition Name="COD_CLIE" Description="COD_CLIE" DataType="STRING" Calculated="false" Expression="" ExternalData="COD_CLIE"/>  
+		<DimensionSourceDefinition Name="NOMBRE_COMPLETO" Description="NOMBRE_COMPLETO" DataType="STRING" Calculated="false" Expression="" ExternalData="NOMBRE_COMPLETO"/>  
+		<DimensionSourceDefinition Name="PERIODO_INGRESO" Description="PERIODO_INGRESO" DataType="STRING" Calculated="false" Expression="" ExternalData="PERIODO_INGRESO"/>  
+		<DimensionSourceDefinition Name="TELEFONO" Description="TELEFONO" DataType="STRING" Calculated="false" Expression="" ExternalData="TELEFONO"/>  
+		<DimensionSourceDefinition Name="CELULAR" Description="CELULAR" DataType="STRING" Calculated="false" Expression="" ExternalData="CELULAR"/>  
+		<DimensionSourceDefinition Name="MAIL" Description="MAIL" DataType="STRING" Calculated="false" Expression="" ExternalData="MAIL"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="CANTIDAD" Description="CANTIDAD" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="CANTIDAD" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="IDIOMA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PAIS" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="MARCA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="CANAL" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="REGION" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="ZONA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="CURSO" Visual="FALSE"/>  
+	</FilterDefinitions>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="REP-10" SourceType="SQL" Expression="select periodo, DES_CURS, DES_REGI, DES_ZONA, DES_SECCI, COD_TERR,  
+	   FEC_DISP_CURS, FEC_LANZ, FEC_FIN_CURS,  
+	   pq_apl_rep.FN_010_CONCAT_PRODUCTOS(%value_IDIOMAVALUE%,oid_curs)desc_regalo,  
+	   modalidad,  
+	   COD_CLIE,nombre_completo,  
+	   periodo_ingreso,  
+	   telefono, celular, mail,  
+	   0 as cantidad	     
+from   
+(  
+	select cur.DES_CURS, reg.DES_REGI, zon.DES_ZONA, sec.DES_SECCI, ter.COD_TERR, cur.oid_curs,  
+		   (  
+		   select   
+		   		  pe.VAL_NOMB_PERI   
+		   from   
+			   (  
+			   select per2.VAL_NOMB_PERI, per2.FEC_INIC, per2.FEC_FINA  
+			   from cra_perio per2  
+			   where per2.oid_peri is not null  
+			      %start_PAISVALUE% and per2.PAIS_OID_PAIS = %value_PAISVALUE% %end_PAISVALUE%  
+			      %start_CANALVALUE% and per2.cana_oid_cana = %value_CANALVALUE% %end_CANALVALUE%  
+				  %start_MARCAVALUE% and per2.MARC_OID_MARC = %value_MARCAVALUE% %end_MARCAVALUE%  
+			   order by per2.FEC_INIC  
+			   )pe    
+		   where cur.FEC_DISP_CURS between pe.FEC_INIC and pe.FEC_FINA   
+				 and rownum = 1		  
+		   )periodo,   
+		   cur.FEC_DISP_CURS,  cur.FEC_LANZ, cur.FEC_FIN_CURS, rega.COD_REGA,   
+		   decode(apt_his.IND_APTA_CURS,1,'APTA','INVITADA') as modalidad,  
+		   cli.COD_CLIE, cli.VAL_APE1||' '|| cli.VAL_APE2||' '|| cli.VAL_NOM1||' '||cli.VAL_NOM2 as nombre_completo,  
+		   datos_adic.telefono, datos_adic.celular, datos_adic.mail,  
+		   (  
+		   select   
+		   		  pe.VAL_NOMB_PERI  
+		   from   
+			   (  
+			   select per2.VAL_NOMB_PERI, per2.FEC_INIC, per2.FEC_FINA  
+			   from cra_perio per2  
+			   where per2.oid_peri is not null  
+			      %start_PAISVALUE% and per2.PAIS_OID_PAIS = %value_PAISVALUE% %end_PAISVALUE%  
+			      %start_CANALVALUE% and per2.cana_oid_cana = %value_CANALVALUE% %end_CANALVALUE%  
+				  %start_MARCAVALUE% and per2.MARC_OID_MARC = %value_MARCAVALUE% %end_MARCAVALUE%  
+			   order by per2.FEC_INIC  
+			   )pe    
+		   where cli.FEC_INGR between pe.FEC_INIC and pe.FEC_FINA   
+				 and rownum = 1		  
+		   )periodo_ingreso  
+	from edu_matri_curso cur,  
+		 edu_regal rega,  
+		 edu_regal_detal det_regal,  
+		 zon_zona zon,  
+		 zon_regio reg,  
+		 zon_secci sec,  
+		 zon_terri ter,  
+		 mae_produ pro,  
+		 mae_clien cli,  
+		 (   
+		 select apt.MCUR_OID_CURS, apt.FEC_ASIS, apt.CLIE_OID_CLIE, apt.SBTI_OID_SUBT_CLIE, apt.IND_APTA_CURS,  
+		 		apt.IND_INVI, apt.IND_ASIS  
+		 from edu_aptas_curso apt  
+		 union all  
+		 select his.MCUR_OID_CURS, his.FEC_ASIS, his.CLIE_OID_CLIE, his.SBTI_OID_SUBT_CLIE, his.IND_APTA ind_apta_curs,  
+		 		his.IND_INVIT ind_invi, his.IND_ASIS ind_asis  
+		 from edu_histo_curso his  
+		 )apt_his,  
+		 (  
+		select decode(decode(tel.CLIE_OID_CLIE,null,cel.CLIE_OID_CLIE,tel.CLIE_OID_CLIE),null,mail.clie_oid_clie,decode(tel.CLIE_OID_CLIE,null,cel.CLIE_OID_CLIE,tel.CLIE_OID_CLIE))clie_oid_clie,   
+			   tel.val_text_comu telefono,  
+			   cel.val_text_comu celular,  
+			   mail.val_text_comu mail  
+		from  
+			(  
+			select com.CLIE_OID_CLIE, com.VAL_TEXT_COMU, tcom.COD_TIPO_COMU  
+			from mae_tipo_comun tcom,  
+				 mae_clien_comun com  
+			where com.TICM_OID_TIPO_COMU = tcom.OID_TIPO_COMU  
+				  and tcom.COD_TIPO_COMU = 'TF'  
+			)tel full outer join  
+			(  
+			select com.CLIE_OID_CLIE, com.VAL_TEXT_COMU, tcom.COD_TIPO_COMU  
+			from mae_tipo_comun tcom,  
+				 mae_clien_comun com  
+			where com.TICM_OID_TIPO_COMU = tcom.OID_TIPO_COMU  
+				  and tcom.COD_TIPO_COMU = 'TM'   
+			)cel on tel.clie_oid_clie = cel.clie_oid_clie  
+			full outer join  
+			(  
+			select com.CLIE_OID_CLIE, com.VAL_TEXT_COMU, tcom.COD_TIPO_COMU  
+			from mae_tipo_comun tcom,  
+				 mae_clien_comun com  
+			where com.TICM_OID_TIPO_COMU = tcom.OID_TIPO_COMU  
+				  and tcom.COD_TIPO_COMU = 'ML'   
+			)mail on tel.clie_oid_clie = mail.clie_oid_clie or cel.clie_oid_clie = mail.clie_oid_clie  
+		 )datos_adic  
+	where cur.ZORG_OID_REGI = reg.OID_REGI(+)  
+		  and cur.ZZON_OID_ZONA = zon.OID_ZONA(+)  
+		  and cur.ZSCC_OID_SECC = sec.OID_SECC(+)  
+		  and cur.TERR_OID_TERR = ter.OID_TERR(+)  
+		  and cur.REGA_OID_REGA = rega.OID_REGA(+)  
+		  and rega.OID_REGA = det_regal.REGA_OID_REGA  
+		  and det_regal.PROD_OID_PROD = pro.OID_PROD  
+		  and apt_his.MCUR_OID_CURS(+) = cur.OID_CURS  
+		  and apt_his.clie_oid_clie = cli.oid_clie(+)  
+		  and cli.OID_CLIE = datos_adic.CLIE_OID_CLIE(+)  
+		  %start_CURSOVALUE% and cur.OID_CURS = %value_CURSOVALUE% %end_CURSOVALUE%  
+		  %start_PAISVALUE% and cur.PAIS_OID_PAIS = %value_PAISVALUE% %end_PAISVALUE%  
+		  %start_CANALVALUE% and cur.cana_oid_cana = %value_CANALVALUE% %end_CANALVALUE%  
+		  %start_MARCAVALUE% and cur.MARC_OID_MARC = %value_MARCAVALUE% %end_MARCAVALUE%  
+		  %start_REGIONVALUE% and reg.OID_REGI = %value_REGIONVALUE% %end_REGIONVALUE%  
+		  %start_ZONAVALUE% and zon.OID_ZONA = %value_ZONAVALUE% %end_ZONAVALUE%  
+	  
+)  
+order by periodo, DES_CURS, DES_REGI, DES_ZONA, DES_SECCI, COD_TERR,  
+	   FEC_DISP_CURS, FEC_LANZ, FEC_FIN_CURS, desc_regalo,  
+	   modalidad,  
+	   COD_CLIE,nombre_completo,  
+	   telefono, celular, mail,  
+	   periodo_ingreso  
+" ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.106:1523:SICCV3D" ExternalConnectionDistributedUrl="" ExternalConnectionUser="usu_peru" ExternalConnectionPassword="peru" DatePattern="" DateTimePattern=""/>  
+	</DataSourceDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="IDIOMA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="PAIS" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="MARCA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="CANAL" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="CURSO" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="REGION" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="ZONA" FilterParameter="VALUE"/>  
+	</ParameterValues>  
+	<Localizations/>  
+</ReportSourceDefinition>  
+

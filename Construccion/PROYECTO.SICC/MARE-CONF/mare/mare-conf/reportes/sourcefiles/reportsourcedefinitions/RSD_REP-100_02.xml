@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by team (renegade) -->  
+<ReportSourceDefinition Id="RSD_REP-100_02" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="PAIS" Description="PAIS" DataType="STRING" Calculated="false" Expression="" ExternalData="PAIS"/>  
+		<DimensionSourceDefinition Name="COD_SBAC" Description="COD_SBAC" DataType="STRING" Calculated="false" Expression="" ExternalData="COD_SBAC"/>  
+		<DimensionSourceDefinition Name="DESC_SUBA" Description="DESC_SUBA" DataType="STRING" Calculated="false" Expression="" ExternalData="DESC_SUBA"/>  
+		<DimensionSourceDefinition Name="DES_MARC_PROD" Description="DES_MARC_PROD" DataType="STRING" Calculated="false" Expression="" ExternalData="DES_MARC_PROD"/>  
+		<DimensionSourceDefinition Name="DESC_UNI_NEG" Description="DESC_UNI_NEG" DataType="STRING" Calculated="false" Expression="" ExternalData="DESC_UNI_NEG"/>  
+		<DimensionSourceDefinition Name="NEGOC" Description="NEGOC" DataType="STRING" Calculated="false" Expression="" ExternalData="NEGOC"/>  
+		<DimensionSourceDefinition Name="DESC_PROD" Description="DESC_PROD" DataType="STRING" Calculated="false" Expression="" ExternalData="DESC_PROD"/>  
+		<DimensionSourceDefinition Name="COD_SAP" Description="COD_SAP" DataType="STRING" Calculated="false" Expression="" ExternalData="COD_SAP"/>  
+		<DimensionSourceDefinition Name="COD_OPER" Description="COD_OPER" DataType="STRING" Calculated="false" Expression="" ExternalData="COD_OPER"/>  
+		<DimensionSourceDefinition Name="FECHA" Description="FECHA" DataType="DATETIME" Calculated="false" Expression="" ExternalData="FECHA"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="UNID_ATEN" Description="UNID_ATEN" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="UNID_ATEN" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="MONTO_FAC" Description="MONTO_FAC" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="MONTO_FAC" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="N_OPERAC" Description="N_OPERAC" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="N_OPERAC" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="IDIOMA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PAIS" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="CANAL" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="ACCESO" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="SUBACCESO" Visual="FALSE"/>  
+		<FilterDefinition DataType="STRING" FilterType="EQUALTO" Name="ESPECIALISTA" Visual="FALSE"/>  
+		<FilterDefinition DataType="DATE" FilterType="EQUALTO" Name="FECHAINICIO" Visual="FALSE"/>  
+		<FilterDefinition DataType="DATE" FilterType="EQUALTO" Name="FECHAFIN" Visual="FALSE"/>  
+		<FilterDefinition DataType="STRING" FilterType="EQUALTO" Name="FORMATOFECHA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="MARCAPRODUCTO" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="UNIDADNEGOCIO" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="NEGOCIO" Visual="FALSE"/>  
+		<FilterDefinition DataType="STRING" FilterType="EQUALTO" Name="CODIGOPRODUCTO" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="OPERACION" Visual="FALSE"/>  
+	</FilterDefinitions>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="REP-100_02" SourceType="SQL" Expression="  
+SELECT PAIS,  
+	   COD_SBAC,  
+	   DESC_SUBA,  
+	   DES_MARC_PROD,  
+	   DESC_UNI_NEG,  
+	   NEGOC,  
+	   DESC_PROD,  
+	   COD_SAP,  
+	   COD_OPER,  
+	   FECHA,  
+	   UNID_ATEN,  
+	   MONTO_FAC,  
+	   N_OPERAC  
+FROM  
+(  
+	(  
+	SELECT GEN_PAIS.VAL_I18N PAIS,  
+		   SUBA.COD_SBAC,  
+		   GEN_SUBA.VAL_I18N DESC_SUBA,  
+		   MAR_PRO.DES_MARC_PROD,   
+		   GEN_UNI_NEG.VAL_I18N DESC_UNI_NEG,  
+		   GEN_NEG.VAL_I18N NEGOC,    
+		   GEN_PROD.VAL_I18N DESC_PROD,  
+		   PROD.COD_SAP,  
+		   'VT' COD_OPER,  
+		   SOL_CAB.FEC_CRON FECHA,  
+		   SUM(SOL_POS.NUM_UNID_VENT) UNID_ATEN,  
+		   SUM(NVL(SOL_POS.VAL_PREC_CATA_UNIT_LOCA, 0) * NVL(SOL_POS.NUM_UNID_VENT, 0)) MONTO_FAC,  
+		   COUNT(*) N_OPERAC,  
+		   1 AS CONTROL_OPER  
+	FROM PED_SOLIC_CABEC SOL_CAB,  
+		 PED_TIPO_SOLIC TIP_SOL,  
+		 PED_TIPO_SOLIC_PAIS TIP_SOL_PAIS,  
+		 SEG_ACCES ACCE,  
+		 SEG_SUBAC SUBA,  
+		 PED_SOLIC_POSIC SOL_POS,  
+		 SEG_PAIS PAIS,  
+		 MAE_PRODU PROD,  
+		 SEG_MARCA_PRODU MAR_PRO,  
+		 MAE_UNIDA_NEGOC UNI_NEG,  
+		 MAE_NEGOC NEG,  
+		 (  
+		 SELECT GEN.VAL_OID, GEN.VAL_I18N  
+		 FROM V_GEN_I18N_SICC GEN  
+		 WHERE GEN.ATTR_ENTI = 'MAE_PRODU'  
+		 	 AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%  
+		 ) GEN_PROD,  
+		 (  
+		 SELECT GEN.VAL_OID, GEN.VAL_I18N  
+		 FROM V_GEN_I18N_SICC GEN  
+		 WHERE GEN.ATTR_ENTI = 'MAE_NEGOC'  
+		 	 AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%		  								   
+		 ) GEN_NEG,  
+		 (  
+		 SELECT GEN.VAL_OID, GEN.VAL_I18N  
+		 FROM V_GEN_I18N_SICC GEN  
+		 WHERE GEN.ATTR_ENTI = 'MAE_UNIDA_NEGOC'  
+		 	 AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%		  								   
+		 ) GEN_UNI_NEG,  
+		 (  
+		 SELECT GEN.VAL_OID, GEN.VAL_I18N  
+		 FROM V_GEN_I18N_SICC GEN  
+		 WHERE GEN.ATTR_ENTI = 'SEG_PAIS'  
+		 	 AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%		  							  
+		 ) GEN_PAIS,  
+		 (  
+		 SELECT GEN.VAL_OID, GEN.VAL_I18N  
+		 FROM V_GEN_I18N_SICC GEN  
+		 WHERE GEN.ATTR_ENTI = 'SEG_SUBAC'  
+		 	   AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%  							  
+		 ) GEN_SUBA  
+	WHERE ACCE.OID_ACCE = TIP_SOL.ACCE_OID_ACCE  
+		  AND TIP_SOL.OID_TIPO_SOLI = TIP_SOL_PAIS.TSOL_OID_TIPO_SOLI  
+		  AND TIP_SOL_PAIS.OID_TIPO_SOLI_PAIS = SOL_CAB.TSPA_OID_TIPO_SOLI_PAIS  
+		  AND SOL_POS.SOCA_OID_SOLI_CABE = SOL_CAB.OID_SOLI_CABE  
+		  AND SUBA.ACCE_OID_ACCE = ACCE.OID_ACCE  
+		  AND SOL_CAB.SBAC_OID_SBAC = SUBA.OID_SBAC  
+	  	  AND SOL_CAB.IND_TS_NO_CONSO = 0  
+		  AND SOL_CAB.IND_PEDI_PRUE = 0  
+		  AND SUBA.OID_SBAC = GEN_SUBA.VAL_OID(+)  
+		  AND SOL_CAB.PAIS_OID_PAIS = PAIS.OID_PAIS  
+		  AND PAIS.OID_PAIS = GEN_PAIS.VAL_OID(+)  
+	      AND SOL_POS.NUM_UNID_VENT &lt;> 0  
+		  AND SOL_POS.NUM_UNID_VENT IS NOT NULL  
+		  AND PROD.OID_PROD = SOL_POS.PROD_OID_PROD  
+		  AND PROD.PAIS_OID_PAIS = SOL_CAB.PAIS_OID_PAIS  
+		  AND MAR_PRO.OID_MARC_PROD = PROD.MAPR_OID_MARC_PROD  
+		  AND UNI_NEG.OID_UNID_NEGO = PROD.UNEG_OID_UNID_NEGO  
+		  AND UNI_NEG.OID_UNID_NEGO = GEN_UNI_NEG.VAL_OID(+)  
+		  AND NEG.OID_NEGO = PROD.NEGO_OID_NEGO  
+		  AND NEG.OID_NEGO = GEN_NEG.VAL_OID(+)  
+		  AND PROD.OID_PROD = GEN_PROD.VAL_OID(+)  
+		  %start_MARCAPRODUCTOVALUE% AND PROD.MAPR_OID_MARC_PROD = %value_MARCAPRODUCTOVALUE%  %end_MARCAPRODUCTOVALUE%  
+		  %start_UNIDADNEGOCIOVALUE% AND PROD.UNEG_OID_UNID_NEGO = %value_UNIDADNEGOCIOVALUE% %end_UNIDADNEGOCIOVALUE%				  
+		  %start_NEGOCIOVALUE% AND PROD.NEGO_OID_NEGO =  %value_NEGOCIOVALUE% %end_NEGOCIOVALUE%				  
+		  %start_CODIGOPRODUCTOVALUE% AND PROD.COD_SAP = %value_CODIGOPRODUCTOVALUE% %end_CODIGOPRODUCTOVALUE%  
+		  AND SOL_CAB.FEC_CRON >= TO_DATE(%value_FECHAINICIOVALUE%, %value_FORMATOFECHAVALUE%)   
+		  AND SOL_CAB.FEC_CRON &lt;= TO_DATE(%value_FECHAFINVALUE%, %value_FORMATOFECHAVALUE%)  
+		  AND SOL_CAB.SBAC_OID_SBAC IN ( %value_SUBACCESOVALUES%)  
+		  AND SOL_CAB.PAIS_OID_PAIS =  %value_PAISVALUE%  
+		  AND TIP_SOL.ACCE_OID_ACCE =  %value_ACCESOVALUE%  
+		  AND ACCE.CANA_OID_CANA = %value_CANALVALUE%  
+	GROUP BY GEN_PAIS.VAL_I18N,  
+		   SUBA.COD_SBAC,  
+		   GEN_SUBA.VAL_I18N,  
+		   MAR_PRO.DES_MARC_PROD,   
+		   GEN_UNI_NEG.VAL_I18N,  
+	  	   GEN_NEG.VAL_I18N,  
+		   PROD.COD_SAP,  
+	   	   GEN_PROD.VAL_I18N,  
+		   'VT',  
+		   SOL_CAB.FEC_CRON  
+	)  
+	UNION ALL  
+	(  
+	SELECT GEN_PAIS.VAL_I18N PAIS,  
+		   SUBA.COD_SBAC,  
+		   GEN_SUBA.VAL_I18N DESC_SUBA,  
+		   MAR_PRO.DES_MARC_PROD,   
+		   GEN_UNI_NEG.VAL_I18N DESC_UNI_NEG,  
+		   GEN_NEG.VAL_I18N NEGOC,    
+		   GEN_PROD.VAL_I18N DESC_PROD,  
+		   PROD.COD_SAP,  
+		   'CM' COD_OPER,  
+		   SOL_CAB.FEC_CRON FECHA,  
+		   SUM(SOL_POS.NUM_UNID_CAMB) UNID_ATEN,  
+		   SUM(NVL(SOL_POS.VAL_PREC_CATA_UNIT_LOCA, 0) * NVL(SOL_POS.NUM_UNID_CAMB, 0)) MONTO_FAC,  
+		   COUNT(*) N_OPERAC,  
+		   2 AS CONTROL_OPER  
+	FROM PED_SOLIC_CABEC SOL_CAB,  
+		 PED_TIPO_SOLIC TIP_SOL,  
+		 PED_TIPO_SOLIC_PAIS TIP_SOL_PAIS,  
+		 SEG_ACCES ACCE,  
+		 SEG_SUBAC SUBA,  
+		 PED_SOLIC_POSIC SOL_POS,  
+		 SEG_PAIS PAIS,  
+		 MAE_PRODU PROD,  
+		 SEG_MARCA_PRODU MAR_PRO,  
+		 MAE_UNIDA_NEGOC UNI_NEG,  
+		 MAE_NEGOC NEG,  
+		 (  
+		 SELECT GEN.VAL_OID, GEN.VAL_I18N  
+		 FROM V_GEN_I18N_SICC GEN  
+		 WHERE GEN.ATTR_ENTI = 'MAE_PRODU'  
+		 	 AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%					   
+		 ) GEN_PROD,  
+		 (  
+		 SELECT GEN.VAL_OID, GEN.VAL_I18N  
+		 FROM V_GEN_I18N_SICC GEN  
+		 WHERE GEN.ATTR_ENTI = 'MAE_NEGOC'  
+		 	 AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%					   
+		 ) GEN_NEG,  
+		 (  
+		 SELECT GEN.VAL_OID, GEN.VAL_I18N  
+		 FROM V_GEN_I18N_SICC GEN  
+		 WHERE GEN.ATTR_ENTI = 'MAE_UNIDA_NEGOC'  
+		 	 AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%		  								   
+		 ) GEN_UNI_NEG,  
+		 (  
+		 SELECT GEN.VAL_OID, GEN.VAL_I18N  
+		 FROM V_GEN_I18N_SICC GEN  
+		 WHERE GEN.ATTR_ENTI = 'SEG_PAIS'  
+		 	 AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%		  							  
+		 ) GEN_PAIS,  
+		 (  
+		 SELECT GEN.VAL_OID, GEN.VAL_I18N  
+		 FROM V_GEN_I18N_SICC GEN  
+		 WHERE GEN.ATTR_ENTI = 'SEG_SUBAC'  
+		 	   AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%  							  
+		 ) GEN_SUBA  
+	WHERE ACCE.OID_ACCE = TIP_SOL.ACCE_OID_ACCE  
+		  AND TIP_SOL.OID_TIPO_SOLI = TIP_SOL_PAIS.TSOL_OID_TIPO_SOLI  
+		  AND TIP_SOL_PAIS.OID_TIPO_SOLI_PAIS = SOL_CAB.TSPA_OID_TIPO_SOLI_PAIS  
+		  AND SOL_POS.SOCA_OID_SOLI_CABE = SOL_CAB.OID_SOLI_CABE  
+		  AND SUBA.ACCE_OID_ACCE = ACCE.OID_ACCE  
+		  AND SOL_CAB.SBAC_OID_SBAC = SUBA.OID_SBAC  
+	  	  AND SOL_CAB.IND_TS_NO_CONSO = 0  
+		  AND SOL_CAB.IND_PEDI_PRUE = 0  
+		  AND SUBA.OID_SBAC = GEN_SUBA.VAL_OID(+)  
+		  AND SOL_CAB.PAIS_OID_PAIS = PAIS.OID_PAIS  
+		  AND PAIS.OID_PAIS = GEN_PAIS.VAL_OID(+)  
+	      AND SOL_POS.NUM_UNID_CAMB &lt;> 0  
+		  AND SOL_POS.NUM_UNID_CAMB IS NOT NULL  
+		  AND PROD.OID_PROD = SOL_POS.PROD_OID_PROD  
+		  AND PROD.PAIS_OID_PAIS = SOL_CAB.PAIS_OID_PAIS  
+		  AND MAR_PRO.OID_MARC_PROD = PROD.MAPR_OID_MARC_PROD  
+		  AND UNI_NEG.OID_UNID_NEGO = PROD.UNEG_OID_UNID_NEGO  
+		  AND UNI_NEG.OID_UNID_NEGO = GEN_UNI_NEG.VAL_OID(+)  
+		  AND NEG.OID_NEGO = PROD.NEGO_OID_NEGO  
+		  AND NEG.OID_NEGO = GEN_NEG.VAL_OID(+)  
+		  AND PROD.OID_PROD = GEN_PROD.VAL_OID(+)  
+		  %start_MARCAPRODUCTOVALUE% AND PROD.MAPR_OID_MARC_PROD = %value_MARCAPRODUCTOVALUE%  %end_MARCAPRODUCTOVALUE%  
+		  %start_UNIDADNEGOCIOVALUE% AND PROD.UNEG_OID_UNID_NEGO = %value_UNIDADNEGOCIOVALUE% %end_UNIDADNEGOCIOVALUE%				  
+	        %start_NEGOCIOVALUE% AND PROD.NEGO_OID_NEGO =  %value_NEGOCIOVALUE% %end_NEGOCIOVALUE%  
+		  %start_CODIGOPRODUCTOVALUE% AND PROD.COD_SAP = %value_CODIGOPRODUCTOVALUE% %end_CODIGOPRODUCTOVALUE%  
+		  AND SOL_CAB.FEC_CRON >= TO_DATE(%value_FECHAINICIOVALUE%, %value_FORMATOFECHAVALUE%)   
+		  AND SOL_CAB.FEC_CRON &lt;= TO_DATE(%value_FECHAFINVALUE%, %value_FORMATOFECHAVALUE%)  
+		  AND SOL_CAB.SBAC_OID_SBAC IN (%value_SUBACCESOVALUES%)			  		  
+		  AND SOL_CAB.PAIS_OID_PAIS = %value_PAISVALUE%  
+		  AND TIP_SOL.ACCE_OID_ACCE =  %value_ACCESOVALUE%  
+		  AND ACCE.CANA_OID_CANA = %value_CANALVALUE%  
+	GROUP BY GEN_PAIS.VAL_I18N,  
+		   SUBA.COD_SBAC,  
+		   GEN_SUBA.VAL_I18N,  
+		   MAR_PRO.DES_MARC_PROD,   
+		   GEN_UNI_NEG.VAL_I18N,  
+	  	   GEN_NEG.VAL_I18N,  
+		   PROD.COD_SAP,  
+	   	   GEN_PROD.VAL_I18N,  
+		   'CM',  
+		   SOL_CAB.FEC_CRON  
+	)  
+)	     
+WHERE CONTROL_OPER IN (%value_OPERACIONVALUES%)	     
+ORDER BY COD_SAP,  
+		 COD_OPER,  
+		 FECHA  
+  
+		" ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.106:1523:SICCV3D" ExternalConnectionDistributedUrl="" ExternalConnectionUser="own_peru" ExternalConnectionPassword="peru_own" DatePattern="dd/MM/yyyy" DateTimePattern=""/>  
+	</DataSourceDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="IDIOMA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="PAIS" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="CANAL" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="ACCESO" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="SUBACCESO" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="ESPECIALISTA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="01/01/2000" FilterDefinitionName="FECHAINICIO" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="01/01/2050" FilterDefinitionName="FECHAFIN" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="dd/MM/yyyy" FilterDefinitionName="FORMATOFECHA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="MARCAPRODUCTO" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="UNIDADNEGOCIO" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="NEGOCIO" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="CODIGOPRODUCTO" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="OPERACION" FilterParameter="VALUES"/>  
+	</ParameterValues>  
+	<Localizations/>  
+</ReportSourceDefinition>  
+

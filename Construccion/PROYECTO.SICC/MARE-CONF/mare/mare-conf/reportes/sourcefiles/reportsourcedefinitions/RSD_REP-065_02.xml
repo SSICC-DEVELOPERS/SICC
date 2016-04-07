@@ -1,0 +1,834 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by team (renegade) -->  
+<ReportSourceDefinition Id="RSD_REP-065_02" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="DES_SUBG_VENT" Description="DES_SUBG_VENT" DataType="STRING" Calculated="false" Expression="" ExternalData="DES_SUBG_VENT"/>  
+		<DimensionSourceDefinition Name="COD_REGI" Description="COD_REGI" DataType="STRING" Calculated="false" Expression="" ExternalData="COD_REGI"/>  
+		<DimensionSourceDefinition Name="VARIABLE" Description="VARIABLE" DataType="STRING" Calculated="false" Expression="" ExternalData="VARIABLE"/>  
+		<DimensionSourceDefinition Name="GERENTE" Description="GERENTE" DataType="STRING" Calculated="false" Expression="" ExternalData="GERENTE"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="VALOR" Description="VALOR" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="VALOR" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PAIS" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="MARCA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="CANAL" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="REGION" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="NUMEROCONCURSO" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PERIODODESDE" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PERIODOHASTA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="VARIABLEVENTA" Visual="FALSE"/>  
+	</FilterDefinitions>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="REP-065_02" SourceType="SQL" Expression="  
+SELECT  
+	des_subg_vent,  
+	cod_regi,  
+	variable,  
+	gerente,  
+	valor  
+FROM  
+	(  
+		(  
+		SELECT  
+			subg.des_subg_vent,  
+			reg.cod_regi,		  
+			cli.val_nom1||' '||cli.val_nom2||' '||cli.val_ape1||' '||cli.val_ape2 AS gerente,	  
+			SUM(vta_pro.num_acti_fina) AS valor,  
+			1 AS variable  
+		FROM  
+			inc_resul_venta_proye_region vta_pro,		  
+			inc_metas_venta_proye_regio met_pro,	  
+			zon_regio reg,	  
+			zon_sub_geren_venta subg,  
+			mae_clien cli,	  
+			cra_perio per,	  
+			(	  
+			SELECT fec_inic	  
+			FROM cra_perio  
+			WHERE oid_peri =  %value_PERIODODESDEVALUE%   
+			) fec_desde,  
+			(  
+			SELECT fec_fina  
+			FROM cra_perio  
+			WHERE oid_peri = %value_PERIODOHASTAVALUE%   
+			) fec_hasta  
+		WHERE  
+			vta_pro.mvpr_oid_meta_vent_proy_regi = met_pro.oid_meta_vent_proy_regi  
+			AND met_pro.zorg_oid_regi = reg.oid_regi  
+			AND reg.clie_oid_clie = cli.oid_clie  
+			AND reg.pais_oid_pais = %value_PAISVALUE%   
+			AND reg.marc_oid_marc = %value_MARCAVALUE%   
+			AND reg.cana_oid_cana = %value_CANALVALUE%  
+			%start_REGIONVALUES%  AND reg.oid_regi IN (%value_REGIONVALUES%) %end_REGIONVALUES%   
+			AND subg.oid_subg_vent = reg.zsgv_oid_subg_vent  
+			AND reg.pais_oid_pais = per.pais_oid_pais  
+			AND reg.marc_oid_marc = per.marc_oid_marc  
+			AND reg.cana_oid_cana = per.cana_oid_cana  
+			AND vta_pro.perd_oid_peri = per.oid_peri	  
+			AND fec_desde.fec_inic &lt;= per.fec_inic	  
+			AND per.fec_fina &lt;= fec_hasta.fec_fina	  
+			AND met_pro.copa_oid_para_gral = %value_NUMEROCONCURSOVALUE%  
+		GROUP BY  
+			subg.des_subg_vent,  
+			reg.cod_regi,		  
+			cli.val_nom1||' '||cli.val_nom2||' '||cli.val_ape1||' '||cli.val_ape2  
+		)		  
+		UNION  
+		(  
+		SELECT  
+			subg.des_subg_vent,  
+			reg.cod_regi,		  
+			cli.val_nom1||' '||cli.val_nom2||' '||cli.val_ape1||' '||cli.val_ape2 AS gerente,	  
+			SUM(vta_pro.num_acti_inic) AS valor,  
+			2 AS variable  
+		FROM  
+			inc_resul_venta_proye_region vta_pro,		  
+			inc_metas_venta_proye_regio met_pro,	  
+			zon_regio reg,	  
+			zon_sub_geren_venta subg,  
+			mae_clien cli,	  
+			cra_perio per,	  
+			(	  
+			SELECT fec_inic	  
+			FROM cra_perio  
+			WHERE oid_peri =  %value_PERIODODESDEVALUE%   
+			) fec_desde,  
+			(  
+			SELECT fec_fina  
+			FROM cra_perio  
+			WHERE oid_peri = %value_PERIODOHASTAVALUE%   
+			) fec_hasta  
+		WHERE  
+			vta_pro.mvpr_oid_meta_vent_proy_regi = met_pro.oid_meta_vent_proy_regi  
+			AND met_pro.zorg_oid_regi = reg.oid_regi  
+			AND reg.clie_oid_clie = cli.oid_clie  
+			AND reg.pais_oid_pais = %value_PAISVALUE%   
+			AND reg.marc_oid_marc = %value_MARCAVALUE%   
+			AND reg.cana_oid_cana = %value_CANALVALUE%  
+			%start_REGIONVALUES%  AND reg.oid_regi IN (%value_REGIONVALUES%) %end_REGIONVALUES%   
+			AND subg.oid_subg_vent = reg.zsgv_oid_subg_vent  
+			AND reg.pais_oid_pais = per.pais_oid_pais  
+			AND reg.marc_oid_marc = per.marc_oid_marc  
+			AND reg.cana_oid_cana = per.cana_oid_cana  
+			AND vta_pro.perd_oid_peri = per.oid_peri	  
+			AND fec_desde.fec_inic &lt;= per.fec_inic	  
+			AND per.fec_fina &lt;= fec_hasta.fec_fina	  
+			AND met_pro.copa_oid_para_gral = %value_NUMEROCONCURSOVALUE%  
+		GROUP BY  
+			subg.des_subg_vent,  
+			reg.cod_regi,		  
+			cli.val_nom1||' '||cli.val_nom2||' '||cli.val_ape1||' '||cli.val_ape2  
+		)		  
+		UNION  
+		(  
+		SELECT  
+			subg.des_subg_vent,  
+			reg.cod_regi,		  
+			cli.val_nom1||' '||cli.val_nom2||' '||cli.val_ape1||' '||cli.val_ape2 AS gerente,	  
+			AVG(vta_pro.val_acti) AS valor,  
+			3 AS variable  
+		FROM  
+			inc_resul_venta_proye_region vta_pro,		  
+			inc_metas_venta_proye_regio met_pro,	  
+			zon_regio reg,	  
+			zon_sub_geren_venta subg,  
+			mae_clien cli,	  
+			cra_perio per,	  
+			(	  
+			SELECT fec_inic	  
+			FROM cra_perio  
+			WHERE oid_peri =  %value_PERIODODESDEVALUE%   
+			) fec_desde,  
+			(  
+			SELECT fec_fina  
+			FROM cra_perio  
+			WHERE oid_peri = %value_PERIODOHASTAVALUE%   
+			) fec_hasta  
+		WHERE  
+			vta_pro.mvpr_oid_meta_vent_proy_regi = met_pro.oid_meta_vent_proy_regi  
+			AND met_pro.zorg_oid_regi = reg.oid_regi  
+			AND reg.clie_oid_clie = cli.oid_clie  
+			AND reg.pais_oid_pais = %value_PAISVALUE%   
+			AND reg.marc_oid_marc = %value_MARCAVALUE%   
+			AND reg.cana_oid_cana = %value_CANALVALUE%  
+			%start_REGIONVALUES%  AND reg.oid_regi IN (%value_REGIONVALUES%) %end_REGIONVALUES%   
+			AND subg.oid_subg_vent = reg.zsgv_oid_subg_vent  
+			AND reg.pais_oid_pais = per.pais_oid_pais  
+			AND reg.marc_oid_marc = per.marc_oid_marc  
+			AND reg.cana_oid_cana = per.cana_oid_cana  
+			AND vta_pro.perd_oid_peri = per.oid_peri	  
+			AND fec_desde.fec_inic &lt;= per.fec_inic	  
+			AND per.fec_fina &lt;= fec_hasta.fec_fina	  
+			AND met_pro.copa_oid_para_gral = %value_NUMEROCONCURSOVALUE%  
+		GROUP BY  
+			subg.des_subg_vent,  
+			reg.cod_regi,		  
+			cli.val_nom1||' '||cli.val_nom2||' '||cli.val_ape1||' '||cli.val_ape2  
+		)		  
+		UNION  
+		(  
+		SELECT  
+			subg.des_subg_vent,  
+			reg.cod_regi,		  
+			cli.val_nom1||' '||cli.val_nom2||' '||cli.val_ape1||' '||cli.val_ape2 AS gerente,	  
+			SUM(vta_pro.val_capi) AS valor,  
+			4 AS variable  
+		FROM  
+			inc_resul_venta_proye_region vta_pro,		  
+			inc_metas_venta_proye_regio met_pro,	  
+			zon_regio reg,	  
+			zon_sub_geren_venta subg,  
+			mae_clien cli,	  
+			cra_perio per,	  
+			(	  
+			SELECT fec_inic	  
+			FROM cra_perio  
+			WHERE oid_peri =  %value_PERIODODESDEVALUE%   
+			) fec_desde,  
+			(  
+			SELECT fec_fina  
+			FROM cra_perio  
+			WHERE oid_peri = %value_PERIODOHASTAVALUE%   
+			) fec_hasta  
+		WHERE  
+			vta_pro.mvpr_oid_meta_vent_proy_regi = met_pro.oid_meta_vent_proy_regi  
+			AND met_pro.zorg_oid_regi = reg.oid_regi  
+			AND reg.clie_oid_clie = cli.oid_clie  
+			AND reg.pais_oid_pais = %value_PAISVALUE%   
+			AND reg.marc_oid_marc = %value_MARCAVALUE%   
+			AND reg.cana_oid_cana = %value_CANALVALUE%  
+			%start_REGIONVALUES%  AND reg.oid_regi IN (%value_REGIONVALUES%) %end_REGIONVALUES%   
+			AND subg.oid_subg_vent = reg.zsgv_oid_subg_vent  
+			AND reg.pais_oid_pais = per.pais_oid_pais  
+			AND reg.marc_oid_marc = per.marc_oid_marc  
+			AND reg.cana_oid_cana = per.cana_oid_cana  
+			AND vta_pro.perd_oid_peri = per.oid_peri	  
+			AND fec_desde.fec_inic &lt;= per.fec_inic	  
+			AND per.fec_fina &lt;= fec_hasta.fec_fina	  
+			AND met_pro.copa_oid_para_gral = %value_NUMEROCONCURSOVALUE%  
+		GROUP BY  
+			subg.des_subg_vent,  
+			reg.cod_regi,		  
+			cli.val_nom1||' '||cli.val_nom2||' '||cli.val_ape1||' '||cli.val_ape2  
+		)		  
+		UNION  
+		(  
+		SELECT  
+			subg.des_subg_vent,  
+			reg.cod_regi,		  
+			cli.val_nom1||' '||cli.val_nom2||' '||cli.val_ape1||' '||cli.val_ape2 AS gerente,	  
+			SUM(vta_pro.imp_egre) AS valor,  
+			5 AS variable  
+		FROM  
+			inc_resul_venta_proye_region vta_pro,		  
+			inc_metas_venta_proye_regio met_pro,	  
+			zon_regio reg,	  
+			zon_sub_geren_venta subg,  
+			mae_clien cli,	  
+			cra_perio per,	  
+			(	  
+			SELECT fec_inic	  
+			FROM cra_perio  
+			WHERE oid_peri =  %value_PERIODODESDEVALUE%   
+			) fec_desde,  
+			(  
+			SELECT fec_fina  
+			FROM cra_perio  
+			WHERE oid_peri = %value_PERIODOHASTAVALUE%   
+			) fec_hasta  
+		WHERE  
+			vta_pro.mvpr_oid_meta_vent_proy_regi = met_pro.oid_meta_vent_proy_regi  
+			AND met_pro.zorg_oid_regi = reg.oid_regi  
+			AND reg.clie_oid_clie = cli.oid_clie  
+			AND reg.pais_oid_pais = %value_PAISVALUE%   
+			AND reg.marc_oid_marc = %value_MARCAVALUE%   
+			AND reg.cana_oid_cana = %value_CANALVALUE%  
+			%start_REGIONVALUES%  AND reg.oid_regi IN (%value_REGIONVALUES%) %end_REGIONVALUES%   
+			AND subg.oid_subg_vent = reg.zsgv_oid_subg_vent  
+			AND reg.pais_oid_pais = per.pais_oid_pais  
+			AND reg.marc_oid_marc = per.marc_oid_marc  
+			AND reg.cana_oid_cana = per.cana_oid_cana  
+			AND vta_pro.perd_oid_peri = per.oid_peri	  
+			AND fec_desde.fec_inic &lt;= per.fec_inic	  
+			AND per.fec_fina &lt;= fec_hasta.fec_fina	  
+			AND met_pro.copa_oid_para_gral = %value_NUMEROCONCURSOVALUE%  
+		GROUP BY  
+			subg.des_subg_vent,  
+			reg.cod_regi,		  
+			cli.val_nom1||' '||cli.val_nom2||' '||cli.val_ape1||' '||cli.val_ape2  
+		)		  
+		UNION  
+		(  
+		SELECT  
+			subg.des_subg_vent,  
+			reg.cod_regi,		  
+			cli.val_nom1||' '||cli.val_nom2||' '||cli.val_ape1||' '||cli.val_ape2 AS gerente,	  
+			SUM(vta_pro.imp_ingr) AS valor,  
+			6 AS variable  
+		FROM  
+			inc_resul_venta_proye_region vta_pro,		  
+			inc_metas_venta_proye_regio met_pro,	  
+			zon_regio reg,	  
+			zon_sub_geren_venta subg,  
+			mae_clien cli,	  
+			cra_perio per,	  
+			(	  
+			SELECT fec_inic	  
+			FROM cra_perio  
+			WHERE oid_peri =  %value_PERIODODESDEVALUE%   
+			) fec_desde,  
+			(  
+			SELECT fec_fina  
+			FROM cra_perio  
+			WHERE oid_peri = %value_PERIODOHASTAVALUE%   
+			) fec_hasta  
+		WHERE  
+			vta_pro.mvpr_oid_meta_vent_proy_regi = met_pro.oid_meta_vent_proy_regi  
+			AND met_pro.zorg_oid_regi = reg.oid_regi  
+			AND reg.clie_oid_clie = cli.oid_clie  
+			AND reg.pais_oid_pais = %value_PAISVALUE%   
+			AND reg.marc_oid_marc = %value_MARCAVALUE%   
+			AND reg.cana_oid_cana = %value_CANALVALUE%  
+			%start_REGIONVALUES%  AND reg.oid_regi IN (%value_REGIONVALUES%) %end_REGIONVALUES%   
+			AND subg.oid_subg_vent = reg.zsgv_oid_subg_vent  
+			AND reg.pais_oid_pais = per.pais_oid_pais  
+			AND reg.marc_oid_marc = per.marc_oid_marc  
+			AND reg.cana_oid_cana = per.cana_oid_cana  
+			AND vta_pro.perd_oid_peri = per.oid_peri	  
+			AND fec_desde.fec_inic &lt;= per.fec_inic	  
+			AND per.fec_fina &lt;= fec_hasta.fec_fina	  
+			AND met_pro.copa_oid_para_gral = %value_NUMEROCONCURSOVALUE%  
+		GROUP BY  
+			subg.des_subg_vent,  
+			reg.cod_regi,		  
+			cli.val_nom1||' '||cli.val_nom2||' '||cli.val_ape1||' '||cli.val_ape2  
+		)		  
+		UNION  
+		(  
+		SELECT  
+			subg.des_subg_vent,  
+			reg.cod_regi,		  
+			cli.val_nom1||' '||cli.val_nom2||' '||cli.val_ape1||' '||cli.val_ape2 AS gerente,	  
+			SUM(vta_pro.num_clie) AS valor,  
+			7 AS variable  
+		FROM  
+			inc_resul_venta_proye_region vta_pro,		  
+			inc_metas_venta_proye_regio met_pro,	  
+			zon_regio reg,	  
+			zon_sub_geren_venta subg,  
+			mae_clien cli,	  
+			cra_perio per,	  
+			(	  
+			SELECT fec_inic	  
+			FROM cra_perio  
+			WHERE oid_peri =  %value_PERIODODESDEVALUE%   
+			) fec_desde,  
+			(  
+			SELECT fec_fina  
+			FROM cra_perio  
+			WHERE oid_peri = %value_PERIODOHASTAVALUE%   
+			) fec_hasta  
+		WHERE  
+			vta_pro.mvpr_oid_meta_vent_proy_regi = met_pro.oid_meta_vent_proy_regi  
+			AND met_pro.zorg_oid_regi = reg.oid_regi  
+			AND reg.clie_oid_clie = cli.oid_clie  
+			AND reg.pais_oid_pais = %value_PAISVALUE%   
+			AND reg.marc_oid_marc = %value_MARCAVALUE%   
+			AND reg.cana_oid_cana = %value_CANALVALUE%  
+			%start_REGIONVALUES%  AND reg.oid_regi IN (%value_REGIONVALUES%) %end_REGIONVALUES%   
+			AND subg.oid_subg_vent = reg.zsgv_oid_subg_vent  
+			AND reg.pais_oid_pais = per.pais_oid_pais  
+			AND reg.marc_oid_marc = per.marc_oid_marc  
+			AND reg.cana_oid_cana = per.cana_oid_cana  
+			AND vta_pro.perd_oid_peri = per.oid_peri	  
+			AND fec_desde.fec_inic &lt;= per.fec_inic	  
+			AND per.fec_fina &lt;= fec_hasta.fec_fina	  
+			AND met_pro.copa_oid_para_gral = %value_NUMEROCONCURSOVALUE%  
+		GROUP BY  
+			subg.des_subg_vent,  
+			reg.cod_regi,		  
+			cli.val_nom1||' '||cli.val_nom2||' '||cli.val_ape1||' '||cli.val_ape2  
+		)		  
+		UNION  
+		(  
+		SELECT  
+			subg.des_subg_vent,  
+			reg.cod_regi,		  
+			cli.val_nom1||' '||cli.val_nom2||' '||cli.val_ape1||' '||cli.val_ape2 AS gerente,	  
+			SUM(vta_pro.num_orde) AS valor,  
+			8 AS variable  
+		FROM  
+			inc_resul_venta_proye_region vta_pro,		  
+			inc_metas_venta_proye_regio met_pro,	  
+			zon_regio reg,	  
+			zon_sub_geren_venta subg,  
+			mae_clien cli,	  
+			cra_perio per,	  
+			(	  
+			SELECT fec_inic	  
+			FROM cra_perio  
+			WHERE oid_peri =  %value_PERIODODESDEVALUE%   
+			) fec_desde,  
+			(  
+			SELECT fec_fina  
+			FROM cra_perio  
+			WHERE oid_peri = %value_PERIODOHASTAVALUE%   
+			) fec_hasta  
+		WHERE  
+			vta_pro.mvpr_oid_meta_vent_proy_regi = met_pro.oid_meta_vent_proy_regi  
+			AND met_pro.zorg_oid_regi = reg.oid_regi  
+			AND reg.clie_oid_clie = cli.oid_clie  
+			AND reg.pais_oid_pais = %value_PAISVALUE%   
+			AND reg.marc_oid_marc = %value_MARCAVALUE%   
+			AND reg.cana_oid_cana = %value_CANALVALUE%  
+			%start_REGIONVALUES%  AND reg.oid_regi IN (%value_REGIONVALUES%) %end_REGIONVALUES%   
+			AND subg.oid_subg_vent = reg.zsgv_oid_subg_vent  
+			AND reg.pais_oid_pais = per.pais_oid_pais  
+			AND reg.marc_oid_marc = per.marc_oid_marc  
+			AND reg.cana_oid_cana = per.cana_oid_cana  
+			AND vta_pro.perd_oid_peri = per.oid_peri	  
+			AND fec_desde.fec_inic &lt;= per.fec_inic	  
+			AND per.fec_fina &lt;= fec_hasta.fec_fina	  
+			AND met_pro.copa_oid_para_gral = %value_NUMEROCONCURSOVALUE%  
+		GROUP BY  
+			subg.des_subg_vent,  
+			reg.cod_regi,		  
+			cli.val_nom1||' '||cli.val_nom2||' '||cli.val_ape1||' '||cli.val_ape2  
+		)		  
+		UNION  
+		(  
+		SELECT  
+			subg.des_subg_vent,  
+			reg.cod_regi,		  
+			cli.val_nom1||' '||cli.val_nom2||' '||cli.val_ape1||' '||cli.val_ape2 AS gerente,	  
+			SUM(vta_pro.num_pedi) AS valor,  
+			9 AS variable  
+		FROM  
+			inc_resul_venta_proye_region vta_pro,		  
+			inc_metas_venta_proye_regio met_pro,	  
+			zon_regio reg,	  
+			zon_sub_geren_venta subg,  
+			mae_clien cli,	  
+			cra_perio per,	  
+			(	  
+			SELECT fec_inic	  
+			FROM cra_perio  
+			WHERE oid_peri =  %value_PERIODODESDEVALUE%   
+			) fec_desde,  
+			(  
+			SELECT fec_fina  
+			FROM cra_perio  
+			WHERE oid_peri = %value_PERIODOHASTAVALUE%   
+			) fec_hasta  
+		WHERE  
+			vta_pro.mvpr_oid_meta_vent_proy_regi = met_pro.oid_meta_vent_proy_regi  
+			AND met_pro.zorg_oid_regi = reg.oid_regi  
+			AND reg.clie_oid_clie = cli.oid_clie  
+			AND reg.pais_oid_pais = %value_PAISVALUE%   
+			AND reg.marc_oid_marc = %value_MARCAVALUE%   
+			AND reg.cana_oid_cana = %value_CANALVALUE%  
+			%start_REGIONVALUES%  AND reg.oid_regi IN (%value_REGIONVALUES%) %end_REGIONVALUES%   
+			AND subg.oid_subg_vent = reg.zsgv_oid_subg_vent  
+			AND reg.pais_oid_pais = per.pais_oid_pais  
+			AND reg.marc_oid_marc = per.marc_oid_marc  
+			AND reg.cana_oid_cana = per.cana_oid_cana  
+			AND vta_pro.perd_oid_peri = per.oid_peri	  
+			AND fec_desde.fec_inic &lt;= per.fec_inic	  
+			AND per.fec_fina &lt;= fec_hasta.fec_fina	  
+			AND met_pro.copa_oid_para_gral = %value_NUMEROCONCURSOVALUE%  
+		GROUP BY  
+			subg.des_subg_vent,  
+			reg.cod_regi,		  
+			cli.val_nom1||' '||cli.val_nom2||' '||cli.val_ape1||' '||cli.val_ape2  
+		)		  
+		UNION  
+		(  
+		SELECT  
+			subg.des_subg_vent,  
+			reg.cod_regi,		  
+			cli.val_nom1||' '||cli.val_nom2||' '||cli.val_ape1||' '||cli.val_ape2 AS gerente,	  
+			AVG(vta_pro.imp_prec_prom_unit) AS valor,  
+			10 AS variable  
+		FROM  
+			inc_resul_venta_proye_region vta_pro,		  
+			inc_metas_venta_proye_regio met_pro,	  
+			zon_regio reg,	  
+			zon_sub_geren_venta subg,  
+			mae_clien cli,	  
+			cra_perio per,	  
+			(	  
+			SELECT fec_inic	  
+			FROM cra_perio  
+			WHERE oid_peri =  %value_PERIODODESDEVALUE%   
+			) fec_desde,  
+			(  
+			SELECT fec_fina  
+			FROM cra_perio  
+			WHERE oid_peri = %value_PERIODOHASTAVALUE%   
+			) fec_hasta  
+		WHERE  
+			vta_pro.mvpr_oid_meta_vent_proy_regi = met_pro.oid_meta_vent_proy_regi  
+			AND met_pro.zorg_oid_regi = reg.oid_regi  
+			AND reg.clie_oid_clie = cli.oid_clie  
+			AND reg.pais_oid_pais = %value_PAISVALUE%   
+			AND reg.marc_oid_marc = %value_MARCAVALUE%   
+			AND reg.cana_oid_cana = %value_CANALVALUE%  
+			%start_REGIONVALUES%  AND reg.oid_regi IN (%value_REGIONVALUES%) %end_REGIONVALUES%   
+			AND subg.oid_subg_vent = reg.zsgv_oid_subg_vent  
+			AND reg.pais_oid_pais = per.pais_oid_pais  
+			AND reg.marc_oid_marc = per.marc_oid_marc  
+			AND reg.cana_oid_cana = per.cana_oid_cana  
+			AND vta_pro.perd_oid_peri = per.oid_peri	  
+			AND fec_desde.fec_inic &lt;= per.fec_inic	  
+			AND per.fec_fina &lt;= fec_hasta.fec_fina	  
+			AND met_pro.copa_oid_para_gral = %value_NUMEROCONCURSOVALUE%  
+		GROUP BY  
+			subg.des_subg_vent,  
+			reg.cod_regi,		  
+			cli.val_nom1||' '||cli.val_nom2||' '||cli.val_ape1||' '||cli.val_ape2  
+		)		  
+		UNION  
+		(  
+		SELECT  
+			subg.des_subg_vent,  
+			reg.cod_regi,		  
+			cli.val_nom1||' '||cli.val_nom2||' '||cli.val_ape1||' '||cli.val_ape2 AS gerente,	  
+			AVG(vta_pro.val_prom_vent_pedi) AS valor,  
+			11 AS variable  
+		FROM  
+			inc_resul_venta_proye_region vta_pro,		  
+			inc_metas_venta_proye_regio met_pro,	  
+			zon_regio reg,	  
+			zon_sub_geren_venta subg,  
+			mae_clien cli,	  
+			cra_perio per,	  
+			(	  
+			SELECT fec_inic	  
+			FROM cra_perio  
+			WHERE oid_peri =  %value_PERIODODESDEVALUE%   
+			) fec_desde,  
+			(  
+			SELECT fec_fina  
+			FROM cra_perio  
+			WHERE oid_peri = %value_PERIODOHASTAVALUE%   
+			) fec_hasta  
+		WHERE  
+			vta_pro.mvpr_oid_meta_vent_proy_regi = met_pro.oid_meta_vent_proy_regi  
+			AND met_pro.zorg_oid_regi = reg.oid_regi  
+			AND reg.clie_oid_clie = cli.oid_clie  
+			AND reg.pais_oid_pais = %value_PAISVALUE%   
+			AND reg.marc_oid_marc = %value_MARCAVALUE%   
+			AND reg.cana_oid_cana = %value_CANALVALUE%  
+			%start_REGIONVALUES%  AND reg.oid_regi IN (%value_REGIONVALUES%) %end_REGIONVALUES%   
+			AND subg.oid_subg_vent = reg.zsgv_oid_subg_vent  
+			AND reg.pais_oid_pais = per.pais_oid_pais  
+			AND reg.marc_oid_marc = per.marc_oid_marc  
+			AND reg.cana_oid_cana = per.cana_oid_cana  
+			AND vta_pro.perd_oid_peri = per.oid_peri	  
+			AND fec_desde.fec_inic &lt;= per.fec_inic	  
+			AND per.fec_fina &lt;= fec_hasta.fec_fina	  
+			AND met_pro.copa_oid_para_gral = %value_NUMEROCONCURSOVALUE%  
+		GROUP BY  
+			subg.des_subg_vent,  
+			reg.cod_regi,		  
+			cli.val_nom1||' '||cli.val_nom2||' '||cli.val_ape1||' '||cli.val_ape2  
+		)		  
+		UNION  
+		(  
+		SELECT  
+			subg.des_subg_vent,  
+			reg.cod_regi,		  
+			cli.val_nom1||' '||cli.val_nom2||' '||cli.val_ape1||' '||cli.val_ape2 AS gerente,	  
+			AVG(vta_pro.val_prom_orde_pedi) AS valor,  
+			12 AS variable  
+		FROM  
+			inc_resul_venta_proye_region vta_pro,		  
+			inc_metas_venta_proye_regio met_pro,	  
+			zon_regio reg,	  
+			zon_sub_geren_venta subg,  
+			mae_clien cli,	  
+			cra_perio per,	  
+			(	  
+			SELECT fec_inic	  
+			FROM cra_perio  
+			WHERE oid_peri =  %value_PERIODODESDEVALUE%   
+			) fec_desde,  
+			(  
+			SELECT fec_fina  
+			FROM cra_perio  
+			WHERE oid_peri = %value_PERIODOHASTAVALUE%   
+			) fec_hasta  
+		WHERE  
+			vta_pro.mvpr_oid_meta_vent_proy_regi = met_pro.oid_meta_vent_proy_regi  
+			AND met_pro.zorg_oid_regi = reg.oid_regi  
+			AND reg.clie_oid_clie = cli.oid_clie  
+			AND reg.pais_oid_pais = %value_PAISVALUE%   
+			AND reg.marc_oid_marc = %value_MARCAVALUE%   
+			AND reg.cana_oid_cana = %value_CANALVALUE%  
+			%start_REGIONVALUES%  AND reg.oid_regi IN (%value_REGIONVALUES%) %end_REGIONVALUES%   
+			AND subg.oid_subg_vent = reg.zsgv_oid_subg_vent  
+			AND reg.pais_oid_pais = per.pais_oid_pais  
+			AND reg.marc_oid_marc = per.marc_oid_marc  
+			AND reg.cana_oid_cana = per.cana_oid_cana  
+			AND vta_pro.perd_oid_peri = per.oid_peri	  
+			AND fec_desde.fec_inic &lt;= per.fec_inic	  
+			AND per.fec_fina &lt;= fec_hasta.fec_fina	  
+			AND met_pro.copa_oid_para_gral = %value_NUMEROCONCURSOVALUE%  
+		GROUP BY  
+			subg.des_subg_vent,  
+			reg.cod_regi,		  
+			cli.val_nom1||' '||cli.val_nom2||' '||cli.val_ape1||' '||cli.val_ape2  
+		)		  
+		UNION  
+		(  
+		SELECT  
+			subg.des_subg_vent,  
+			reg.cod_regi,		  
+			cli.val_nom1||' '||cli.val_nom2||' '||cli.val_ape1||' '||cli.val_ape2 AS gerente,	  
+			AVG(vta_pro.val_prom_unid_pedi) AS valor,  
+			13 AS variable  
+		FROM  
+			inc_resul_venta_proye_region vta_pro,		  
+			inc_metas_venta_proye_regio met_pro,	  
+			zon_regio reg,	  
+			zon_sub_geren_venta subg,  
+			mae_clien cli,	  
+			cra_perio per,	  
+			(	  
+			SELECT fec_inic	  
+			FROM cra_perio  
+			WHERE oid_peri =  %value_PERIODODESDEVALUE%   
+			) fec_desde,  
+			(  
+			SELECT fec_fina  
+			FROM cra_perio  
+			WHERE oid_peri = %value_PERIODOHASTAVALUE%   
+			) fec_hasta  
+		WHERE  
+			vta_pro.mvpr_oid_meta_vent_proy_regi = met_pro.oid_meta_vent_proy_regi  
+			AND met_pro.zorg_oid_regi = reg.oid_regi  
+			AND reg.clie_oid_clie = cli.oid_clie  
+			AND reg.pais_oid_pais = %value_PAISVALUE%   
+			AND reg.marc_oid_marc = %value_MARCAVALUE%   
+			AND reg.cana_oid_cana = %value_CANALVALUE%  
+			%start_REGIONVALUES%  AND reg.oid_regi IN (%value_REGIONVALUES%) %end_REGIONVALUES%   
+			AND subg.oid_subg_vent = reg.zsgv_oid_subg_vent  
+			AND reg.pais_oid_pais = per.pais_oid_pais  
+			AND reg.marc_oid_marc = per.marc_oid_marc  
+			AND reg.cana_oid_cana = per.cana_oid_cana  
+			AND vta_pro.perd_oid_peri = per.oid_peri	  
+			AND fec_desde.fec_inic &lt;= per.fec_inic	  
+			AND per.fec_fina &lt;= fec_hasta.fec_fina	  
+			AND met_pro.copa_oid_para_gral = %value_NUMEROCONCURSOVALUE%  
+		GROUP BY  
+			subg.des_subg_vent,  
+			reg.cod_regi,		  
+			cli.val_nom1||' '||cli.val_nom2||' '||cli.val_ape1||' '||cli.val_ape2  
+		)		  
+		UNION  
+		(  
+		SELECT  
+			subg.des_subg_vent,  
+			reg.cod_regi,		  
+			cli.val_nom1||' '||cli.val_nom2||' '||cli.val_ape1||' '||cli.val_ape2 AS gerente,	  
+			SUM(vta_pro.imp_rein) AS valor,  
+			14 AS variable  
+		FROM  
+			inc_resul_venta_proye_region vta_pro,		  
+			inc_metas_venta_proye_regio met_pro,	  
+			zon_regio reg,	  
+			zon_sub_geren_venta subg,  
+			mae_clien cli,	  
+			cra_perio per,	  
+			(	  
+			SELECT fec_inic	  
+			FROM cra_perio  
+			WHERE oid_peri =  %value_PERIODODESDEVALUE%   
+			) fec_desde,  
+			(  
+			SELECT fec_fina  
+			FROM cra_perio  
+			WHERE oid_peri = %value_PERIODOHASTAVALUE%   
+			) fec_hasta  
+		WHERE  
+			vta_pro.mvpr_oid_meta_vent_proy_regi = met_pro.oid_meta_vent_proy_regi  
+			AND met_pro.zorg_oid_regi = reg.oid_regi  
+			AND reg.clie_oid_clie = cli.oid_clie  
+			AND reg.pais_oid_pais = %value_PAISVALUE%   
+			AND reg.marc_oid_marc = %value_MARCAVALUE%   
+			AND reg.cana_oid_cana = %value_CANALVALUE%  
+			%start_REGIONVALUES%  AND reg.oid_regi IN (%value_REGIONVALUES%) %end_REGIONVALUES%   
+			AND subg.oid_subg_vent = reg.zsgv_oid_subg_vent  
+			AND reg.pais_oid_pais = per.pais_oid_pais  
+			AND reg.marc_oid_marc = per.marc_oid_marc  
+			AND reg.cana_oid_cana = per.cana_oid_cana  
+			AND vta_pro.perd_oid_peri = per.oid_peri	  
+			AND fec_desde.fec_inic &lt;= per.fec_inic	  
+			AND per.fec_fina &lt;= fec_hasta.fec_fina	  
+			AND met_pro.copa_oid_para_gral = %value_NUMEROCONCURSOVALUE%  
+		GROUP BY  
+			subg.des_subg_vent,  
+			reg.cod_regi,		  
+			cli.val_nom1||' '||cli.val_nom2||' '||cli.val_ape1||' '||cli.val_ape2  
+		)		  
+		UNION  
+		(  
+		SELECT  
+			subg.des_subg_vent,  
+			reg.cod_regi,		  
+			cli.val_nom1||' '||cli.val_nom2||' '||cli.val_ape1||' '||cli.val_ape2 AS gerente,	  
+			AVG(vta_pro.val_rete) AS valor,  
+			15 AS variable  
+		FROM  
+			inc_resul_venta_proye_region vta_pro,		  
+			inc_metas_venta_proye_regio met_pro,	  
+			zon_regio reg,	  
+			zon_sub_geren_venta subg,  
+			mae_clien cli,	  
+			cra_perio per,	  
+			(	  
+			SELECT fec_inic	  
+			FROM cra_perio  
+			WHERE oid_peri =  %value_PERIODODESDEVALUE%   
+			) fec_desde,  
+			(  
+			SELECT fec_fina  
+			FROM cra_perio  
+			WHERE oid_peri = %value_PERIODOHASTAVALUE%   
+			) fec_hasta  
+		WHERE  
+			vta_pro.mvpr_oid_meta_vent_proy_regi = met_pro.oid_meta_vent_proy_regi  
+			AND met_pro.zorg_oid_regi = reg.oid_regi  
+			AND reg.clie_oid_clie = cli.oid_clie  
+			AND reg.pais_oid_pais = %value_PAISVALUE%   
+			AND reg.marc_oid_marc = %value_MARCAVALUE%   
+			AND reg.cana_oid_cana = %value_CANALVALUE%  
+			%start_REGIONVALUES%  AND reg.oid_regi IN (%value_REGIONVALUES%) %end_REGIONVALUES%   
+			AND subg.oid_subg_vent = reg.zsgv_oid_subg_vent  
+			AND reg.pais_oid_pais = per.pais_oid_pais  
+			AND reg.marc_oid_marc = per.marc_oid_marc  
+			AND reg.cana_oid_cana = per.cana_oid_cana  
+			AND vta_pro.perd_oid_peri = per.oid_peri	  
+			AND fec_desde.fec_inic &lt;= per.fec_inic	  
+			AND per.fec_fina &lt;= fec_hasta.fec_fina	  
+			AND met_pro.copa_oid_para_gral = %value_NUMEROCONCURSOVALUE%  
+		GROUP BY  
+			subg.des_subg_vent,  
+			reg.cod_regi,		  
+			cli.val_nom1||' '||cli.val_nom2||' '||cli.val_ape1||' '||cli.val_ape2  
+		)		  
+		UNION  
+		(  
+		SELECT  
+			subg.des_subg_vent,  
+			reg.cod_regi,		  
+			cli.val_nom1||' '||cli.val_nom2||' '||cli.val_ape1||' '||cli.val_ape2 AS gerente,	  
+			SUM(vta_pro.num_unid_vend) AS valor,  
+			16 AS variable  
+		FROM  
+			inc_resul_venta_proye_region vta_pro,		  
+			inc_metas_venta_proye_regio met_pro,	  
+			zon_regio reg,	  
+			zon_sub_geren_venta subg,  
+			mae_clien cli,	  
+			cra_perio per,	  
+			(	  
+			SELECT fec_inic	  
+			FROM cra_perio  
+			WHERE oid_peri =  %value_PERIODODESDEVALUE%   
+			) fec_desde,  
+			(  
+			SELECT fec_fina  
+			FROM cra_perio  
+			WHERE oid_peri = %value_PERIODOHASTAVALUE%   
+			) fec_hasta  
+		WHERE  
+			vta_pro.mvpr_oid_meta_vent_proy_regi = met_pro.oid_meta_vent_proy_regi  
+			AND met_pro.zorg_oid_regi = reg.oid_regi  
+			AND reg.clie_oid_clie = cli.oid_clie  
+			AND reg.pais_oid_pais = %value_PAISVALUE%   
+			AND reg.marc_oid_marc = %value_MARCAVALUE%   
+			AND reg.cana_oid_cana = %value_CANALVALUE%  
+			%start_REGIONVALUES%  AND reg.oid_regi IN (%value_REGIONVALUES%) %end_REGIONVALUES%   
+			AND subg.oid_subg_vent = reg.zsgv_oid_subg_vent  
+			AND reg.pais_oid_pais = per.pais_oid_pais  
+			AND reg.marc_oid_marc = per.marc_oid_marc  
+			AND reg.cana_oid_cana = per.cana_oid_cana  
+			AND vta_pro.perd_oid_peri = per.oid_peri	  
+			AND fec_desde.fec_inic &lt;= per.fec_inic	  
+			AND per.fec_fina &lt;= fec_hasta.fec_fina	  
+			AND met_pro.copa_oid_para_gral = %value_NUMEROCONCURSOVALUE%  
+		GROUP BY  
+			subg.des_subg_vent,  
+			reg.cod_regi,		  
+			cli.val_nom1||' '||cli.val_nom2||' '||cli.val_ape1||' '||cli.val_ape2  
+		)		  
+		UNION  
+		(  
+		SELECT  
+			subg.des_subg_vent,  
+			reg.cod_regi,		  
+			cli.val_nom1||' '||cli.val_nom2||' '||cli.val_ape1||' '||cli.val_ape2 AS gerente,	  
+			SUM(vta_pro.imp_vent_neta_esta) AS valor,  
+			17 AS variable  
+		FROM  
+			inc_resul_venta_proye_region vta_pro,		  
+			inc_metas_venta_proye_regio met_pro,	  
+			zon_regio reg,	  
+			zon_sub_geren_venta subg,  
+			mae_clien cli,	  
+			cra_perio per,	  
+			(	  
+			SELECT fec_inic	  
+			FROM cra_perio  
+			WHERE oid_peri =  %value_PERIODODESDEVALUE%   
+			) fec_desde,  
+			(  
+			SELECT fec_fina  
+			FROM cra_perio  
+			WHERE oid_peri = %value_PERIODOHASTAVALUE%   
+			) fec_hasta  
+		WHERE  
+			vta_pro.mvpr_oid_meta_vent_proy_regi = met_pro.oid_meta_vent_proy_regi  
+			AND met_pro.zorg_oid_regi = reg.oid_regi  
+			AND reg.clie_oid_clie = cli.oid_clie  
+			AND reg.pais_oid_pais = %value_PAISVALUE%   
+			AND reg.marc_oid_marc = %value_MARCAVALUE%   
+			AND reg.cana_oid_cana = %value_CANALVALUE%  
+			%start_REGIONVALUES%  AND reg.oid_regi IN (%value_REGIONVALUES%) %end_REGIONVALUES%   
+			AND subg.oid_subg_vent = reg.zsgv_oid_subg_vent  
+			AND reg.pais_oid_pais = per.pais_oid_pais  
+			AND reg.marc_oid_marc = per.marc_oid_marc  
+			AND reg.cana_oid_cana = per.cana_oid_cana  
+			AND vta_pro.perd_oid_peri = per.oid_peri	  
+			AND fec_desde.fec_inic &lt;= per.fec_inic	  
+			AND per.fec_fina &lt;= fec_hasta.fec_fina	  
+			AND met_pro.copa_oid_para_gral = %value_NUMEROCONCURSOVALUE%  
+		GROUP BY  
+			subg.des_subg_vent,  
+			reg.cod_regi,		  
+			cli.val_nom1||' '||cli.val_nom2||' '||cli.val_ape1||' '||cli.val_ape2  
+		)	  
+	)  
+WHERE  
+	variable IN (%value_VARIABLEVENTAVALUES%)  
+ORDER BY  
+	variable,  
+	valor DESC  
+		" ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.106:1523:SICCV3D" ExternalConnectionDistributedUrl="" ExternalConnectionUser="own_peru" ExternalConnectionPassword="peru_own" DatePattern="" DateTimePattern=""/>  
+	</DataSourceDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="PAIS" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="MARCA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="CANAL" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="REGION" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="1408" FilterDefinitionName="NUMEROCONCURSO" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1379" FilterDefinitionName="PERIODODESDE" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="71" FilterDefinitionName="PERIODOHASTA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17" FilterDefinitionName="VARIABLEVENTA" FilterParameter="VALUES"/>  
+	</ParameterValues>  
+	<Localizations/>  
+</ReportSourceDefinition>  
+

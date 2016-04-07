@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by TEAM (RENEGADE) -->  
+<ReportSourceDefinition Id="RSD_REP-118_01" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="SOCIEDAD" Description="SOCIEDAD" DataType="STRING" Calculated="false" Expression="" ExternalData="SOCIEDAD"/>  
+		<DimensionSourceDefinition Name="VAL_NOMB_PERI" Description="VAL_NOMB_PERI" DataType="STRING" Calculated="false" Expression="" ExternalData="VAL_NOMB_PERI"/>  
+		<DimensionSourceDefinition Name="UNID_NEGOCIO" Description="UNID_NEGOCIO" DataType="STRING" Calculated="false" Expression="" ExternalData="UNID_NEGOCIO"/>  
+		<DimensionSourceDefinition Name="OPERA" Description="OPERA" DataType="STRING" Calculated="false" Expression="" ExternalData="OPERA"/>  
+		<DimensionSourceDefinition Name="COD_SAP" Description="COD_SAP" DataType="STRING" Calculated="false" Expression="" ExternalData="COD_SAP"/>  
+		<DimensionSourceDefinition Name="PROD" Description="PROD" DataType="STRING" Calculated="false" Expression="" ExternalData="PROD"/>  
+		<DimensionSourceDefinition Name="T_SOL" Description="T_SOL" DataType="STRING" Calculated="false" Expression="" ExternalData="T_SOL"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="UNI_TIP_OPERA" Description="UNI_TIP_OPERA" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="UNI_TIP_OPERA" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="UNI_CAN_TOTAL" Description="UNI_CAN_TOTAL" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="UNI_CAN_TOTAL" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="IDIOMA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PAIS" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="MARCA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PERIODOINICIAL" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PERIODOFINAL" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="OPERACION" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="TIPOCATALOGO" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="UNIDADNEGOCIO" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="CANTIDADREGISTROS" Visual="FALSE"/>  
+		<FilterDefinition DataType="STRING" FilterType="EQUALTO" Name="ZONEUSER" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="CANAL" Visual="FALSE"/>  
+	</FilterDefinitions>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="REP-118_01" SourceType="SQL" Expression="SELECT SOCIEDAD,  
+	   PERIODO VAL_NOMB_PERI,  
+	   UN_NEGO UNID_NEGOCIO,  
+	   OPERA,  
+	   COD_PRODU COD_SAP,  
+	   DESC_PRODU PROD,  
+	   DESC_TIPO_SOL T_SOL,  
+	   UN_TIP_OPERA UNI_TIP_OPERA,  
+	   UN_CAN_TOTAL UNI_CAN_TOTAL  
+FROM  
+(  
+	SELECT SOCIEDAD,  
+		   OPERA,  
+		   PERIODO,  
+		   UN_NEGO,  
+		   COD_PRODU,  
+		   DESC_PRODU,  
+		   DESC_TIPO_SOL,  
+		   UN_TIP_OPERA,  
+		   UN_CAN_TOTAL,  
+		   SUM(1) OVER (PARTITION BY PERIODO, OPERA, UN_NEGO ORDER BY UN_CAN_TOTAL DESC, COD_PRODU) CONTROL   
+	FROM  
+	(  
+		SELECT SOCI.SOCIEDAD,  
+			   GEN_OP.VAL_I18N OPERA,  
+			   PER.VAL_NOMB_PERI PERIODO,  
+			   GEN_UN_NEGO.VAL_I18N UN_NEGO,  
+			   MP.COD_SAP COD_PRODU,  
+			   GEN_PRODU.VAL_I18N DESC_PRODU,  
+			   GEN_T_SOL.VAL_I18N DESC_TIPO_SOL,  
+			   SUM(LOR.NUM_UNID_RECL) UN_TIP_OPERA,  
+			   SUM(SUM(LOR.NUM_UNID_RECL)) OVER (PARTITION BY SOCI.SOCIEDAD, GEN_OP.VAL_I18N, PER.VAL_NOMB_PERI, GEN_UN_NEGO.VAL_I18N, MP.COD_SAP) UN_CAN_TOTAL  
+		FROM PRE_MATRI_FACTU PMF,  
+			 MAE_PRODU MP,  
+			 PRE_OFERT_DETAL POD,  
+			 REC_CABEC_RECLA RCR,  
+			   
+			 PED_SOLIC_CABEC SOL,  
+			 PED_TIPO_SOLIC_PAIS T_SOL,  
+			 			    
+			 CRA_PERIO PER,  
+			 REC_OPERA_RECLA ROR,  
+			 REC_OPERA RO,  
+			 REC_TIPOS_OPERA RTO,  
+		 	 PRE_CATAL PC,  
+			 REC_LINEA_OPERA_RECLA LOR,  
+			 (  
+				 SELECT P.FEC_INIC  
+				 FROM CRA_PERIO P  
+				 WHERE P.OID_PERI = %value_PERIODOINICIALVALUE%  
+			 ) PER_INI,  
+			 (  
+				 SELECT P.FEC_FINA  
+				 FROM CRA_PERIO P  
+				 WHERE P.OID_PERI = DECODE(%value_PERIODOFINALVALUE%,-1,%value_PERIODOINICIALVALUE%,%value_PERIODOFINALVALUE%)		     
+			 ) PER_FIN,  
+			 (  
+			  	SELECT SOC.VAL_DENO AS sociedad  
+				FROM PRINCIPALS PRI,  
+					PROPERTYVALUES PRO,  
+					SEG_SOCIE SOC			  
+				WHERE PRI.NAME = %value_ZONEUSERVALUE%  
+					 AND PRO.IDPROPERTY = 48  
+					 AND PRO.IDPRINCIPAL = PRI.IDPRINCIPAL  
+					 AND PRO.STRINGVALUE = SOC.OID_SOCI  
+		     ) SOCI,  
+			 (  
+				SELECT GEN.VAL_OID, GEN.VAL_I18N  
+				FROM V_GEN_I18N_SICC GEN  
+				WHERE GEN.ATTR_ENTI = 'REC_OPERA'  
+					  AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%							  
+			 ) GEN_OP,  
+			 (  
+				SELECT GEN.VAL_OID, GEN.VAL_I18N  
+				FROM V_GEN_I18N_SICC GEN  
+				WHERE GEN.ATTR_ENTI = 'MAE_UNIDA_NEGOC'  
+					  AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%							  
+			) GEN_UN_NEGO,  
+			(  
+				SELECT GEN.VAL_OID, GEN.VAL_I18N  
+				FROM V_GEN_I18N_SICC GEN  
+				WHERE GEN.ATTR_ENTI = 'MAE_PRODU'  
+					  AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%  
+			) GEN_PRODU,  
+			(  
+				SELECT GEN.VAL_OID, GEN.VAL_I18N  
+				FROM V_GEN_I18N_SICC GEN  
+				WHERE GEN.ATTR_ENTI = 'PED_TIPO_SOLIC'  
+					  AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%							  
+			) GEN_T_SOL	 	   
+		WHERE POD.PROD_OID_PROD = MP.OID_PROD  
+		  
+			and rcr.SOCA_OID_SOLI_CABE = sol.OID_SOLI_CABE  
+					 and sol.TSPA_OID_TIPO_SOLI_PAIS = t_sol.OID_TIPO_SOLI_PAIS  
+		  
+			 AND LOR.MAFA_OID_MATR_FACT = PMF.OID_MATR_FACT  
+			  AND PMF.OFDE_OID_DETA_OFER = POD.OID_DETA_OFER  
+			  AND LOR.PROD_OID_PROD = MP.OID_PROD  
+			  AND PER.FEC_INIC >= PER_INI.FEC_INIC  
+			  AND PER.FEC_FINA &lt;= PER_FIN.FEC_FINA  
+			  AND PER.OID_PERI = RCR.PERD_OID_PERI_RECL  
+			  AND ROR.CARE_OID_CABE_RECL = RCR.OID_CABE_RECL  
+			  AND ROR.TIOP_OID_TIPO_OPER = RTO.OID_TIPO_OPER  
+			  AND RTO.ROPE_OID_OPER = RO.OID_OPER  
+			  AND PC.OID_CATA(+) = POD.OCAT_OID_CATAL  
+			  AND LOR.OPRE_OID_OPER_RECL = ROR.OID_OPER_RECL  
+			  AND RO.OID_OPER = GEN_OP.VAL_OID(+)  
+			  AND MP.UNEG_OID_UNID_NEGO = GEN_UN_NEGO.VAL_OID(+)  
+			  AND MP.OID_PROD = GEN_PRODU.VAL_OID(+)  
+			    
+			  and T_sol.TSOL_OID_TIPO_SOLI = gen_t_sol.val_oid(+)  
+			    
+		 %start_UNIDADNEGOCIOVALUES%    	 AND MP.UNEG_OID_UNID_NEGO IN (%value_UNIDADNEGOCIOVALUES%)  %end_UNIDADNEGOCIOVALUES%   
+			  AND RCR.PAIS_OID_PAIS = %value_PAISVALUE%	 	  
+			  AND PER.MARC_OID_MARC =%value_MARCAVALUE%  
+			  AND PER.CANA_OID_CANA = %value_CANALVALUE%  
+		      AND RO.OID_OPER = %value_OPERACIONVALUE% 		  
+	%start_TIPOCATALOGOVALUES% 	  AND PC.OID_CATA IN (%value_TIPOCATALOGOVALUES%)	%end_TIPOCATALOGOVALUES%				  
+  
+		GROUP BY SOCI.SOCIEDAD,  
+			   GEN_OP.VAL_I18N,  
+			   PER.VAL_NOMB_PERI,  
+			   GEN_UN_NEGO.VAL_I18N,  
+			   MP.COD_SAP,  
+			   GEN_PRODU.VAL_I18N,  
+		   	   GEN_T_SOL.VAL_I18N  
+	)  
+)  
+WHERE CONTROL &lt;= %value_CANTIDADREGISTROSVALUE%   
+" ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.106:1523:SICCV3D" ExternalConnectionDistributedUrl="" ExternalConnectionUser="usu_peru" ExternalConnectionPassword="peru" DatePattern="" DateTimePattern=""/>  
+	</DataSourceDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="IDIOMA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="PAIS" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="MARCA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="CANAL" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="57" FilterDefinitionName="PERIODOINICIAL" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="-1" FilterDefinitionName="PERIODOFINAL" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="32" FilterDefinitionName="OPERACION" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="TIPOCATALOGO" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="UNIDADNEGOCIO" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="23" FilterDefinitionName="CANTIDADREGISTROS" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="USUARIO1" FilterDefinitionName="ZONEUSER" FilterParameter="VALUE"/>  
+	</ParameterValues>  
+	<Localizations/>  
+</ReportSourceDefinition>  
+

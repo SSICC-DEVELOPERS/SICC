@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by team (renegade) -->  
+<ReportSourceDefinition Id="RSD_REP-070_01" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="CONCURSO" Description="CONCURSO" DataType="STRING" Calculated="false" Expression="" ExternalData="CONCURSO"/>  
+		<DimensionSourceDefinition Name="DIRIGIDO" Description="DIRIGIDO" DataType="STRING" Calculated="false" Expression="" ExternalData="DIRIGIDO"/>  
+		<DimensionSourceDefinition Name="DESC_PRE" Description="DESC_PRE" DataType="STRING" Calculated="false" Expression="" ExternalData="DESC_PRE"/>  
+		<DimensionSourceDefinition Name="PERIODOS" Description="PERIODOS" DataType="STRING" Calculated="false" Expression="" ExternalData="PERIODOS"/>  
+		<DimensionSourceDefinition Name="REQUISITOS" Description="REQUISITOS" DataType="STRING" Calculated="false" Expression="" ExternalData="REQUISITOS"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="TOTAL_CON" Description="TOTAL_CON" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="TOTAL_CON" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="N_GANA" Description="N_GANA" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="N_GANA" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="PORC" Description="PORC" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="PORC" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="IDIOMA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="NUMEROCONCURSO" Visual="FALSE"/>  
+	</FilterDefinitions>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="REP-070_01" SourceType="SQL" Expression="  
+				SELECT concurso, 'GERENTES DE REGION' dirigido, premi.desc_pre,  
+       pq_apl_rep.fn_070_concat_peri (concu.oid_para_gral) periodos, requisitos,  
+       total_con, n_gana, porc  
+  FROM (SELECT   oid_para_gral, concurso, COUNT (*) total_con,  
+                 SUM (gana) n_gana, (SUM (gana) * 100) / COUNT (*) porc, VAL_OBSE AS REQUISITOS  
+            FROM (SELECT cpg.oid_para_gral,  val_obse,  
+                            cpg.val_nomb  
+                         || ' '  
+                         || cpg.num_conc  
+                         || ' '  
+                         || cpg.num_vers concurso,  
+                         NVL  
+                            ((SELECT 1  
+                                FROM inc_ganad gana,  
+                                     inc_param_gener_premi pgp,  
+                                     inc_param_nivel_premi pnp  
+                                       
+                                WHERE gana.clie_oid_clie = region.clie_oid_clie  
+                                 AND gana.panp_oid_para_nive_prem =  
+                                                        pnp.oid_para_nive_prem  
+                                 AND pnp.pagp_oid_para_gene_prem =  
+                                                        pgp.oid_para_gene_prem  
+                                 AND pgp.copa_oid_para_gral =  
+                                                             cpg.oid_para_gral  
+                                 AND ROWNUM = 1),  
+                             0  
+                            ) gana  
+                    FROM inc_parti_concu_cabec pcc,  
+                         inc_parti_concu_detal pcd,  
+                         inc_clasi_parti_concu cpc,  
+                         inc_concu_param_gener cpg,  
+						 zon_regio region,  
+						   
+                         (SELECT DISTINCT ag.copa_oid_para_gral,  
+						   
+                                          CASE WHEN reg.oid_regi IS NULL  
+                                               THEN reg2.oid_regi  
+                                          ELSE reg.oid_regi  
+                                          END region  
+										    
+                                     FROM inc_ambit_geogr ag,  
+                                          zon_sub_geren_venta subg,  
+                                          zon_regio reg,  
+                                          zon_regio reg2  
+                                    WHERE ag.zsgv_oid_subg_vent = subg.oid_subg_vent  
+                                      AND subg.oid_subg_vent = reg2.zsgv_oid_subg_vent  
+                                      AND ag.zorg_oid_regi = reg.oid_regi(+)  
+                                      AND ag.copa_oid_para_gral IN (%value_NUMEROCONCURSOVALUES%)  
+                                 ORDER BY ag.copa_oid_para_gral, region) amb  
+								   
+                   WHERE pcc.oid_part_conc_cabe = cpc.paci_oid_part_conc_cabe  
+                     AND cpg.oid_para_gral = cpc.copa_oid_para_gral  
+                     AND pcd.paci_oid_part_conc_cabe = pcc.oid_part_conc_cabe  
+                     AND amb.copa_oid_para_gral = cpg.oid_para_gral  
+			 AND region.OID_REGI = amb.region  
+			 AND PCD.TICL_OID_TIPO_CLIE = 4  
+	      	        AND PCD.SBTI_OID_SUBT_CLIE = 2  
+                     AND cpg.ind_acti = 1  
+                     AND cpg.oid_para_gral IN (%value_NUMEROCONCURSOVALUES%))  
+        GROUP BY oid_para_gral, concurso, VAL_OBSE) concu,  
+       (SELECT cpg.oid_para_gral,  
+                  vis.tipo_premio  
+               || ' '  
+               || vis.descripcion  
+               || ' '  
+               || vis.cantidad desc_pre  
+          FROM inc_concu_param_gener cpg,  
+               inc_param_nivel_premi pnp,  
+               inc_param_gener_premi pgp,  
+               v_rep_premios vis  
+         WHERE cpg.oid_para_gral = pgp.copa_oid_para_gral  
+           AND pgp.oid_para_gene_prem = pnp.pagp_oid_para_gene_prem  
+           AND vis.oid_para_nive_prem = pnp.oid_para_nive_prem  
+           AND vis.idio_tipo_premio = %value_IDIOMAVALUE%  
+           AND cpg.oid_para_gral IN (%value_NUMEROCONCURSOVALUES%)) premi  
+ WHERE concu.oid_para_gral = premi.oid_para_gral(+)	  
+" ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.106:1523:SICCV3D" ExternalConnectionDistributedUrl="" ExternalConnectionUser="own_peru" ExternalConnectionPassword="peru_own" DatePattern="" DateTimePattern=""/>  
+	</DataSourceDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="IDIOMA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1, 1408, 1118, 1345" FilterDefinitionName="NUMEROCONCURSO" FilterParameter="VALUES"/>  
+	</ParameterValues>  
+	<Localizations/>  
+</ReportSourceDefinition>  
+

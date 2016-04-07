@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by tito (tito) -->  
+<ReportSourceDefinition Id="RSD_REP-125" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="ETAPA" Description="ETAPA" DataType="STRING" Calculated="false" Expression="" ExternalData="ETAPA"/>  
+		<DimensionSourceDefinition Name="ETAPA_FIN" Description="ETAPA_FIN" DataType="STRING" Calculated="false" Expression="" ExternalData="ETAPA_FIN"/>  
+		<DimensionSourceDefinition Name="COD_PERI" Description="COD_PERI" DataType="STRING" Calculated="false" Expression="" ExternalData="COD_PERI"/>  
+		<DimensionSourceDefinition Name="VAL_ANIO" Description="VAL_ANIO" DataType="STRING" Calculated="false" Expression="" ExternalData="VAL_ANIO"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="VENTA_COB" Description="VENTA_COB" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="VENTA_COB" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="TOTAL_VENTA" Description="TOTAL_VENTA" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="TOTAL_VENTA" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="VENTA_COB_PORC" Description="VENTA_COB_PORC" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="VENTA_COB_PORC" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="COBRANZA" Description="COBRANZA" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="COBRANZA" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="REC_PORC" Description="REC_PORC" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="REC_PORC" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PAIS" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="ETAPACOBRANZA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="MARCA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="CANAL" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="REGION" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="ZONA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="SECCION" Visual="FALSE"/>  
+		<FilterDefinition DataType="STRING" FilterType="EQUALTO" Name="CODIGOTERRITORIODESDE" Visual="FALSE"/>  
+		<FilterDefinition DataType="STRING" FilterType="EQUALTO" Name="CODIGOTERRITORIOHASTA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PERIODO" Visual="FALSE"/>  
+	</FilterDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="PAIS" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="ETAPACOBRANZA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="MARCA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="CANAL" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="-1" FilterDefinitionName="PERIODO" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="REGION" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="ZONA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="SECCION" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="CODIGOTERRITORIODESDE" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="CODIGOTERRITORIOHASTA" FilterParameter="VALUE"/>  
+	</ParameterValues>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="REP-125" SourceType="SQL" Expression="(  
+SELECT VIRTUAL.ETAPA,  
+	   VIRTUAL.ETAPA_FIN,  
+	   VIRTUAL.COD_PERI,  
+	   VIRTUAL.VAL_ANIO,  
+	   DATOS.IMP_DEUD_ASIG VENTA_COB,  
+	   DATOS.IMP_TOT_VEN TOTAL_VENTA,  
+	   DECODE(DATOS.IMP_TOT_VEN, 0, 0, (DATOS.IMP_DEUD_ASIG/DATOS.IMP_TOT_VEN)*100) VENTA_COB_PORC,  
+	   DATOS.IMP_DEUD_CANC COBRANZA,  
+	   DECODE(DATOS.IMP_DEUD_ASIG, 0, 0, (DATOS.IMP_DEUD_CANC / DATOS.IMP_DEUD_ASIG)*100) REC_PORC  
+FROM	  
+(   
+SELECT PER_COR.OID_PERI,  
+	   NVL(SUM(ASI_COB.IMP_DEUD_ASIG), 0) IMP_DEUD_ASIG,  
+	   NVL(SUM(ASI_COB.IMP_DEUD_CANC), 0) IMP_DEUD_CANC,  
+	   NVL((  
+		   SELECT SUM(SOL.VAL_TOTA_PAGA_LOCA)  
+		   FROM PED_SOLIC_CABEC SOL,  
+		   		ZON_SUB_GEREN_VENTA SUBG,  
+				ZON_ZONA ZONA,  
+				ZON_REGIO REG,  
+				ZON_SECCI SEC,  
+				ZON_TERRI_ADMIN TER_ADM,  
+				ZON_TERRI TER,  
+				CRA_PERIO PER  
+			WHERE SOL.PERD_OID_PERI = PER.OID_PERI  
+				AND SOL.ZZON_OID_ZONA = ZONA.OID_ZONA  
+				AND SOL.ZTAD_OID_TERR_ADMI = TER_ADM.OID_TERR_ADMI  
+				AND SOL.TERR_OID_TERR = TER.OID_TERR  
+				AND SUBG.OID_SUBG_VENT = REG.ZSGV_OID_SUBG_VENT  
+				AND REG.OID_REGI = ZONA.ZORG_OID_REGI  
+				AND ZONA.OID_ZONA = SEC.ZZON_OID_ZONA  
+				AND SEC.OID_SECC = TER_ADM.ZSCC_OID_SECC  
+				AND TER.OID_TERR = TER_ADM.TERR_OID_TERR  
+				AND PER.PERI_OID_PERI = PER_COR.OID_PERI  
+				AND SOL.IND_TS_NO_CONSO &lt;> 1  
+				AND SOL.IND_GENE_CC = 1  
+				AND SOL.IND_PEDI_PRUE &lt;> 1  
+				AND SOL.FEC_FACT IS NOT NULL  
+				%start_CODIGOTERRITORIODESDEVALUE% AND TER.COD_TERR >= %value_CODIGOTERRITORIODESDEVALUE% %end_CODIGOTERRITORIODESDEVALUE%						   	  	  		 	      
+				%start_CODIGOTERRITORIOHASTAVALUE% AND TER.COD_TERR &lt;= %value_CODIGOTERRITORIOHASTAVALUE% %end_CODIGOTERRITORIOHASTAVALUE%						   	  	  		 	    		  
+				%start_SECCIONVALUE% AND SEC.OID_SECC = %value_SECCIONVALUE% %end_SECCIONVALUE%  				 	 			  		 	       
+				%start_ZONAVALUE% AND ZONA.OID_ZONA= %value_ZONAVALUE% %end_ZONAVALUE% 				 	 			  		 	       
+				%start_REGIONVALUE% AND REG.OID_REGI = %value_REGIONVALUE% %end_REGIONVALUE%  				 	 			  		 	       
+				%start_MARCAVALUE% AND SUBG.MARC_OID_MARC = %value_MARCAVALUE% %end_MARCAVALUE%			 	 			  		 	       
+				%start_CANALVALUE% AND SUBG.CANA_OID_CANA = %value_CANALVALUE% %end_CANALVALUE%			 	 			  		 	     						  
+				AND SOL.PAIS_OID_PAIS = %value_PAISVALUE%				 			  		 	       
+			GROUP BY PER.PERI_OID_PERI  
+		), 0) IMP_TOT_VEN  
+FROM SEG_PERIO_CORPO PER_COR,  
+	 COB_ASIGN_COBRA ASI_COB,  
+	 COB_CRONO_COBRA CRO_COB,  
+	 CRA_PERIO PER,  
+	 ZON_SECCI SEC,  
+	 ZON_TERRI_ADMIN TER_ADM,  
+	 ZON_TERRI TER,  
+	 COB_ETAPA_DEUDA ETAPA,  
+	 CCC_MOVIM_CUENT_CORRI MCC  
+WHERE PER_COR.VAL_ANIO = (CASE WHEN -1 = %value_PERIODOVALUE% THEN 							    
+	  				     	TO_NUMBER(TO_CHAR(SYSDATE, 'YYYY'))  
+				     	ELSE  
+							(  
+							SELECT PC.VAL_ANIO  
+							FROM CRA_PERIO PER,  
+								 SEG_PERIO_CORPO PC  
+							WHERE PER.OID_PERI = %value_PERIODOVALUE%                            
+								  AND PC.OID_PERI = PER.PERI_OID_PERI  
+								  %start_MARCAVALUE% AND PER.MARC_OID_MARC = %value_MARCAVALUE% %end_MARCAVALUE%			 	       
+								  %start_CANALVALUE% AND PER.CANA_OID_CANA = %value_CANALVALUE% %end_CANALVALUE%				       
+							)  
+						END)  
+		AND CRO_COB.OID_CRON_COBR = ASI_COB.CRCO_OID_CRON_COBR  
+		AND CRO_COB.ETDE_OID_ETAP_DEUD = ETAPA.OID_ETAP_DEUD   
+		AND CRO_COB.PERD_OID_PERI = PER.OID_PERI   
+		AND PER_COR.OID_PERI = PER.PERI_OID_PERI  
+		AND SEC.OID_SECC = TER_ADM.ZSCC_OID_SECC  
+		AND TER.OID_TERR = TER_ADM.TERR_OID_TERR  
+		AND MCC.OID_MOVI_CC = ASI_COB.MVCC_OID_MOVI_CC  
+		AND MCC.ZSCC_OID_SECC = SEC.OID_SECC  
+		AND MCC.ZTAD_OID_TERR_ADMI = TER_ADM.OID_TERR_ADMI  
+		%start_CODIGOTERRITORIODESDEVALUE% AND TER.COD_TERR >= %value_CODIGOTERRITORIODESDEVALUE% %end_CODIGOTERRITORIODESDEVALUE%						   	  	  		 	      
+		%start_CODIGOTERRITORIOHASTAVALUE% AND TER.COD_TERR &lt;= %value_CODIGOTERRITORIOHASTAVALUE% %end_CODIGOTERRITORIOHASTAVALUE%				   	  	  		 	    		  
+		%start_SECCIONVALUE% AND SEC.OID_SECC = %value_SECCIONVALUE% %end_SECCIONVALUE%  				 	 			  		 	       
+		%start_ZONAVALUE% AND SEC.ZZON_OID_ZONA= %value_ZONAVALUE% %end_ZONAVALUE% 				 	 			  		 	       
+		%start_REGIONVALUE% AND MCC.ZORG_OID_REGI= %value_REGIONVALUE% %end_REGIONVALUE%  				 	 			  		 	       
+		AND ETAPA.OID_ETAP_DEUD = %value_ETAPACOBRANZAVALUE%				 			  		 	       
+		AND PER.PAIS_OID_PAIS = %value_PAISVALUE%				 			  		 	       
+GROUP BY PER_COR.OID_PERI  
+) DATOS,  
+(  
+SELECT (  
+	   SELECT ET.VAL_DESC||': '||ET.VAL_EDAD_INIC  
+	   FROM COB_ETAPA_DEUDA ET  
+	   WHERE ET.OID_ETAP_DEUD = %value_ETAPACOBRANZAVALUE%  
+	   ) ETAPA,  
+	   (  
+	   SELECT ET.VAL_EDAD_FINA  
+	   FROM COB_ETAPA_DEUDA ET  
+	   WHERE ET.OID_ETAP_DEUD = %value_ETAPACOBRANZAVALUE%  
+	   ) ETAPA_FIN,  
+	   OID_PERI,   
+	   COD_PERI,  
+	   VAL_ANIO 			  
+FROM SEG_PERIO_CORPO PER_COR  
+WHERE PER_COR.VAL_ANIO = (CASE WHEN -1 = %value_PERIODOVALUE% THEN								    
+	  				     	TO_NUMBER(TO_CHAR(SYSDATE, 'YYYY'))  
+				     	ELSE  
+							(  
+							SELECT PC.VAL_ANIO  
+							FROM CRA_PERIO PER,  
+								 SEG_PERIO_CORPO PC  
+							WHERE PER.OID_PERI = %value_PERIODOVALUE%                            
+								  AND PC.OID_PERI = PER.PERI_OID_PERI  
+								  %start_MARCAVALUE% AND PER.MARC_OID_MARC = %value_MARCAVALUE% %end_MARCAVALUE%			 	       
+								  %start_CANALVALUE% AND PER.CANA_OID_CANA = %value_CANALVALUE% %end_CANALVALUE%				       
+							)  
+						END)  
+  
+) VIRTUAL			  
+WHERE DATOS.OID_PERI(+) = VIRTUAL.OID_PERI		  
+) 						  
+UNION ALL  
+(  
+SELECT VIRTUAL.ETAPA,  
+	   VIRTUAL.ETAPA_FIN,  
+	   VIRTUAL.COD_PERI,  
+	   VIRTUAL.VAL_ANIO,  
+	   DATOS.IMP_DEUD_ASIG VENTA_COB,  
+	   DATOS.IMP_TOT_VEN TOTAL_VENTA,  
+	   DECODE(DATOS.IMP_TOT_VEN, 0, 0, (DATOS.IMP_DEUD_ASIG/DATOS.IMP_TOT_VEN)*100) VENTA_COB_PORC,  
+	   DATOS.IMP_DEUD_CANC COBRANZA,  
+	   DECODE(DATOS.IMP_DEUD_ASIG, 0, 0, (DATOS.IMP_DEUD_CANC / DATOS.IMP_DEUD_ASIG)*100) REC_PORC  
+FROM	  
+(   
+SELECT   
+	   PER_COR.OID_PERI,  
+	   NVL(SUM(ASI_COB.IMP_DEUD_ASIG), 0) IMP_DEUD_ASIG,  
+	   NVL(SUM(ASI_COB.IMP_DEUD_CANC), 0) IMP_DEUD_CANC,  
+	   (  
+		   SELECT SUM(SOL.VAL_TOTA_PAGA_LOCA)  
+		   FROM PED_SOLIC_CABEC SOL,  
+		   		ZON_SUB_GEREN_VENTA SUBG,  
+				ZON_ZONA ZONA,  
+				ZON_REGIO REG,  
+				ZON_SECCI SEC,  
+				ZON_TERRI_ADMIN TER_ADM,  
+				ZON_TERRI TER,  
+				CRA_PERIO PER  
+			WHERE SOL.PERD_OID_PERI = PER.OID_PERI  
+				AND SOL.ZZON_OID_ZONA = ZONA.OID_ZONA  
+				AND SOL.ZTAD_OID_TERR_ADMI = TER_ADM.OID_TERR_ADMI  
+				AND SOL.TERR_OID_TERR = TER.OID_TERR  
+				AND SUBG.OID_SUBG_VENT = REG.ZSGV_OID_SUBG_VENT  
+				AND REG.OID_REGI = ZONA.ZORG_OID_REGI  
+				AND ZONA.OID_ZONA = SEC.ZZON_OID_ZONA  
+				AND SEC.OID_SECC = TER_ADM.ZSCC_OID_SECC  
+				AND TER.OID_TERR = TER_ADM.TERR_OID_TERR  
+				AND PER.PERI_OID_PERI = PER_COR.OID_PERI  
+				AND SOL.IND_TS_NO_CONSO &lt;> 1  
+				AND SOL.IND_GENE_CC = 1  
+				AND SOL.IND_PEDI_PRUE &lt;> 1  
+				AND SOL.FEC_FACT IS NOT NULL  
+				%start_CODIGOTERRITORIODESDEVALUE% AND TER.COD_TERR >= %value_CODIGOTERRITORIODESDEVALUE% %end_CODIGOTERRITORIODESDEVALUE%						   	  	  		 	      
+				%start_CODIGOTERRITORIOHASTAVALUE% AND TER.COD_TERR &lt;= %value_CODIGOTERRITORIOHASTAVALUE% %end_CODIGOTERRITORIOHASTAVALUE%				   	  	  		 	    		  
+				%start_SECCIONVALUE% AND SEC.OID_SECC = %value_SECCIONVALUE% %end_SECCIONVALUE%  				 	 			  		 	       
+				%start_ZONAVALUE% AND ZONA.OID_ZONA= %value_ZONAVALUE% %end_ZONAVALUE% 				 	 			  		 	       
+				%start_REGIONVALUE% AND REG.OID_REGI = %value_REGIONVALUE% %end_REGIONVALUE%  				 	 			  		 	       
+				%start_MARCAVALUE% AND SUBG.MARC_OID_MARC = %value_MARCAVALUE% %end_MARCAVALUE%			 	 			  		 	       
+				%start_CANALVALUE% AND SUBG.CANA_OID_CANA = %value_CANALVALUE% %end_CANALVALUE%			 	 			  		 	     						  
+				AND SOL.PAIS_OID_PAIS = %value_PAISVALUE%				 			  		 	       
+			GROUP BY PER.PERI_OID_PERI  
+		) IMP_TOT_VEN  
+FROM SEG_PERIO_CORPO PER_COR,  
+	 COB_ASIGN_COBRA ASI_COB,  
+	 COB_CRONO_COBRA CRO_COB,  
+	 CRA_PERIO PER,  
+	 ZON_SECCI SEC,  
+	 ZON_TERRI_ADMIN TER_ADM,  
+	 ZON_TERRI TER,  
+	 COB_ETAPA_DEUDA ETAPA,  
+	 CCC_MOVIM_CUENT_CORRI MCC  
+WHERE PER_COR.VAL_ANIO = ((CASE WHEN -1 = %value_PERIODOVALUE% THEN								       
+	  				     	TO_NUMBER(TO_CHAR(SYSDATE, 'YYYY'))  
+				     	ELSE  
+							(  
+							SELECT PC.VAL_ANIO  
+							FROM CRA_PERIO PER,  
+								 SEG_PERIO_CORPO PC  
+							WHERE PER.OID_PERI = %value_PERIODOVALUE%                            
+								  AND PC.OID_PERI = PER.PERI_OID_PERI  
+								  %start_MARCAVALUE% AND PER.MARC_OID_MARC = %value_MARCAVALUE% %end_MARCAVALUE%			 	       
+								  %start_CANALVALUE% AND PER.CANA_OID_CANA = %value_CANALVALUE% %end_CANALVALUE%				       
+							)  
+						END) -1)  
+		AND CRO_COB.OID_CRON_COBR = ASI_COB.CRCO_OID_CRON_COBR  
+		AND CRO_COB.ETDE_OID_ETAP_DEUD = ETAPA.OID_ETAP_DEUD   
+		AND CRO_COB.PERD_OID_PERI = PER.OID_PERI   
+		AND PER_COR.OID_PERI = PER.PERI_OID_PERI  
+		AND SEC.OID_SECC = TER_ADM.ZSCC_OID_SECC  
+		AND TER.OID_TERR = TER_ADM.TERR_OID_TERR  
+		AND MCC.OID_MOVI_CC = ASI_COB.MVCC_OID_MOVI_CC  
+		AND MCC.ZSCC_OID_SECC = SEC.OID_SECC  
+		AND MCC.ZTAD_OID_TERR_ADMI = TER_ADM.OID_TERR_ADMI  
+		%start_CODIGOTERRITORIODESDEVALUE% AND TER.COD_TERR >= %value_CODIGOTERRITORIODESDEVALUE% %end_CODIGOTERRITORIODESDEVALUE%						   	  	  		 	      
+		%start_CODIGOTERRITORIOHASTAVALUE% AND TER.COD_TERR &lt;= %value_CODIGOTERRITORIOHASTAVALUE% %end_CODIGOTERRITORIOHASTAVALUE%				   	  	  		 	    		  
+		%start_SECCIONVALUE% AND SEC.OID_SECC = %value_SECCIONVALUE% %end_SECCIONVALUE%  				 	 			  		 	       
+		%start_ZONAVALUE% AND SEC.ZZON_OID_ZONA= %value_ZONAVALUE% %end_ZONAVALUE% 				 	 			  		 	       
+		%start_REGIONVALUE% AND MCC.ZORG_OID_REGI = %value_REGIONVALUE% %end_REGIONVALUE%  				 	 			  		 	       
+		AND ETAPA.OID_ETAP_DEUD = %value_ETAPACOBRANZAVALUE%				 			  		 	       
+		AND PER.PAIS_OID_PAIS = %value_PAISVALUE%				 			  		 	       
+GROUP BY PER_COR.OID_PERI  
+) DATOS,  
+(  
+SELECT (  
+	   SELECT ET.VAL_DESC||': '||ET.VAL_EDAD_INIC  
+	   FROM COB_ETAPA_DEUDA ET  
+	   WHERE ET.OID_ETAP_DEUD = %value_ETAPACOBRANZAVALUE%  
+	   ) ETAPA,  
+	   (  
+	   SELECT ET.VAL_EDAD_FINA  
+	   FROM COB_ETAPA_DEUDA ET  
+	   WHERE ET.OID_ETAP_DEUD = %value_ETAPACOBRANZAVALUE%  
+	   ) ETAPA_FIN,  
+	   OID_PERI,   
+	   COD_PERI,  
+	   VAL_ANIO 			  
+FROM SEG_PERIO_CORPO PER_COR  
+WHERE PER_COR.VAL_ANIO = ((CASE WHEN -1 = %value_PERIODOVALUE% THEN							    
+	  				     	TO_NUMBER(TO_CHAR(SYSDATE, 'YYYY'))  
+				     	ELSE  
+							(  
+							SELECT PC.VAL_ANIO  
+							FROM CRA_PERIO PER,  
+								 SEG_PERIO_CORPO PC  
+							WHERE PER.OID_PERI = %value_PERIODOVALUE%                            
+								  AND PC.OID_PERI = PER.PERI_OID_PERI  
+								  %start_MARCAVALUE% AND PER.MARC_OID_MARC = %value_MARCAVALUE% %end_MARCAVALUE%			 	       
+								  %start_CANALVALUE% AND PER.CANA_OID_CANA = %value_CANALVALUE% %end_CANALVALUE%				       
+							)  
+						END) -1)  
+) VIRTUAL			  
+WHERE DATOS.OID_PERI(+) = VIRTUAL.OID_PERI  
+)  
+" ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.106:1523:SICCV3D" ExternalConnectionDistributedUrl="" ExternalConnectionUser="usu_peru" ExternalConnectionPassword="peru" DatePattern="" DateTimePattern=""/>  
+	</DataSourceDefinitions>  
+	<Localizations/>  
+</ReportSourceDefinition>  
+

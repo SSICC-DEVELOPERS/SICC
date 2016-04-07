@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by team (renegade) -->  
+<ReportSourceDefinition Id="RSD_REP-081_01" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="SUBG" Description="SUBG" DataType="STRING" Calculated="false" Expression="" ExternalData="SUBG"/>  
+		<DimensionSourceDefinition Name="REGION" Description="REGION" DataType="STRING" Calculated="false" Expression="" ExternalData="REGION"/>  
+		<DimensionSourceDefinition Name="ZONA" Description="ZONA" DataType="STRING" Calculated="false" Expression="" ExternalData="ZONA"/>  
+		<DimensionSourceDefinition Name="COD_CLI_RECTE" Description="COD_CLI_RECTE" DataType="STRING" Calculated="false" Expression="" ExternalData="COD_CLI_RECTE"/>  
+		<DimensionSourceDefinition Name="PERIODO" Description="PERIODO" DataType="STRING" Calculated="false" Expression="" ExternalData="PERIODO"/>  
+		<DimensionSourceDefinition Name="NOMBRE_RECTE" Description="NOMBRE_RECTE" DataType="STRING" Calculated="false" Expression="" ExternalData="NOMBRE_RECTE"/>  
+		<DimensionSourceDefinition Name="COD_CLIE_RECDO" Description="COD_CLIE_RECDO" DataType="STRING" Calculated="false" Expression="" ExternalData="COD_CLIE_RECDO"/>  
+		<DimensionSourceDefinition Name="NOMBRE_RECDO" Description="NOMBRE_RECDO" DataType="STRING" Calculated="false" Expression="" ExternalData="NOMBRE_RECDO"/>  
+		<DimensionSourceDefinition Name="L_CALI" Description="L_CALI" DataType="STRING" Calculated="false" Expression="" ExternalData="L_CALI"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="VENTA_IND_RECTE" Description="VENTA_IND_RECTE" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="VENTA_IND_RECTE" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="BENEFICIO" Description="BENEFICIO" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="BENEFICIO" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="PROM_BENE" Description="PROM_BENE" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="PROM_BENE" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="VENTA_IND_RECDA" Description="VENTA_IND_RECDA" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="VENTA_IND_RECDA" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PAIS" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="MARCA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="CANAL" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="REGION" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="SUBGERENCIAVENTA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PERIODO" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="TIPOVENTA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="NUMEROCONCURSO" Visual="FALSE"/>  
+	</FilterDefinitions>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="REP-081_01" SourceType="SQL" Expression="SELECT SUBG,  
+	   REGION,  
+	   COD_CLI_RECTE,  
+	   PERIODO,  
+	   NOMBRE_RECTE,  
+	   COD_CLIE_RECDO,  
+	   NOMBRE_RECDO,  
+	   CASE WHEN (CONTROL = 1) THEN  
+	   	   L_CALI  
+	   END L_CALI,  
+	   CASE WHEN (CONTROL = 1) THEN  
+	   	   VENTA_IND_RECTE  
+	   END VENTA_IND_RECTE,  
+	   CASE WHEN (CONTROL = 1) THEN  
+	   	   BENEFICIO  
+	   END BENEFICIO,  
+	   CASE WHEN (CONTROL = 1) THEN  
+	   	   PROM_BENE  
+	   END PROM_BENE,  
+	   VENTA_IND_RECDA  
+FROM(  
+		SELECT SUBG,  
+	   REGION,  
+	   COD_CLI_RECTE,  
+	   PERIODO,  
+	   NOMBRE_RECTE,  
+	   COD_CLIE_RECDO,  
+	   NOMBRE_RECDO,  
+	   L_CALI,  
+	   VENTA_IND_RECTE,  
+	   BENEFICIO,  
+	   DECODE((SUM(BENEFICIO) OVER (PARTITION BY SUBG, REGION, COD_CLI_RECTE)), 0, 0, BENEFICIO/(SUM(BENEFICIO) OVER (PARTITION BY SUBG, REGION, COD_CLI_RECTE))) PROM_BENE,  
+	  
+	   VENTA_IND_RECDA,  
+	      SUM(1) OVER (PARTITION BY SUBG,REGION,COD_CLI_RECTE, PERIODO ORDER BY ROWNUM) CONTROL  
+FROM  
+(  
+	SELECT SUBG,  
+		   REGION,  
+		   PERIODO,  
+		   COD_CLI_RECTE,  
+		   NOMBRE_RECTE,  
+		   CASE WHEN (L_CALI = 1) THEN  
+		   		'SI'  
+		   ELSE  
+		   	    'NO'  
+		   END L_CALI,  
+		   VENTA_IND_RECTE,  
+		   CASE WHEN (L_CALI = 1) THEN  
+		   		SUM(VENTA_IND_RECDA) OVER (PARTITION BY SUBG, REGION, PERIODO, COD_CLI_RECTE)  
+		   ELSE  
+		   	   0  
+		   END BENEFICIO,	  
+		   COD_CLIE_RECDO,  
+		   NOMBRE_RECDO,  
+		   VENTA_IND_RECDA   	     
+	FROM  
+	(  
+		SELECT SUBG.DES_SUBG_VENT SUBG,  
+			   REG.DES_REGI REGION,  
+			   CLI1.COD_CLIE COD_CLI_RECTE,  
+			   CLI1.VAL_APE1||' '||CLI1.VAL_APE2||' '||CLI1.VAL_NOM1||' '||CLI1.VAL_NOM2 NOMBRE_RECTE,  
+			   PERI.VAL_NOMB_PERI PERIODO,  
+			   (  
+				   SELECT 1  
+				   FROM INC_SOLIC_CONCU_PUNTA SCP  
+				   WHERE SCP.CLIE_OID_CLIE = CRM.CLIE_OID_CLIE  
+				   		 AND SCP.COPA_OID_PARA_GRAL = CGP.OID_PARA_GRAL  
+						 AND SCP.PERD_OID_PERI = PERI.OID_PERI  
+		 	   ) L_CALI,  
+			   (  
+				   SELECT PRM.VAL_CANT  
+				   FROM INC_PEDID_RECTE_MULTI PRM  
+				   WHERE PRM.CLR2_CLIE_OID_CLIE = CRM.CLIE_OID_CLIE  
+				   		 AND PRM.PERD_OID_PERI = PERI.OID_PERI  
+			   ) VENTA_IND_RECTE,  
+			   CLI2.COD_CLIE COD_CLIE_RECDO,  
+			   CLI2.VAL_APE1||' '||CLI2.VAL_APE2||' '||CLI2.VAL_NOM1||' '||CLI2.VAL_NOM2 NOMBRE_RECDO,  
+			   (  
+			   	   SELECT PRD.NUM_CANT  
+				   FROM INC_PEDID_RECDA_MULTI PRD  
+				   WHERE PRD.CLRM_OID_CLIE_RECO_MULT = CRD.OID_CLIE_RECO_MULT  
+				   		 AND PRD.PERD_OID_PERI = PERI.OID_PERI  
+			   ) VENTA_IND_RECDA	    
+		FROM INC_CONCU_PARAM_GENER CGP,  
+			 (  
+				 SELECT FEC_FINA   
+				 FROM CRA_PERIO   
+				 WHERE OID_PERI =  %value_PERIODOVALUE%   
+  
+			 ) P_FF,  
+			 (  
+			 SELECT *  
+			 FROM CRA_PERIO PE  
+			 WHERE PE.OID_PERI = (  
+				 SELECT CASE WHEN (P_FI.FEC_INIC &lt;= P_5.FEC_INIC) THEN  
+				 			 P_5.OID_PERI  
+						ELSE  
+							 P_FI.OID_PERI  
+						END    
+				 FROM CRA_PERIO P_FI,  
+				 	  INC_CONCU_PARAM_GENER CPG,  
+					  (  
+						  SELECT *  
+						  FROM CRA_PERIO P  
+						  WHERE P.OID_PERI =  (  
+											  SELECT pq_apl_rep.FN_008_CALC_OID_PER_ANT(%value_PAISVALUE%,%value_MARCAVALUE%,%value_CANALVALUE%,%value_PERIODOVALUE%,5)	  
+											  FROM DUAL  
+											  )  
+					  ) P_5  
+				 WHERE P_FI.OID_PERI = CPG.PERD_OID_PERI_DESD  
+				 	   AND CPG.OID_PARA_GRAL = %value_NUMEROCONCURSOVALUE%  
+				)  
+			 ) P_FI,  
+			 CRA_PERIO PERI,  
+			 INC_PLANT_CONCU PLA,  
+			 INC_CONCU_PARAM_CONSU CPC,  
+			 INC_MONTO_VENTA_RECOM MVR,  
+			 INC_OBTEN_PUNTO OP,  
+			 INC_MULTI MUL,  
+			 INC_CLIEN_RECTE_MULTI CRM,  
+			 MAE_CLIEN_UNIDA_ADMIN CUA,  
+			 ZON_SUB_GEREN_VENTA SUBG,  
+			 ZON_REGIO REG,  
+			 ZON_ZONA ZONA,  
+			 ZON_SECCI SEC,  
+			 ZON_TERRI_ADMIN TA,  
+			 INC_CLIEN_RECDO_MULTI CRD,  
+			 MAE_CLIEN CLI1,  
+			 MAE_CLIEN CLI2   
+		WHERE CGP.OID_PARA_GRAL = CPC.COPA_OID_PARA_GRAL  
+			  AND MVR.COPA_OID_PARA_GRAL = CGP.OID_PARA_GRAL  
+			  AND OP.COPA_OID_PARA_GRAL = CGP.OID_PARA_GRAL  
+			  AND MUL.COPA_OID_PARA_GRAL = CGP.OID_PARA_GRAL  
+			  AND CRM.COPA_OID_PARA_GRAL = CGP.OID_PARA_GRAL  
+			  AND CGP.PLC2_OID_PLAN_CONC = PLA.OID_PLAN_CONC  
+			  AND P_FI.FEC_INIC &lt;= PERI.FEC_INIC  
+			  AND P_FF.FEC_FINA >= PERI.FEC_FINA  
+			  AND CUA.CLIE_OID_CLIE = CRM.CLIE_OID_CLIE  
+			  AND CUA.IND_ACTI = 1  
+			  AND CGP.IND_ACTI = 1  
+			  AND SUBG.OID_SUBG_VENT = REG.ZSGV_OID_SUBG_VENT  
+			  AND REG.OID_REGI = ZONA.ZORG_OID_REGI  
+			  AND ZONA.OID_ZONA = SEC.ZZON_OID_ZONA  
+			  AND SEC.OID_SECC = TA.ZSCC_OID_SECC  
+			  AND TA.OID_TERR_ADMI = CUA.ZTAD_OID_TERR_ADMI  
+			 AND CRM.OID_CLIE_RECO_MULT = CRD.CLR2_CLIE_OID_CLIE  
+			   AND CRM.CLIE_OID_CLIE = CLI1.OID_CLIE  
+			  AND CRD.CLIE_OID_CLIE = CLI2.OID_CLIE  
+  			  AND P_FI.PAIS_OID_PAIS = PERI.PAIS_OID_PAIS  
+			  AND P_FI.MARC_OID_MARC = PERI.MARC_OID_MARC  
+			  AND P_FI.CANA_OID_CANA = PERI.CANA_OID_CANA  
+    		  AND PLA.TVEN_OID_TIPO_VENT = %value_TIPOVENTAVALUE%  
+    		    
+      %start_SUBGERENCIAVENTAVALUES% AND SUBG.OID_SUBG_VENT IN  (%value_SUBGERENCIAVENTAVALUES%) %end_SUBGERENCIAVENTAVALUES%  
+	  %start_REGIONVALUES% AND REG.OID_REGI IN (%value_REGIONVALUES%) %end_REGIONVALUES%   
+	  AND CGP.OID_PARA_GRAL =  %value_NUMEROCONCURSOVALUE%  
+	)		   
+))  
+ " ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.106:1523:SICCV3D" ExternalConnectionDistributedUrl="" ExternalConnectionUser="OWN_PERU" ExternalConnectionPassword="PERU_OWN" DatePattern="" DateTimePattern=""/>  
+	</DataSourceDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="PAIS" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="MARCA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="CANAL" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="REGION" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="SUBGERENCIAVENTA" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="NUMEROCONCURSO" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="PERIODO" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="TIPOVENTA" FilterParameter="VALUE"/>  
+	</ParameterValues>  
+	<Localizations/>  
+</ReportSourceDefinition>  
+

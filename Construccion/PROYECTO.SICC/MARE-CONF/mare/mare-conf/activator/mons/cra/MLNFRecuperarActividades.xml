@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+<!-- Rose2MARE Plug-IN v.1.0.0 -->
+<ejb-operation>
+	<pre-activation-actions>
+		//System.out.println("###### INGRESÓ A PREACTIVACION EN MLNFRecuperarActividades #######");
+		es.indra.sicc.dtos.cra.DTOSeleccionPaisMarcaCanal dtoEntrada = dts.getProperty("DTO_INPUT");
+		es.indra.sicc.dtos.cra.DTOEntradaDatosActividad dtoEntradaActividad = new es.indra.sicc.dtos.cra.DTOEntradaDatosActividad();
+		dtoEntradaActividad.setCodigoMarca(dtoEntrada.getMarca());
+		dtoEntradaActividad.setCodigoPais(dtoEntrada.getPais());
+		dtoEntradaActividad.setCodigoCanal(dtoEntrada.getCanal());
+		//System.out.println("###### CONSTRUYÓ dtoEntrada EN ACTIVADOR MLNFRecuperarActividades ####### Codigo Marca: "+ dtoEntrada.getMarca());
+		//System.out.println("###### SALIO DE PREACTIVACION EN MLNFRecuperarActividades #######");
+	</pre-activation-actions>
+	<post-activation-actions>
+		//System.out.println("###### INGRESÓ A POSTACTIVACIÓN EN MLNFRecuperarActividades #######");
+		es.indra.sicc.dtos.cra.DTOCargarGruposZonasActividades resultado = dts.getProperty("resultadoIntermedio");
+		es.indra.sicc.util.DTOSalida dtoSalida = dts.getLastResult();
+		//System.out.println("###### OBTUVO RESULTADO A INVOCACIÓN DE METODO buscaPorCriterio DE  MONMantenimientoActividad #######");
+		es.indra.mare.common.mii.services.jdbcservice.RecordSet actividades = dtoSalida.getResultado();
+		//System.out.println("###### OBTUVO RECORSET DEL DTOSalida DEVUELTO POR MONMantenimientoActividad #######");
+	        if (!actividades.esVacio()) {
+		    //System.out.println("###### RECORDSET Actividades NO ES VACIO. ENTRO A IF #######");
+		    java.util.Vector registros = actividades.getRecords();
+		    //System.out.println("###### OBTUVO EL VECTOR CON LOS REGISTROS DE LA TABLA CRA_ACTIV #######");
+	            java.util.Enumeration enumRegistros = registros.elements();
+		    //System.out.println("###### OBTUVO LA ENUMERACION A PARTIR DEL VECTOR CON LOS REGISTROS DE LA TABLA CRA_ACTIV #######");
+		    es.indra.sicc.dtos.cra.DTOColeccionActividades dtoColeccionActividades = new es.indra.sicc.dtos.cra.DTOColeccionActividades();
+		    dtoColeccionActividades.setActividades(new java.util.Vector());
+		    while (enumRegistros.hasMoreElements()) {
+			//System.out.println("###### DENTRO DEL WHILE #######");			
+			java.util.Vector fila = enumRegistros.nextElement();
+			//System.out.println("###### OBTUVO UNA FILA A PARTIR DE LA ENUMERACION DE REGISTROS DE TABLA CRA_ACTIV #######");			
+		        es.indra.sicc.dtos.cra.DTOConsultaActividad dtoCA = new es.indra.sicc.dtos.cra.DTOConsultaActividad();
+			//System.out.println("###### CREO NUEVA INSTANCIA DE  DTOConsultaActividad #######");			
+			dtoCA.setCodigoPais(new java.lang.Integer(((java.math.BigDecimal) fila.elementAt(0)).intValue()));
+			//System.out.println("###### SETEO codigoPais: "+ fila.elementAt(0) +" al DTOConsultaActividad #######");			
+			dtoCA.setCodigoMarca(new java.lang.Integer(((java.math.BigDecimal) fila.elementAt(1)).intValue()));
+			//System.out.println("###### SETEO codigoMarca: "+ fila.elementAt(1) +" al DTOConsultaActividad #######");			
+			dtoCA.setCodigoCanal(new java.lang.Integer(((java.math.BigDecimal) fila.elementAt(2)).intValue()));
+			//System.out.println("###### SETEO codigoCanal: "+ fila.elementAt(2) +" al DTOConsultaActividad #######");			
+			dtoCA.setCodigoActividad((java.lang.String) fila.elementAt(3));
+			//System.out.println("###### SETEO codigoCodigoActividad: "+(java.lang.String) fila.elementAt(3)+" al DTOConsultaActividad #######");			
+			dtoCA.setNombreActividad((java.lang.String) fila.elementAt(4));
+			//System.out.println("###### SETEO codigoNombreActividad: "+(java.lang.String) fila.elementAt(4)+" al DTOConsultaActividad #######");			
+			if ( ((java.math.BigDecimal) fila.elementAt(5)).intValue() == 0) {
+				dtoCA.setTipoActividad(new java.lang.Boolean(false));
+			} else if ( ((java.math.BigDecimal) fila.elementAt(5)).intValue() == 1) {
+				dtoCA.setTipoActividad(new java.lang.Boolean(true));
+			}
+			//System.out.println("###### SETEO tipoActividad: "+ fila.elementAt(5)+ " O EN BOOLEANO: "+ dtoCA.getTipoActividad() +" al DTOConsultaActividad #######");
+			if ( ((java.math.BigDecimal) fila.elementAt(6)).intValue() == 0) {
+				dtoCA.setEbelNoticias(new java.lang.Boolean(false));
+			} else if ( ((java.math.BigDecimal) fila.elementAt(6)).intValue() == 1) {
+				dtoCA.setEbelNoticias(new java.lang.Boolean(true));
+			}
+			//System.out.println("###### SETEO ebelNoticias: "+fila.elementAt(6)+" O EN BOOLEANO: "+dtoCA.getEbelNoticias()+" al DTOConsultaActividad #######");
+			if (fila.elementAt(12) != null) {
+				dtoCA.setCodigoActividadOrigen((java.lang.String) fila.elementAt(12));
+				//System.out.println("###### SETEO codigoActividadOrigen: "+(java.lang.String) fila.elementAt(12)+" al DTOConsultaActividad #######");			
+			} else {
+				//System.out.println("***************  codigoActividadOrigen es NULL");						
+			}
+			if ( fila.elementAt(8) != null) {
+				dtoCA.setCodigoAreaResponsable(new java.lang.Integer(((java.math.BigDecimal) fila.elementAt(8)).intValue()));
+				//System.out.println("###### SETEO codigoAreaResponsable: "+ fila.elementAt(8)+" al DTOConsultaActividad #######");
+			} else {
+				//System.out.println("***************  codigoAreaResponsable es NULL");						
+			} 
+			dtoColeccionActividades.getActividades().addElement(dtoCA);
+			resultado.setActividades(dtoColeccionActividades);
+			//System.out.println("###### AGREGO EL DTOConsultaActividad AL DTOCargarGruposZonasActividades resultado QUE DEVUELVE LA RED#######");			
+	            }
+		    //System.out.println("###### SALIO DEL WHILE. NO HAY MÁS REGISTROS #######");			
+		}
+		dts.setProperty("DTO_OUTPUT", resultado);
+		//System.out.println("###### SETEO LA SALIDA DEL ACTIVADOR DTO_OUTPUT CON EL DTOCargarGruposZonasActividades resultado #######");
+	</post-activation-actions>
+	<activator static-method="false" xsi:type="java:es.indra.mare.common.activator.EjbActivator" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+		<class-name>es.indra.sicc.logicanegocio.cra.MONMantenimientoActividad</class-name>
+		<home-class>es.indra.sicc.logicanegocio.cra.MONMantenimientoActividadHome</home-class>
+		<jndi-name>MONMantenimientoActividad</jndi-name>
+		<method-name>buscaPorCriterio</method-name>
+		<args-types>es.indra.sicc.dtos.cra.DTOEntradaDatosActividad</args-types>
+	</activator>
+	<args-values>dtoEntradaActividad</args-values>
+</ejb-operation>

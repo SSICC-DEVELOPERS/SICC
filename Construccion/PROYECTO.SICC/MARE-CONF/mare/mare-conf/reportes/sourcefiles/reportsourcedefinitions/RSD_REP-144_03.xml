@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by team (renegade) -->  
+<ReportSourceDefinition Id="RSD_REP-144_03" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="COMISION" Description="COMISION" DataType="STRING" Calculated="false" Expression="" ExternalData="COMISION"/>  
+		<DimensionSourceDefinition Name="DES_SUBG_VENT" Description="DES_SUBG_VENT" DataType="STRING" Calculated="false" Expression="" ExternalData="DES_SUBG_VENT"/>  
+		<DimensionSourceDefinition Name="DES_REGI" Description="DES_REGI" DataType="STRING" Calculated="false" Expression="" ExternalData="DES_REGI"/>  
+		<DimensionSourceDefinition Name="COD_ZONA" Description="COD_ZONA" DataType="STRING" Calculated="false" Expression="" ExternalData="COD_ZONA"/>  
+		<DimensionSourceDefinition Name="PERIODO" Description="PERIODO" DataType="STRING" Calculated="false" Expression="" ExternalData="PERIODO"/>  
+		<DimensionSourceDefinition Name="GER_ZONA" Description="GER_ZONA" DataType="STRING" Calculated="false" Expression="" ExternalData="GER_ZONA"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="IMPORTE_COMISION" Description="IMPORTE_COMISION" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="IMPORTE_COMISION" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="IDIOMA" Visual="false"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PAIS" Visual="false"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="MARCA" Visual="false"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="CANAL" Visual="false"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PERIODO" Visual="false"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="COMISION" Visual="false"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="SUBGERENCIAVENTA" Visual="false"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="REGION" Visual="false"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="ZONA" Visual="false"/>  
+	</FilterDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="IDIOMA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="PAIS" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="MARCA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="CANAL" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="41" FilterDefinitionName="PERIODO" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1319" FilterDefinitionName="COMISION" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1,2,3,4,5,6,7,8,9" FilterDefinitionName="SUBGERENCIAVENTA" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="REGION" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="ZONA" FilterParameter="VALUES"/>  
+	</ParameterValues>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="REP-144_03" SourceType="SQL" Expression="  
+SELECT  
+	gen_comis.val_i18n AS comision,  
+	subg.des_subg_vent,  
+	reg.des_regi,  
+	zon.cod_zona,  
+	peri.val_nomb_peri AS periodo,  
+	cli_ger.val_nom1||' '||cli_ger.val_nom2||' '||cli_ger.val_ape1||' '||cli_ger.val_ape2 AS ger_zona,  
+	SUM(cpt.num_impo_pago) AS importe_comision  
+FROM  
+	com_comis_cobra_acumu_clien com_cli,  
+	com_comis_cobra_acumu com_acu,  
+	com_comis com,  
+	com_cuota_por_tramo_com_calcu cpt,  
+	zon_sub_geren_venta subg,  
+	zon_regio reg,  
+	zon_zona zon,  
+	mae_clien cli_ger,  
+	mae_clien cli,  
+	cra_perio peri,  
+	(  
+	SELECT gen.val_oid, gen.val_i18n  
+	FROM v_gen_i18n_sicc gen  
+	WHERE gen.attr_enti = 'COM_COMIS'  
+	AND gen.idio_oid_idio = %value_IDIOMAVALUE%  
+	) gen_comis  
+WHERE  
+	com_acu.oid_comi_cobr_acum = com_cli.coc2_oid_comi_cobr_acum  
+	AND com_acu.comi_oid_comi = com.oid_comi  
+	AND com_acu.clie_oid_clie = zon.clie_oid_clie  
+	AND cpt.actr_oid_comi_cobr_acum = com_cli.oid_comi_cobr_acum   
+	AND zon.clie_oid_clie(+) = cli_ger.oid_clie  
+	AND zon.zorg_oid_regi = reg.oid_regi  
+	AND reg.zsgv_oid_subg_vent = subg.oid_subg_vent  
+	AND com_acu.perd_oid_peri = %value_PERIODOVALUE%  
+	AND com_acu.perd_oid_peri = peri.oid_peri  
+	    AND (INSTR(  
+	    (  
+		    CASE WHEN (zon.PERD_OID_PERI_FINA IS NOT NULL) THEN  
+	   		 	 (  
+				  	 SELECT PQ_APL_REP.FN_013_FACDTR_CONCAT_PERI(zon.PERD_OID_PERI_INIC, zon.PERD_OID_PERI_FINA)  
+					 FROM DUAL  
+				 ) 	  
+		  	ELSE  
+	   		 	 (  
+				  	 SELECT PQ_APL_REP.FN_013_FACDTR_CONCAT_PERI(zon.PERD_OID_PERI_INIC,(  
+																		SELECT *  
+																		FROM  
+																			(		  
+																			SELECT P.OID_PERI      
+																				FROM CRA_PERIO P         
+																				WHERE P.MARC_OID_MARC =  1            
+																				AND P.CANA_OID_CANA = 1      
+																				AND  P.PAIS_OID_PAIS =  1     
+																				AND SYSDATE &lt;= P.FEC_FINA          
+																				AND SYSDATE >= P.FEC_INIC  
+																			ORDER BY FEC_FINA DESC 	  
+																			)  
+																		WHERE ROWNUM = 1  
+																		))  
+					 FROM DUAL  
+				 ) 	  
+			END  
+		),  
+			 	    	  	 ','||%value_PERIODOVALUE%||','					  
+		) > 0)  
+	AND gen_comis.val_oid(+) = com.oid_comi  
+	AND cpt.clie_oid_clie = cli.oid_clie  
+	%start_ZONAVALUES% AND zon.oid_zona IN (%value_ZONAVALUES%) %end_ZONAVALUES%  
+	%start_REGIONVALUES% AND reg.oid_regi IN (%value_REGIONVALUES%) %end_REGIONVALUES%  
+	AND subg.oid_subg_vent IN (%value_SUBGERENCIAVENTAVALUES%)  
+	AND subg.cana_oid_cana = %value_CANALVALUE%  
+	AND subg.marc_oid_marc = %value_MARCAVALUE%  
+	AND subg.pais_oid_pais = %value_PAISVALUE%  
+	AND com.oid_comi = %value_COMISIONVALUE%  
+GROUP BY  
+	gen_comis.val_i18n,  
+	peri.val_nomb_peri,  
+	subg.des_subg_vent,  
+	reg.des_regi,  
+	zon.cod_zona,  
+	cli_ger.val_nom1|| ' '|| cli_ger.val_nom2|| ' '|| cli_ger.val_ape1|| ' '|| cli_ger.val_ape2  
+						  
+	" ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.106:1523:SICCV3D" ExternalConnectionDistributedUrl="" ExternalConnectionUser="usu_peru" ExternalConnectionPassword="peru" DatePattern="" DateTimePattern=""/>  
+	</DataSourceDefinitions>  
+</ReportSourceDefinition>  
+

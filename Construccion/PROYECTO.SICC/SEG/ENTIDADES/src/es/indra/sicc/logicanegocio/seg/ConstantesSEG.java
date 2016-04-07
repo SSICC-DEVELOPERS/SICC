@@ -1,0 +1,51 @@
+package es.indra.sicc.logicanegocio.seg;
+
+public class ConstantesSEG  {  
+  public static final String INDEFINIDO = "0";  
+  public static final String MODULO_PED = "1"; 
+  public static final String MODULO_INT = "2"; /* el modulo no es seguro*/
+  public static final String MODULO_BEL = "3";
+  public static final String MODULO_REP = "4";
+  public static final String MODULO_PRE = "5";
+  public static final String MODULO_MSG = "6";
+  public static final String MODULO_DTO = "7";
+  public static final String MODULO_MEN = "8"; 
+  public static final String MODULO_MAV = "9";
+  public static final String MODULO_EDU = "10";
+  public static final String MODULO_COM = "11";
+  public static final String MODULO_SEG = "12";
+  public static final String MODULO_INC = "13";
+  public static final String MODULO_GEN = "14";
+  public static final String MODULO_REC = "15";
+  public static final String MODULO_MAE = "16";
+  public static final String MODULO_COB = "17";
+  public static final String MODULO_CRA = "18";
+  public static final String MODULO_CAR = "19";
+  public static final String MODULO_APE = "20";
+  public static final String MODULO_CAL = "21";
+  public static final String MODULO_FAC = "22";
+  public static final String MODULO_CCC = "23";
+  public static final String MODULO_ZON = "24";
+  public static final String MODULO_APP = "25"; 
+  public static final String ACCESO_CALLCENTER = "CL";
+  public static final String ACCESO_BELCENTER = "BL";
+  public static final String CANAL_VD = "1";  //Incid. 7102
+  public static final Long [] OID_ACCESO_BELCENTER = {new Long(2), new Long(3)};
+  public static final Long [] OIDS_ACCESO_CALLCENTER = {new Long(4)}; //Cortaberria. applet ped
+  public static final Long IDIOMA_DEFECTO = new Long(1);
+  public static final String IND_ACCESO_BELCENTER = "B"; // Inc. 9737, by ssantana  
+  public static final String SEG_SUBAC = "SEG_SUBAC";	// Applet ped - jquiroga  
+  public static final String SEG_ACCES = "SEG_ACCES";	// Applet ped - jquiroga
+  public static final String SEG_CANAL = "SEG_CANAL";	// Applet ped - jquiroga
+  public static final String COD_CANAL_VD = "VD";   	// Inc. 13301, by ssantana
+  public static final String COD_MARCA_T = "T";
+  public static final String COD_MARCA_EB = "EB";  
+  public static final String SEG_MONED = "SEG_MONED"; //N48 BEL - jquiroga
+  public static final String ACCESO_GZ = "GZ";  
+  public static final String SUBACCESO_000 = "000";  
+  public static final Long MODULO_INT_ECM = new Long(28);  
+  public static final String SEG_TIPO_PERIO = "SEG_TIPO_PERIO"; 
+  public static final Long OID_MODULO_INC = new Long(13);  
+  public static final String ACCESO_GERENTES = "GZ";
+  public static final String SUBAC_GERENTES = "000";
+}

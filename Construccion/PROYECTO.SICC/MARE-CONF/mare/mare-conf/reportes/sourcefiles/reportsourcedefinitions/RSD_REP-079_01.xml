@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by team (renegade) -->  
+<ReportSourceDefinition Id="RSD_REP-079_01" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="NUM_CONC" Description="NUM_CONC" DataType="STRING" Calculated="false" Expression="" ExternalData="NUM_CONC"/>  
+		<DimensionSourceDefinition Name="PERI_INI" Description="PERI_INI" DataType="STRING" Calculated="false" Expression="" ExternalData="PERI_INI"/>  
+		<DimensionSourceDefinition Name="PERI_FIN" Description="PERI_FIN" DataType="STRING" Calculated="false" Expression="" ExternalData="PERI_FIN"/>  
+		<DimensionSourceDefinition Name="PERI_EVAL" Description="PERI_EVAL" DataType="STRING" Calculated="false" Expression="" ExternalData="PERI_EVAL"/>  
+		<DimensionSourceDefinition Name="N_RECDA_EFECT" Description="N_RECDA_EFECT" DataType="STRING" Calculated="false" Expression="" ExternalData="N_RECDA_EFECT"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="N_RECTE_CONS" Description="N_RECTE_CONS" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="N_RECTE_CONS" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="FREC_ACUM" Description="FREC_ACUM" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="FREC_ACUM" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="TOTAL_RECDA" Description="TOTAL_RECDA" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="TOTAL_RECDA" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="PORC_RECOM_INGRE" Description="PORC_RECOM_INGRE" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="PORC_RECOM_INGRE" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PAIS" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="MARCA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="CANAL" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="NUMEROCONCURSO" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="NUMERORECOMENDADASEFECTIVA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="INGRESOSCAMPANIA" Visual="FALSE"/>  
+	</FilterDefinitions>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="REP-079_01" SourceType="SQL" Expression="		  
+SELECT    
+	   NUM_CONC,   
+	   PERI_INI,   
+	   PERI_FIN,   
+	   PERI_EVAL,   
+	   N_RECDA_EFECT,   
+	   N_RECTE_CONS,   
+	   FREC_ACUM,   
+	   TOTAL_RECDA,   
+	   PORC_RECOM_INGRE   
+FROM   
+(   
+	SELECT    
+		   NUM_CONC,   
+		   PERI_INI,   
+		   PERI_FIN,   
+		   PERI_EVAL,   
+		   TOTAL_RECDA N_RECDA_EFECT,   
+		   COUNT(RECTE) N_RECTE_CONS,   
+		   SUM(COUNT(RECTE)) OVER (PARTITION BY NUM_CONC, PERI_EVAL ORDER BY TOTAL_RECDA DESC) FREC_ACUM,   
+		   TOTAL_RECDA * COUNT(RECTE) TOTAL_RECDA,   
+		   (TOTAL_RECDA * COUNT(RECTE))*100/%value_INGRESOSCAMPANIAVALUE% PORC_RECOM_INGRE   
+	FROM   
+	(   
+		SELECT    
+			   CPG.NUM_CONC,   
+			   PERI1.VAL_NOMB_PERI PERI_INI,   
+			   PERI2.VAL_NOMB_PERI PERI_FIN,   
+			   PERI3.VAL_NOMB_PERI PERI_EVAL,   
+			   RECTE.OID_CLIE_RETE RECTE,   
+			   COUNT(RECDO.OID_CLIE_REDO) TOTAL_RECDA   
+		FROM INC_CONCU_PARAM_GENER CPG,   
+			 INC_CLIEN_RECTE RECTE,   
+			 INC_CLIEN_RECDO RECDO,   
+			 CRA_PERIO PERI1,   
+			 CRA_PERIO PERI2,   
+			 CRA_PERIO PERI3   
+		WHERE    
+			   RECTE.COPA_OID_PARA_GRAL = CPG.OID_PARA_GRAL   
+			  AND RECDO.CLR3_OID_CLIE_RETE = RECTE.OID_CLIE_RETE   
+			  AND CPG.PERD_OID_PERI_DESD = PERI1.OID_PERI   
+			  AND CPG.PERD_OID_PERI_HAST = PERI2.OID_PERI   
+			  AND RECDO.PERD_OID_PERI = PERI3.OID_PERI   
+			  AND PERI3.FEC_INIC BETWEEN PERI1.FEC_INIC AND PERI2.FEC_INIC    
+			  AND RECDO.IND_EFEC = 1   
+		 	  AND CPG.OID_PARA_GRAL = %value_NUMEROCONCURSOVALUE%   
+		GROUP BY    
+			   CPG.NUM_CONC,   
+			   PERI1.VAL_NOMB_PERI,   
+			   PERI2.VAL_NOMB_PERI,   
+			   PERI3.VAL_NOMB_PERI,   
+			   RECTE.OID_CLIE_RETE   
+	)   
+	GROUP BY    
+		   NUM_CONC,   
+		   PERI_INI,   
+		   PERI_FIN,   
+		   PERI_EVAL,   
+		   TOTAL_RECDA   
+	ORDER BY    
+			 NUM_CONC,   
+			 N_RECDA_EFECT   
+)   
+WHERE 1=1 %start_NUMERORECOMENDADASEFECTIVAVALUES%  AND N_RECDA_EFECT IN  (%value_NUMERORECOMENDADASEFECTIVAVALUES%) %end_NUMERORECOMENDADASEFECTIVAVALUES%   
+ORDER BY    
+		 NUM_CONC,   
+		 PERI_EVAL,   
+		 N_RECDA_EFECT	  
+	" ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.106:1523:SICCV3D" ExternalConnectionDistributedUrl="" ExternalConnectionUser="OWN_PERU" ExternalConnectionPassword="PERU_OWN" DatePattern="" DateTimePattern=""/>  
+	</DataSourceDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="PAIS" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="MARCA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="CANAL" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="NUMEROCONCURSO" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="NUMERORECOMENDADASEFECTIVA" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="55" FilterDefinitionName="INGRESOSCAMPANIA" FilterParameter="VALUE"/>  
+	</ParameterValues>  
+	<Localizations/>  
+</ReportSourceDefinition>  
+

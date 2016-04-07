@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by tito (tito) -->  
+<ReportSourceDefinition Id="RSD_REP-095" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="COD_PRODUC" Description="1012" DataType="STRING" Calculated="false" Expression="" ExternalData="COD_PRODUC"/>  
+		<DimensionSourceDefinition Name="DES_PROD" Description="1013" DataType="STRING" Calculated="false" Expression="" ExternalData="DES_PROD"/>  
+		<DimensionSourceDefinition Name="BELCENTER" Description="1503" DataType="STRING" Calculated="false" Expression="" ExternalData="BELCENTER"/>  
+		<DimensionSourceDefinition Name="ALMACEN" Description="1494" DataType="STRING" Calculated="false" Expression="" ExternalData="ALMACEN"/>  
+		<DimensionSourceDefinition Name="FEC_MOVI" Description="1495" DataType="DATETIME" Calculated="false" Expression="" ExternalData="FEC_MOVI"/>  
+		<DimensionSourceDefinition Name="NUM_DOCU_REFE" Description="2006" DataType="STRING" Calculated="false" Expression="" ExternalData="NUM_DOCU_REFE"/>  
+		<DimensionSourceDefinition Name="N_MOVIMIENTO" Description="2007" DataType="STRING" Calculated="false" Expression="" ExternalData="N_MOVIMIENTO"/>  
+		<DimensionSourceDefinition Name="EST_MER" Description="1502" DataType="STRING" Calculated="false" Expression="" ExternalData="EST_MER"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="UN_ENTRADA" Description="1496" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="UN_ENTRADA" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="UN_SALIDA" Description="1497" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="UN_SALIDA" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="UNID" Description="1498" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="UNID" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="STOCK_ACT" Description="1499" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="STOCK_ACT" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="IDIOMA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PAIS" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="ALMACEN" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="ESTADOMERCANCIA" Visual="FALSE"/>  
+		<FilterDefinition DataType="STRING" FilterType="EQUALTO" Name="CODIGOPRODUCTO" Visual="FALSE"/>  
+		<FilterDefinition DataType="STRING" FilterType="EQUALTO" Name="FORMATOFECHA" Visual="FALSE"/>  
+		<FilterDefinition DataType="DATE" FilterType="EQUALTO" Name="FECHADESDE" Visual="FALSE"/>  
+		<FilterDefinition DataType="DATE" FilterType="EQUALTO" Name="FECHAHASTA" Visual="FALSE"/>  
+	</FilterDefinitions>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="REP-095" SourceType="SQL" Expression="SELECT COD_PRODUC,  
+	   DES_PROD,  
+	   BELCENTER,  
+	   ALMACEN,  
+       FEC_MOVI,  
+	   NUM_DOCU_REFE,  
+	   N_MOVIMIENTO,  
+	   EST_MER,  
+       UN_ENTRADA,  
+       UN_SALIDA,   
+	   UNID,  
+	   STOCK_ACT  
+	     
+FROM  
+(  
+SELECT PROD.COD_SAP COD_PRODUC,  
+	   GEN_PROD.VAL_I18N DES_PROD,  
+	   BEL_MOV_ALM_CAB.SBAC_OID_SBAC||''||GEN_SUBA.VAL_I18N BELCENTER,  
+	   GEN_ALMA.VAL_I18N ALMACEN,  
+	   TO_DATE(%value_FECHADESDEVALUE%, %value_FORMATOFECHAVALUE%)-1  FEC_MOVI,  
+	   0 NUM_DOCU_REFE,  
+	   0 N_MOVIMIENTO,  
+	   '-' EST_MER,  
+	   0 UN_ENTRADA,  
+	   0 UN_SALIDA,  
+	   STOCK.VAL_SALD - SUM(DECODE(BEL_TIP_MOV_ALM.COD_OPER_1, '-', (BEL_MOV_ALM_DET.VAL_CANT) * -1, BEL_MOV_ALM_DET.VAL_CANT)) UNID,  
+	   0 STOCK_ACT  
+FROM MAE_PRODU PROD,  
+	 BEL_TIPO_MOVIM_ALMAC BEL_TIP_MOV_ALM,  
+	 BEL_MOVIM_ALMAC_CABEC BEL_MOV_ALM_CAB,  
+	 BEL_MOVIM_ALMAC_DETAL BEL_MOV_ALM_DET,  
+	 BEL_ALMAC ALMACEN,  
+	 BEL_STOCK STOCK,  
+	 (  
+	 SELECT GEN.VAL_OID, GEN.VAL_I18N  
+	 FROM V_GEN_I18N_SICC GEN  
+	 WHERE GEN.ATTR_ENTI = 'SEG_SUBAC'  
+	 	   AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%  
+	 ) GEN_SUBA,  
+	 (  
+	 SELECT GEN.VAL_OID, GEN.VAL_I18N  
+	 FROM V_GEN_I18N_SICC GEN  
+	 WHERE GEN.ATTR_ENTI = 'BEL_ALMAC'  
+	 	   AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%  
+	 ) GEN_ALMA,  
+	 (  
+	 SELECT GEN.VAL_OID, GEN.VAL_I18N  
+	 FROM V_GEN_I18N_SICC GEN  
+	 WHERE GEN.ATTR_ENTI = 'MAE_PRODU'  
+		  AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%  
+	) GEN_PROD  
+WHERE BEL_TIP_MOV_ALM.PAIS_OID_PAIS = PROD.PAIS_OID_PAIS  
+	  AND BEL_MOV_ALM_DET.TMAL_OID_TIPO_MOVI_ALMA = BEL_TIP_MOV_ALM.OID_TIPO_MOVI_ALMA  
+	  AND BEL_MOV_ALM_DET.PROD_OID_PROD = PROD.OID_PROD  
+	  AND BEL_MOV_ALM_DET.MVAL_OID_MOVI_ALMA = BEL_MOV_ALM_CAB.OID_MOVI_ALMA  
+	  AND BEL_MOV_ALM_CAB.ALMC_OID_ALMA_1 = ALMACEN.OID_ALMA  
+	  AND BEL_MOV_ALM_DET.ALMC_OID_ALMA_ENTR = ALMACEN.OID_ALMA  
+	  AND STOCK.PROD_OID_PROD = PROD.OID_PROD  
+	  AND STOCK.ALMC_OID_ALMA = ALMACEN.OID_ALMA  
+	  AND PROD.OID_PROD = GEN_PROD.VAL_OID(+)  
+	  AND ALMACEN.OID_ALMA = GEN_ALMA.VAL_OID(+)  
+	  AND BEL_MOV_ALM_CAB.SBAC_OID_SBAC = GEN_SUBA.VAL_OID(+)  
+	  AND TO_DATE(BEL_MOV_ALM_CAB.FEC_MOVI) >= TO_DATE(%value_FECHADESDEVALUE%, %value_FORMATOFECHAVALUE%)   
+	  AND TO_DATE(BEL_MOV_ALM_CAB.FEC_MOVI) &lt;= TO_DATE(%value_FECHAHASTAVALUE%,%value_FORMATOFECHAVALUE%)   
+	  AND PROD.COD_SAP = %value_CODIGOPRODUCTOVALUE%  
+	  AND ALMACEN.OID_ALMA IN (%value_ALMACENVALUES%)			  			   		    
+	  AND PROD.PAIS_OID_PAIS = %value_PAISVALUE%  
+	  AND BEL_TIP_MOV_ALM.ESME_OID_ESTA_MERC_1 = %value_ESTADOMERCANCIAVALUE%  
+GROUP BY PROD.COD_SAP,  
+	  BEL_MOV_ALM_CAB.SBAC_OID_SBAC||''||GEN_SUBA.VAL_I18N,  
+	   GEN_PROD.VAL_I18N,  
+	   GEN_ALMA.VAL_I18N,  
+	   TO_DATE(%value_FECHADESDEVALUE%, %value_FORMATOFECHAVALUE%)-1,  
+   	   BEL_TIP_MOV_ALM.ESME_OID_ESTA_MERC_1,	   	  
+   	   STOCK.VAL_SALD	     
+)  
+UNION ALL   
+(  
+SELECT PROD.COD_SAP COD_PRODUC,  
+	   GEN_PROD.VAL_I18N DES_PROD,  
+       BEL_MOV_ALM_CAB.SBAC_OID_SBAC||''||GEN_SUBA.VAL_I18N BELCENTER,  
+	   GEN_ALMA.VAL_I18N ALMACEN,  
+	   BEL_MOV_ALM_CAB.FEC_MOVI FEC_MOVI,  
+	   BEL_MOV_ALM_DET.NUM_DOCU_REFE,  
+	   BEL_MOV_ALM_DET.N_MOVIMIENTO,  
+	   GEN_EST_MER.VAL_I18N EST_MER,  
+	   DECODE(BEL_TIP_MOV_ALM.COD_OPER_1, '+', BEL_MOV_ALM_DET.VAL_CANT, 0) UN_ENTRADA,  
+	   DECODE(BEL_TIP_MOV_ALM.COD_OPER_1, '-', BEL_MOV_ALM_DET.VAL_CANT, 0) UN_SALIDA,   
+	   DECODE(BEL_TIP_MOV_ALM.COD_OPER_1, '-', (BEL_MOV_ALM_DET.VAL_CANT) * -1, BEL_MOV_ALM_DET.VAL_CANT) unid,  
+	   STOCK.VAL_SALD STOCK_ACT  
+FROM MAE_PRODU PROD,  
+	 BEL_TIPO_MOVIM_ALMAC BEL_TIP_MOV_ALM,  
+	 BEL_MOVIM_ALMAC_CABEC BEL_MOV_ALM_CAB,  
+	 BEL_MOVIM_ALMAC_DETAL BEL_MOV_ALM_DET,  
+	 BEL_ALMAC ALMACEN,  
+	 BEL_STOCK STOCK,  
+	 BEL_ESTAD_MERCA EST_MER,  
+	 (  
+	 SELECT GEN.VAL_OID, GEN.VAL_I18N  
+	 FROM V_GEN_I18N_SICC GEN  
+	 WHERE GEN.ATTR_ENTI = 'SEG_SUBAC'  
+	 	   AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%  
+	 ) GEN_SUBA,  
+	 (  
+	 SELECT GEN.VAL_OID, GEN.VAL_I18N  
+	 FROM V_GEN_I18N_SICC GEN  
+	 WHERE GEN.ATTR_ENTI = 'BEL_ALMAC'  
+	 	   AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%  
+	 ) GEN_ALMA,  
+	 (  
+	 SELECT GEN.VAL_OID, GEN.VAL_I18N  
+	 FROM V_GEN_I18N_SICC GEN  
+	 WHERE GEN.ATTR_ENTI = 'MAE_PRODU'  
+		  AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%  
+	) GEN_PROD,  
+	(  
+	SELECT GEN.VAL_OID, GEN.VAL_I18N  
+	FROM V_GEN_I18N_SICC GEN  
+	WHERE GEN.ATTR_ENTI = 'BEL_ESTAD_MERCA'  
+		  AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%  
+	) GEN_EST_MER  
+WHERE BEL_TIP_MOV_ALM.PAIS_OID_PAIS = PROD.PAIS_OID_PAIS  
+	  AND BEL_MOV_ALM_DET.TMAL_OID_TIPO_MOVI_ALMA = BEL_TIP_MOV_ALM.OID_TIPO_MOVI_ALMA  
+	  AND BEL_MOV_ALM_DET.PROD_OID_PROD = PROD.OID_PROD  
+	  AND BEL_MOV_ALM_DET.MVAL_OID_MOVI_ALMA = BEL_MOV_ALM_CAB.OID_MOVI_ALMA  
+	  AND BEL_MOV_ALM_CAB.ALMC_OID_ALMA_1 = ALMACEN.OID_ALMA  
+	  AND BEL_MOV_ALM_DET.ALMC_OID_ALMA_ENTR = ALMACEN.OID_ALMA  
+	  AND STOCK.PROD_OID_PROD = PROD.OID_PROD  
+	  AND STOCK.ALMC_OID_ALMA = ALMACEN.OID_ALMA  
+	  AND PROD.OID_PROD = GEN_PROD.VAL_OID(+)  
+	  AND ALMACEN.OID_ALMA = GEN_ALMA.VAL_OID(+)  
+	  AND BEL_TIP_MOV_ALM.ESME_OID_ESTA_MERC_1 = EST_MER.OID_ESTA_MERC  
+	  AND EST_MER.OID_ESTA_MERC = GEN_EST_MER.VAL_OID(+)  
+  	  AND BEL_MOV_ALM_CAB.SBAC_OID_SBAC = GEN_SUBA.VAL_OID(+)  
+	  AND TO_DATE(BEL_MOV_ALM_CAB.FEC_MOVI) >= TO_DATE(%value_FECHADESDEVALUE%, %value_FORMATOFECHAVALUE%)   
+	  AND TO_DATE(BEL_MOV_ALM_CAB.FEC_MOVI) &lt;= TO_DATE(%value_FECHAHASTAVALUE%,%value_FORMATOFECHAVALUE%)   
+	  AND PROD.COD_SAP = %value_CODIGOPRODUCTOVALUE%  
+	  AND ALMACEN.OID_ALMA IN (%value_ALMACENVALUES%)			  			   		    
+	  AND PROD.PAIS_OID_PAIS = %value_PAISVALUE%  
+	  AND BEL_TIP_MOV_ALM.ESME_OID_ESTA_MERC_1 = %value_ESTADOMERCANCIAVALUE%  
+)  
+ORDER BY COD_PRODUC,  
+	   ALMACEN,	  
+   	   EST_MER,  
+	   FEC_MOVI  
+" ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.106:1523:SICCV3D" ExternalConnectionDistributedUrl="" ExternalConnectionUser="usu_peru" ExternalConnectionPassword="PERU" DatePattern="dd/MM/yyyy" DateTimePattern=""/>  
+	</DataSourceDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="IDIOMA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="PAIS" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1055" FilterDefinitionName="ALMACEN" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="ESTADOMERCANCIA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="200007727" FilterDefinitionName="CODIGOPRODUCTO" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="dd/MM/yyyy" FilterDefinitionName="FORMATOFECHA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="01/01/2001" FilterDefinitionName="FECHADESDE" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="09/12/2050" FilterDefinitionName="FECHAHASTA" FilterParameter="VALUE"/>  
+	</ParameterValues>  
+	<Localizations/>  
+</ReportSourceDefinition>  
+

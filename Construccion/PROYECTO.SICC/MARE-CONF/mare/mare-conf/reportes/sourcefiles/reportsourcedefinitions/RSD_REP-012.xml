@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by a (a) -->  
+<ReportSourceDefinition Id="RSD_REP-012" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="ROWN" Description="ROWN" DataType="STRING" Calculated="false" Expression="" ExternalData="ROWN"/>  
+		<DimensionSourceDefinition Name="VAL_NOMB_PERI" Description="VAL_NOMB_PERI" DataType="STRING" Calculated="false" Expression="" ExternalData="VAL_NOMB_PERI"/>  
+		<DimensionSourceDefinition Name="CURSO" Description="CURSO" DataType="STRING" Calculated="false" Expression="" ExternalData="CURSO"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="PED_REGULAR" Description="PED_REGULAR" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="PED_REGULAR" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="PED_EXTEMPORANEA" Description="PED_EXTEMPORANEA" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="PED_EXTEMPORANEA" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="PED_NO_ASISTIDO" Description="PED_NO_ASISTIDO" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="PED_NO_ASISTIDO" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="PORC_REG" Description="PORC_REG" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="PORC_REG" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="PORC_EXTEMP" Description="PORC_EXTEMP" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="PORC_EXTEMP" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="PORC_NO_ASIST" Description="PORC_NO_ASIST" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="PORC_NO_ASIST" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="IDIOMA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PAIS" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="MARCA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="CANAL" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="CODIGOCURSO" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PERIODODESDE" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PERIODOHASTA" Visual="FALSE"/>  
+	</FilterDefinitions>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="REP-012" SourceType="SQL" Expression="select TO_CHAR(rownum) as rown, VAL_NOMB_PERI, curso,ped_regular, ped_extemporanea, ped_no_asistido, porc_reg,porc_extemp, porc_no_asist   
+from     
+(select  
+	  per.VAL_NOMB_PERI, gen_curso.curso,  cursos.ped_regular, cursos.ped_extemporanea, cursos.ped_no_asistido,   
+	  ((cursos.ped_regular/(cursos.ped_regular+cursos.ped_extemporanea+ cursos.ped_no_asistido))*100) as porc_reg,  
+	  ((cursos.ped_extemporanea/(cursos.ped_regular+cursos.ped_extemporanea+ cursos.ped_no_asistido))*100) as porc_extemp,	    
+	  ((cursos.ped_no_asistido/(cursos.ped_regular+cursos.ped_extemporanea+ cursos.ped_no_asistido))*100) as porc_no_asist  
+from  
+	(  
+	select   
+		   decode(decode(regular.perd_oid_peri, null, extemporaneas.perd_oid_peri, regular.perd_oid_peri), null, no_asistido.perd_oid_peri,decode(regular.perd_oid_peri, null, extemporaneas.perd_oid_peri,regular.perd_oid_peri))perd_oid_peri,     
+		   decode(decode(regular.oid_curs, null, extemporaneas.oid_curs, regular.oid_curs), null, no_asistido.oid_curs, decode(regular.oid_curs, null, extemporaneas.oid_curs, regular.oid_curs)) oid_curs,      
+		   NVL(regular.pedidos,0) as ped_regular,  
+		   NVL(extemporaneas.pedidos,0) as ped_extemporanea,  
+		   NVL(no_asistido.pedidos,0) as ped_no_asistido  
+	from   
+		(  
+		select sol.PERD_OID_PERI, cur.OID_CURS,count(distinct sol.OID_SOLI_CABE) pedidos  
+		from edu_histo_curso his_cur,  
+			 ped_solic_cabec sol,  
+			 edu_matri_curso cur  
+		where his_cur.clie_oid_clie = sol.CLIE_OID_CLIE  
+			  and his_cur.MCUR_OID_CURS = cur.OID_CURS   
+			  and his_cur.IND_APTA = 1  
+			  and his_cur.IND_ASIS = 1  
+			  and cur.CANA_OID_CANA = %value_CANALVALUE%  
+			  and cur.MARC_OID_MARC =  %value_MARCAVALUE%  
+			  and cur.PAIS_OID_PAIS = %value_PAISVALUE%  
+			  and cur.OID_CURS IN (%value_CODIGOCURSOVALUE%)  
+		group by sol.PERD_OID_PERI, cur.OID_CURS  
+		)regular   
+		full outer join   
+		(  
+		select sol.PERD_OID_PERI, cur.OID_CURS, count(distinct sol.OID_SOLI_CABE) pedidos  
+		from edu_histo_curso his_cur,  
+			 ped_solic_cabec sol,  
+		 	 edu_matri_curso cur  
+		where his_cur.clie_oid_clie = sol.CLIE_OID_CLIE  
+			  and his_cur.MCUR_OID_CURS = cur.OID_CURS   
+			   and his_cur.IND_INVIT = 1  
+			  and his_cur.IND_ASIS = 2  
+	  		  and cur.CANA_OID_CANA = %value_CANALVALUE%  
+			  and cur.MARC_OID_MARC =  %value_MARCAVALUE%  
+			  and cur.PAIS_OID_PAIS = %value_PAISVALUE%  
+	  		  and cur.OID_CURS IN (%value_CODIGOCURSOVALUE%)  
+		group by sol.PERD_OID_PERI, cur.OID_CURS  
+		)extemporaneas   
+		on regular.perd_oid_peri = extemporaneas.perd_oid_peri and regular.oid_curs = extemporaneas.oid_curs  
+		full outer join  
+		(  
+		select sol.PERD_OID_PERI, cur.OID_CURS, count(distinct sol.OID_SOLI_CABE) pedidos  
+		from edu_histo_curso his_cur,  
+			 ped_solic_cabec sol,  
+		 	 edu_matri_curso cur  
+		where his_cur.clie_oid_clie = sol.CLIE_OID_CLIE  
+			  and his_cur.MCUR_OID_CURS = cur.OID_CURS   
+			  and his_cur.IND_ASIS = 0  
+	  		  and cur.CANA_OID_CANA = %value_CANALVALUE%  
+			  and cur.MARC_OID_MARC =  %value_MARCAVALUE%  
+			  and cur.PAIS_OID_PAIS = %value_PAISVALUE%  
+	  		  and cur.OID_CURS IN (%value_CODIGOCURSOVALUE%)  
+		group by sol.PERD_OID_PERI, cur.OID_CURS  
+		)no_asistido on ( no_asistido.perd_oid_peri = regular.perd_oid_peri and no_asistido.oid_curs = regular.oid_curs)  
+		or ( no_asistido.perd_oid_peri = extemporaneas.perd_oid_peri and no_asistido.oid_curs = extemporaneas.oid_curs)   
+	)cursos,  
+	(  
+	select gen.VAL_OID, gen.VAL_I18N curso  
+	from v_gen_i18n_sicc gen  
+	where gen.ATTR_ENTI = 'EDU_MATRI_CURSO'  
+		  and gen.IDIO_OID_IDIO = %value_IDIOMAVALUE%  
+	)gen_curso,  
+	(  
+	select per_i.FEC_INIC, per_i.pais_oid_pais, per_i.marc_oid_marc, per_i.cana_oid_cana  
+	from cra_perio per_i  
+	where per_i.oid_peri = %value_PERIODODESDEVALUE%  
+	)per_inic,  
+	(  
+	select per_f.fec_fina   
+	from cra_perio per_f  
+	where per_f.oid_peri = %value_PERIODOHASTAVALUE%  
+	)per_fina,  
+	cra_perio per  
+where per.FEC_INIC >= per_inic.fec_inic  
+	  and per.fec_fina &lt;= per_fina.fec_fina  
+	    
+	  and per.pais_oid_pais = per_inic.pais_oid_pais  
+	  and per.marc_oid_marc = per_inic.marc_oid_marc  
+	  and per.cana_oid_cana = per_inic.cana_oid_cana  
+	    
+	  and cursos.perd_oid_peri = per.OID_PERI  
+	  and cursos.oid_curs = gen_curso.val_oid(+)  
+order by per.VAL_NOMB_PERI, gen_curso.curso,  cursos.ped_regular, cursos.ped_extemporanea, cursos.ped_no_asistido  
+)" ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.106:1523:SICCV3D" ExternalConnectionDistributedUrl="" ExternalConnectionUser="usu_peru" ExternalConnectionPassword="PERU" DatePattern="" DateTimePattern=""/>  
+	</DataSourceDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="IDIOMA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="PAIS" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="MARCA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="CANAL" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1042" FilterDefinitionName="CODIGOCURSO" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1379" FilterDefinitionName="PERIODODESDE" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="71" FilterDefinitionName="PERIODOHASTA" FilterParameter="VALUE"/>  
+	</ParameterValues>  
+	<Localizations/>  
+</ReportSourceDefinition>  
+

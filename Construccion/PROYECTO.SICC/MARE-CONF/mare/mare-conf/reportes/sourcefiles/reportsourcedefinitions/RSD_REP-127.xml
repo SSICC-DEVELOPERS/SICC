@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by tito (tito) -->  
+<ReportSourceDefinition Id="RSD_REP-127" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="DESC_ETAPA" Description="DESC_ETAPA" DataType="STRING" Calculated="false" Expression="" ExternalData="DESC_ETAPA"/>  
+		<DimensionSourceDefinition Name="PERIODO" Description="PERIODO" DataType="STRING" Calculated="false" Expression="" ExternalData="PERIODO"/>  
+		<DimensionSourceDefinition Name="GRUPO" Description="GRUPO" DataType="STRING" Calculated="false" Expression="" ExternalData="GRUPO"/>  
+		<DimensionSourceDefinition Name="NOMBRE" Description="NOMBRE" DataType="STRING" Calculated="false" Expression="" ExternalData="NOMBRE"/>  
+		<DimensionSourceDefinition Name="FECHA_ENTREGA" Description="FECHA_ENTREGA" DataType="DATETIME" Calculated="false" Expression="" ExternalData="FECHA_ENTREGA"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="CARTERA_ENTREGADA" Description="CARTERA_ENTREGADA" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="CARTERA_ENTREGADA" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="RETIROS" Description="RETIROS" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="RETIROS" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="CARTERA_NETA" Description="CARTERA_NETA" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="CARTERA_NETA" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="COBRADO" Description="COBRADO" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="COBRADO" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="PORC_COBRANZA" Description="PORC_COBRANZA" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="PORC_COBRANZA" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="PORC_COMISION" Description="PORC_COMISION" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="PORC_COMISION" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="COMISION" Description="COMISION" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="COMISION" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="FEC_LIQUI" Description="FEC_LIQUI" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="FEC_LIQUI" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="STRING" FilterType="EQUALTO" Name="FORMATOFECHA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PERIODO" Visual="FALSE"/>  
+		<FilterDefinition DataType="DATE" FilterType="EQUALTO" Name="FECHAASIGNACION" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="CANAL" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="MARCA" Visual="FALSE"/>  
+		<FilterDefinition DataType="STRING" FilterType="EQUALTO" Name="ETAPACOBRANZA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="GRUPOUSUARIOS" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="USUARIOCOBRANZA" Visual="FALSE"/>  
+	</FilterDefinitions>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="REP-127" SourceType="SQL" Expression="SELECT DESC_ETAPA,  
+	   PERIODO,   
+	   GRUPO,  
+           NOMBRE,	 					   
+	   MIN(FECHA_ENTREGA) FECHA_ENTREGA,  
+	   SUM(CARTERA_NETA) + SUM(RETIROS) CARTERA_ENTREGADA,  
+	   SUM(RETIROS) RETIROS,  
+	   SUM(CARTERA_NETA) CARTERA_NETA,  
+	   SUM(COBRADO) COBRADO,  
+	   DECODE(SUM(CARTERA_NETA),0, 0, (SUM(COBRADO) / SUM(CARTERA_NETA))*100) PORC_COBRANZA,  
+	   DECODE(SUM(COBRADO),0, 0, (SUM(COMISION) / SUM(COBRADO))*100) PORC_COMISION,  
+	   SUM(COMISION) COMISION,  
+	   FEC_LIQUI	     
+FROM		  		  
+	(	  
+	SELECT HTO_COB.OID_HIST_COMI_COBR ID_LIQUI,  
+		   ETA.VAL_DESC DESC_ETAPA,  
+		   PERI.VAL_NOMB_PERI PERIODO,  
+		   USU.COD_USUA,  
+		   USU.VAL_NOMB_USUA NOMBRE,  
+		   GRU_COB.VAL_DESC GRUPO,  
+		   ASI_COB.FEC_ASIG FECHA_ENTREGA,  
+		   NVL(ASI_COB.IMP_DEUD_ASIG, 0) CARTERA_NETA,  
+		   CASE WHEN (ASI_COB.ESAS_OID_ESTA_ASIG = 4) THEN  
+		   		NVL(ASI_COB.IMP_DEUD_ASIG, 0)  
+			ELSE  
+				0  
+			END RETIROS,  
+			NVL(HTO_COB.IMP_DEUD_RECU, 0) COBRADO,  
+			NVL(HTO_COB.IMP_COMI_CALC, 0) COMISION,  
+			HTO_COB.FEC_CALC_COMI FEC_LIQUI  
+	FROM COB_HISTO_COMIS_COBRA HTO_COB,  
+		 COB_USUAR_COBRA USU_COB,  
+		 COB_USUAR_GRUPO_USUAR GRU_USU,  
+		 COB_GRUPO_USUAR_COBRA GRU_COB,  
+		 COB_ETAPA_DEUDA ETA,  
+		 V_REP_USUAR_LARGO USU,  
+		 CRA_PERIO PERI,  
+		 (  
+			 SELECT COBA.*  
+			 FROM  
+			 COB_ASIGN_COBRA COBA,  
+			 (		  
+				 SELECT DISTINCT HICC_OID_HIST_COMI_COBR  
+				 FROM COB_ASIGN_COBRA   
+				 WHERE       1 = 1  
+				       %start_FECHAASIGNACIONVALUE%      and    TO_DATE(FEC_ASIG) = TO_DATE(%value_FECHAASIGNACIONVALUE%,%value_FORMATOFECHAVALUE%) 		%end_FECHAASIGNACIONVALUE%  	 	  
+			 ) COB  
+			 WHERE COB.HICC_OID_HIST_COMI_COBR = COBA.HICC_OID_HIST_COMI_COBR  
+		 ) ASI_COB  
+	WHERE HTO_COB.USCO_OID_USUA_COBR = USU_COB.OID_USUA_COBR  
+		  AND HTO_COB.PERD_OID_PERI = PERI.OID_PERI  
+		  AND GRU_USU.USCO_OID_USUA_COBR = USU_COB.OID_USUA_COBR  
+		  AND GRU_COB.OID_GRUP_USUA_COBR = GRU_USU.GUCO_OID_GRUP_USUA_COBR  
+		  AND HTO_COB.ETDE_OID_ETAP_DEUD = ETA.OID_ETAP_DEUD  
+		  AND USU_COB.USER_OID_USUA_COBR = USU.COD_USUA  
+		  AND ASI_COB.HICC_OID_HIST_COMI_COBR = HTO_COB.OID_HIST_COMI_COBR  
+		  AND ETA.COD_ETAP_DEUD = %value_ETAPACOBRANZAVALUE%	   							  
+		 %start_USUARIOCOBRANZAVALUE%    AND USU_COB.OID_USUA_COBR = %value_USUARIOCOBRANZAVALUE%  %end_USUARIOCOBRANZAVALUE% 					   
+		 %start_GRUPOUSUARIOSVALUE%    AND GRU_COB.OID_GRUP_USUA_COBR = %value_GRUPOUSUARIOSVALUE% %end_GRUPOUSUARIOSVALUE%  						  
+		  AND PERI.MARC_OID_MARC = %value_MARCAVALUE%		   							   							   
+		  AND PERI.CANA_OID_CANA = %value_CANALVALUE%									  
+	      %start_PERIODOVALUE% AND PERI.OID_PERI = %value_PERIODOVALUE%	%end_PERIODOVALUE%  		   									  
+	)  
+ %and_prefilter% GROUP BY ID_LIQUI,  
+	  DESC_ETAPA,  
+	  PERIODO,  
+	  COD_USUA,  
+	    GRUPO,  
+	     NOMBRE,  
+	  	  FEC_LIQUI" ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.106:1523:SICCV3D" ExternalConnectionDistributedUrl="" ExternalConnectionUser="usu_peru" ExternalConnectionPassword="peru" DatePattern="" DateTimePattern=""/>  
+	</DataSourceDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="FECHAASIGNACION" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="dd/MM/yyyy" FilterDefinitionName="FORMATOFECHA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="PERIODO" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="CANAL" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="MARCA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="p1" FilterDefinitionName="ETAPACOBRANZA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="GRUPOUSUARIOS" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="USUARIOCOBRANZA" FilterParameter="VALUE"/>  
+	</ParameterValues>  
+	<Localizations/>  
+</ReportSourceDefinition>  
+

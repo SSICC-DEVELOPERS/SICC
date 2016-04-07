@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<rule-set xmlns="http://drools.org/rules"
+          xmlns:java="http://drools.org/semantics/java"
+          xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
+          name="ReglasDeterminarGanadoraRecomendacionGerente"
+          xs:schemaLocation="http://drools.org/rules rules.xsd 
+          http://drools.org/semantics/java java.xsd">
+    <java:import>es.indra.sicc.logicanegocio.inc.ConstantesINC</java:import>
+    <java:import>es.indra.sicc.logicanegocio.inc.TipoMonto</java:import>
+    
+    <!--
+          REGLA 1: 'ValidarTipoMonto3y4' 
+          @author Sergio Platas
+          @date 13/06/2005
+		  @modificado 31/7/2006
+	-->
+    <rule name="ValidarTipoMonto3y4" salience="80">
+        <parameter identifier="cliePre">
+            <java:class>es.indra.sicc.logicanegocio.inc.ClientePremiacionConcurso</java:class>
+        </parameter>
+        <parameter identifier="con">
+            <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+        </parameter>
+        <parameter identifier="cliePreReco">
+            <java:class>es.indra.sicc.logicanegocio.inc.ClientePremiacionRecomendado</java:class>
+        </parameter>
+        <java:condition> 
+            con.print("ValidarTipoMonto3y4")
+        </java:condition>
+		<java:condition> 
+            ( ( ! con.getMontosRecomendada().isEmpty() ) &amp;&amp;
+			  ( (con.getMontosRecomendada().get(2) != null) &amp;&amp; 
+                (con.getMontosRecomendada().get(3) != null) ) )
+        </java:condition>
+		<java:condition> 
+            ( ( ! con.getMontosRecomendada().isEmpty() ) 
+			 &amp;&amp;
+			  ( cliePreReco.calcularSumaMontoPedidosValidos(con.getMontosRecomendada()).doubleValue()    >=
+                ((TipoMonto) con.getMontosRecomendada().get(2)).getCantidad().doubleValue() ) 
+             &amp;&amp;
+             ( ( cliePreReco.calcularSumaMontoPedidosValidos(con.getMontosRecomendada()).doubleValue() / (cliePreReco.getNumPedValidos().doubleValue()) )   >= ((TipoMonto) con.getMontosRecomendada().get(3)).getCantidad().doubleValue()) )
+        </java:condition>
+        <java:consequence>
+            con.print("########   Consecuencia ValidarTipoMonto3y4 concurso: " + con.getOidConcurso() + " , Gerente: " + cliePre.getGerente());
+            long recomEfect = cliePre.getRecomendacionesEfectivas().longValue();
+            cliePre.setRecomendacionesEfectivas(new Long(++recomEfect));
+        </java:consequence>
+    </rule> 
+
+    <!--
+          REGLA 2: 'ValidarTipoMonto4' 
+          @author Sergio Platas
+          @date 13/06/2005
+		  @modificado 31/7/2006
+	-->
+    <rule name="ValidarTipoMonto4" salience="80">
+        <parameter identifier="cliePre">
+            <java:class>es.indra.sicc.logicanegocio.inc.ClientePremiacionConcurso</java:class>
+        </parameter>
+        <parameter identifier="con">
+            <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+        </parameter>
+        <parameter identifier="cliePreReco">
+            <java:class>es.indra.sicc.logicanegocio.inc.ClientePremiacionRecomendado</java:class>
+        </parameter>
+        <java:condition> 
+            con.print("ValidarTipoMonto4")
+        </java:condition>
+        <java:condition> 
+            ( ( ! con.getMontosRecomendada().isEmpty() ) &amp;&amp;
+			  (con.getMontosRecomendada().get(3) != null)   &amp;&amp; 
+              (con.getMontosRecomendada().get(2) == null) )
+        </java:condition>
+        <java:condition> 
+            con.print("Cantidad " + (((TipoMonto) con.getMontosRecomendada().get(3)).getCantidad().doubleValue() ))
+        </java:condition>
+        <java:condition> 
+            con.print("suma " + (cliePreReco.calcularSumaMontoPedidosValidos(con.getMontosRecomendada())))
+        </java:condition>
+        <java:condition> 
+            con.print("cuenta " + (cliePreReco.getNumPedValidos().doubleValue()))
+        </java:condition>
+		<java:condition> 
+            ( ( ! con.getMontosRecomendada().isEmpty() ) &amp;&amp;
+			  ( ( (cliePreReco.calcularSumaMontoPedidosValidos(con.getMontosRecomendada()).doubleValue()) / 
+                    (cliePreReco.getNumPedValidos().doubleValue()) )     >=
+                (((TipoMonto) con.getMontosRecomendada().get(3)).getCantidad().doubleValue() )) )
+        </java:condition>
+        <java:consequence>
+            con.print("########   Consecuencia ValidarTipoMonto4 concurso: " + con.getOidConcurso() + " , Gerente: " + cliePre.getGerente());
+            long recomEfect = cliePre.getRecomendacionesEfectivas().longValue();
+            cliePre.setRecomendacionesEfectivas(new Long( ++recomEfect ));
+        </java:consequence>
+    </rule>  
+    
+    <!--
+          REGLA 3: 'ValidarTipoMonto3' 
+          @author Sergio Platas
+          @date 13/06/2005
+		  @modificado 31/7/2006
+	-->
+    <rule name="ValidarTipoMonto3" salience="80">
+        <parameter identifier="cliePre">
+            <java:class>es.indra.sicc.logicanegocio.inc.ClientePremiacionConcurso</java:class>
+        </parameter>
+        <parameter identifier="con">
+            <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+        </parameter>
+        <parameter identifier="cliePreReco">
+            <java:class>es.indra.sicc.logicanegocio.inc.ClientePremiacionRecomendado</java:class>
+        </parameter>
+        <java:condition> 
+            con.print("ValidarTipoMonto3")
+        </java:condition>
+		<java:condition> 
+            ( ( ! con.getMontosRecomendada().isEmpty() ) &amp;&amp;
+			  (con.getMontosRecomendada().get(2) != null)    &amp;&amp; 
+             (con.getMontosRecomendada().get(3)) == null )
+        </java:condition>
+        <java:condition> 
+            ( ( ! con.getMontosRecomendada().isEmpty() ) &amp;&amp;
+			  (cliePreReco.calcularSumaMontoPedidosValidos(con.getMontosRecomendada()).doubleValue()) >=
+              (((TipoMonto) con.getMontosRecomendada().get(2)).getCantidad().doubleValue()) )
+        </java:condition>
+        <java:consequence>
+            con.print("########   Consecuencia ValidarTipoMonto3 concurso: " + con.getOidConcurso() + " , Gerente: " + cliePre.getGerente());
+            long recomEfect = cliePre.getRecomendacionesEfectivas().longValue();
+            cliePre.setRecomendacionesEfectivas(new Long( ++recomEfect ));
+        </java:consequence>
+    </rule>    
+	
+    <!--
+          REGLA 2: 'ValidarTipoMonto1' 
+          @author Sergio Platas
+          @date 13/06/2005
+
+    <rule name="ValidarTipoMonto1" salience="100">
+        <parameter identifier="cliePre">
+            <java:class>es.indra.sicc.logicanegocio.inc.ClientePremiacionConcurso</java:class>
+        </parameter>
+        <parameter identifier="con">
+            <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+        </parameter>
+        <parameter identifier="pedRecomendacion">
+            <java:class>es.indra.sicc.logicanegocio.inc.PedidoRecomendacion</java:class>
+        </parameter>
+        <java:condition> 
+            con.print("ValidarTipoMonto1")
+        </java:condition>
+        <java:condition>
+            (con.getRecomendacionEfectivaGerente())
+        </java:condition>
+        <java:condition> 
+            (pedRecomendacion.getValido() == true)
+        </java:condition>
+        <java:condition>
+            ( ( ! con.getMontosRecomendada().isEmpty() ) &amp;&amp; (con.getMontosRecomendada().get(0) != null) )
+        </java:condition>
+        <java:condition>
+			( ( ! con.getMontosRecomendada().isEmpty() ) &amp;&amp;
+              ( ! ( (pedRecomendacion.getUnidadesPedido().doubleValue())   >= 
+				    ( ((TipoMonto)con.getMontosRecomendada().get(0)).getCantidad().doubleValue()) ) ) )
+        </java:condition>
+        <java:consequence>
+            con.print("########   Consecuencia ValidarTipoMonto1 concurso: " + con.getOidConcurso() + " , Gerente: " + cliePre.getGerente());
+            pedRecomendacion.setValido(false);
+            drools.retractObject(cliePre);
+        </java:consequence>
+    </rule>
+    -->
+	
+    <!--
+          REGLA 3: 'ValidarTipoMonto2' 
+          @author Sergio Platas
+          @date 13/06/2005
+
+    <rule name="ValidarTipoMonto2" salience="100">
+        <parameter identifier="cliePre">
+            <java:class>es.indra.sicc.logicanegocio.inc.ClientePremiacionConcurso</java:class>
+        </parameter>
+        <parameter identifier="con">
+            <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+        </parameter>
+        <parameter identifier="pedRecomendacion">
+            <java:class>es.indra.sicc.logicanegocio.inc.PedidoRecomendacion</java:class>
+        </parameter>
+        <java:condition> 
+            con.print("ValidarTipoMonto2")
+        </java:condition>
+        <java:condition>
+            (con.getRecomendacionEfectivaGerente())
+        </java:condition>
+        <java:condition> 
+            (pedRecomendacion.getValido() == true)
+        </java:condition>
+        <java:condition>
+            ( ( ! con.getMontosRecomendada().isEmpty() ) &amp;&amp; (con.getMontosRecomendada().get(1) != null) )
+        </java:condition>
+        <java:condition>
+            ( ( ! con.getMontosRecomendada().isEmpty() ) &amp;&amp; 
+			  ( ! ( (pedRecomendacion.getUnidadesPedido().doubleValue())   >= 
+                    (((TipoMonto)con.getMontosRecomendada().get(1)).getCantidad().doubleValue()) ) ) )
+        </java:condition>
+        <java:consequence>
+            con.print("########   Consecuencia ValidarTipoMonto2 concurso: " + con.getOidConcurso() + " , Gerente: " + cliePre.getGerente());
+            pedRecomendacion.setValido(false);
+            drools.retractObject(cliePre);
+        </java:consequence>
+    </rule>
+    -->
+	
+    <!--
+          REGLA 6: 'ValidarRecomendacionEfectiva' 
+          @author Sergio Platas
+          @date 13/06/2005
+
+    <rule name="ValidarRecomendacionEfectiva" salience="120">
+        <parameter identifier="cliePre">
+            <java:class>es.indra.sicc.logicanegocio.inc.ClientePremiacionConcurso</java:class>
+        </parameter>
+        <parameter identifier="con">
+            <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+        </parameter>
+        <java:condition> 
+            con.print("ValidarRecomendacionEfectiva")
+        </java:condition>
+        <java:condition>
+            (!con.getRecomendacionEfectivaGerente())
+        </java:condition>
+        <java:consequence>
+            con.print("########   Consecuencia ValidarRecomendacionEfectiva concurso: " + con.getOidConcurso() + " , Gerente: " + cliePre.getGerente());
+            cliePre.setRecomendacionesEfectivas(new Long(cliePre.getRecomendados().size()));
+            drools.retractObject(cliePre);
+        </java:consequence>
+    </rule>    -->
+
+</rule-set>

@@ -1,0 +1,1061 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<rule-set xmlns="http://drools.org/rules"
+          xmlns:java="http://drools.org/semantics/java"
+          xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
+          name="ReglasEvaluacion"
+          xs:schemaLocation="http://drools.org/rules rules.xsd 
+          http://drools.org/semantics/java java.xsd">
+  <java:import>es.indra.sicc.logicanegocio.inc.ConstantesINC</java:import>
+  <java:import>java.math.BigDecimal</java:import>
+  
+  <!--
+               REGLAS: 'RECOMENDADAS'
+  --> 
+  <!--
+              REGLA 1: ValidarTipoVinculoRecomendanteAmbosRecomendada
+              @author Gustavo Viñales
+              @date 13/04/2005
+  -->
+  <rule name="ValidarTipoVinculoRecomendanteAmbosRecomendada">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud</java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+    </parameter>
+    <java:condition> 
+        con.print("ValidarTipoVinculoRecomendanteAmbosRecomendada")
+    </java:condition>
+    <java:condition> 
+      !sol.getSolicitudConcurso(con.getOidConcurso()).getRechazado()
+  	</java:condition>
+	<java:condition> 
+        !con.getMultiNivel()
+    </java:condition>
+	<java:condition>
+          !con.getIndRanking()  
+    </java:condition>
+    <java:condition>
+          !con.getIndSorteo()  
+    </java:condition>
+    <java:condition> 
+      ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA())
+  	</java:condition>
+    <java:condition> 
+      ConstantesINC.OID_FORMA_CALC_BASE_CALC.equals(con.getFormaCalculo())
+  	</java:condition>
+    <java:condition> 
+      (ConstantesINC.TIPO_VINC_AMBOS.equals(sol.getSolicitudConcurso(
+                    con.getOidConcurso()).getTipoVinculo()) ||
+            ConstantesINC.TIPO_VINC_RECOMENDANTE.equals(sol.getSolicitudConcurso(
+                    con.getOidConcurso()).getTipoVinculo()) ||
+            ConstantesINC.TIPO_VINC_RECOMENDADO.equals(sol.getSolicitudConcurso(
+                    con.getOidConcurso()).getTipoVinculo()))
+  	</java:condition>
+    <java:condition>
+      (!con.getIndProductosExigidos() ||
+            sol.getSolicitudConcurso(con.getOidConcurso()).getIndExigenciasCumplidas() ||
+            con.exigenciasCumplidas(sol.getSolicitudConcurso(con.getOidConcurso()), sol.getPeriodo()))
+  	</java:condition>
+    <java:consequence> 
+      con.print("########   Consecuencia ValidarTipoVinculoRecomendanteAmbosRecomendada concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.getSolicitudConcurso(con.getOidConcurso()).setActualizarPuntajeRecomendacion(true);
+    </java:consequence>
+  </rule>
+  
+
+  <!--
+              REGLA 2: 'ValidarRecomendadasGerente'
+              @author Sergio Platas
+              @date 17/05/2005
+  -->
+  <rule name="ValidarRecomendadasGerente">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud</java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+    </parameter>
+    <java:condition> 
+        con.print("ValidarRecomendadasGerente")
+    </java:condition>
+    <java:condition> 
+      !sol.getSolicitudConcurso(con.getOidConcurso()).getRechazado()
+  	 </java:condition>
+    <java:condition>
+      !con.getIndRanking()  
+    </java:condition>
+     <java:condition>
+          !con.getIndSorteo()  
+    </java:condition>
+    <java:condition> 
+      ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA())
+    </java:condition>
+    <java:condition>
+      ConstantesINC.OID_BASE_CALCULO_RECOMENDADAS.equals(con.getBaseCalculo())
+    </java:condition>
+    <java:condition> 
+      sol.getCliente().getIndRecomendado()
+	</java:condition>
+	<java:condition> 
+      (!con.getIndProductosExigidos() ||
+        sol.getSolicitudConcurso(con.getOidConcurso()).getIndExigenciasCumplidas() ||
+        con.exigenciasCumplidas(sol.getSolicitudConcurso(con.getOidConcurso()), sol.getPeriodo()))
+  	 </java:condition>
+    <java:consequence> 
+      con.print("########   Consecuencia ValidarRecomendadasGerente   concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.getSolicitudConcurso(con.getOidConcurso()).setActualizarPuntanjeRecomendacionGerente(true);
+  	 </java:consequence>
+  </rule>
+  
+
+  <!--
+              REGLA 3: ValidarExigenciasMontoNuevas
+              @author Julián Rivas
+              @date 09/08/2005
+  -->
+  <rule name="ValidarExigenciasMontoNuevas">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud</java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+    </parameter>
+    <java:condition> 
+        con.print("ValidarExigenciasMontoNuevas")
+    </java:condition>
+    <java:condition> 
+      !sol.getSolicitudConcurso(con.getOidConcurso()).getRechazado()
+    </java:condition>
+    <java:condition>
+      !sol.getIndDevolucion()
+    </java:condition>    
+	<java:condition> 
+        !con.getMultiNivel()
+    </java:condition>
+	<java:condition>
+          !con.getIndRanking()  
+    </java:condition>
+     <java:condition>
+          !con.getIndSorteo()  
+    </java:condition>
+    <java:condition> 
+     ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA())
+    </java:condition>
+    <java:condition> 
+      ConstantesINC.OID_FORMA_CALC_BASE_CALC.equals(con.getFormaCalculo())
+  	</java:condition>
+    <java:condition> 
+       con.getProgramaNuevas()
+    </java:condition>
+    <java:condition>
+      (!con.getIndProductosExigidos() ||
+        sol.getSolicitudConcurso(con.getOidConcurso()).getIndExigenciasCumplidas() ||
+        con.exigenciasCumplidas(sol.getSolicitudConcurso(con.getOidConcurso()), sol.getPeriodo()))
+    </java:condition>
+    <java:condition> 
+        con.print("%% ValidarExigenciasMontoNuevas con.obtenerTipoRequisito(sol) " + con.obtenerTipoRequisito(sol))
+    </java:condition>
+    <java:condition> 
+        ConstantesINC.TIPO_REQUISITO_MONTO.equals(con.obtenerTipoRequisito(sol))
+    </java:condition>
+    <java:condition> 
+        con.print("%% ValidarExigenciasMontoNuevas getMontoValido " + sol.getSolicitudConcurso(con.getOidConcurso()).getMontoValido())
+    </java:condition>
+    <java:condition> 
+        con.print("%% ValidarExigenciasMontoNuevas getMontoAcumulado " + sol.getSolicitudConcurso(con.getOidConcurso()).getMontoAcumulado())
+    </java:condition>
+    <java:condition> 
+        con.print("%% ValidarExigenciasMontoNuevas con.obtenerExigenciaMinima(sol) " + con.obtenerExigenciaMinima(sol))
+    </java:condition>
+    <java:condition> 
+        (sol.getSolicitudConcurso(con.getOidConcurso()).getMontoValido().add(
+		sol.getSolicitudConcurso(con.getOidConcurso()).getMontoAcumulado()).longValue() 
+			>= con.obtenerExigenciaMinima(sol).longValue())
+    </java:condition>
+    <java:consequence> 
+      con.print("########   Consecuencia ValidarExigenciasMontoNuevas   concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.getSolicitudConcurso(con.getOidConcurso()).setCandidataGanadora(true);
+   	</java:consequence>
+  </rule>
+
+
+  <!--
+               REGLAS: 'CONSULTORAS'
+  -->
+  <!--
+              REGLA 4: ValidarExigenciasConsultoras
+              @author Gustavo Viñales
+              @date 13/04/2005
+              Modificado por Sergio Platas - 17/05/2005
+  -->
+  <rule name="ValidarExigenciasConsultoras">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud</java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+    </parameter>
+    <java:condition> 
+        con.print("ValidarExigenciasConsultoras")
+    </java:condition>
+    <java:condition> 
+      !sol.getSolicitudConcurso(con.getOidConcurso()).getRechazado()
+  	</java:condition>
+	<java:condition> 
+        !con.getMultiNivel()
+    </java:condition>
+	<java:condition>
+          !con.getIndRanking()  
+    </java:condition>
+     <java:condition>
+          !con.getIndSorteo()  
+    </java:condition>
+    <java:condition> 
+      ((ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA())   ||
+        ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA())))
+  	</java:condition>   
+    <java:condition> 
+      ConstantesINC.OID_FORMA_CALC_BASE_CALC.equals(con.getFormaCalculo())
+  	</java:condition>
+    <java:condition> 
+      (ConstantesINC.BASE_CALCULO_MONTO.equals(con.getBaseCalculo()) ||
+       ConstantesINC.BASE_CALCULO_UNIDADES.equals(con.getBaseCalculo()))
+  	</java:condition>
+  	<java:condition> 
+        ( ((new Long(Math.round(sol.getSolicitudConcurso(con.getOidConcurso()).getPuntosValidos().doubleValue()))).intValue() + 
+							(new Long(Math.round(sol.getSolicitudConcurso(con.getOidConcurso()).getPuntosBonificados().doubleValue()))).intValue()!=0) || 
+          ((new Long(Math.round(sol.getSolicitudConcurso(con.getOidConcurso()).getPuntosExigidos().doubleValue()))).intValue()!=0) ) 
+		</java:condition>          
+    <java:consequence> 
+      con.print("########   Consecuencia ValidarExigenciasConsultoras   concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.getSolicitudConcurso(con.getOidConcurso()).setIndActualizaCuentaCorriente(true);
+      //double puntosTotales = sol.getSolicitudConcurso(con.getOidConcurso()).getPuntosValidos().doubleValue() + sol.getSolicitudConcurso(con.getOidConcurso()).getPuntosBonificados().doubleValue();
+      Integer puntosTotales = new Integer((new Long(Math.round(sol.getSolicitudConcurso(con.getOidConcurso()).getPuntosValidos().doubleValue()))).intValue() + 
+      										(new Long(Math.round(sol.getSolicitudConcurso(con.getOidConcurso()).getPuntosBonificados().doubleValue()))).intValue());
+      con.print("########   Consecuencia ValidarExigenciasConsultoras puntosTotales: " + puntosTotales);
+      sol.getSolicitudConcurso(con.getOidConcurso()).setPuntosCuentaCorriente(new Double(puntosTotales.doubleValue()));
+      sol.getSolicitudConcurso(con.getOidConcurso()).setCrearMensaje(true);
+  	</java:consequence>
+  </rule>
+
+  
+
+  <!--
+               REGLAS: 'CONSULTORAS UNIDADES PEDIDOS'
+  -->
+  <!--
+              REGLA 5: EvaluarPedidoValidoPorExigencias
+              @author Gustavo Viñales
+              Modificado por Sergio Platas
+              @date 02/06/2005
+  -->
+  <rule name="EvaluarPedidoValidoPorExigencias">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud</java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+    </parameter>
+    <java:condition> 
+        con.print("EvaluarPedidoValidoPorExigencias")
+    </java:condition>
+    <java:condition> 
+      !sol.getSolicitudConcurso(con.getOidConcurso()).getRechazado()
+  	</java:condition>
+	<java:condition> 
+        !con.getMultiNivel()
+    </java:condition>
+	<java:condition>
+          !con.getIndRanking()  
+    </java:condition>
+     <java:condition>
+          !con.getIndSorteo()  
+    </java:condition>
+    <java:condition> 
+       !con.getProgramaNuevas()
+    </java:condition>
+    <java:condition> 
+      (ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA())   ||
+       ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA())  )
+  	</java:condition>   
+    <java:condition> 
+      ConstantesINC.OID_FORMA_CALC_BASE_CALC.equals(con.getFormaCalculo())
+  	</java:condition>
+    <java:condition> 
+        con.print("## ConstantesINC.BASE_CALCULO_NUM_PEDIDOS.equals(con.getBaseCalculo()) " + ConstantesINC.BASE_CALCULO_NUM_PEDIDOS.equals(con.getBaseCalculo()))
+    </java:condition>
+    <java:condition> 
+      ConstantesINC.BASE_CALCULO_NUM_PEDIDOS.equals(con.getBaseCalculo())
+    </java:condition>
+    <java:condition> 
+        con.print("## EvaluarPedidoValidoPorExigencias getIndPeriodoCalculado() " + sol.getSolicitudConcurso(con.getOidConcurso()).getIndPeriodoCalculado())
+    </java:condition>
+    <java:condition> 
+      !sol.getSolicitudConcurso(con.getOidConcurso()).getIndPeriodoCalculado()
+  	</java:condition>
+    <java:condition> 
+        con.print("## EvaluarPedidoValidoPorExigencias con.getIndProductosExigidos() " + con.getIndProductosExigidos())
+    </java:condition>
+    <java:condition> 
+        con.print("## EvaluarPedidoValidoPorExigencias getIndExigenciasCumplidas() " + sol.getSolicitudConcurso(con.getOidConcurso()).getIndExigenciasCumplidas())
+    </java:condition>
+    <java:condition> 
+        con.print("## EvaluarPedidoValidoPorExigencias .exigenciasCumplidas() " + con.exigenciasCumplidas(sol.getSolicitudConcurso(con.getOidConcurso()), sol.getPeriodo()))
+    </java:condition>
+    <java:condition>
+      (!con.getIndProductosExigidos() ||
+        sol.getSolicitudConcurso(con.getOidConcurso()).getIndExigenciasCumplidas() ||
+        con.exigenciasCumplidas(sol.getSolicitudConcurso(con.getOidConcurso()), sol.getPeriodo()))
+  	</java:condition>
+    <java:condition> 
+        con.print("## EvaluarPedidoValidoPorExigencias sol.getSolicitudConcurso(con.getOidConcurso()).getMontoValido() " + sol.getSolicitudConcurso(con.getOidConcurso()).getMontoValido())
+    </java:condition>
+    <java:condition> 
+        con.print("## EvaluarPedidoValidoPorExigencias sol.getSolicitudConcurso(con.getOidConcurso()).getMontoAcumulado() " + sol.getSolicitudConcurso(con.getOidConcurso()).getMontoAcumulado())
+    </java:condition>
+    <java:condition> 
+        con.print("## EvaluarPedidoValidoPorExigencias con.getMontoMinimoPedido() " + con.getMontoMinimoPedido())
+    </java:condition>
+   <java:condition>
+      ( (sol.getSolicitudConcurso(con.getOidConcurso()).getMontoValido().doubleValue() +
+         sol.getSolicitudConcurso(con.getOidConcurso()).getMontoAcumulado().doubleValue() )  >=
+       con.getMontoMinimoPedido().doubleValue() )
+   </java:condition>
+    <java:condition> 
+        con.print("## EvaluarPedidoValidoPorExigencias sol.getSolicitudConcurso(con.getOidConcurso()).getUnidadesValidas() " + sol.getSolicitudConcurso(con.getOidConcurso()).getUnidadesValidas())
+    </java:condition>
+    <java:condition> 
+        con.print("## EvaluarPedidoValidoPorExigencias sol.getSolicitudConcurso(con.getOidConcurso()).getUnidadesAcumuladas() " + sol.getSolicitudConcurso(con.getOidConcurso()).getUnidadesAcumuladas())
+    </java:condition>
+    <java:condition> 
+        con.print("## EvaluarPedidoValidoPorExigencias con.getUnidadesMinimasPedido() " + con.getUnidadesMinimasPedido())
+    </java:condition>
+   <java:condition>
+      ( (sol.getSolicitudConcurso(con.getOidConcurso()).getUnidadesValidas().longValue()  +
+         sol.getSolicitudConcurso(con.getOidConcurso()).getUnidadesAcumuladas().longValue()) >= 
+        con.getUnidadesMinimasPedido().longValue())
+   </java:condition>
+    <java:consequence> 
+      con.print("########   Consecuencia EvaluarPedidoValidoPorExigencias   concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+        double puntos = (1/ con.getFactorConversion().doubleValue()) * con.getPuntosAsignar().doubleValue();
+      con.print("########   Consecuencia EvaluarPedidoValidoPorExigencias puntos " + puntos);
+        sol.getSolicitudConcurso(con.getOidConcurso()).setPuntosCuentaCorriente(new Double(puntos));
+        sol.getSolicitudConcurso(con.getOidConcurso()).setIndActualizaCuentaCorriente(true);
+        sol.getSolicitudConcurso(con.getOidConcurso()).setCandidataGanadora(true);
+        sol.getSolicitudConcurso(con.getOidConcurso()).setCrearMensaje(true);
+  	</java:consequence>
+  </rule> 
+  
+  <!--
+              REGLA 6: ExigenciasCumplidas
+              @author Gustavo Viñales
+              @date 13/04/2005
+  -->
+  <rule name="ExigenciasCumplidas">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud</java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+    </parameter>
+    <java:condition> 
+        con.print("ExigenciasCumplidas")
+    </java:condition>
+    <java:condition> 
+      !sol.getSolicitudConcurso(con.getOidConcurso()).getRechazado()
+  	</java:condition>
+	<java:condition>
+          !con.getIndRanking()  
+    </java:condition>
+     <java:condition>
+          !con.getIndSorteo()  
+    </java:condition>
+    <java:condition> 
+      (ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA()) ||
+       ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA()))
+  	</java:condition>   
+    <java:condition> 
+        con.print("## ExigenciasCumplidas con.getIndProductosExigidos() " + con.getIndProductosExigidos())
+    </java:condition>
+    <java:condition> 
+        con.print("## ExigenciasCumplidas sol.getSolicitudConcurso(con.getOidConcurso()).getIndExigenciasCumplidas() " + sol.getSolicitudConcurso(con.getOidConcurso()).getIndExigenciasCumplidas())
+    </java:condition>
+    <java:condition> 
+        con.print("## ExigenciasCumplidas con.exigenciasCumplidas() " + con.exigenciasCumplidas(sol.getSolicitudConcurso(con.getOidConcurso()), sol.getPeriodo()))
+    </java:condition>
+    <java:condition> 
+      con.getIndProductosExigidos()
+  	</java:condition>
+    <java:condition>
+      con.exigenciasCumplidas(sol.getSolicitudConcurso(con.getOidConcurso()), sol.getPeriodo())
+  	</java:condition>
+    <java:consequence>
+      con.print("########   Consecuencia ExigenciasCumplidas  concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud()); 
+      sol.getSolicitudConcurso(con.getOidConcurso()).setExigenciasCumplidasEnSolicitud(true);
+      sol.getSolicitudConcurso(con.getOidConcurso()).setIndExigenciasCumplidas(true);
+   </java:consequence>
+  </rule>
+
+    <!--
+              REGLA 7: ValidarExigenciasMetas      
+              @author Julián rivas
+              @date 18/07/2005
+     -->
+    <rule name="ValidarExigenciasMetas">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud</java:class>
+    </parameter>
+    <parameter identifier="con">
+        <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+    </parameter>
+    <java:condition> 
+        con.print("ValidarExigenciasMetas")
+    </java:condition>
+    <java:condition> 
+      !sol.getSolicitudConcurso(con.getOidConcurso()).getRechazado()
+    </java:condition>
+	<java:condition> 
+        !con.getMultiNivel()
+    </java:condition>
+	<java:condition>
+          !con.getIndRanking()  
+    </java:condition>
+     <java:condition>
+          !con.getIndSorteo()  
+    </java:condition>
+    <java:condition> 
+      ((ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA())   ||
+        ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA())))
+    </java:condition>    
+    <java:condition> 
+      (ConstantesINC.BASE_CALCULO_MONTO.equals(con.getBaseCalculo()) ||
+       ConstantesINC.BASE_CALCULO_UNIDADES.equals(con.getBaseCalculo()))
+    </java:condition>
+    <java:condition> 
+      ConstantesINC.OID_FORMA_CALC_BASE_CALC.equals(con.getFormaCalculo())
+  	</java:condition>
+    <java:condition> 
+        con.print("sol.getCliente().getOidEstatusFuturo() " + sol.getCliente().getOidEstatusFuturo())
+    </java:condition>
+    <java:condition> 
+        con.print("con.getFaseCalificacion() " + con.getFaseCalificacion())
+    </java:condition>
+    <java:condition> 
+        con.print("sol.getPuntosFaltantesMeta(con) " + sol.getPuntosFaltantesMeta(con))
+    </java:condition>
+    <java:condition>
+	(!con.getFaseCalificacion() || 0 >= sol.getPuntosFaltantesMeta(con).doubleValue())
+    </java:condition>
+  	<java:condition> 
+        ((new Double(sol.getSolicitudConcurso(con.getOidConcurso()).getPuntosValidos().doubleValue() + 
+                 			sol.getSolicitudConcurso(con.getOidConcurso()).getPuntosBonificados().doubleValue()).intValue()!=0) || 
+          (sol.getSolicitudConcurso(con.getOidConcurso()).getPuntosExigidos().intValue()!=0) ) 
+		</java:condition>          
+    <java:consequence> 
+      con.print("########   Consecuencia ValidarExigenciasMetas   concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.getSolicitudConcurso(con.getOidConcurso()).setCandidataGanadora(true);
+    </java:consequence>
+  </rule>
+
+
+  <!--
+              REGLA 8: ValidarExigenciasUnidadesNuevas
+              @author Julián Rivas
+              @date 09/08/2005
+  -->
+  <rule name="ValidarExigenciasUnidadesNuevas">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud</java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+    </parameter>
+    <java:condition> 
+        con.print("ValidarExigenciasUnidadesNuevas")
+    </java:condition>
+    <java:condition> 
+      !sol.getSolicitudConcurso(con.getOidConcurso()).getRechazado()
+    </java:condition>
+    <java:condition>
+      !sol.getIndDevolucion()
+    </java:condition>    
+	<java:condition> 
+        !con.getMultiNivel()
+    </java:condition>
+	<java:condition>
+          !con.getIndRanking()  
+    </java:condition>
+     <java:condition>
+          !con.getIndSorteo()  
+    </java:condition>
+    <java:condition> 
+     ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA())
+    </java:condition>
+    <java:condition> 
+      ConstantesINC.OID_FORMA_CALC_BASE_CALC.equals(con.getFormaCalculo())
+  	</java:condition>
+    <java:condition> 
+       con.getProgramaNuevas()
+    </java:condition>
+    <java:condition>
+      (!con.getIndProductosExigidos() ||
+        sol.getSolicitudConcurso(con.getOidConcurso()).getIndExigenciasCumplidas() ||
+        con.exigenciasCumplidas(sol.getSolicitudConcurso(con.getOidConcurso()), sol.getPeriodo()))
+    </java:condition>
+    <java:condition> 
+        con.print("%% ValidarExigenciasUnidadesNuevas con.obtenerTipoRequisito(sol) " + con.obtenerTipoRequisito(sol))
+    </java:condition>
+    <java:condition> 
+        ConstantesINC.TIPO_REQUISITO_UNIDADES.equals(con.obtenerTipoRequisito(sol))
+    </java:condition>
+    <java:condition> 
+        con.print("%% ValidarExigenciasUnidadesNuevas getUnidadesValidas " + sol.getSolicitudConcurso(con.getOidConcurso()).getUnidadesValidas())
+    </java:condition>
+    <java:condition> 
+        con.print("%% ValidarExigenciasUnidadesNuevas getUnidadesAcumuladas " + sol.getSolicitudConcurso(con.getOidConcurso()).getUnidadesAcumuladas())
+    </java:condition>
+    <java:condition> 
+        con.print("%% ValidarExigenciasUnidadesNuevas con.obtenerExigenciaMinima(sol) " + con.obtenerExigenciaMinima(sol))
+    </java:condition>
+    <java:condition> 
+	((new BigDecimal(sol.getSolicitudConcurso(con.getOidConcurso()).getUnidadesValidas().longValue()).add(
+	new BigDecimal(sol.getSolicitudConcurso(con.getOidConcurso()).getUnidadesAcumuladas().longValue()))).compareTo(
+		con.obtenerExigenciaMinima(sol)) >= 0 )
+    </java:condition>
+    <java:consequence> 
+      con.print("########   Consecuencia ValidarExigenciasUnidadesNuevas  concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.getSolicitudConcurso(con.getOidConcurso()).setCandidataGanadora(true);
+   	</java:consequence>
+  </rule>
+
+
+  <!--
+               REGLAS: 'CONSULTORAS MULTINIVEL'
+  -->
+
+  <!--
+              REGLA 8: ValidarPedidoMultinivel 
+              @author Gustavo De Marzi
+              @date 24/08/2005
+  -->
+  <rule name="ValidarPedidoMultinivel">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud</java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+    </parameter>
+    <java:condition> 
+        con.print("ValidarPedidoMultinivel")
+    </java:condition>
+	<java:condition> 
+      ( ! sol.getSolicitudConcurso(con.getOidConcurso()).getRechazado() )
+    </java:condition>
+	<java:condition> 
+        con.getMultiNivel()
+    </java:condition>
+     <java:condition>
+          !con.getIndSorteo()  
+    </java:condition>
+    <java:condition> 
+      sol.getCliente().getIndRecomendante()
+    </java:condition>
+	<java:condition> 
+     ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA())
+    </java:condition>	
+    <java:condition> 
+      ConstantesINC.OID_FORMA_CALC_BASE_CALC.equals(con.getFormaCalculo())
+  	</java:condition>
+    <java:condition>
+      (!con.getIndProductosExigidos() ||
+        sol.getSolicitudConcurso(con.getOidConcurso()).getIndExigenciasCumplidas() ||
+        con.exigenciasCumplidas(sol.getSolicitudConcurso(con.getOidConcurso()), sol.getPeriodo()))
+    </java:condition>
+    <java:condition> 
+        con.print(" ValidarPedidoMultinivel getMontoAcumulado() " + sol.getSolicitudConcurso(con.getOidConcurso()).getMontoAcumulado() )
+    </java:condition>
+    <java:condition> 
+        con.print(" ValidarPedidoMultinivel getMontoValido() " + sol.getSolicitudConcurso(con.getOidConcurso()).getMontoValido())
+    </java:condition>
+	<java:condition> 
+        con.print(" ValidarPedidoMultinivel getMontoMinimoPedido() " + con.getMontoMinimoPedido() )
+    </java:condition>
+    <java:condition> 
+        con.print(" ValidarPedidoMultinivel getUnidadesAcumuladas() " + sol.getSolicitudConcurso(con.getOidConcurso()).getUnidadesAcumuladas() )
+    </java:condition>
+    <java:condition> 
+        con.print(" ValidarPedidoMultinivel getUnidadesValidas() " + sol.getSolicitudConcurso(con.getOidConcurso()).getUnidadesValidas() )
+    </java:condition>
+	<java:condition> 
+        con.print(" ValidarPedidoMultinivel getUnidadesMinimasPedido() " + con.getUnidadesMinimasPedido() )
+    </java:condition>
+	<java:condition>
+		( (sol.getSolicitudConcurso(con.getOidConcurso()).getMontoValido().add(
+		sol.getSolicitudConcurso(con.getOidConcurso()).getMontoAcumulado()).longValue())  >=
+			con.getMontoMinimoPedido().longValue() )
+    </java:condition>
+    <java:condition>
+      ( (sol.getSolicitudConcurso(con.getOidConcurso()).getUnidadesValidas().longValue()  +
+         sol.getSolicitudConcurso(con.getOidConcurso()).getUnidadesAcumuladas().longValue()) >= 
+        con.getUnidadesMinimasPedido().longValue() )
+    </java:condition>
+    <java:consequence> 
+      con.print("########   Consecuencia ValidarPedidoMultinivel  concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.getSolicitudConcurso(con.getOidConcurso()).setActulaizarPedidoRecomendanteMultinivel(true);	
+   	</java:consequence>
+  </rule>
+
+
+  <!--
+               REGLAS: 'INICIO REGLAS DEVOLUCION / ANULACIONES'
+  -->
+
+  <!--
+              REGLA 9: "ValidarExigenciasConsultorasDevolucion"
+              @author Julián Rivas
+              @date 30/10/2006
+  -->
+  <rule name="ValidarExigenciasConsultorasDevolucion">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud</java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+    </parameter>
+    <java:condition> 
+        con.print("ValidarExigenciasConsultorasDevolucion")
+    </java:condition>    
+    <java:condition> 
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      sol.getIndDevolucion()
+    </java:condition>    
+	<java:condition> 
+        !con.getMultiNivel()
+    </java:condition>
+	<java:condition>
+          !con.getIndRanking()  
+    </java:condition>
+     <java:condition>
+          !con.getIndSorteo()  
+    </java:condition>
+    <java:condition> 
+      ((ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA())   ||
+        ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA())))
+    </java:condition>
+    <java:condition> 
+      ConstantesINC.OID_FORMA_CALC_BASE_CALC.equals(con.getFormaCalculo())
+  	</java:condition>
+    <java:condition> 
+      (ConstantesINC.BASE_CALCULO_MONTO.equals(con.getBaseCalculo()) ||
+      ConstantesINC.BASE_CALCULO_UNIDADES.equals(con.getBaseCalculo()) ||
+      ConstantesINC.BASE_CALCULO_NUM_PEDIDOS.equals(con.getBaseCalculo()))
+  	</java:condition>    
+    <java:condition>
+        con.getIndProductosExigidos()
+    </java:condition>
+    <java:condition>
+        sol.getSolicitudConcurso(con.getOidConcurso()).getIndExigenciasCumplidas()
+    </java:condition>
+    <java:condition>
+        !con.exigenciasCumplidas(sol.getSolicitudConcurso(con.getOidConcurso()), sol.getPeriodo(), sol)
+    </java:condition>
+    <java:consequence>
+      con.print("########   Consecuencia ValidarExigenciasConsultorasDevolucion   concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+	  sol.getSolicitudConcurso(con.getOidConcurso()).setIndAnulaPedido(true);
+	</java:consequence>
+  </rule>
+
+
+
+  <!--
+              REGLA 10: "EvaluarPedidoValidaoPorExigenciasDevolucion"
+              @author Julián Rivas
+              @date 30/10/2006
+  -->
+  <rule name="EvaluarPedidoValidaoPorExigenciasDevolucion">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud</java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+    </parameter>
+    <java:condition> 
+        con.print("EvaluarPedidoValidaoPorExigenciasDevolucion")
+    </java:condition>    
+    <java:condition> 
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      sol.getIndDevolucion()
+    </java:condition>    
+	<java:condition> 
+        !con.getMultiNivel()
+    </java:condition>
+	<java:condition>
+          !con.getIndRanking()  
+    </java:condition>
+     <java:condition>
+          !con.getIndSorteo()  
+    </java:condition>
+    <java:condition> 
+      ((ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA())   ||
+        ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA())))
+    </java:condition>
+    <java:condition> 
+       !con.getProgramaNuevas()
+    </java:condition>
+    <java:condition> 
+      ConstantesINC.OID_FORMA_CALC_BASE_CALC.equals(con.getFormaCalculo())
+  	</java:condition>
+    <java:condition> 
+      ConstantesINC.BASE_CALCULO_NUM_PEDIDOS.equals(con.getBaseCalculo())
+  	</java:condition>    
+    <java:condition> 
+      !sol.getSolicitudConcurso(con.getOidConcurso()).getIndPeriodoCalculado()
+  	</java:condition>
+    <java:condition>
+      ( ( con.getMontoMinimoPedido().doubleValue() >= (sol.getSolicitudConcurso(con.getOidConcurso()).getMontoValido().doubleValue() + sol.getSolicitudConcurso(con.getOidConcurso()).getMontoAcumulado().doubleValue() ) ) 
+         ||
+        ( con.getUnidadesMinimasPedido().longValue() >= (sol.getSolicitudConcurso(con.getOidConcurso()).getUnidadesValidas().longValue()  + sol.getSolicitudConcurso(con.getOidConcurso()).getUnidadesAcumuladas().longValue()) ) )
+    </java:condition>
+    <java:consequence>
+      con.print("########   Consecuencia EvaluarPedidoValidaoPorExigenciasDevolucion   concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+	  sol.getSolicitudConcurso(con.getOidConcurso()).setIndAnulaPedido(true);
+	</java:consequence>
+  </rule>
+
+
+
+  <!--
+              REGLA 11: "ValidarPedidoMultinivelDevolucion"
+              @author Julián Rivas
+              @date 30/10/2006
+  -->
+  <rule name="ValidarPedidoMultinivelDevolucion">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud</java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+    </parameter>
+    <java:condition> 
+        con.print("ValidarPedidoMultinivelDevolucion")
+    </java:condition>    
+    <java:condition> 
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      sol.getIndDevolucion()
+    </java:condition>    
+	<java:condition> 
+        con.getMultiNivel()
+    </java:condition>
+	<java:condition>
+          !con.getIndRanking()  
+    </java:condition>
+     <java:condition>
+          !con.getIndSorteo()  
+    </java:condition>
+    <java:condition> 
+      ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA())
+    </java:condition>
+    <java:condition>
+      !ConstantesINC.ESTATUS_FUTURO_NUEVA.equals(sol.getCliente().getOidEstatusFuturo())
+    </java:condition>
+    <java:condition> 
+      ConstantesINC.OID_FORMA_CALC_BASE_CALC.equals(con.getFormaCalculo())
+  	</java:condition>
+    <java:condition> 
+      (ConstantesINC.BASE_CALCULO_MONTO.equals(con.getBaseCalculo()) ||
+      ConstantesINC.BASE_CALCULO_UNIDADES.equals(con.getBaseCalculo()))
+  	</java:condition>  
+    <java:condition>
+      ( ( con.getMontoMinimoPedido().doubleValue() >= (sol.getSolicitudConcurso(con.getOidConcurso()).getMontoValido().doubleValue() + sol.getSolicitudConcurso(con.getOidConcurso()).getMontoAcumulado().doubleValue() ) ) 
+         ||
+        ( con.getUnidadesMinimasPedido().longValue() >= (sol.getSolicitudConcurso(con.getOidConcurso()).getUnidadesValidas().longValue()  +  sol.getSolicitudConcurso(con.getOidConcurso()).getUnidadesAcumuladas().longValue()) )
+         )
+    </java:condition>
+    <java:condition> 
+      sol.getCliente().getIndRecomendante()
+    </java:condition>
+    <java:consequence>
+      con.print("########   Consecuencia ValidarPedidoMultinivelDevolucion   concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+	  sol.getSolicitudConcurso(con.getOidConcurso()).setIndAnulaPedido(true);
+	</java:consequence>
+  </rule>
+
+
+  <!--
+              REGLA 12: "ValidarRecomendadasGerenteDevolucion"
+              @author Julián Rivas
+              @date 30/10/2006
+  -->
+  <rule name="ValidarRecomendadasGerenteDevolucion">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud</java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+    </parameter>
+    <java:condition> 
+        con.print("ValidarRecomendadasGerenteDevolucion")
+    </java:condition>    
+    <java:condition> 
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      sol.getIndDevolucion()
+    </java:condition>    
+	<java:condition>
+          !con.getIndRanking()  
+    </java:condition>
+     <java:condition>
+          !con.getIndSorteo()  
+    </java:condition>
+    <java:condition> 
+      ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA())
+    </java:condition>
+    <java:condition> 
+      ConstantesINC.OID_FORMA_CALC_BASE_CALC.equals(con.getFormaCalculo())
+  	</java:condition>
+    <java:condition>
+      ConstantesINC.OID_BASE_CALCULO_RECOMENDADAS.equals(con.getBaseCalculo())
+    </java:condition>
+    <java:condition>
+        con.getIndProductosExigidos()
+    </java:condition>
+    <java:condition>
+        sol.getSolicitudConcurso(con.getOidConcurso()).getIndExigenciasCumplidas()
+    </java:condition>
+    <java:condition>
+        !con.exigenciasCumplidas(sol.getSolicitudConcurso(con.getOidConcurso()), sol.getPeriodo())
+    </java:condition>
+    <java:condition> 
+      sol.getCliente().getIndRecomendado()
+	</java:condition>
+    <java:consequence>
+      con.print("########   Consecuencia ValidarRecomendadasGerenteDevolucion   concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+	  sol.getSolicitudConcurso(con.getOidConcurso()).setIndAnulaPedido(true);
+	</java:consequence>
+  </rule>
+
+
+
+  <!--
+              REGLA 13: "ValidarTipoVinculoRecomendanteAmbosRecomendadaDevolucion"
+              @author Julián Rivas
+              @date 30/10/2006
+  -->
+  <rule name="ValidarTipoVinculoRecomendanteAmbosRecomendadaDevolucion">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud</java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+    </parameter>
+    <java:condition> 
+        con.print("ValidarTipoVinculoRecomendanteAmbosRecomendadaDevolucion")
+    </java:condition>    
+    <java:condition> 
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      sol.getIndDevolucion()
+    </java:condition>  
+	<java:condition> 
+        !con.getMultiNivel()
+    </java:condition>
+	<java:condition>
+          !con.getIndRanking()  
+    </java:condition>
+     <java:condition>
+          !con.getIndSorteo()  
+    </java:condition>
+    <java:condition> 
+      ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA())
+    </java:condition>
+    <java:condition> 
+      ConstantesINC.OID_FORMA_CALC_BASE_CALC.equals(con.getFormaCalculo())
+  	</java:condition>
+    <java:condition>
+      (ConstantesINC.TIPO_VINC_AMBOS.equals(sol.getSolicitudConcurso(
+                    con.getOidConcurso()).getTipoVinculo()) ||
+            ConstantesINC.TIPO_VINC_RECOMENDANTE.equals(sol.getSolicitudConcurso(
+                    con.getOidConcurso()).getTipoVinculo()) ||
+            ConstantesINC.TIPO_VINC_RECOMENDADO.equals(sol.getSolicitudConcurso(
+                    con.getOidConcurso()).getTipoVinculo()))
+    </java:condition>
+    <java:condition>
+        con.getIndProductosExigidos()
+    </java:condition>
+    <java:condition>
+        sol.getSolicitudConcurso(con.getOidConcurso()).getIndExigenciasCumplidas()
+    </java:condition>
+    <java:condition>
+        !con.exigenciasCumplidas(sol.getSolicitudConcurso(con.getOidConcurso()), sol.getPeriodo())
+    </java:condition>
+    <java:consequence>
+      con.print("########   Consecuencia ValidarTipoVinculoRecomendanteAmbosRecomendadaDevolucion   concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+	  sol.getSolicitudConcurso(con.getOidConcurso()).setIndAnulaPedido(true);
+	</java:consequence>
+  </rule>
+
+
+  <!--
+              REGLA 14: "VerificarSolicitudValidaPorExigenciasDevolucion"
+              @author Julián Rivas
+              @date 30/10/2006
+  -->
+  <rule name="VerificarSolicitudValidaPorExigenciasDevolucion">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud</java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+    </parameter>
+    <java:condition> 
+        con.print("VerificarSolicitudValidaPorExigenciasDevolucion")
+    </java:condition>    
+    <java:condition> 
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      sol.getIndDevolucion()
+    </java:condition>  
+	<java:condition> 
+        !con.getMultiNivel()
+    </java:condition>
+	<java:condition>
+          !con.getIndRanking()  
+    </java:condition>
+     <java:condition>
+          !con.getIndSorteo()  
+    </java:condition>
+    <java:condition> 
+       !con.getProgramaNuevas()
+    </java:condition>
+    <java:condition> 
+      ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA())
+    </java:condition>
+    <java:condition> 
+      ConstantesINC.OID_FORMA_CALC_BASE_CALC.equals(con.getFormaCalculo())
+  	</java:condition>
+    <java:condition>      
+      (ConstantesINC.BASE_CALCULO_MONTO.equals(con.getBaseCalculo()) ||
+       ConstantesINC.BASE_CALCULO_UNIDADES.equals(con.getBaseCalculo()))
+  	</java:condition>       
+   <java:condition>
+      ( ( con.getMontoMinimoPedido().doubleValue() > (sol.getMontoAcumuladoPedido().doubleValue())) || 
+        ( con.getUnidadesMinimasPedido().doubleValue() > (sol.getUnidadesAcumuladasPedido().doubleValue())) )
+   </java:condition>
+    <java:consequence>
+      con.print("########   Consecuencia VerificarSolicitudValidaPorExigenciasDevolucion   concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+	  sol.getSolicitudConcurso(con.getOidConcurso()).setIndAnulaPedido(false);
+  <!-- 
+    JVM, sicc 20070354, se modifica el valor del indicador a false para que nunca se anule una devolucion
+	  sol.getSolicitudConcurso(con.getOidConcurso()).setIndAnulaPedido(true);
+  -->	  
+	</java:consequence>
+  </rule>
+  
+  <!--
+              REGLA 14: "ValidarExigenciasMetasDevolucion"
+	      DBLG700000193
+              @author Gerardo Cusano Pineda
+              @date 22/11/2006
+  -->
+  <rule name="ValidarExigenciasMetasDevolucion">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud</java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+    </parameter>
+    <java:condition> 
+      con.print("ValidarExigenciasMetasDevolucion")
+    </java:condition>    
+    <java:condition> 
+      !sol.getRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition>
+      sol.getIndDevolucion() || sol.getIndAnulacion()
+    </java:condition>  
+    <java:condition> 
+      !con.getMultiNivel()
+    </java:condition>
+    <java:condition>
+     !con.getIndRanking()
+    </java:condition>
+     <java:condition>
+          !con.getIndSorteo()  
+    </java:condition>
+    <java:condition> 
+      ( ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA()) || ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA()) )
+    </java:condition>
+    <java:condition> 
+      ConstantesINC.OID_FORMA_CALC_BASE_CALC.equals(con.getFormaCalculo())
+    </java:condition>
+    <java:condition>
+      ( ConstantesINC.BASE_CALCULO_MONTO.equals(con.getBaseCalculo()) ||
+         ConstantesINC.BASE_CALCULO_UNIDADES.equals(con.getBaseCalculo()) )
+    </java:condition>
+    <java:condition>
+      ( con.getFaseCalificacion() &amp;&amp; sol.getPuntosFaltantesMeta( con ).doubleValue() > 0 )
+    </java:condition>
+    <java:consequence>
+      con.print("########   Consecuencia ValidarExigenciasMetasDevolucion   concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+      sol.getSolicitudConcurso(con.getOidConcurso()).setIndAnulaCandidataGanadora(true);
+    </java:consequence>
+  </rule>
+
+  <!--
+               REGLAS: 'FIN REGLAS DEVOLUCION / ANULACIONES'
+  -->
+
+  <!--
+              REGLA 15: ValidarSorteo
+              @author Viviana Bongiovanni
+  -->
+  <rule name="ValidarSorteo">
+    <parameter identifier="sol">
+      <java:class>es.indra.sicc.logicanegocio.inc.Solicitud</java:class>
+    </parameter>
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+    </parameter>
+    <java:condition> 
+        con.print("ValidarSorteo")
+    </java:condition>   
+    <java:condition> 
+      !sol.getSolicitudConcurso(con.getOidConcurso()).getRechazado()
+   </java:condition>	
+   <java:condition>
+      !con.getIndRanking()  
+    </java:condition>
+    <java:condition>
+       con.getIndSorteo()  
+    </java:condition>
+     <java:condition> 
+      ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA())
+     </java:condition>
+     <java:condition> 
+      ConstantesINC.BASE_CALCULO_MONTO.equals(con.getBaseCalculo())
+     </java:condition>    
+     <java:condition>
+       (con.getMontoMinimoPedidoPremiacion()==null || (sol.getSolicitudConcurso(con.getOidConcurso()).getMontoValido().doubleValue() >= con.getMontoMinimoPedidoPremiacion().doubleValue()))
+    </java:condition>
+    <java:consequence> 
+      con.print("########   Consecuencia ValidarSorteo   concurso: " + con.getOidConcurso() + " , solicitud: " + sol.getOidSolicitud());
+       sol.getSolicitudConcurso(con.getOidConcurso()).setIndActualizaSorteo(true);  
+       double puntosTotales = sol.getSolicitudConcurso(con.getOidConcurso()).getPuntosValidos().doubleValue() + sol.getSolicitudConcurso(con.getOidConcurso()).getPuntosBonificados().doubleValue();
+       con.print("########   Consecuencia ValidarSorteo puntosTotales: " + puntosTotales);
+       sol.getSolicitudConcurso(con.getOidConcurso()).setPuntosCuentaCorriente(new Double(puntosTotales));
+    </java:consequence>
+  </rule>
+
+
+</rule-set>
+

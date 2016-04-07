@@ -1,0 +1,1090 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<rule-set xmlns="http://drools.org/rules"
+          xmlns:java="http://drools.org/semantics/java"
+          xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
+          name="ReglasCalculoMetas"
+          xs:schemaLocation="http://drools.org/rules rules.xsd 
+          http://drools.org/semantics/java java.xsd">
+    <java:import>es.indra.sicc.logicanegocio.ped.ConstantesPED</java:import>
+    <java:import>es.indra.sicc.logicanegocio.inc.ConstantesINC</java:import>
+    <java:import>java.math.BigDecimal</java:import>
+    <java:import>es.indra.sicc.logicanegocio.inc.PosicionPuntaje</java:import>
+    
+    <!--               
+           REGLA 3: ProductosCalificadosBaseCalculoMontoFaltantesControlStockLiquidacion  
+           @author Sergio Platas
+           @date 13/05/2005
+    -->
+    <rule name="ProductosCalificadosBaseCalculoMontoFaltantesControlStockLiquidacion">
+        <parameter identifier="pos">
+            <java:class>es.indra.sicc.logicanegocio.inc.Posicion</java:class>
+        </parameter>
+        <parameter identifier="con">
+            <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+        </parameter>
+        <java:condition> 
+        con.print("ProductosCalificadosBaseCalculoMontoFaltantesControlStockLiquidacion")
+        </java:condition>
+        <java:condition> 
+            !pos.getRechazada(con.getOidConcurso())
+        </java:condition>
+        <java:condition> 
+        !pos.getSolicitudRechazado(con.getOidConcurso())
+        </java:condition>
+        <java:condition> 
+        !ConstantesPED.ESTADO_POSICION_ANULADO.equals(pos.getEstado())
+        </java:condition>
+        <java:condition> 
+        con.validarProductoCalificado(pos).booleanValue()
+        </java:condition>
+        <java:condition> 
+        !con.validarProductoExcluidoCalificado(pos).booleanValue()
+        </java:condition>
+        <java:condition> 
+        ConstantesINC.BASE_CALCULO_MONTO.equals(con.getBaseCalculo())
+        </java:condition>
+        <java:condition> 
+        ConstantesINC.TIPO_VENTA_CATALOGO.equals(con.getTipoVenta())
+        </java:condition>
+        <java:condition> 
+        con.getIndFaltantesAnunciados()
+        </java:condition>
+        <java:condition>
+        !pos.getLimiteVenta() || pos.getLimiteVenta()
+        </java:condition>
+        <java:condition>
+        pos.getControlStock()
+        </java:condition>
+        <java:condition>
+        pos.getControlLiquidacion()
+        </java:condition>
+        <java:consequence>
+        con.print("########   Consecuencia ProductosCalificadosBaseCalculoMontoFaltantesControlStockLiquidacion  concurso: " + con.getOidConcurso() + " , Solicitud: " + pos.getSolicitud().getOidSolicitud() + " , posicion: " + pos.getOidPosicion()); 
+        PosicionPuntaje posicPunt = pos.getPosicionPuntaje(con.getOidConcurso());
+        double resultado = pos.getUnidadesComprometidas().doubleValue();
+        resultado *= (pos.getPrecioCatalogoUnitarioLocal().doubleValue());
+        BigDecimal monto =  new BigDecimal(resultado);
+        posicPunt.setMontoCalificacion(monto);
+        posicPunt = pos.getPosicionPuntaje(con.getOidConcurso());
+        posicPunt.setUnidadesCalificacion(pos.getUnidadesComprometidas());              
+        </java:consequence>
+    </rule>
+
+    <!--
+               REGLA 5: ProductosCalificadosBaseCalculoMontoFaltantes
+               @author Sergio Platas
+               @date 10/05/2005
+       -->
+    <rule name="ProductosCalificadosBaseCalculoMontoFaltantes">
+        <parameter identifier="pos">
+            <java:class>es.indra.sicc.logicanegocio.inc.Posicion</java:class>
+        </parameter>
+        <parameter identifier="con">
+            <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+        </parameter>
+        <java:condition> 
+        con.print("ProductosCalificadosBaseCalculoMontoFaltantes")
+        </java:condition>
+        <java:condition> 
+            !pos.getRechazada(con.getOidConcurso())
+        </java:condition>
+        <java:condition> 
+        !pos.getSolicitudRechazado(con.getOidConcurso())
+        </java:condition>
+        <java:condition> 
+        !ConstantesPED.ESTADO_POSICION_ANULADO.equals(pos.getEstado())
+        </java:condition>
+        <java:condition> 
+        con.validarProductoCalificado(pos).booleanValue()
+        </java:condition>
+        <java:condition> 
+        !con.validarProductoExcluidoCalificado(pos).booleanValue()
+        </java:condition>
+        <java:condition> 
+        ConstantesINC.BASE_CALCULO_MONTO.equals(con.getBaseCalculo())
+        </java:condition>
+        <java:condition> 
+        ConstantesINC.TIPO_VENTA_CATALOGO.equals(con.getTipoVenta())
+        </java:condition>
+        <java:condition> 
+        con.getIndFaltantesAnunciados()
+        </java:condition>
+        <java:condition> 
+        !pos.getLimiteVenta() || pos.getLimiteVenta()
+        </java:condition>
+        <java:condition> 
+        !pos.getControlStock()
+        </java:condition>
+        <java:condition> 
+        !pos.getControlLiquidacion()
+        </java:condition>
+        <java:consequence>
+	con.print("########   Consecuencia ProductosCalificadosBaseCalculoMontoFaltantes  concurso: " + con.getOidConcurso() + " , Solicitud: " + pos.getSolicitud().getOidSolicitud() + " , posicion: " + pos.getOidPosicion()); 
+        Double unidades = new Double(pos.getUnidadesDemandaReal().doubleValue());
+        BigDecimal uniDemanReal = new BigDecimal(unidades.doubleValue());
+        BigDecimal montoCalificacion = uniDemanReal.multiply(pos.getPrecioCatalogoUnitarioLocal());
+        pos.getPosicionPuntaje(con.getOidConcurso()).setMontoCalificacion(montoCalificacion);  
+        pos.getPosicionPuntaje(con.getOidConcurso()).setUnidadesCalificacion(pos.getUnidadesDemandaReal());
+        </java:consequence>
+    </rule>
+    
+    <!--
+              REGLA 6: ProductosCalificadosBaseCalculoMonto      
+              @author Sergio Platas
+              @date 11/05/2005
+     -->
+    <rule name="ProductosCalificadosBaseCalculoMonto">
+        <parameter identifier="pos">
+            <java:class>es.indra.sicc.logicanegocio.inc.Posicion</java:class>
+        </parameter>
+        <parameter identifier="con">
+            <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+        </parameter>
+        <java:condition> 
+        con.print("ProductosCalificadosBaseCalculoMonto")
+        </java:condition>
+        <java:condition> 
+            !pos.getRechazada(con.getOidConcurso())
+        </java:condition>
+        <java:condition> 
+        !pos.getSolicitudRechazado(con.getOidConcurso())
+        </java:condition>
+        <java:condition> 
+        !ConstantesPED.ESTADO_POSICION_ANULADO.equals(pos.getEstado())
+        </java:condition>
+        <java:condition> 
+        con.validarProductoCalificado(pos).booleanValue()
+        </java:condition>
+        <java:condition> 
+        !con.validarProductoExcluidoCalificado(pos).booleanValue()
+        </java:condition>
+        <java:condition> 
+        ConstantesINC.BASE_CALCULO_MONTO.equals(con.getBaseCalculo())
+        </java:condition>
+        <java:condition> 
+        ConstantesINC.TIPO_VENTA_CATALOGO.equals(con.getTipoVenta())
+        </java:condition>
+        <java:condition> 
+        !con.getIndFaltantesAnunciados()
+        </java:condition>
+        <java:consequence>
+	con.print("########   Consecuencia ProductosCalificadosBaseCalculoMonto  concurso: " + con.getOidConcurso() + " , Solicitud: " + pos.getSolicitud().getOidSolicitud() + " , posicion: " + pos.getOidPosicion()); 
+        Double unidades = new Double(pos.getUnidadesComprometidas().doubleValue());
+        BigDecimal unidadesComprom = new BigDecimal(unidades.doubleValue());
+        BigDecimal montoCalificacion = unidadesComprom.multiply(pos.getPrecioCatalogoUnitarioLocal());
+        pos.getPosicionPuntaje(con.getOidConcurso()).setMontoCalificacion(montoCalificacion);
+        pos.getPosicionPuntaje(con.getOidConcurso()).setUnidadesCalificacion(pos.getUnidadesComprometidas());
+        </java:consequence>
+    </rule>
+    
+    <!--
+              REGLA 7: ProductosCalificadosBaseCalculoMontoFaltantesControStock       
+              @author Sergio Platas
+              @date 11/05/2005
+     -->
+    <rule name="ProductosCalificadosBaseCalculoMontoFaltantesControStock">
+        <parameter identifier="pos">
+            <java:class>es.indra.sicc.logicanegocio.inc.Posicion</java:class>
+        </parameter>
+        <parameter identifier="con">
+            <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+        </parameter>
+        <java:condition> 
+        con.print("ProductosCalificadosBaseCalculoMontoFaltantesControStock")
+        </java:condition>
+        <java:condition> 
+            !pos.getRechazada(con.getOidConcurso())
+        </java:condition>
+        <java:condition> 
+        !pos.getSolicitudRechazado(con.getOidConcurso())
+        </java:condition>
+        <java:condition> 
+        !ConstantesPED.ESTADO_POSICION_ANULADO.equals(pos.getEstado())
+        </java:condition>
+        <java:condition> 
+        con.validarProductoCalificado(pos).booleanValue()
+        </java:condition>
+        <java:condition> 
+        !con.validarProductoExcluidoCalificado(pos).booleanValue()
+        </java:condition>
+        <java:condition> 
+        ConstantesINC.BASE_CALCULO_MONTO.equals(con.getBaseCalculo())
+        </java:condition>
+        <java:condition> 
+        ConstantesINC.TIPO_VENTA_CATALOGO.equals(con.getTipoVenta())
+        </java:condition>
+        <java:condition> 
+        con.getIndFaltantesAnunciados()
+        </java:condition>
+        <java:condition> 
+        !pos.getLimiteVenta() || pos.getLimiteVenta()
+        </java:condition>
+        <java:condition> 
+        pos.getControlStock()
+        </java:condition>
+        <java:condition> 
+        !pos.getControlLiquidacion()
+        </java:condition>
+        <java:consequence>
+	con.print("########   Consecuencia ProductosCalificadosBaseCalculoMontoFaltantesControStock  concurso: " + con.getOidConcurso() + " , Solicitud: " + pos.getSolicitud().getOidSolicitud() + " , posicion: " + pos.getOidPosicion()); 
+        Double unidades = new Double(pos.getUnidadesDemandaReal().doubleValue());
+        BigDecimal uniDemanReal = new BigDecimal(unidades.doubleValue());
+        BigDecimal montoCalificacion = uniDemanReal.multiply(pos.getPrecioCatalogoUnitarioLocal());
+        pos.getPosicionPuntaje(con.getOidConcurso()).setMontoCalificacion(montoCalificacion);
+        pos.getPosicionPuntaje(con.getOidConcurso()).setUnidadesCalificacion(pos.getUnidadesDemandaReal());
+        </java:consequence>
+    </rule>
+    
+    <!--
+              REGLA 8: ProductosCalificadosBaseCalculoUnidades
+              @author Sergio Platas
+              @date 11/05/2005
+     -->
+    <rule name="ProductosCalificadosBaseCalculoUnidades">
+        <parameter identifier="pos">
+            <java:class>es.indra.sicc.logicanegocio.inc.Posicion</java:class>
+        </parameter>
+        <parameter identifier="con">
+            <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+        </parameter>
+        <java:condition> 
+        con.print("ProductosCalificadosBaseCalculoUnidades")
+        </java:condition>
+        <java:condition> 
+            !pos.getRechazada(con.getOidConcurso())
+        </java:condition>
+        <java:condition> 
+        !pos.getSolicitudRechazado(con.getOidConcurso())
+        </java:condition>
+        <java:condition> 
+        !ConstantesPED.ESTADO_POSICION_ANULADO.equals(pos.getEstado())
+        </java:condition>
+        <java:condition> 
+        con.validarProductoCalificado(pos).booleanValue()
+        </java:condition>
+        <java:condition> 
+        !con.validarProductoExcluidoCalificado(pos).booleanValue()
+        </java:condition>
+        <java:condition> 
+        ConstantesINC.BASE_CALCULO_UNIDADES.equals(con.getBaseCalculo())
+        </java:condition>
+        <java:condition> 
+        ConstantesINC.TIPO_VENTA_CATALOGO.equals(con.getTipoVenta())
+        </java:condition>
+        <java:condition> 
+        !con.getIndFaltantesAnunciados()
+        </java:condition>
+        <java:consequence>
+	con.print("########   Consecuencia ProductosCalificadosBaseCalculoUnidades  concurso: " + con.getOidConcurso() + " , Solicitud: " + pos.getSolicitud().getOidSolicitud() + " , posicion: " + pos.getOidPosicion()); 
+        Double unidades = new Double(pos.getUnidadesComprometidas().doubleValue());
+        BigDecimal unidadesComprom = new BigDecimal(unidades.doubleValue());
+        BigDecimal montoCalificacion = unidadesComprom.multiply(pos.getPrecioCatalogoUnitarioLocal());
+        pos.getPosicionPuntaje(con.getOidConcurso()).setMontoCalificacion(montoCalificacion);
+        pos.getPosicionPuntaje(con.getOidConcurso()).setUnidadesCalificacion(pos.getUnidadesComprometidas());
+        </java:consequence>
+    </rule>
+    
+    <!--
+              REGLA 9: ProductosCalificadosBaseCalculoUnidadesFaltantes
+              @author Sergio Platas
+              @date 11/05/2005
+     -->
+    <rule name="ProductosCalificadosBaseCalculoUnidadesFaltantes">
+        <parameter identifier="pos">
+            <java:class>es.indra.sicc.logicanegocio.inc.Posicion</java:class>
+        </parameter>
+        <parameter identifier="con">
+            <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+        </parameter>
+        <java:condition> 
+        con.print("ProductosCalificadosBaseCalculoUnidadesFaltantes")
+        </java:condition>
+        <java:condition> 
+            !pos.getRechazada(con.getOidConcurso())
+        </java:condition>
+        <java:condition> 
+        !pos.getSolicitudRechazado(con.getOidConcurso())
+        </java:condition>
+        <java:condition> 
+        !ConstantesPED.ESTADO_POSICION_ANULADO.equals(pos.getEstado())
+        </java:condition>
+        <java:condition> 
+        con.validarProductoCalificado(pos).booleanValue()
+        </java:condition>
+        <java:condition> 
+        !con.validarProductoExcluidoCalificado(pos).booleanValue()
+        </java:condition>
+        <java:condition> 
+          ConstantesINC.BASE_CALCULO_UNIDADES.equals(con.getBaseCalculo())
+        </java:condition>
+            <java:condition> 
+          ConstantesINC.TIPO_VENTA_CATALOGO.equals(con.getTipoVenta())
+        </java:condition>
+            <java:condition> 
+          con.getIndFaltantesAnunciados()
+        </java:condition>
+            <java:condition> 
+          !pos.getLimiteVenta() || pos.getLimiteVenta()
+        </java:condition>
+            <java:condition> 
+          !pos.getControlStock()
+        </java:condition>
+            <java:condition> 
+          !pos.getControlLiquidacion()
+        </java:condition>
+            <java:consequence>
+	  con.print("########   Consecuencia ProductosCalificadosBaseCalculoUnidadesFaltantes  concurso: " + con.getOidConcurso() + " , Solicitud: " + pos.getSolicitud().getOidSolicitud() + " , posicion: " + pos.getOidPosicion()); 
+          Double unidades = new Double(pos.getUnidadesDemandaReal().doubleValue());
+          BigDecimal uniDemanReal = new BigDecimal(unidades.doubleValue());
+          BigDecimal montoCalificacion = uniDemanReal.multiply(pos.getPrecioCatalogoUnitarioLocal());
+          pos.getPosicionPuntaje(con.getOidConcurso()).setMontoCalificacion(montoCalificacion);
+          pos.getPosicionPuntaje(con.getOidConcurso()).setUnidadesCalificacion(pos.getUnidadesDemandaReal());
+        </java:consequence>
+        </rule>
+        
+    <!--
+              REGLA 10: ProductosCalificadosBaseCalculoUnidadesFaltantesControlLiquidacion
+              @author Sergio Platas
+              @date 11/05/2005
+     -->
+    <rule name="ProductosCalificadosBaseCalculoUnidadesFaltantesControlLiquidacion">
+        <parameter identifier="pos">
+            <java:class>es.indra.sicc.logicanegocio.inc.Posicion</java:class>
+        </parameter>
+        <parameter identifier="con">
+            <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+        </parameter>
+        <java:condition> 
+        con.print("ProductosCalificadosBaseCalculoUnidadesFaltantesControlLiquidacion")
+        </java:condition>
+        <java:condition> 
+            !pos.getRechazada(con.getOidConcurso())
+        </java:condition>
+        <java:condition> 
+          !pos.getSolicitudRechazado(con.getOidConcurso())
+        </java:condition>
+            <java:condition> 
+          !ConstantesPED.ESTADO_POSICION_ANULADO.equals(pos.getEstado())
+        </java:condition>
+            <java:condition> 
+          con.validarProductoCalificado(pos).booleanValue()
+        </java:condition>
+            <java:condition> 
+          !con.validarProductoExcluidoCalificado(pos).booleanValue()
+        </java:condition>
+            <java:condition> 
+          ConstantesINC.BASE_CALCULO_UNIDADES.equals(con.getBaseCalculo())
+        </java:condition>
+            <java:condition> 
+          ConstantesINC.TIPO_VENTA_CATALOGO.equals(con.getTipoVenta())
+        </java:condition>
+            <java:condition> 
+          con.getIndFaltantesAnunciados()
+        </java:condition>
+            <java:condition> 
+          !pos.getLimiteVenta() || pos.getLimiteVenta()
+        </java:condition>
+            <java:condition> 
+          !pos.getControlStock()
+        </java:condition>
+            <java:condition> 
+          pos.getControlLiquidacion()
+        </java:condition>
+            <java:consequence>
+	  con.print("########   Consecuencia ProductosCalificadosBaseCalculoUnidadesFaltantesControlLiquidacion  concurso: " + con.getOidConcurso() + " , Solicitud: " + pos.getSolicitud().getOidSolicitud() + " , posicion: " + pos.getOidPosicion()); 
+          Double unidades = new Double(pos.getUnidadesComprometidas().doubleValue());
+          BigDecimal unidadesComprom = new BigDecimal(unidades.doubleValue());
+          BigDecimal montoCalificacion = unidadesComprom.multiply(pos.getPrecioCatalogoUnitarioLocal());
+          pos.getPosicionPuntaje(con.getOidConcurso()).setMontoCalificacion(montoCalificacion);
+          pos.getPosicionPuntaje(con.getOidConcurso()).setUnidadesCalificacion(pos.getUnidadesComprometidas());
+       </java:consequence>
+    </rule>
+    
+    <!--
+              REGLA 11: ProductosCalificadosBaseCalculoUnidadesFaltantesControlStock 
+              @author Sergio Platas
+              @date 11/05/2005
+     -->
+    <rule name="ProductosCalificadosBaseCalculoUnidadesFaltantesControlStock">
+        <parameter identifier="pos">
+            <java:class>es.indra.sicc.logicanegocio.inc.Posicion</java:class>
+        </parameter>
+        <parameter identifier="con">
+            <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+        </parameter>
+        <java:condition> 
+        con.print("ProductosCalificadosBaseCalculoUnidadesFaltantesControlStock")
+        </java:condition>
+        <java:condition> 
+            !pos.getRechazada(con.getOidConcurso())
+        </java:condition>
+        <java:condition> 
+          !pos.getSolicitudRechazado(con.getOidConcurso())
+        </java:condition>
+            <java:condition> 
+          !ConstantesPED.ESTADO_POSICION_ANULADO.equals(pos.getEstado())
+        </java:condition>
+            <java:condition> 
+          con.validarProductoCalificado(pos).booleanValue()
+        </java:condition>
+            <java:condition> 
+          !con.validarProductoExcluidoCalificado(pos).booleanValue()
+        </java:condition>
+            <java:condition> 
+          ConstantesINC.BASE_CALCULO_UNIDADES.equals(con.getBaseCalculo())
+        </java:condition>
+            <java:condition> 
+          ConstantesINC.TIPO_VENTA_CATALOGO.equals(con.getTipoVenta())
+        </java:condition>
+            <java:condition> 
+          con.getIndFaltantesAnunciados()
+        </java:condition>
+            <java:condition> 
+          !pos.getLimiteVenta() || pos.getLimiteVenta()
+        </java:condition>
+            <java:condition> 
+          pos.getControlStock()
+        </java:condition>
+            <java:condition> 
+          !pos.getControlLiquidacion()
+        </java:condition>
+            <java:consequence>
+	  con.print("########   Consecuencia ProductosCalificadosBaseCalculoUnidadesFaltantesControlStock  concurso: " + con.getOidConcurso() + " , Solicitud: " + pos.getSolicitud().getOidSolicitud() + " , posicion: " + pos.getOidPosicion()); 
+          Double unidades = new Double(pos.getUnidadesDemandaReal().doubleValue());
+          BigDecimal uniDemanReal = new BigDecimal(unidades.doubleValue());
+          BigDecimal montoCalificacion = uniDemanReal.multiply(pos.getPrecioCatalogoUnitarioLocal());
+          pos.getPosicionPuntaje(con.getOidConcurso()).setMontoCalificacion(montoCalificacion);
+          pos.getPosicionPuntaje(con.getOidConcurso()).setUnidadesCalificacion(pos.getUnidadesDemandaReal());
+          </java:consequence>
+    </rule>
+    
+    <!--
+              REGLA 12: ProductosCalificadosBaseCalculoUnidadesFaltantesControlStockLiquidacion 
+              @author Sergio Platas
+              @date 11/05/2005
+     -->
+    <rule name="ProductosCalificadosBaseCalculoUnidadesFaltantesControlStockLiquidacion">
+        <parameter identifier="pos">
+            <java:class>es.indra.sicc.logicanegocio.inc.Posicion</java:class>
+        </parameter>
+        <parameter identifier="con">
+            <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+        </parameter>
+        <java:condition> 
+        con.print("ProductosCalificadosBaseCalculoUnidadesFaltantesControlStockLiquidacion")
+        </java:condition>
+        <java:condition> 
+            !pos.getRechazada(con.getOidConcurso())
+        </java:condition>
+        <java:condition> 
+          !pos.getSolicitudRechazado(con.getOidConcurso())
+        </java:condition>
+            <java:condition> 
+          !ConstantesPED.ESTADO_POSICION_ANULADO.equals(pos.getEstado())
+        </java:condition>
+            <java:condition> 
+          con.validarProductoCalificado(pos).booleanValue()
+        </java:condition>
+            <java:condition> 
+          !con.validarProductoExcluidoCalificado(pos).booleanValue()
+        </java:condition>
+            <java:condition> 
+          ConstantesINC.BASE_CALCULO_UNIDADES.equals(con.getBaseCalculo())
+        </java:condition>
+            <java:condition> 
+          ConstantesINC.TIPO_VENTA_CATALOGO.equals(con.getTipoVenta())
+        </java:condition>
+            <java:condition> 
+          con.getIndFaltantesAnunciados()
+        </java:condition>
+            <java:condition> 
+          pos.getLimiteVenta() || !pos.getLimiteVenta()
+        </java:condition>
+            <java:condition> 
+          pos.getControlStock()
+        </java:condition>
+            <java:condition> 
+          pos.getControlLiquidacion()
+        </java:condition>
+            <java:consequence>
+	  con.print("########   Consecuencia ProductosCalificadosBaseCalculoUnidadesFaltantesControlStockLiquidacion  concurso: " + con.getOidConcurso() + " , Solicitud: " + pos.getSolicitud().getOidSolicitud() + " , posicion: " + pos.getOidPosicion()); 
+          double unidades = pos.getUnidadesComprometidas().doubleValue();
+          BigDecimal unidCompro = new BigDecimal(unidades);
+          BigDecimal preCatUnit = pos.getPrecioCatalogoUnitarioLocal();
+          BigDecimal montoValido = unidCompro.multiply(preCatUnit); 
+          pos.getPosicionPuntaje(con.getOidConcurso()).setMontoValido(montoValido);
+          pos.getPosicionPuntaje(con.getOidConcurso()).setUnidadesValidas(pos.getUnidadesComprometidas());
+          double unidPorAt = pos.getUnidadesPorAtender().doubleValue();
+          double factConv = con.getFactorConversion().doubleValue();
+          double ptosAsig = con.getPuntosAsignar().doubleValue();
+          double puntajeFaltanteNoAnunciado = ((unidCompro.doubleValue() - unidPorAt) / factConv) * ptosAsig;
+          pos.getPosicionPuntaje(con.getOidConcurso()).setPuntajeFaltanteNoAnunciado(new Double(puntajeFaltanteNoAnunciado));
+          double uniValidas = pos.getPosicionPuntaje(con.getOidConcurso()).getUnidadesValidas().doubleValue();      
+          double puntosValidos = (uniValidas / factConv) * ptosAsig; 
+          pos.getPosicionPuntaje(con.getOidConcurso()).setPuntosValidos(new Double(puntosValidos)); 
+        </java:consequence>
+    </rule>
+    
+    <!--
+           REGLA 13: ProductosCalificadosBaseCalculoMontoFaltantesControLiquidacion  
+           @author Sergio Platas
+           @date 12/05/2005
+    -->
+    <rule name="ProductosCalificadosBaseCalculoMontoFaltantesControLiquidacion">
+        <parameter identifier="pos">
+            <java:class>es.indra.sicc.logicanegocio.inc.Posicion</java:class>
+        </parameter>
+        <parameter identifier="con">
+            <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+        </parameter>
+        <java:condition> 
+        con.print("ProductosCalificadosBaseCalculoMontoFaltantesControLiquidacion")
+        </java:condition>
+        <java:condition> 
+            !pos.getRechazada(con.getOidConcurso())
+        </java:condition>
+        <java:condition> 
+         !pos.getSolicitudRechazado(con.getOidConcurso())
+       </java:condition>
+            <java:condition> 
+         !ConstantesPED.ESTADO_POSICION_ANULADO.equals(pos.getEstado())
+       </java:condition>
+            <java:condition> 
+         con.validarProductoCalificado(pos).booleanValue()
+       </java:condition>
+            <java:condition> 
+         !con.validarProductoExcluidoCalificado(pos).booleanValue()
+       </java:condition>
+            <java:condition> 
+         ConstantesINC.BASE_CALCULO_MONTO.equals(con.getBaseCalculo())
+       </java:condition>
+            <java:condition> 
+         ConstantesINC.TIPO_VENTA_CATALOGO.equals(con.getTipoVenta())
+       </java:condition>
+            <java:condition> 
+         con.getIndFaltantesAnunciados()
+       </java:condition>
+            <java:condition> 
+         !pos.getLimiteVenta() || pos.getLimiteVenta()
+       </java:condition>
+            <java:condition> 
+         !pos.getControlStock()
+       </java:condition>
+            <java:condition> 
+         pos.getControlLiquidacion()
+       </java:condition>
+            <java:consequence>
+	 con.print("########   Consecuencia ProductosCalificadosBaseCalculoMontoFaltantesControLiquidacion  concurso: " + con.getOidConcurso() + " , Solicitud: " + pos.getSolicitud().getOidSolicitud() + " , posicion: " + pos.getOidPosicion()); 
+         Double unidades = new Double(pos.getUnidadesComprometidas().doubleValue());
+         BigDecimal unidadesComprom = new BigDecimal(unidades.doubleValue());
+         BigDecimal montoCalificacion = unidadesComprom.multiply(pos.getPrecioCatalogoUnitarioLocal());
+         pos.getPosicionPuntaje(con.getOidConcurso()).setMontoCalificacion(montoCalificacion);
+         pos.getPosicionPuntaje(con.getOidConcurso()).setUnidadesCalificacion(pos.getUnidadesComprometidas());
+       </java:consequence>
+    </rule>
+    
+    <!--
+           REGLA 14: ProductosCalificadosBaseCalculoMontoVentaNetaFaltantesControlStockLiquidacion
+           @author Sergio Platas
+           @date 12/05/2005
+    -->
+    <rule name="ProductosCalificadosBaseCalculoMontoVentaNetaFaltantesControlStockLiquidacion">
+        <parameter identifier="pos">
+            <java:class>es.indra.sicc.logicanegocio.inc.Posicion</java:class>
+        </parameter>
+        <parameter identifier="con">
+            <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+        </parameter>
+        <java:condition> 
+        con.print("ProductosCalificadosBaseCalculoMontoVentaNetaFaltantesControlStockLiquidacion")
+        </java:condition>
+        <java:condition> 
+            !pos.getRechazada(con.getOidConcurso())
+        </java:condition>
+        <java:condition> 
+         !pos.getSolicitudRechazado(con.getOidConcurso())
+       </java:condition>
+            <java:condition> 
+         !ConstantesPED.ESTADO_POSICION_ANULADO.equals(pos.getEstado())
+       </java:condition>
+            <java:condition> 
+         con.validarProductoCalificado(pos).booleanValue()
+       </java:condition>
+            <java:condition> 
+         !con.validarProductoExcluidoCalificado(pos).booleanValue()
+       </java:condition>
+            <java:condition> 
+         ConstantesINC.BASE_CALCULO_MONTO.equals(con.getBaseCalculo())
+       </java:condition>
+            <java:condition> 
+         ConstantesINC.TIPO_VENTA_NETA.equals(con.getTipoVenta())
+       </java:condition>
+            <java:condition> 
+         con.getIndFaltantesAnunciados()
+       </java:condition>
+            <java:condition> 
+         !pos.getLimiteVenta() || pos.getLimiteVenta()
+       </java:condition>
+            <java:condition> 
+         pos.getControlStock()
+       </java:condition>
+            <java:condition> 
+         pos.getControlLiquidacion()
+       </java:condition>
+            <java:consequence>
+ 	 con.print("########   Consecuencia ProductosCalificadosBaseCalculoMontoVentaNetaFaltantesControlStockLiquidacion  concurso: " + con.getOidConcurso() + " , Solicitud: " + pos.getSolicitud().getOidSolicitud() + " , posicion: " + pos.getOidPosicion()); 
+         Double unidades = new Double(pos.getUnidadesComprometidas().doubleValue());
+         BigDecimal unidadesComprom = new BigDecimal(unidades.doubleValue());
+         BigDecimal montoCalificacion = unidadesComprom.multiply(pos.getPrecioNetoUnitarioLocal());
+         pos.getPosicionPuntaje(con.getOidConcurso()).setMontoCalificacion(montoCalificacion);
+         pos.getPosicionPuntaje(con.getOidConcurso()).setUnidadesCalificacion(pos.getUnidadesComprometidas()); 
+       </java:consequence>
+    </rule>
+    
+    <!--
+           REGLA 15: ProductosCalificadosBaseCalculoMontoVentaNetaFaltantes 
+           @author Sergio Platas
+           @date 12/05/2005
+    -->
+    <rule name="ProductosCalificadosBaseCalculoMontoVentaNetaFaltantes">
+        <parameter identifier="pos">
+            <java:class>es.indra.sicc.logicanegocio.inc.Posicion</java:class>
+        </parameter>
+        <parameter identifier="con">
+            <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+        </parameter>
+        <java:condition> 
+        con.print("ProductosCalificadosBaseCalculoMontoVentaNetaFaltantes")
+        </java:condition>
+        <java:condition> 
+            !pos.getRechazada(con.getOidConcurso())
+        </java:condition>
+        <java:condition> 
+         !pos.getSolicitudRechazado(con.getOidConcurso())
+       </java:condition>
+            <java:condition> 
+         !ConstantesPED.ESTADO_POSICION_ANULADO.equals(pos.getEstado())
+       </java:condition>
+            <java:condition> 
+         con.validarProductoCalificado(pos).booleanValue()
+       </java:condition>
+            <java:condition> 
+         !con.validarProductoExcluidoCalificado(pos).booleanValue()
+       </java:condition>
+            <java:condition> 
+         ConstantesINC.BASE_CALCULO_MONTO.equals(con.getBaseCalculo())
+       </java:condition>
+            <java:condition> 
+         ConstantesINC.TIPO_VENTA_NETA.equals(con.getTipoVenta())
+       </java:condition>
+            <java:condition> 
+         con.getIndFaltantesAnunciados()
+       </java:condition>
+            <java:condition> 
+         !pos.getLimiteVenta() || pos.getLimiteVenta()
+       </java:condition>
+            <java:condition> 
+         !pos.getControlStock()
+       </java:condition>
+            <java:condition> 
+         !pos.getControlLiquidacion()
+       </java:condition>
+            <java:consequence>
+ 	 con.print("########   Consecuencia ProductosCalificadosBaseCalculoMontoVentaNetaFaltantes  concurso: " + con.getOidConcurso() + " , Solicitud: " + pos.getSolicitud().getOidSolicitud() + " , posicion: " + pos.getOidPosicion()); 
+         Double unidades = new Double(pos.getUnidadesDemandaReal().doubleValue());
+         BigDecimal uniDemanReal = new BigDecimal(unidades.doubleValue());
+         BigDecimal montoCalificacion = uniDemanReal.multiply(pos.getPrecioNetoUnitarioLocal());
+         pos.getPosicionPuntaje(con.getOidConcurso()).setMontoCalificacion(montoCalificacion);
+         pos.getPosicionPuntaje(con.getOidConcurso()).setUnidadesCalificacion(pos.getUnidadesDemandaReal());
+      </java:consequence>
+    </rule>
+    
+    <!--
+           REGLA 16: ProductosCalificadosBaseCalculoMontoVentaNeta
+           @author Sergio Platas
+           @date 12/05/2005
+    -->
+    <rule name="ProductosCalificadosBaseCalculoMontoVentaNeta">
+        <parameter identifier="pos">
+            <java:class>es.indra.sicc.logicanegocio.inc.Posicion</java:class>
+        </parameter>
+        <parameter identifier="con">
+            <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+        </parameter>
+        <java:condition> 
+        con.print("ProductosCalificadosBaseCalculoMontoVentaNeta")
+        </java:condition>
+        <java:condition> 
+            !pos.getRechazada(con.getOidConcurso())
+        </java:condition>
+        <java:condition> 
+          !pos.getSolicitudRechazado(con.getOidConcurso())
+       </java:condition>
+            <java:condition> 
+          !ConstantesPED.ESTADO_POSICION_ANULADO.equals(pos.getEstado())
+       </java:condition>
+            <java:condition> 
+          con.validarProductoCalificado(pos).booleanValue()
+       </java:condition>
+            <java:condition> 
+          !con.validarProductoExcluidoCalificado(pos).booleanValue()
+       </java:condition>
+            <java:condition> 
+          ConstantesINC.BASE_CALCULO_MONTO.equals(con.getBaseCalculo())
+       </java:condition>
+            <java:condition> 
+          ConstantesINC.TIPO_VENTA_NETA.equals(con.getTipoVenta())
+       </java:condition>
+            <java:condition> 
+          !con.getIndFaltantesAnunciados()
+       </java:condition>
+            <java:consequence>
+ 	 con.print("########   Consecuencia ProductosCalificadosBaseCalculoMontoVentaNeta  concurso: " + con.getOidConcurso() + " , Solicitud: " + pos.getSolicitud().getOidSolicitud() + " , posicion: " + pos.getOidPosicion()); 
+         Double unidades = new Double(pos.getUnidadesComprometidas().doubleValue());
+         BigDecimal uniComprom = new BigDecimal(unidades.doubleValue());
+         BigDecimal montoCalificacion = uniComprom.multiply(pos.getPrecioNetoUnitarioLocal());
+         pos.getPosicionPuntaje(con.getOidConcurso()).setMontoCalificacion(montoCalificacion);
+         pos.getPosicionPuntaje(con.getOidConcurso()).setUnidadesCalificacion(pos.getUnidadesComprometidas());
+      </java:consequence>
+    </rule>
+    
+    <!--               
+           REGLA 17: ProductosCalificadosBaseCalculoMontoVentaNetaFaltantesControStock
+           @author Sergio Platas
+           @date 12/05/2005
+    -->
+    <rule name="ProductosCalificadosBaseCalculoMontoVentaNetaFaltantesControStock">
+        <parameter identifier="pos">
+            <java:class>es.indra.sicc.logicanegocio.inc.Posicion</java:class>
+        </parameter>
+        <parameter identifier="con">
+            <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+        </parameter>
+        <java:condition> 
+        con.print("ProductosCalificadosBaseCalculoMontoVentaNetaFaltantesControStock")
+        </java:condition>
+        <java:condition> 
+            !pos.getRechazada(con.getOidConcurso())
+        </java:condition>
+        <java:condition> 
+          !pos.getSolicitudRechazado(con.getOidConcurso())
+       </java:condition>
+            <java:condition> 
+          !ConstantesPED.ESTADO_POSICION_ANULADO.equals(pos.getEstado())
+       </java:condition>
+            <java:condition> 
+          con.validarProductoCalificado(pos).booleanValue()
+       </java:condition>
+            <java:condition> 
+          !con.validarProductoExcluidoCalificado(pos).booleanValue()
+       </java:condition>
+            <java:condition> 
+          ConstantesINC.BASE_CALCULO_MONTO.equals(con.getBaseCalculo())
+       </java:condition>
+            <java:condition> 
+          ConstantesINC.TIPO_VENTA_NETA.equals(con.getTipoVenta())
+       </java:condition>
+            <java:condition> 
+          con.getIndFaltantesAnunciados()
+       </java:condition>
+            <java:condition> 
+          !pos.getLimiteVenta() || pos.getLimiteVenta()
+       </java:condition>
+            <java:condition> 
+          pos.getControlStock()
+       </java:condition>
+            <java:condition> 
+          !pos.getControlLiquidacion()
+       </java:condition>
+            <java:consequence>
+ 	 con.print("########   Consecuencia ProductosCalificadosBaseCalculoMontoVentaNetaFaltantesControStock  concurso: " + con.getOidConcurso() + " , Solicitud: " + pos.getSolicitud().getOidSolicitud() + " , posicion: " + pos.getOidPosicion()); 
+         Double unidades = new Double(pos.getUnidadesDemandaReal().doubleValue());
+         BigDecimal uniDemanReal = new BigDecimal(unidades.doubleValue());
+         BigDecimal montoCalificacion = uniDemanReal.multiply(pos.getPrecioNetoUnitarioLocal());
+         pos.getPosicionPuntaje(con.getOidConcurso()).setMontoCalificacion(montoCalificacion);   
+         pos.getPosicionPuntaje(con.getOidConcurso()).setUnidadesCalificacion(pos.getUnidadesDemandaReal());        
+      </java:consequence>
+    </rule>
+    
+    <!--               
+           REGLA 18: ProductosCalificadosBaseCalculoMontoVentaNetaFaltantesControLiquidacion
+           @author Sergio Platas
+           @date 12/05/2005
+    -->
+    <rule name="ProductosCalificadosBaseCalculoMontoVentaNetaFaltantesControLiquidacion">
+        <parameter identifier="pos">
+            <java:class>es.indra.sicc.logicanegocio.inc.Posicion</java:class>
+        </parameter>
+        <parameter identifier="con">
+            <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+        </parameter>
+        <java:condition> 
+        con.print("ProductosCalificadosBaseCalculoMontoVentaNetaFaltantesControLiquidacion")
+        </java:condition>
+        <java:condition> 
+            !pos.getRechazada(con.getOidConcurso())
+        </java:condition>
+        <java:condition> 
+          !pos.getSolicitudRechazado(con.getOidConcurso())
+       </java:condition>
+            <java:condition> 
+          !ConstantesPED.ESTADO_POSICION_ANULADO.equals(pos.getEstado())
+       </java:condition>
+            <java:condition> 
+          con.validarProductoCalificado(pos).booleanValue()
+       </java:condition>
+            <java:condition> 
+          !con.validarProductoExcluidoCalificado(pos).booleanValue()
+       </java:condition>
+            <java:condition> 
+          ConstantesINC.BASE_CALCULO_MONTO.equals(con.getBaseCalculo())
+       </java:condition>
+            <java:condition> 
+          ConstantesINC.TIPO_VENTA_NETA.equals(con.getTipoVenta())
+       </java:condition>
+            <java:condition> 
+          con.getIndFaltantesAnunciados()
+       </java:condition>
+            <java:condition> 
+          !pos.getLimiteVenta() || pos.getLimiteVenta()
+       </java:condition>
+            <java:condition> 
+          !pos.getControlStock()
+       </java:condition>
+            <java:condition> 
+          pos.getControlLiquidacion()
+       </java:condition>
+            <java:consequence>
+ 	 con.print("########   Consecuencia ProductosCalificadosBaseCalculoMontoVentaNetaFaltantesControLiquidacion  concurso: " + con.getOidConcurso() + " , Solicitud: " + pos.getSolicitud().getOidSolicitud() + " , posicion: " + pos.getOidPosicion()); 
+         Double unidades = new Double(pos.getUnidadesComprometidas().doubleValue());
+         BigDecimal uniComprom = new BigDecimal(unidades.doubleValue());
+         BigDecimal montoCalificacion = uniComprom.multiply(pos.getPrecioNetoUnitarioLocal());
+         pos.getPosicionPuntaje(con.getOidConcurso()).setMontoCalificacion(montoCalificacion);
+         pos.getPosicionPuntaje(con.getOidConcurso()).setUnidadesCalificacion(pos.getUnidadesComprometidas());
+       </java:consequence>
+    </rule>
+    
+    <!--               
+           REGLA 19: ProductosCalificadosBaseCalculoMontoVentaFacturaFaltantesControlStockLiquidacion
+           @author Sergio Platas
+           @date 12/05/2005
+    -->
+    <rule name="ProductosCalificadosBaseCalculoMontoVentaFacturaFaltantesControlStockLiquidacion">
+        <parameter identifier="pos">
+            <java:class>es.indra.sicc.logicanegocio.inc.Posicion</java:class>
+        </parameter>
+        <parameter identifier="con">
+            <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+        </parameter>
+        <java:condition> 
+        con.print("ProductosCalificadosBaseCalculoMontoVentaFacturaFaltantesControlStockLiquidacion")
+        </java:condition>
+        <java:condition> 
+            !pos.getRechazada(con.getOidConcurso())
+        </java:condition>
+        <java:condition> 
+          !pos.getSolicitudRechazado(con.getOidConcurso())
+       </java:condition>
+            <java:condition> 
+          !ConstantesPED.ESTADO_POSICION_ANULADO.equals(pos.getEstado())
+       </java:condition>
+            <java:condition> 
+          con.validarProductoCalificado(pos).booleanValue()
+       </java:condition>
+            <java:condition> 
+          !con.validarProductoExcluidoCalificado(pos).booleanValue()
+       </java:condition>
+            <java:condition> 
+          ConstantesINC.BASE_CALCULO_MONTO.equals(con.getBaseCalculo())
+       </java:condition>
+            <java:condition> 
+          ConstantesINC.TIPO_VENTA_FACTURA.equals(con.getTipoVenta())
+       </java:condition>
+            <java:condition> 
+          con.getIndFaltantesAnunciados()
+       </java:condition>
+            <java:condition> 
+          !pos.getLimiteVenta() || pos.getLimiteVenta()
+       </java:condition>
+            <java:condition> 
+          pos.getControlStock()
+       </java:condition>
+            <java:condition> 
+          pos.getControlLiquidacion()
+       </java:condition>
+            <java:consequence>
+ 	 con.print("########   Consecuencia ProductosCalificadosBaseCalculoMontoVentaFacturaFaltantesControlStockLiquidacion  concurso: " + con.getOidConcurso() + " , Solicitud: " + pos.getSolicitud().getOidSolicitud() + " , posicion: " + pos.getOidPosicion()); 
+         Double unidades = new Double(pos.getUnidadesComprometidas().doubleValue());
+         BigDecimal uniComprom = new BigDecimal(unidades.doubleValue());
+         BigDecimal montoCalificacion = uniComprom.multiply(pos.getPrecioFacturaUnitarioLocal());
+         pos.getPosicionPuntaje(con.getOidConcurso()).setMontoCalificacion(montoCalificacion);
+         pos.getPosicionPuntaje(con.getOidConcurso()).setUnidadesCalificacion(pos.getUnidadesComprometidas());
+        </java:consequence>
+    </rule>
+    
+    <!--               
+           REGLA 21: ProductosCalificadosBaseCalculoMontoVentaFactura  
+           @author Sergio Platas
+           @date 12/05/2005
+    -->
+    <rule name="ProductosCalificadosBaseCalculoMontoVentaFactura">
+        <parameter identifier="pos">
+            <java:class>es.indra.sicc.logicanegocio.inc.Posicion</java:class>
+        </parameter>
+        <parameter identifier="con">
+            <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+        </parameter>
+        <java:condition> 
+        con.print("ProductosCalificadosBaseCalculoMontoVentaFactura")
+        </java:condition>
+        <java:condition> 
+            !pos.getRechazada(con.getOidConcurso())
+        </java:condition>
+        <java:condition> 
+          !pos.getSolicitudRechazado(con.getOidConcurso())
+       </java:condition>
+            <java:condition> 
+          !ConstantesPED.ESTADO_POSICION_ANULADO.equals(pos.getEstado())
+       </java:condition>
+            <java:condition> 
+          con.validarProductoCalificado(pos).booleanValue()
+       </java:condition>
+            <java:condition> 
+          !con.validarProductoExcluidoCalificado(pos).booleanValue()
+       </java:condition>
+            <java:condition> 
+          ConstantesINC.BASE_CALCULO_MONTO.equals(con.getBaseCalculo())
+       </java:condition>
+            <java:condition> 
+          ConstantesINC.TIPO_VENTA_FACTURA.equals(con.getTipoVenta())
+       </java:condition>
+            <java:condition> 
+          !con.getIndFaltantesAnunciados()
+       </java:condition>
+            <java:consequence>
+ 	 con.print("########   Consecuencia ProductosCalificadosBaseCalculoMontoVentaFactura  concurso: " + con.getOidConcurso() + " , Solicitud: " + pos.getSolicitud().getOidSolicitud() + " , posicion: " + pos.getOidPosicion()); 
+         Double unidades = new Double(pos.getUnidadesComprometidas().doubleValue());
+         BigDecimal uniComprom = new BigDecimal(unidades.doubleValue());
+         BigDecimal montoCalificacion = uniComprom.multiply(pos.getPrecioFacturaUnitarioLocal());
+         pos.getPosicionPuntaje(con.getOidConcurso()).setMontoCalificacion(montoCalificacion);
+         pos.getPosicionPuntaje(con.getOidConcurso()).setUnidadesCalificacion(pos.getUnidadesComprometidas());        
+       </java:consequence>
+    </rule>
+    
+    <!--               
+           REGLA 22: ProductosCalificadosBaseCalculoMontoVentaFacturaFaltantesControStock  
+           @author Sergio Platas
+           @date 13/05/2005
+    -->
+    <rule name="ProductosCalificadosBaseCalculoMontoVentaFacturaFaltantesControStock">
+        <parameter identifier="pos">
+            <java:class>es.indra.sicc.logicanegocio.inc.Posicion</java:class>
+        </parameter>
+        <parameter identifier="con">
+            <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+        </parameter>
+        <java:condition> 
+        con.print("ProductosCalificadosBaseCalculoMontoVentaFacturaFaltantesControStock")
+        </java:condition>
+        <java:condition> 
+            !pos.getRechazada(con.getOidConcurso())
+        </java:condition>
+        <java:condition> 
+          !pos.getSolicitudRechazado(con.getOidConcurso())
+       </java:condition>
+            <java:condition> 
+          !ConstantesPED.ESTADO_POSICION_ANULADO.equals(pos.getEstado())
+       </java:condition>
+            <java:condition> 
+          con.validarProductoCalificado(pos).booleanValue()
+       </java:condition>
+            <java:condition> 
+          !con.validarProductoExcluidoCalificado(pos).booleanValue()
+       </java:condition>
+            <java:condition> 
+          ConstantesINC.BASE_CALCULO_MONTO.equals(con.getBaseCalculo())
+       </java:condition>
+            <java:condition> 
+          ConstantesINC.TIPO_VENTA_FACTURA.equals(con.getTipoVenta())
+       </java:condition>
+            <java:condition> 
+          con.getIndFaltantesAnunciados()
+       </java:condition>
+            <java:condition>
+          !pos.getLimiteVenta() || pos.getLimiteVenta()
+       </java:condition>
+            <java:condition>
+          pos.getControlStock()
+       </java:condition>
+            <java:condition>
+          !pos.getControlLiquidacion()
+       </java:condition>
+            <java:consequence>
+ 	 con.print("########   Consecuencia ProductosCalificadosBaseCalculoMontoVentaFacturaFaltantesControStock  concurso: " + con.getOidConcurso() + " , Solicitud: " + pos.getSolicitud().getOidSolicitud() + " , posicion: " + pos.getOidPosicion()); 
+         Double unidades = new Double(pos.getUnidadesDemandaReal().doubleValue());
+         BigDecimal uniDemReal = new BigDecimal(unidades.doubleValue());
+         BigDecimal montoCalificacion = uniDemReal.multiply(pos.getPrecioFacturaUnitarioLocal());
+         pos.getPosicionPuntaje(con.getOidConcurso()).setMontoCalificacion(montoCalificacion);
+         pos.getPosicionPuntaje(con.getOidConcurso()).setUnidadesCalificacion(pos.getUnidadesDemandaReal());
+       </java:consequence>
+    </rule>
+    
+    <!--               
+           REGLA 23: ProductosCalificadosBaseCalculoMontoVentaFacturaFaltantesControLiquidacion   
+           @author Sergio Platas
+           @date 13/05/2005
+    -->
+    <rule name="ProductosCalificadosBaseCalculoMontoVentaFacturaFaltantesControLiquidacion">
+        <parameter identifier="pos">
+            <java:class>es.indra.sicc.logicanegocio.inc.Posicion</java:class>
+        </parameter>
+        <parameter identifier="con">
+            <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+        </parameter>
+        <java:condition> 
+        con.print("ProductosCalificadosBaseCalculoMontoVentaFacturaFaltantesControLiquidacion")
+        </java:condition>
+        <java:condition> 
+            !pos.getRechazada(con.getOidConcurso())
+        </java:condition>
+        <java:condition> 
+          !pos.getSolicitudRechazado(con.getOidConcurso())
+       </java:condition>
+            <java:condition> 
+          !ConstantesPED.ESTADO_POSICION_ANULADO.equals(pos.getEstado())
+       </java:condition>
+            <java:condition> 
+          con.validarProductoCalificado(pos).booleanValue()
+       </java:condition>
+            <java:condition> 
+          !con.validarProductoExcluidoCalificado(pos).booleanValue()
+       </java:condition>
+            <java:condition> 
+          ConstantesINC.BASE_CALCULO_MONTO.equals(con.getBaseCalculo())
+       </java:condition>
+            <java:condition> 
+          ConstantesINC.TIPO_VENTA_FACTURA.equals(con.getTipoVenta())
+       </java:condition>
+            <java:condition> 
+          con.getIndFaltantesAnunciados()
+       </java:condition>
+            <java:condition>
+          !pos.getLimiteVenta() || pos.getLimiteVenta()
+       </java:condition>
+            <java:condition>
+          !pos.getControlStock()
+       </java:condition>
+            <java:condition>
+          pos.getControlLiquidacion()
+       </java:condition>
+            <java:consequence>
+ 	 con.print("########   Consecuencia ProductosCalificadosBaseCalculoMontoVentaFacturaFaltantesControLiquidacion  concurso: " + con.getOidConcurso() + " , Solicitud: " + pos.getSolicitud().getOidSolicitud() + " , posicion: " + pos.getOidPosicion()); 
+         Double unidades = new Double(pos.getUnidadesDemandaReal().doubleValue());
+         BigDecimal uniDemReal = new BigDecimal(unidades.doubleValue());
+         BigDecimal montoCalificacion = uniDemReal.multiply(pos.getPrecioFacturaUnitarioLocal());
+         pos.getPosicionPuntaje(con.getOidConcurso()).setMontoCalificacion(montoCalificacion);
+         pos.getPosicionPuntaje(con.getOidConcurso()).setUnidadesCalificacion(pos.getUnidadesComprometidas());        
+       </java:consequence>
+    </rule>
+
+</rule-set>

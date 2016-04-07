@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by tito (tito) -->  
+<ReportSourceDefinition Id="RSD_REP-021" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="MARCA" Description="MARCA" DataType="STRING" Calculated="false" Expression="" ExternalData="MARCA"/>  
+		<DimensionSourceDefinition Name="CANAL" Description="CANAL" DataType="STRING" Calculated="false" Expression="" ExternalData="CANAL"/>  
+		<DimensionSourceDefinition Name="PERIODO" Description="PERIODO" DataType="STRING" Calculated="false" Expression="" ExternalData="PERIODO"/>  
+		<DimensionSourceDefinition Name="DIA" Description="DIA" DataType="STRING" Calculated="false" Expression="" ExternalData="DIA"/>  
+		<DimensionSourceDefinition Name="NOMBREUSUARIO" Description="NOMBREUSUARIO" DataType="STRING" Calculated="false" Expression="" ExternalData="NOMBREUSUARIO"/>  
+		<DimensionSourceDefinition Name="DIGITAD" Description="DIGITAD" DataType="STRING" Calculated="false" Expression="" ExternalData="DIGITAD"/>  
+		<DimensionSourceDefinition Name="DOCUMENTO" Description="DOCUMENTO" DataType="STRING" Calculated="false" Expression="" ExternalData="DOCUMENTO"/>  
+		<DimensionSourceDefinition Name="HORA_INI" Description="HORA_INI" DataType="STRING" Calculated="false" Expression="" ExternalData="HORA_INI"/>  
+		<DimensionSourceDefinition Name="HORA_FIN" Description="HORA_FIN" DataType="STRING" Calculated="false" Expression="" ExternalData="HORA_FIN"/>  
+		<DimensionSourceDefinition Name="TIPO" Description="TIPO" DataType="STRING" Calculated="false" Expression="" ExternalData="TIPO"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="CANTIDAD" Description="CANTIDAD" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="CANTIDAD" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="COD_VENTA" Description="COD_VENTA" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="COD_VENTA" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="HORA_TRAB" Description="HORA_TRAB" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="HORA_TRAB" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="PROMEDIO" Description="PROMEDIO" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="PROMEDIO" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="IDIOMA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PAIS" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="MARCA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="CANAL" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="ACCESO" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="SUBACCESO" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PERIODO" Visual="FALSE"/>  
+		<FilterDefinition DataType="STRING" FilterType="EQUALTO" Name="FORMATOFECHA" Visual="FALSE"/>  
+		<FilterDefinition DataType="DATE" FilterType="EQUALTO" Name="FECHA" Visual="FALSE"/>  
+	</FilterDefinitions>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="REP-021" SourceType="SQL" Expression="SELECT MARCA, CANAL, PERIODO, DIA, NOMBREUSUARIO, DIGITAD, DOCUMENTO,to_char(MIN(HORA_INI),'HH24:MI:SS') HORA_INI, to_char(MAX(HORA_FIN),'HH24:MI:SS') HORA_FIN,TIPO, SUM(CANTIDAD) CANTIDAD ,  
+	   SUM(COD_VENTA) COD_VENTA ,    
+	   (MAX(HORA_FIN) - MIN(HORA_INI))*24 HORA_TRAB,   
+	   DECODE((MAX(HORA_FIN) - MIN(HORA_INI)), 0 ,0, SUM(COD_VENTA) / ((MAX(HORA_FIN) - MIN(HORA_INI))*24)) PROMEDIO  
+	   FROM  
+(  
+		   SELECT MAR.DES_MARC MARCA, GEN_SEG_CAN.VAL_I18N CANAL, CRA.VAL_NOMB_PERI PERIODO,  
+		   TO_CHAR(EST_DIG.FEC_INIC_SESI,'DD.MM.YYYY') AS DIA, USU.VAL_NOMB_USUA AS NOMBREUSUARIO,  
+		   USU.VAL_NOM1 ||' '|| USU.VAL_NOM2 ||' '|| USU.VAL_APEL_PATE AS DIGITAD,   
+		   GEN_TIP_SOL.VAL_I18N AS DOCUMENTO, PED_PRG.VAL_NOMB AS TIPO,  
+		   EST_DIG.NUM_OC AS CANTIDAD, EST_DIG.NUM_CV AS COD_VENTA, EST_DIG.FEC_INIC_SESI AS HORA_INI,  
+		   EST_DIG.FEC_FIN_SESI AS HORA_FIN   
+		   FROM PED_PROCE PROCE,  
+		   		PED_PROGR PED_PRG,  
+				SEG_MARCA MAR,  
+		        PED_TIPO_SOLIC TIP_SOL,  
+				SEG_CANAL CAN,  
+				SEG_ACCES ACC,  
+				SEG_SUBAC SUBA,  
+				PED_ESTAD_DIGIT EST_DIG,  
+				V_REP_USUAR_LARGO USU,  
+				PED_TIPO_SOLIC_PAIS TIP_SOL_PAI,  
+				CRA_PERIO CRA,  
+				(  
+				SELECT GEN.VAL_OID , GEN.VAL_I18N  
+				FROM V_GEN_I18N_SICC GEN  
+				WHERE GEN.ATTR_ENTI = 'SEG_CANAL'  
+				      AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%  
+			    ) GEN_SEG_CAN,  
+				(  
+				SELECT GEN.VAL_OID, GEN.VAL_I18N  
+				FROM V_GEN_I18N_SICC GEN  
+				WHERE GEN.ATTR_ENTI = 'PED_TIPO_SOLIC'  
+				      AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%  
+			    ) GEN_TIP_SOL	   
+			WHERE MAR.OID_MARC = TIP_SOL.MARC_OID_MARC  
+				  AND PROCE.OID_PROC= EST_DIG.PROC_OID_PROC  
+				  AND PED_PRG.COD_PROG = PROCE.COD_PROC  
+				  AND GEN_TIP_SOL.VAL_OID = TIP_SOL.OID_TIPO_SOLI  
+				  AND GEN_SEG_CAN.VAL_OID = CAN.OID_CANA   
+				  AND ACC.CANA_OID_CANA = CAN.OID_CANA  
+				  AND SUBA.ACCE_OID_ACCE = ACC.OID_ACCE  
+				  AND USU.VAL_NOMB_USUA = EST_DIG.VAL_USUA  
+				  AND EST_DIG.TSPA_OID_TIPO_SOLI_PAIS = TIP_SOL_PAI.OID_TIPO_SOLI_PAIS  
+				  AND TIP_SOL_PAI.TSOL_OID_TIPO_SOLI = TIP_SOL.OID_TIPO_SOLI  
+				  AND SUBA.OID_SBAC = TIP_SOL.SBAC_OID_SBAC  
+				  AND CRA.OID_PERI = EST_DIG.PERD_OID_PERI  
+				  AND CRA.MARC_OID_MARC = MAR.OID_MARC  
+				  AND CRA.CANA_OID_CANA = CAN.OID_CANA  
+				  AND CRA.PAIS_OID_PAIS = %value_PAISVALUE%  
+				  AND EST_DIG.PERD_OID_PERI = %value_PERIODOVALUE%  
+				  AND MAR.OID_MARC = %value_MARCAVALUE%  
+				  AND CAN.OID_CANA = %value_CANALVALUE%  
+				  %start_ACCESOVALUES% AND ACC.OID_ACCE IN (%value_ACCESOVALUES%) %end_ACCESOVALUES%  
+				  %start_SUBACCESOVALUES% AND SUBA.OID_SBAC IN (%value_SUBACCESOVALUES%) %end_SUBACCESOVALUES%   
+				  AND to_date(EST_DIG.FEC_INIC_SESI) &lt;= to_date(%value_FECHAVALUE% ,%value_FORMATOFECHAVALUE%)  
+				  AND to_date(EST_DIG.FEC_FIN_SESI) >= to_date(%value_FECHAVALUE% ,%value_FORMATOFECHAVALUE%)   
+)		  
+GROUP BY MARCA,  
+	  	 CANAL,  
+		 PERIODO,  
+		 DIA,  
+		 NOMBREUSUARIO,  
+		 DIGITAD,  
+		 DOCUMENTO,  
+		 TIPO  
+" ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.106:1523:SICCV3D" ExternalConnectionDistributedUrl="" ExternalConnectionUser="usu_peru" ExternalConnectionPassword="PERU" DatePattern="dd/MM/yyyy" DateTimePattern=""/>  
+	</DataSourceDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="IDIOMA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="PAIS" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="MARCA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="CANAL" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="ACCESO" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="SUBACCESO" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="57" FilterDefinitionName="PERIODO" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="dd/MM/yyyy" FilterDefinitionName="FORMATOFECHA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="09/12/2004" FilterDefinitionName="FECHA" FilterParameter="VALUE"/>  
+	</ParameterValues>  
+	<Localizations/>  
+</ReportSourceDefinition>  
+

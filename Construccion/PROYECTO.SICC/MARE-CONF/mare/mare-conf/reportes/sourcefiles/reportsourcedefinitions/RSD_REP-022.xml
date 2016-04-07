@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by team (renegade) -->  
+<ReportSourceDefinition Id="RSD_REP-022" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="DES_MARC" Description="DES_MARC" DataType="STRING" Calculated="false" Expression="" ExternalData="DES_MARC"/>  
+		<DimensionSourceDefinition Name="CANAL" Description="CANAL" DataType="STRING" Calculated="false" Expression="" ExternalData="CANAL"/>  
+		<DimensionSourceDefinition Name="VAL_NOMB_PERI" Description="VAL_NOMB_PERI" DataType="STRING" Calculated="false" Expression="" ExternalData="VAL_NOMB_PERI"/>  
+		<DimensionSourceDefinition Name="NOMBRE_COMPLETO" Description="NOMBRE_COMPLETO" DataType="STRING" Calculated="false" Expression="" ExternalData="NOMBRE_COMPLETO"/>  
+		<DimensionSourceDefinition Name="VAL_NOMB" Description="VAL_NOMB" DataType="STRING" Calculated="false" Expression="" ExternalData="VAL_NOMB"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="CV_INGRESOS_115" Description="CV_INGRESOS_115" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="CV_INGRESOS_115" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="DOC_INGRESOS_115" Description="DOC_INGRESOS_115" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="DOC_INGRESOS_115" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="CV_INGRESOS_120" Description="CV_INGRESOS_120" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="CV_INGRESOS_120" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="DOC_INGRESOS_120" Description="DOC_INGRESOS_120" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="DOC_INGRESOS_120" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="HORAS" Description="HORAS" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="HORAS" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="RECLAMOS" Description="RECLAMOS" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="RECLAMOS" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="REP-022" SourceType="SQL" Expression="select  
+	  mar.DES_MARC,	    
+	  gen_can.canal,	    
+	  per.val_nomb_peri,  
+	  usu.VAL_NOM1||' '||usu.VAL_NOM2||' '||usu.VAL_APEL_PATE nombre_completo,  
+	  prog.VAL_NOMB,  
+	  sum(decode(pro.COD_PROC,'P115',est_dig.NUM_CV,0))cv_ingresos_115,  
+	  sum(decode(pro.COD_PROC,'P115',est_dig.NUM_OC,0))doc_ingresos_115,  
+  	  sum(decode(pro.COD_PROC,'P120',est_dig.NUM_CV,0))cv_ingresos_120,  
+	  sum(decode(pro.COD_PROC,'P120',est_dig.NUM_OC,0))doc_ingresos_120,  
+	  sum(est_dig.FEC_FIN_SESI-est_dig.FEC_INIC_SESI)*24 as horas,  
+	  case when (proG.COD_PROG = 'P115') THEN  
+			  (  
+			  SELECT COUNT (*)  
+                      FROM rec_cabec_recla rec,  
+                           rec_tipo_ingre t_ing                             
+                     WHERE rec.tiin_oid_tipo_ingr = t_ing.oid_tipo_ingr  
+		                   AND  t_ing.cod_tipo_ingr = 'D'  
+	                      AND rec.COD_USUA_INGR = est_dig.val_usua  
+			              %start_FECHAINICIOVALUE% AND TO_DATE(REC.FEC_INGR)  >= to_date(%value_FECHAINICIOVALUE%, %value_FORMATOFECHAVALUE%) %end_FECHAINICIOVALUE%  
+						%start_FECHAFINVALUE% AND TO_DATE(REC.FEC_INGR) &lt;= to_date(%value_FECHAFINVALUE%, %value_FORMATOFECHAVALUE%) %end_FECHAFINVALUE%  
+						AND REC.PERD_OID_PERI_RECL = PER.OID_PERI  
+			  )  
+		ELSE  
+			0  
+		END reclamos  
+from     
+	 ped_estad_digit est_dig,  
+	 ped_tipo_solic_pais t_sol_p,  
+	 ped_tipo_solic t_sol,  
+	 ped_proce pro,  
+	 ped_progr prog,  
+	 seg_acces acc,  
+	 cra_perio per,  
+	 V_REP_USUAR_LARGO usu,  
+	 seg_marca mar,  
+	 (  
+	 select gen.val_oid, gen.val_i18n canal  
+	 from v_gen_i18n_sicc gen		    
+	 where gen.attr_enti = 'SEG_CANAL'  
+	 	   and gen.idio_oid_idio = %value_IDIOMAVALUE%  
+	 )gen_can  
+where   
+	  t_sol_p.OID_TIPO_SOLI_PAIS = est_dig.TSPA_OID_TIPO_SOLI_PAIS  
+	  and t_sol_p.TSOL_OID_TIPO_SOLI = t_sol.OID_TIPO_SOLI  
+	  and t_sol.ACCE_OID_ACCE = acc.OID_ACCE  
+	  and est_dig.PERD_OID_PERI = per.OID_PERI  
+	  and est_dig.VAL_USUA = usu.VAL_NOMB_USUA  
+	  and t_sol.MARC_OID_MARC = mar.oid_marc  
+	  and acc.CANA_OID_CANA = gen_can.VAL_OID(+)  
+	  and est_dig.PROC_OID_proc=pro.OID_PROC  
+	  and pro.PROG_OID_PROG = prog.OID_PROG  
+	  %start_MARCAVALUE% and t_sol.MARC_OID_MARC = %value_MARCAVALUE% %end_MARCAVALUE%  
+	  %start_CANALVALUE% and acc.CANA_OID_CANA = %value_CANALVALUE% %end_CANALVALUE%  
+	  and t_sol_p.pais_oid_pais = %value_PAISVALUE%  
+	  %start_PERIODOVALUE% and est_dig.PERD_OID_PERI = %value_PERIODOVALUE% %end_PERIODOVALUE%  
+	  %start_FECHAINICIOVALUE% and to_date(est_dig.FEC_INIC_SESI) >= to_date(%value_FECHAINICIOVALUE%, %value_FORMATOFECHAVALUE%) %end_FECHAINICIOVALUE%  
+	  %start_FECHAFINVALUE% and to_date(est_dig.FEC_FIN_SESI) &lt;= to_date(%value_FECHAFINVALUE%, %value_FORMATOFECHAVALUE%) %end_FECHAFINVALUE%  
+group by  
+	  est_dig.val_usua,  
+  	  mar.DES_MARC,  
+	  gen_can.canal,  
+	  per.val_nomb_peri,  
+	  usu.VAL_NOM1||' '||usu.VAL_NOM2||' '||usu.VAL_APEL_PATE,  
+	  prog.VAL_NOMB,  
+	  proG.COD_PROG,  
+	  PER.OID_PERI  
+order by nombre_completo" ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.106:1523:SICCV3DG" ExternalConnectionDistributedUrl="" ExternalConnectionUser="usu_peru" ExternalConnectionPassword="usu_peru" DatePattern="dd/MM/yyyy" DateTimePattern=""/>  
+	</DataSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="IDIOMA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PAIS" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="MARCA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="CANAL" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PERIODO" Visual="FALSE"/>  
+		<FilterDefinition DataType="STRING" FilterType="EQUALTO" Name="FORMATOFECHA" Visual="FALSE"/>  
+		<FilterDefinition DataType="DATE" FilterType="EQUALTO" Name="FECHAINICIO" Visual="FALSE"/>  
+		<FilterDefinition DataType="DATE" FilterType="EQUALTO" Name="FECHAFIN" Visual="FALSE"/>  
+	</FilterDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="IDIOMA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="PAIS" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="dd/MM/yyyy" FilterDefinitionName="FORMATOFECHA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="MARCA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="CANAL" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="PERIODO" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="FECHAINICIO" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="FECHAFIN" FilterParameter="VALUE"/>  
+	</ParameterValues>  
+</ReportSourceDefinition>  
+

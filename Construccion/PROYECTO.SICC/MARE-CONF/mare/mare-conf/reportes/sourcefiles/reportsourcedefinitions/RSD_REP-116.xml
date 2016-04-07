@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by a (a) -->  
+<ReportSourceDefinition Id="RSD_REP-116" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="PAIS" Description="PAIS" DataType="STRING" Calculated="false" Expression="" ExternalData="PAIS"/>  
+		<DimensionSourceDefinition Name="SUBG_VENT" Description="SUBG_VENT" DataType="STRING" Calculated="false" Expression="" ExternalData="SUBG_VENT"/>  
+		<DimensionSourceDefinition Name="DES_REGI" Description="DES_REGI" DataType="STRING" Calculated="false" Expression="" ExternalData="DES_REGI"/>  
+		<DimensionSourceDefinition Name="DES_ZONA" Description="DES_ZONA" DataType="STRING" Calculated="false" Expression="" ExternalData="DES_ZONA"/>  
+		<DimensionSourceDefinition Name="PERIODO" Description="PERIODO" DataType="STRING" Calculated="false" Expression="" ExternalData="PERIODO"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="P100_O_MAS" Description="P100_O_MAS" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="P100_O_MAS" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="P100_80" Description="P100_80" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="P100_80" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="P80_60" Description="P80_60" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="P80_60" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="P60_40" Description="P60_40" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="P60_40" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="P40_20" Description="P40_20" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="P40_20" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="P20_0" Description="P20_0" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="P20_0" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="REP-116" SourceType="SQL" Expression="SELECT PAIS,  
+	   SUBG_VENT,  
+	   DES_REGI,  
+	   DES_ZONA,  
+	   PERIODO,  
+	   SUM(P100_O_MAS) P100_O_MAS,  
+	   SUM(P100_80) P100_80,  
+	   SUM(P80_60) P80_60,  
+	   SUM(P60_40) P60_40,  
+	   SUM(P40_20) P40_20,  
+	   SUM(P20_0) P20_0  
+FROM  
+(  
+	SELECT GEN_PAIS.VAL_I18N PAIS,  
+		   DES_SUBG_VENT SUBG_VENT,  
+		   DES_REGI,  
+		   DES_ZONA,  
+		   VAL_NOMB_PERI PERIODO,  
+		   CASE WHEN (PORCENTAJE > 100) THEN  
+		   		COUNT(*)  
+	       END P100_O_MAS,  
+		   CASE WHEN (PORCENTAJE &lt;= 100 AND PORCENTAJE > 80) THEN  
+		   		COUNT(*)  
+	       END P100_80,  
+		   CASE WHEN (PORCENTAJE &lt;= 80 AND PORCENTAJE > 60) THEN  
+		   		COUNT(*)  
+	       END P80_60,  
+		   CASE WHEN (PORCENTAJE &lt;= 60 AND PORCENTAJE > 40) THEN  
+		   		COUNT(*)  
+	       END P60_40,  
+		   CASE WHEN (PORCENTAJE &lt;= 40 AND PORCENTAJE > 20) THEN  
+		   		COUNT(*)  
+	       END P40_20,  
+		   CASE WHEN (PORCENTAJE &lt;= 20 AND PORCENTAJE >= 0) THEN  
+		   		COUNT(*)  
+	       END P20_0	      
+	FROM  
+	(  
+		SELECT CAB_REC.PAIS_OID_PAIS,  
+			   SUB.DES_SUBG_VENT,  
+			   REG.DES_REGI,  
+			   ZONA.DES_ZONA,  
+			   PERI.VAL_NOMB_PERI,  
+			   CAB_REC.CLIE_OID_CLIE,  
+			   TRUNC(DECODE(SUM(NVL(SOL_POS.NUM_UNID_ATEN,0)*NVL(SOL_POS.VAL_PREC_TOTA_UNIT_LOCA, 0)),0 ,0, SUM(NVL(REC_LIN.NUM_UNID_DEVU,0)*NVL(REC_LIN.VAL_PREC, 0))/ SUM(NVL(SOL_POS.NUM_UNID_ATEN,0)*NVL(SOL_POS.VAL_PREC_TOTA_UNIT_LOCA, 0)))*100, 2) PORCENTAJE  
+		FROM REC_CABEC_RECLA CAB_REC,  
+			 CRA_PERIO PERI,  
+			 ZON_TERRI_ADMIN TER_ADM,  
+			 ZON_ZONA ZONA,  
+			 ZON_SECCI SEC,  
+			 ZON_SUB_GEREN_VENTA SUB,  
+			 ZON_REGIO REG,  
+			 REC_OPERA_RECLA OP_REC,  
+			 REC_LINEA_OPERA_RECLA REC_LIN,  
+			 PED_SOLIC_CABEC SOL_CAB,  
+			 PED_SOLIC_POSIC SOL_POS,  
+		     (  
+			 SELECT FEC_INIC  
+			 FROM CRA_PERIO  
+			 WHERE OID_PERI = %value_PERIODOINICIALVALUE%  
+			 )PER_INI,  
+			 (  
+			 SELECT FEC_FINA  
+			 FROM CRA_PERIO  
+			 WHERE OID_PERI = DECODE(%value_PERIODOFINALVALUE%, -1, %value_PERIODOINICIALVALUE%, %value_PERIODOFINALVALUE%)  
+			 )PER_FIN,  
+			 	 (  
+						 SELECT OID_OPER_RECL  
+						 FROM  
+						(  
+								 SELECT OID_OPER_RECL,  
+								 				   SUM(XXXXX) X  
+								FROM  
+								(  
+								  		   SELECT ROR.OID_OPER_RECL,  
+										   		  			 CASE WHEN  (RTM.COD_TIPO_MOVI = 'E') THEN  
+															 	  							   1  
+															ELSE  
+																							   0  
+														  END XXXXX  
+										   FROM REC_OPERA_RECLA ROR,  
+										   				REC_LINEA_OPERA_RECLA REC_LIN,  
+														REC_TIPO_MOVIM RTM  
+											WHERE ROR.OID_OPER_RECL = REC_LIN.OPRE_OID_OPER_RECL  
+														  AND RTM.OID_TIPO_MOVI = REC_LIN.TIMO_OID_TIPO_MOVI  
+								)  
+								GROUP BY OID_OPER_RECL  
+						)  
+						WHERE X = 0					   		  
+			 ) OPERAC  
+		WHERE PERI.FEC_INIC >= PER_INI.FEC_INIC  
+			  AND PERI.FEC_FINA &lt;= PER_FIN.FEC_FINA   
+			  AND CAB_REC.PERD_OID_PERI_DOCU_REFE = PERI.OID_PERI  
+			  AND CAB_REC.ZTAD_OID_TERR_ADMI = TER_ADM.OID_TERR_ADMI  
+			  AND CAB_REC.OID_CABE_RECL = OP_REC.CARE_OID_CABE_RECL  
+			  AND TER_ADM.ZSCC_OID_SECC = SEC.OID_SECC  
+			  AND SEC.ZZON_OID_ZONA = ZONA.OID_ZONA   
+		         AND OP_REC.OID_OPER_RECL = REC_LIN.OPRE_OID_OPER_RECL  
+			  AND REG.OID_REGI = ZONA.ZORG_OID_REGI  
+			  AND REG.ZSGV_OID_SUBG_VENT = SUB.OID_SUBG_VENT  
+			  AND CAB_REC.SOCA_OID_SOLI_CABE = SOL_CAB.SOCA_OID_SOLI_CABE  
+			  AND SOL_CAB.OID_SOLI_CABE = SOL_POS.SOCA_OID_SOLI_CABE  
+			  AND OPERAC.OID_OPER_RECL = OP_REC.OID_OPER_RECL	  
+			  AND CAB_REC.PAIS_OID_PAIS = %value_PAISVALUE%  
+			  AND PERI.MARC_OID_MARC = %value_MARCAVALUE%  
+			  AND PERI.CANA_OID_CANA = %value_CANALVALUE%  
+			  %start_ZONAVALUE% AND ZONA.OID_ZONA = %value_ZONAVALUE% %end_ZONAVALUE%  
+			  %start_REGIONVALUE% AND ZONA.ZORG_OID_REGI = %value_REGIONVALUE% %end_REGIONVALUE%  
+		GROUP BY CAB_REC.PAIS_OID_PAIS,   
+			  SUB.DES_SUBG_VENT,  
+			   REG.DES_REGI,  
+			   ZONA.DES_ZONA,  
+			   PERI.VAL_NOMB_PERI,  
+			   SOL_CAB.SBAC_OID_SBAC,  
+			   CAB_REC.CLIE_OID_CLIE  
+	) DATOS,  
+	(  
+	SELECT GEN.VAL_OID, GEN.VAL_I18N  
+	FROM V_GEN_I18N_SICC GEN  
+	WHERE GEN.ATTR_ENTI = 'SEG_PAIS'  
+		  AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%	    
+	) GEN_PAIS  
+	WHERE GEN_PAIS.VAL_OID(+) = DATOS.PAIS_OID_PAIS  
+	GROUP BY GEN_PAIS.VAL_I18N,  
+		   DES_SUBG_VENT,  
+		   DES_REGI,  
+		   DES_ZONA,  
+		   VAL_NOMB_PERI,  
+		   PORCENTAJE  
+)			   
+GROUP BY PAIS,  
+	   SUBG_VENT,  
+	   DES_REGI,  
+	   DES_ZONA,  
+	   PERIODO  
+" ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.106:1523:SICCV3D" ExternalConnectionDistributedUrl="" ExternalConnectionUser="usu_peru" ExternalConnectionPassword="peru" DatePattern="" DateTimePattern=""/>  
+	</DataSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="IDIOMA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PAIS" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="MARCA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="CANAL" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PERIODOINICIAL" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PERIODOFINAL" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="ZONA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="REGION" Visual="FALSE"/>  
+	</FilterDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="IDIOMA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="PAIS" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="MARCA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="CANAL" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="57" FilterDefinitionName="PERIODOINICIAL" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="57" FilterDefinitionName="PERIODOFINAL" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="ZONA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="REGION" FilterParameter="VALUE"/>  
+	</ParameterValues>  
+</ReportSourceDefinition>  
+

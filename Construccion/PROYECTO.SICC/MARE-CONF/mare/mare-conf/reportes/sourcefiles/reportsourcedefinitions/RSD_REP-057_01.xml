@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by tito (tito) -->  
+<ReportSourceDefinition Id="RSD_REP-057_01" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="PAIS" Description="PAIS" DataType="STRING" Calculated="false" Expression="" ExternalData="PAIS"/>  
+		<DimensionSourceDefinition Name="SUBG" Description="SUBG" DataType="STRING" Calculated="false" Expression="" ExternalData="SUBG"/>  
+		<DimensionSourceDefinition Name="REGION" Description="REGION" DataType="STRING" Calculated="false" Expression="" ExternalData="REGION"/>  
+		<DimensionSourceDefinition Name="N_CONCU" Description="N_CONCU" DataType="STRING" Calculated="false" Expression="" ExternalData="N_CONCU"/>  
+		<DimensionSourceDefinition Name="TERRI" Description="TERRI" DataType="STRING" Calculated="false" Expression="" ExternalData="TERRI"/>  
+		<DimensionSourceDefinition Name="COD_CLIE" Description="COD_CLIE" DataType="STRING" Calculated="false" Expression="" ExternalData="COD_CLIE"/>  
+		<DimensionSourceDefinition Name="NOMBRE" Description="NOMBRE" DataType="STRING" Calculated="false" Expression="" ExternalData="NOMBRE"/>  
+		<DimensionSourceDefinition Name="PERI" Description="PERI" DataType="STRING" Calculated="false" Expression="" ExternalData="PERI"/>  
+		<DimensionSourceDefinition Name="TC_REGION" Description="TC_REGION" DataType="STRING" Calculated="false" Expression="" ExternalData="TC_REGION"/>  
+		<DimensionSourceDefinition Name="TC_CONCU" Description="TC_CONCU" DataType="STRING" Calculated="false" Expression="" ExternalData="TC_CONCU"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="PE" Description="PE" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="PE" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="NUM_PUNTOS" Description="NUM_PUNTOS" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="NUM_PUNTOS" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="PAIS" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="IDIOMA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="SUBGERENCIAVENTA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="REGION" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="NUMEROCONCURSO" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="MARCA" Visual="FALSE"/>  
+	</FilterDefinitions>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="REP-057_01" SourceType="SQL" Expression="  
+SELECT PAIS,  
+	   SUBG,  
+	   REGION,  
+	   TERRI,  
+	   N_CONCU,  
+	   COD_CLIE,  
+	   NOMBRE,  
+	   PERI,  
+	   TC_REGION,  
+	   TC_CONCU,  
+	   CASE WHEN (CONTROL = 1) THEN  
+	   		PE  
+	   END PE,  
+	   NUM_PUNTOS  
+FROM (  
+	SELECT PAIS,  
+		   SUBG,  
+		   REGION,  
+		   N_CONCU,  
+		   TERRI,  
+		   COD_CLIE,  
+		   NOMBRE,  
+		   PERI,  
+		   PE,  
+		   NUM_PUNTOS,  
+		   TC_REGION,  
+		   TC_CONCU,  
+			SUM(1) OVER (PARTITION BY PAIS, SUBG, REGION, N_CONCU, NOMBRE ORDER BY ROWNUM) CONTROL  
+	FROM	     
+	(SELECT NOM_PAIS.VAL_I18N PAIS,  
+			SUBG.DES_SUBG_VENT SUBG,  
+			REG.DES_REGI REGION,  
+			PAR_GEN.NUM_CONC N_CONCU,  
+			TERR.COD_TERR TERRI,  
+			CLIEN.COD_CLIE COD_CLIE,  
+			CLIEN.VAL_APE1 || ' ' || CLIEN.VAL_APE2 || ' ' || CLIEN.VAL_NOM1 || ' ' || CLIEN.VAL_NOM2 NOMBRE,  
+			PERI.VAL_NOMB_PERI PERI,  
+			METAS.VAL_META/PUNTO.VAL_FACT_CONV*PUNTO.NUM_PUNT_ASIG PE,  
+			SUM(SOLIC_PUNT.NUM_PUNT) NUM_PUNTOS,  
+			COUNT(DISTINCT METAS.CLIE_OID_CLIE) OVER (PARTITION BY NOM_PAIS.VAL_I18N, PAR_GEN.NUM_CONC, SUBG.DES_SUBG_VENT, REG.DES_REGI) TC_REGION,  
+			COUNT(DISTINCT METAS.CLIE_OID_CLIE) OVER (PARTITION BY NOM_PAIS.VAL_I18N, PAR_GEN.NUM_CONC, SUBG.DES_SUBG_VENT, REG.DES_REGI) TC_CONCU  
+	 FROM INC_CONCU_PARAM_GENER PAR_GEN,  
+		  INC_OBTEN_PUNTO PUNTO,  
+		  INC_METAS_TIPO_VENTA METAS,  
+		  MAE_CLIEN_UNIDA_ADMIN UNI_ADMIN,  
+		  ZON_TERRI_ADMIN TERR_ADM,  
+		  ZON_SECCI SEC,  
+		  ZON_ZONA ZONA,  
+		  ZON_REGIO REG,  
+		  ZON_SUB_GEREN_VENTA SUBG,  
+		  ZON_TERRI TERR,  
+		  CRA_PERIO PERI,  
+		  INC_SOLIC_CONCU_PUNTA SOLIC_PUNT,  
+		  MAE_CLIEN CLIEN,  
+		    
+		  (SELECT PER.OID_PERI, PER.FEC_INIC  
+		   FROM CRA_PERIO PER  
+		   WHERE PER.PAIS_OID_PAIS IN(%value_PAISVALUES%)  
+			  %start_MARCAVALUES%      AND PER.MARC_OID_MARC IN (%value_MARCAVALUES%)  %end_MARCAVALUES%   
+	  
+		  ) PER1,  
+		    
+		  (SELECT PER.OID_PERI, PER.FEC_FINA  
+		   FROM CRA_PERIO PER  
+		   WHERE PER.PAIS_OID_PAIS IN(%value_PAISVALUES%)  
+			  %start_MARCAVALUES%      AND PER.MARC_OID_MARC IN (%value_MARCAVALUES%)  %end_MARCAVALUES%   
+	  
+		  ) PER2,  
+		    
+		  (SELECT GEN.VAL_OID, GEN.VAL_I18N  
+		   FROM V_GEN_I18N_SICC GEN  
+		   WHERE GEN.ATTR_ENTI = 'SEG_PAIS'  
+			 AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%  
+	  
+		  ) NOM_PAIS  
+			   
+	WHERE PUNTO.COPA_OID_PARA_GRAL = PAR_GEN.OID_PARA_GRAL  
+	   AND METAS.COPA_OID_PARA_GRAL = PAR_GEN.OID_PARA_GRAL  
+	   AND METAS.CLIE_OID_CLIE = UNI_ADMIN.CLIE_OID_CLIE  
+	   AND METAS.CLIE_OID_CLIE = CLIEN.OID_CLIE  
+	   AND METAS.CLIE_OID_CLIE = SOLIC_PUNT.CLIE_OID_CLIE  
+	   AND UNI_ADMIN.IND_ACTI = 1  
+	   AND PAR_GEN.IND_ACTI = 1  
+	   AND UNI_ADMIN.ZTAD_OID_TERR_ADMI = TERR_ADM.OID_TERR_ADMI  
+	   AND TERR_ADM.TERR_OID_TERR = TERR.OID_TERR   
+	   AND TERR_ADM.ZSCC_OID_SECC = SEC.OID_SECC  
+	   AND SEC.ZZON_OID_ZONA = ZONA.OID_ZONA  
+	   AND ZONA.ZORG_OID_REGI = REG.OID_REGI  
+	   AND REG.ZSGV_OID_SUBG_VENT = SUBG.OID_SUBG_VENT  
+	   AND PAR_GEN.PERD_OID_PERI_DESD = PER1.OID_PERI  
+	   AND PAR_GEN.PERD_OID_PERI_HAST = PER2.OID_PERI  
+	   AND PERI.FEC_INIC >= PER1.FEC_INIC  
+	   AND PERI.FEC_FINA &lt;= PER2.FEC_FINA  
+	   AND PERI.PAIS_OID_PAIS = PAR_GEN.PAIS_OID_PAIS  
+	   AND PERI.MARC_OID_MARC = PAR_GEN.MARC_OID_MARC  
+	   AND PERI.OID_PERI = SOLIC_PUNT.PERD_OID_PERI  
+	   AND PAR_GEN.PAIS_OID_PAIS = NOM_PAIS.VAL_OID(+)  
+	   AND PAR_GEN.OID_PARA_GRAL = SOLIC_PUNT.COPA_OID_PARA_GRAL  
+	   AND PAR_GEN.MARC_OID_MARC = SUBG.MARC_OID_MARC  
+	   AND PAR_GEN.OID_PARA_GRAL IN  (%value_NUMEROCONCURSOVALUES%)   
+	   AND PAR_GEN.PAIS_OID_PAIS IN (%value_PAISVALUES%)   
+	   %start_MARCAVALUES%       AND PAR_GEN.MARC_OID_MARC IN (%value_MARCAVALUES%)  %end_MARCAVALUES%   
+	   %start_SUBGERENCIAVENTAVALUES%   AND SUBG.OID_SUBG_VENT IN  (%value_SUBGERENCIAVENTAVALUES%)  %end_SUBGERENCIAVENTAVALUES%  
+	   %start_REGIONVALUES%   and REG.OID_REGI IN  (%value_REGIONVALUES%)  %end_REGIONVALUES%   
+	  
+	   GROUP BY NOM_PAIS.VAL_I18N,  
+				SUBG.DES_SUBG_VENT,  
+				REG.DES_REGI,  
+				PAR_GEN.NUM_CONC,  
+			   TERR.COD_TERR,  
+			   METAS.CLIE_OID_CLIE,  
+			   CLIEN.COD_CLIE,  
+			   CLIEN.VAL_APE1 || ' ' || CLIEN.VAL_APE2 || ' ' || CLIEN.VAL_NOM1 || ' ' || CLIEN.VAL_NOM2,  
+			   PERI.VAL_NOMB_PERI,  
+			   METAS.VAL_META/PUNTO.VAL_FACT_CONV*PUNTO.NUM_PUNT_ASIG  
+		)  
+	)			  
+" ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.106:1523:SICCV3D" ExternalConnectionDistributedUrl="" ExternalConnectionUser="own_peru" ExternalConnectionPassword="peru_own" DatePattern="" DateTimePattern=""/>  
+	</DataSourceDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="1,2,3" FilterDefinitionName="PAIS" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="IDIOMA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="SUBGERENCIAVENTA" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="REGION" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="NUMEROCONCURSO" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="MARCA" FilterParameter="VALUES"/>  
+	</ParameterValues>  
+	<Localizations/>  
+</ReportSourceDefinition>  
+

@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by team (renegade) -->  
+<ReportSourceDefinition Id="RSD_REP-062_02" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="COD_TERR" Description="COD_TERR" DataType="STRING" Calculated="false" Expression="" ExternalData="COD_TERR"/>  
+		<DimensionSourceDefinition Name="NUM_CONC" Description="NUM_CONC" DataType="STRING" Calculated="false" Expression="" ExternalData="NUM_CONC"/>  
+		<DimensionSourceDefinition Name="VAL_NOMB" Description="VAL_NOMB" DataType="STRING" Calculated="false" Expression="" ExternalData="VAL_NOMB"/>  
+		<DimensionSourceDefinition Name="MOTIVO_INCUM" Description="MOTIVO_INCUM" DataType="STRING" Calculated="false" Expression="" ExternalData="MOTIVO_INCUM"/>  
+		<DimensionSourceDefinition Name="PERIODO_INICIAL" Description="PERIODO_INICIAL" DataType="STRING" Calculated="false" Expression="" ExternalData="PERIODO_INICIAL"/>  
+		<DimensionSourceDefinition Name="PERIODO_FINA" Description="PERIODO_FINA" DataType="STRING" Calculated="false" Expression="" ExternalData="PERIODO_FINA"/>  
+		<DimensionSourceDefinition Name="COD_CLIE_RECTE" Description="COD_CLIE_RECTE" DataType="STRING" Calculated="false" Expression="" ExternalData="COD_CLIE_RECTE"/>  
+		<DimensionSourceDefinition Name="NOMBRE_RECTE" Description="NOMBRE_RECTE" DataType="STRING" Calculated="false" Expression="" ExternalData="NOMBRE_RECTE"/>  
+		<DimensionSourceDefinition Name="COD_CLIE_RECDO" Description="COD_CLIE_RECDO" DataType="STRING" Calculated="false" Expression="" ExternalData="COD_CLIE_RECDO"/>  
+		<DimensionSourceDefinition Name="NOMBRE_RECDO" Description="NOMBRE_RECDO" DataType="STRING" Calculated="false" Expression="" ExternalData="NOMBRE_RECDO"/>  
+		<DimensionSourceDefinition Name="PERIODO_INGRESO" Description="PERIODO_INGRESO" DataType="STRING" Calculated="false" Expression="" ExternalData="PERIODO_INGRESO"/>  
+		<DimensionSourceDefinition Name="NUM_DOCU_IDEN" Description="NUM_DOCU_IDEN" DataType="STRING" Calculated="false" Expression="" ExternalData="NUM_DOCU_IDEN"/>  
+		<DimensionSourceDefinition Name="CONS_MOT_INCUM" Description="CONS_MOT_INCUM" DataType="INTEGER" Calculated="false" Expression="" ExternalData="CONS_MOT_INCUM"/>  
+		<DimensionSourceDefinition Name="INCUM_UN_ADM_PAIS" Description="INCUM_UN_ADM_PAIS" DataType="INTEGER" Calculated="false" Expression="" ExternalData="INCUM_UN_ADM_PAIS"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="METRICA_SIN_USO" Description="METRICA_SIN_USO" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="METRICA_SIN_USO" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PAIS" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="IDIOMA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="SUBGERENCIAVENTA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="REGION" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="ZONA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="NUMEROCONCURSO" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="MARCA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="CANAL" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="MOTIVOSINCUMPLIMIENTO" Visual="FALSE"/>  
+	</FilterDefinitions>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="REP-062_02" SourceType="SQL" Expression="  
+		  
+SELECT DISTINCT  
+  	   TER.COD_TERR,													   	    	   
+	   CON.NUM_CONC,  
+	   CON.VAL_NOMB,	     
+	   PER_INI.VAL_NOMB_PERI AS PERIODO_INICIAL,  
+  	   PER_FIN.VAL_NOMB_PERI AS PERIODO_FINA,	     
+	   CLI_RECTE.COD_CLIE AS COD_CLIE_RECTE,  
+	   CLI_RECTE.VAL_APE1 ||' '|| CLI_RECTE.VAL_APE2 ||' '|| CLI_RECTE.VAL_NOM1 NOMBRE_RECTE,   
+	   CLI_RECDO.COD_CLIE AS COD_CLIE_RECDO,	     
+	   PER_INGRE.VAL_NOMB_PERI AS PERIODO_INGRESO,  
+   	   CLI_RECDO.VAL_APE1 ||' '|| CLI_RECDO.VAL_APE2 ||' '|| CLI_RECDO.VAL_NOM1 NOMBRE_RECDO,  
+	   CLI_ID.NUM_DOCU_IDEN,  
+	   GEN_INCUM.MOTIVO_INCUM,	     
+	   COUNT( cli_recte.OID_CLIE) OVER (PARTITION BY GEN_INCUM.MOTIVO_INCUM	  
+																				     
+	   								   ) AS CONS_MOT_INCUM,   
+									    
+ 	 COUNT (DISTINCT can_gan.BINC_OID_BASE_INCU) OVER() AS incum_un_adm_Pais,  
+		NULL AS metrica_sin_uso  
+  FROM inc_concu_param_gener con,  
+       inc_candi_ganad can_gan,  
+       inc_clien_recdo recdo,  
+       inc_clien_recte recte,  
+       cra_perio per_ini,  
+       cra_perio per_fin,  
+       cra_perio per_ingre,  
+       mae_clien cli_recdo,  
+       mae_clien cli_recte,  
+       mae_clien_ident cli_id,   
+       mae_clien_unida_admin un_adm,  
+       zon_terri_admin ter_adm,  
+       zon_terri ter,  
+       zon_secci sec,  
+       zon_zona zon,  
+       zon_regio reg,  
+       zon_sub_geren_venta subg,	     
+       (	SELECT val_oid,  
+	   			   val_i18n motivo_incum  
+	        FROM v_gen_i18n_sicc  
+        	WHERE attr_enti = 'INC_BASE_INCUM'   
+				  AND idio_oid_idio = %value_IDIOMAVALUE%	  
+	   ) gen_incum  
+		   
+WHERE  CON.OID_PARA_GRAL IN (%value_NUMEROCONCURSOVALUES%)  
+	  AND CON.PAIS_OID_PAIS = %value_PAISVALUE%  
+	  AND CON.MARC_OID_MARC = %value_MARCAVALUE%   
+	  AND CON.CANA_OID_CANA = %value_CANALVALUE% 	    
+	    
+	  AND CON.PERD_OID_PERI_DESD = PER_INI.OID_PERI   
+	  AND CON.PERD_OID_PERI_HAST = PER_FIN.OID_PERI   
+	    
+	  AND RECDO.IND_EFEC is null  
+	  AND RECDO.CLIE_OID_CLIE = CLI_RECDO.OID_CLIE    
+	  AND RECTE.CLIE_OID_CLIE = CLI_RECTE.OID_CLIE		    
+	  AND RECDO.CLR3_OID_CLIE_RETE = RECTE.OID_CLIE_RETE 		    
+	  AND RECDO.PERD_OID_PERI = PER_INGRE.OID_PERI   
+  
+	  AND RECTE.COPA_OID_PARA_GRAL = CON.OID_PARA_GRAL   	    
+	    
+	  AND UN_ADM.CLIE_OID_CLIE = RECte.CLIE_OID_CLIE     
+	    
+	  AND UN_ADM.IND_ACTI = 1    
+	  AND UN_ADM.ZTAD_OID_TERR_ADMI = TER_ADM.OID_TERR_ADMI   
+      AND TER_ADM.TERR_OID_TERR = TER.OID_TERR	    
+	    
+	  AND TER_ADM.ZSCC_OID_SECC = SEC.OID_SECC    
+	  AND SEC.ZZON_OID_ZONA = ZON.OID_ZONA    
+	  AND ZON.ZORG_OID_REGI = REG.OID_REGI    
+	  AND REG.ZSGV_OID_SUBG_VENT = SUBG.OID_SUBG_VENT    
+	    
+	  AND CLI_RECDO.OID_CLIE(+) = cli_id.CLIE_OID_CLIE   
+	  AND CLI_ID.VAL_IDEN_DOCU_PRIN(+) = 1  
+	  AND CLI_ID.TDOC_OID_TIPO_DOCU(+) = 1    
+  
+   	  %start_SUBGERENCIAVENTAVALUES% AND SUBG.OID_SUBG_VENT IN  (%value_SUBGERENCIAVENTAVALUES%)  %end_SUBGERENCIAVENTAVALUES%   
+	  
+	  AND CAN_GAN.BINC_OID_BASE_INCU = gen_incum.val_oid(+)  
+		    
+ 	  %start_MOTIVOSINCUMPLIMIENTOVALUES%  AND CAN_GAN.BINC_OID_BASE_INCU IN  (%value_MOTIVOSINCUMPLIMIENTOVALUES%)  %end_MOTIVOSINCUMPLIMIENTOVALUES%    
+  	    
+	  AND CAN_GAN.CLIE_OID_CLIE = RECTE.CLIE_OID_CLIE    	  
+	  AND CAN_GAN.COPA_OID_PARA_GRAL = RECTE.COPA_OID_PARA_GRAL 	   	    
+ORDER BY  
+			ter.COD_TERR,	   
+		 CON.NUM_CONC,  
+		 GEN_INCUM.MOTIVO_INCUM	 " ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.106:1523:SICCV3D" ExternalConnectionDistributedUrl="" ExternalConnectionUser="own_peru" ExternalConnectionPassword="peru_own" DatePattern="" DateTimePattern=""/>  
+	</DataSourceDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="PAIS" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="IDIOMA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="SUBGERENCIAVENTA" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="NUMEROCONCURSO" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="MARCA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="CANAL" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="MOTIVOSINCUMPLIMIENTO" FilterParameter="VALUES"/>  
+	</ParameterValues>  
+	<Localizations/>  
+</ReportSourceDefinition>  
+

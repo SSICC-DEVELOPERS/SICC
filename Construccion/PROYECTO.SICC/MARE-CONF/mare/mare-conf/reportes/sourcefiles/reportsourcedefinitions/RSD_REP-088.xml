@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by team (renegade) -->  
+<ReportSourceDefinition Id="RSD_REP-088" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="PAIS" Description="PAIS" DataType="STRING" Calculated="false" Expression="" ExternalData="PAIS"/>  
+		<DimensionSourceDefinition Name="COD_BUZO" Description="COD_BUZO" DataType="STRING" Calculated="false" Expression="" ExternalData="COD_BUZO"/>  
+		<DimensionSourceDefinition Name="DESC_BUZON" Description="DESC_BUZON" DataType="STRING" Calculated="false" Expression="" ExternalData="DESC_BUZON"/>  
+		<DimensionSourceDefinition Name="COD_CLIE" Description="COD_CLIE" DataType="STRING" Calculated="false" Expression="" ExternalData="COD_CLIE"/>  
+		<DimensionSourceDefinition Name="NOMBRE_CLIE" Description="NOMBRE_CLIE" DataType="STRING" Calculated="false" Expression="" ExternalData="NOMBRE_CLIE"/>  
+		<DimensionSourceDefinition Name="COD_ACTI" Description="COD_ACTI" DataType="STRING" Calculated="false" Expression="" ExternalData="COD_ACTI"/>  
+		<DimensionSourceDefinition Name="VAL_DESC_ACTI" Description="VAL_DESC_ACTI" DataType="STRING" Calculated="false" Expression="" ExternalData="VAL_DESC_ACTI"/>  
+		<DimensionSourceDefinition Name="FEC_HORA_CREA" Description="FEC_HORA_CREA" DataType="DATETIME" Calculated="false" Expression="" ExternalData="FEC_HORA_CREA"/>  
+		<DimensionSourceDefinition Name="HORA" Description="HORA" DataType="STRING" Calculated="false" Expression="" ExternalData="HORA"/>  
+		<DimensionSourceDefinition Name="DIAS_PENDIENTES" Description="DIAS_PENDIENTES" DataType="INTEGER" Calculated="false" Expression="" ExternalData="DIAS_PENDIENTES"/>  
+		<DimensionSourceDefinition Name="CONTACTOS" Description="CONTACTOS" DataType="INTEGER" Calculated="false" Expression="" ExternalData="CONTACTOS"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="CANTIDAD" Description="CANTIDAD" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="CANTIDAD" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="IDIOMA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PAIS" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="BUZON" Visual="FALSE"/>  
+		<FilterDefinition DataType="STRING" FilterType="EQUALTO" Name="CODIGOCLIENTE" Visual="FALSE"/>  
+		<FilterDefinition DataType="STRING" FilterType="EQUALTO" Name="FORMATOFECHA" Visual="FALSE"/>  
+		<FilterDefinition DataType="DATE" FilterType="EQUALTO" Name="FECHAINICIO" Visual="FALSE"/>  
+		<FilterDefinition DataType="DATE" FilterType="EQUALTO" Name="FECHAFIN" Visual="FALSE"/>  
+	</FilterDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="IDIOMA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="PAIS" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="BUZON" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="CODIGOCLIENTE" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="dd/MM/yyyy" FilterDefinitionName="FORMATOFECHA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="01/01/2000" FilterDefinitionName="FECHAINICIO" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="01/01/2099" FilterDefinitionName="FECHAFIN" FilterParameter="VALUE"/>  
+	</ParameterValues>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="REP-088" SourceType="SQL" Expression="select gen_pais.val_i18n Pais, cab.COD_BUZO, cab.val_desc_cabe_buzo Desc_Buzon, cli.COD_CLIE,  
+       usu.VAL_APEL_PATE||' '||usu.VAL_APE_MATE||' '||usu.VAL_NOM1||' ' ||usu.VAL_NOM2 as NOMBRE_CLIE,  
+	   det.COD_ACTI, det.VAL_DESC_ACTI, det.FEC_HORA_CREA, to_char(det.FEC_HORA_CREA, 'HH24:MI:SS') as HORA, trunc((((86400*(SYSDATE - det.FEC_HORA_CREA))/60)/60)/24) Dias_Pendientes,  
+	   con.COD_CONT Contactos, 1 as CANTIDAD  
+from cal_cabec_buzon cab,  
+	 cal_detal_buzon det,  
+	 cal_conta con,  
+	 cal_estat_activ_conta act,  
+	 mae_clien cli,  
+	 V_REP_USUAR_LARGO usu,  
+	 (select gen.VAL_OID, gen.VAL_I18N                    
+	  from v_gen_i18n_sicc gen  
+	  where gen.attr_enti = 'SEG_PAIS'  
+	  		and gen.IDIO_OID_IDIO = %value_IDIOMAVALUE%  
+	 ) gen_pais  
+where con.OID_CONT = det.CONT_OID_CONT(+)                  
+	  and cab.OID_CABE_BUZO = det.CABU_OID_CABE_BUZO    
+	  and cab.PAIS_OID_PAIS = %value_PAISVALUE%            
+	  and to_date(det.FEC_HORA_CREA) >= to_date(%value_FECHAINICIOVALUE%, %value_FORMATOFECHAVALUE%)  
+	  and to_date(det.FEC_HORA_CREA) &lt;= to_date(%value_FECHAFINVALUE%, %value_FORMATOFECHAVALUE% )  
+	  %start_BUZONVALUE% and cab.OID_CABE_BUZO = %value_BUZONVALUE% %end_BUZONVALUE%  
+	  %start_CODIGOCLIENTEVALUE% and CLI.COD_CLIE = %value_CODIGOCLIENTEVALUE% %end_CODIGOCLIENTEVALUE%  
+	  and det.ESAC_OID_ESTA_ACTI_CONT = act.OID_ESTA_ACTI_CONT  
+      and act.COD_ESTA = 'N'      
+	  and con.CLIE_OID_CLIE = cli.OID_CLIE   
+	  and con.COD_OPER = usu.VAL_NOMB_USUA  
+	  and gen_pais.val_oid = cab.PAIS_OID_PAIS  
+order by gen_pais.val_oid, cab.COD_BUZO, det.FEC_HORA_CREA, cli.cod_clie" ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.106:1523:SICCV3DG" ExternalConnectionDistributedUrl="" ExternalConnectionUser="usu_peru" ExternalConnectionPassword="usu_peru" DatePattern="dd/MM/yyyy" DateTimePattern="dd/MM/yyyy"/>  
+	</DataSourceDefinitions>  
+</ReportSourceDefinition>  
+

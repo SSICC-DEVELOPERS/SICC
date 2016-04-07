@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by team (renegade) -->  
+<ReportSourceDefinition Id="RSD_REP-061_02" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="NUM_CONC" Description="NUM_CONC" DataType="STRING" Calculated="false" Expression="" ExternalData="NUM_CONC"/>  
+		<DimensionSourceDefinition Name="CONCURSO" Description="CONCURSO" DataType="STRING" Calculated="false" Expression="" ExternalData="CONCURSO"/>  
+		<DimensionSourceDefinition Name="PERIODO_INI" Description="PERIODO_INI" DataType="STRING" Calculated="false" Expression="" ExternalData="PERIODO_INI"/>  
+		<DimensionSourceDefinition Name="PERIODO_FIN" Description="PERIODO_FIN" DataType="STRING" Calculated="false" Expression="" ExternalData="PERIODO_FIN"/>  
+		<DimensionSourceDefinition Name="TOTAL_CLI_RECTE_CONC" Description="TOTAL_CLI_RECTE_CONC" DataType="STRING" Calculated="false" Expression="" ExternalData="TOTAL_CLI_RECTE_CONC"/>  
+		<DimensionSourceDefinition Name="COD_CLI_RECTE" Description="COD_CLI_RECTE" DataType="STRING" Calculated="false" Expression="" ExternalData="COD_CLI_RECTE"/>  
+		<DimensionSourceDefinition Name="NOM_CLI_RECTE" Description="NOM_CLI_RECTE" DataType="STRING" Calculated="false" Expression="" ExternalData="NOM_CLI_RECTE"/>  
+		<DimensionSourceDefinition Name="TOTAL_CLI_RECDO_CONC" Description="TOTAL_CLI_RECDO_CONC" DataType="STRING" Calculated="false" Expression="" ExternalData="TOTAL_CLI_RECDO_CONC"/>  
+		<DimensionSourceDefinition Name="COD_CLI_RECDO" Description="COD_CLI_RECDO" DataType="STRING" Calculated="false" Expression="" ExternalData="COD_CLI_RECDO"/>  
+		<DimensionSourceDefinition Name="NOM_CLI_RECDO" Description="NOM_CLI_RECDO" DataType="STRING" Calculated="false" Expression="" ExternalData="NOM_CLI_RECDO"/>  
+		<DimensionSourceDefinition Name="NUM_NIVE" Description="NUM_NIVE" DataType="STRING" Calculated="false" Expression="" ExternalData="NUM_NIVE"/>  
+		<DimensionSourceDefinition Name="PREMIO" Description="PREMIO" DataType="STRING" Calculated="false" Expression="" ExternalData="PREMIO"/>  
+		<DimensionSourceDefinition Name="CANT_TOT_PRE_CONC" Description="CANT_TOT_PRE_CONC" DataType="STRING" Calculated="false" Expression="" ExternalData="CANT_TOT_PRE_CONC"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="NUM_UNID" Description="NUM_UNID" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="NUM_UNID" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PAIS" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="NUMEROCONCURSO" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="MARCA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="CANAL" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="IDIOMA" Visual="FALSE"/>  
+	</FilterDefinitions>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="REP-061_02" SourceType="SQL" Expression="  
+SELECT  
+	con.NUM_CONC,  
+	con.VAL_NOMB AS concurso,  
+	per_ini.val_nomb_peri AS periodo_ini,  
+	per_fin.val_nomb_peri AS periodo_fin,  
+	COUNT(DISTINCT cli_recte.oid_clie) over (PARTITION BY num_conc)AS total_cli_recte_conc,	     
+	cli_recte.cod_clie AS cod_cli_recte,  
+	cli_recte.VAL_NOM1||' '||cli_recte.VAL_APE1 AS nom_cli_recte,  
+	COUNT(DISTINCT cli_recdo.oid_clie) over (PARTITION BY num_conc)AS total_cli_recdo_conc,		  
+	cli_recdo.cod_clie AS cod_cli_recdo,  
+	cli_recdo.val_nom1||' '||cli_recdo.val_ape2 AS nom_cli_recdo,  
+	niv.NUM_NIVE,  
+	v_pre.TIPO_PREMIO||' '||v_pre.DESCRIPCION||' '||v_pre.cantidad AS premio,  
+	COUNT(DISTINCT v_pre.NUM_PREM) over (PARTITION BY num_conc) AS cant_tot_pre_conc,  
+	gan.NUM_UNID  
+FROM  
+	inc_concu_param_gener con,  
+	inc_param_gener_premi pre,  
+	inc_param_nivel_premi niv,  
+	cra_perio per_ini,  
+	cra_perio per_fin,  
+	inc_clien_recte recte,  
+	inc_clien_recdo recdo,  
+	mae_clien cli_recte,  
+	mae_clien cli_recdo,  
+	inc_ganad gan,  
+	v_rep_premios v_pre,  
+	mae_clien_unida_admin un_adm,  
+	zon_terri_admin ter_adm,  
+	zon_secci sec,  
+	zon_zona zon,  
+	zon_regio reg,  
+	zon_sub_geren_venta subg  
+WHERE  
+	con.PERD_OID_PERI_DESD = per_ini.oid_peri  
+	AND con.IND_ACTI = 1  
+	AND con.PERD_OID_PERI_HAST = per_fin.oid_peri  
+	AND recte.COPA_OID_PARA_GRAL = con.OID_PARA_GRAL  
+	AND recte.OID_CLIE_RETE = recdo.CLR3_OID_CLIE_RETE  
+	AND recte.CLIE_OID_CLIE = cli_recte.oid_clie  
+	AND recdo.clie_oid_clie = cli_recdo.oid_clie  
+	AND recdo.IND_EFEC = 1  
+	AND gan.CLIE_OID_CLIE = recte.clie_oid_clie  
+	AND con.OID_PARA_GRAL = pre.COPA_OID_PARA_GRAL  
+	AND pre.OID_PARA_GENE_PREM = niv.PAGP_OID_PARA_GENE_PREM  
+	AND niv.OID_PARA_NIVE_PREM = gan.PANP_OID_PARA_NIVE_PREM  
+	AND niv.OID_PARA_NIVE_PREM = v_pre.OID_PARA_NIVE_PREM  
+	AND v_pre.IDIO_TIPO_PREMIO IN (%value_IDIOMAVALUE%,NULL)  
+	AND un_adm.IND_ACTI = 1  
+	AND cli_recte.OID_CLIE = un_adm.clie_oid_clie  
+	AND un_adm.ZTAD_OID_TERR_ADMI = ter_adm.OID_TERR_ADMI  
+	AND ter_adm.ZSCC_OID_SECC = sec.OID_SECC  
+	AND sec.ZZON_OID_ZONA = zon.oid_zona  
+	AND zon.ZORG_OID_REGI = reg.oid_regi  
+	AND reg.ZSGV_OID_SUBG_VENT = subg.oid_subg_vent  
+	AND con.pais_oid_pais = %value_PAISVALUE%  
+	AND con.marc_oid_marc =  %value_MARCAVALUE%	   
+	AND con.cana_oid_cana =  %value_CANALVALUE%	  
+	AND con.OID_PARA_GRAL IN (%value_NUMEROCONCURSOVALUES%)  
+ORDER BY  
+   con.num_conc,  
+   cli_recte.cod_clie,  
+   v_pre.tipo_premio|| ' '|| v_pre.descripcion|| ' '|| v_pre.cantidad  
+	  
+		 " ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.106:1523:SICCV3D" ExternalConnectionDistributedUrl="" ExternalConnectionUser="own_peru" ExternalConnectionPassword="peru_own" DatePattern="" DateTimePattern=""/>  
+	</DataSourceDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="PAIS" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="NUMEROCONCURSO" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="MARCA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="CANAL" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="IDIOMA" FilterParameter="VALUE"/>  
+	</ParameterValues>  
+	<Localizations/>  
+</ReportSourceDefinition>  
+

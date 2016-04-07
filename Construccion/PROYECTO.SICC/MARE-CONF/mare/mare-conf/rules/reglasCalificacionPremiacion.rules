@@ -1,0 +1,763 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<rule-set xmlns="http://drools.org/rules"
+          xmlns:java="http://drools.org/semantics/java"
+          xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
+          name="ReglasCalificacionPremiacion"
+          xs:schemaLocation="http://drools.org/rules rules.xsd 
+          http://drools.org/semantics/java java.xsd">
+
+  <java:import>es.indra.sicc.logicanegocio.inc.ConstantesINC</java:import>
+        
+<!-- 
+*******************************************************************************************
+                               REGLAS BASICAS 
+*******************************************************************************************
+-->
+  <!--
+              REGLA 1: "ValidarCanalPremiacion"
+              @author Sergio Platas
+              @date 27/05/2005
+  -->
+  <rule name="ValidarCanalPremiacion">
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+    </parameter>
+    <parameter identifier="cli">
+      <java:class>es.indra.sicc.logicanegocio.inc.ClientePremiacion</java:class>
+    </parameter>
+    <java:condition> 
+      con.print("ValidarCanalPremiacion")
+    </java:condition>
+    <java:condition> 
+      !cli.isRechazado(con.getOidConcurso())
+    </java:condition>
+    <java:condition> 
+      !con.getProgramaNuevas()
+    </java:condition>
+    <java:condition>
+      (ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA()) ||
+        ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA()) )
+    </java:condition>
+    <java:condition>
+      (!con.getOidCanal().equals(cli.getOidCanal()))
+    </java:condition>
+    <java:consequence>
+      con.print("########   Consecuencia ValidarCanalPremiacion  concurso: " + con.getOidConcurso() + " , cliente: " + cli.getOidCliente());
+      cli.setRechazado(con.getOidConcurso(), ConstantesINC.OID_REGLA_VALIDAR_CANAL_PREMIACION);
+      drools.modifyObject( cli ); 
+	</java:consequence>
+  </rule>
+  
+  <!--
+              REGLA 2: "ValidarMarcaPremiacion"
+              @author Sergio Platas
+              @date 27/05/2005
+  -->
+  <rule name="ValidarMarcaPremiacion">
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+    </parameter>
+    <parameter identifier="cli">
+      <java:class>es.indra.sicc.logicanegocio.inc.ClientePremiacion</java:class>
+    </parameter>
+    <java:condition> 
+      con.print("ValidarMarcaPremiacion")
+    </java:condition>
+    <java:condition> 
+      !(cli.isRechazado(con.getOidConcurso()))
+    </java:condition>
+    <java:condition> 
+      !con.getProgramaNuevas()
+    </java:condition>
+    <java:condition>
+      (ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA())   ||
+        ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA()) )
+    </java:condition>
+    <java:condition>
+      (con.getOidMarca().longValue() != cli.getOidMarca().longValue())
+    </java:condition>
+    <java:consequence>
+      con.print("########   Consecuencia ValidarMarcaPremiacion  concurso: " + con.getOidConcurso() + " , cliente: " + cli.getOidCliente());
+      cli.setRechazado(con.getOidConcurso(), ConstantesINC.OID_REGLA_VALIDAR_MARCA_PREMIACION);
+      drools.modifyObject( cli );
+	</java:consequence>
+  </rule>
+
+  <!--
+              REGLA 3: "ValidarPaisPremiacion"
+              @author Sergio Platas
+              @date 27/05/2005
+  -->
+  <rule name="ValidarMarcaPremiación">
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+    </parameter>
+    <parameter identifier="cli">
+      <java:class>es.indra.sicc.logicanegocio.inc.ClientePremiacion</java:class>
+    </parameter>
+    <java:condition> 
+      con.print("ValidarPaisPremiacion")
+    </java:condition>
+    <java:condition> 
+      !(cli.isRechazado(con.getOidConcurso()))
+    </java:condition>
+    <java:condition> 
+      !con.getProgramaNuevas()
+    </java:condition>
+    <java:condition>
+	  (ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA())   ||
+        ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA()) )
+    </java:condition>
+    <java:condition>
+      (!con.getOidPais().equals(cli.getOidPais()))
+    </java:condition>
+    <java:consequence>
+      con.print("########   Consecuencia ValidarPaisPremiacion  concurso: " + con.getOidConcurso() + " , cliente: " + cli.getOidCliente());
+      cli.setRechazado(con.getOidConcurso(), ConstantesINC.OID_REGLA_VALIDAR_PAIS_PREMIACION);      
+      drools.modifyObject( cli );
+	</java:consequence>
+  </rule>
+<!-- 
+*******************************************************************************************
+                           FIN REGLAS BASICAS 
+*******************************************************************************************
+-->
+
+<!-- ************************************************************************************ -->
+  <!--
+              REGLA 4: "ValidarExigenciasCursos"
+              @author Sergio Platas
+              @date 30/05/2005
+  -->
+  <rule name="ValidarExigenciasCursos">
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+    </parameter>
+    <parameter identifier="cli">
+      <java:class>es.indra.sicc.logicanegocio.inc.ClientePremiacion</java:class>
+    </parameter>
+    <java:condition> 
+      con.print("ValidarExigenciasCursos")
+    </java:condition>
+    <java:condition> 
+      con.print("## ValidarExigenciasCursos ! (cli.isRechazado(con.getOidConcurso())) " + !(cli.isRechazado(con.getOidConcurso())) )
+    </java:condition>
+	<java:condition> 
+      !(cli.isRechazado(con.getOidConcurso()))
+    </java:condition>
+    <java:condition> 
+      con.print("## ValidarExigenciasCursos ! !con.getProgramaNuevas() " + (! con.getProgramaNuevas()) )
+    </java:condition>
+	<java:condition> 
+      !con.getProgramaNuevas()
+    </java:condition>
+    <java:condition>
+      (ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA())   ||
+        ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA()) )
+    </java:condition>
+    <java:condition> 
+      con.print("## ValidarExigenciasCursos con.getIndAsistenciaCursos() " + con.getIndAsistenciaCursos())
+    </java:condition>
+    <java:condition> 
+      con.print("## ValidarExigenciasCursos con.verificaAsistenciaCursos(cli.getTiposCursosAsistidos()) " + (!con.verificaAsistenciaCursos(cli.getTiposCursosAsistidos()))  )
+    </java:condition>
+    <java:condition>
+      ( (con.getIndAsistenciaCursos() == true)   &amp;&amp;
+        !(con.verificaAsistenciaCursos(cli.getTiposCursosAsistidos()))  )
+    </java:condition>
+    <java:consequence> 
+      con.print("########   Consecuencia ValidarExigenciasCursos  concurso: " + con.getOidConcurso() + " , cliente: " + cli.getOidCliente());
+      cli.setRechazado(con.getOidConcurso(), ConstantesINC.OID_REGLA_EXIGENCIA_CURSOS);      
+      cli.getClientePremiacionConcurso(con.getOidConcurso()).setUltimoPeriodoEvaluado(cli.getPeriodo());
+      cli.getClientePremiacionConcurso(con.getOidConcurso()).setOidBaseIncumplida(ConstantesINC.BASE_INCUMPLIDA_ASISTENCIA_A_CURSOS);
+      cli.getClientePremiacionConcurso(con.getOidConcurso()).setActualizarCandidataGanadora(true);
+      drools.modifyObject( cli );
+ 	</java:consequence>
+  </rule>
+  
+  <!--
+              REGLA 5: "ValidarExigenciasCuotaMinima"
+              INCIDENCIA:  18751
+              @author Sergio Platas
+              @date 30/05/2005
+  -->
+  <rule name="ValidarExigenciasCuotaMinima">
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+    </parameter>
+    <parameter identifier="cli">
+      <java:class>es.indra.sicc.logicanegocio.inc.ClientePremiacion</java:class>
+    </parameter>
+    <java:condition> 
+      con.print("ValidarExigenciasCuotaMinima")
+    </java:condition>
+    <java:condition> 
+      !(cli.isRechazado(con.getOidConcurso()))
+    </java:condition>
+    <java:condition> 
+      !con.getProgramaNuevas()
+    </java:condition>
+    <java:condition>
+      (ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA())   ||
+        ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA()) )
+    </java:condition>
+    <java:condition>
+      ( (con.getCuotaMinimaIngreso() != null)   &amp;&amp;
+        (con.getCuotaMinimaIngreso().doubleValue() > new Double("0").doubleValue())   &amp;&amp;
+         !(cli.getClientePremiacionConcurso(con.getOidConcurso()).getSaldoPuntosConcurso().doubleValue() >=  
+          con.getCuotaMinimaIngreso().doubleValue() )  )
+    </java:condition>
+    <java:consequence> 
+      con.print("########   Consecuencia ValidarExigenciasCuotaMinima  concurso: " + con.getOidConcurso() + " , cliente: " + cli.getOidCliente());
+      cli.setRechazado(con.getOidConcurso(), ConstantesINC.OID_REGLA_EXIGENCIA_CUOTA_MINIMA);            
+      cli.getClientePremiacionConcurso(con.getOidConcurso()).setUltimoPeriodoEvaluado(cli.getPeriodo());
+      cli.getClientePremiacionConcurso(con.getOidConcurso()).setOidBaseIncumplida(ConstantesINC.BASE_INCUMPLIDA_EXIGENCIAS_CONCURSO);
+      cli.getClientePremiacionConcurso(con.getOidConcurso()).setActualizarCandidataGanadora(true);
+      drools.modifyObject( cli );
+	</java:consequence>
+  </rule>
+  
+  <!--
+              REGLA 6: "ValidarPagoATiempo"
+              @author Sergio Platas
+              @date 30/05/2005
+  -->
+  <rule name="ValidarPagoATiempo">
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+    </parameter>
+    <parameter identifier="cli">
+      <java:class>es.indra.sicc.logicanegocio.inc.ClientePremiacion</java:class>
+    </parameter>
+    <java:condition> 
+      con.print("ValidarPagoATiempo")
+    </java:condition>
+    <java:condition> 
+      !(cli.isRechazado(con.getOidConcurso()))
+    </java:condition>
+    <java:condition> 
+      !con.getProgramaNuevas()
+    </java:condition>
+    <java:condition>
+     ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA())
+    </java:condition>
+    <java:condition>
+      con.print("con.getIndPagoATiempo() " + con.getIndPagoATiempo())    
+    </java:condition>
+    <java:condition>
+      con.print("(cli.getClientePremiacionConcurso(con.getOidConcurso()).getIndPagoEnTermino()) " + (cli.getClientePremiacionConcurso(con.getOidConcurso()).getIndPagoEnTermino()))    
+    </java:condition>    
+    <java:condition>
+      ( (con.getIndPagoATiempo() == true) &amp;&amp;
+         !(cli.getClientePremiacionConcurso(con.getOidConcurso()).getIndPagoEnTermino()) )
+    </java:condition>
+    <java:consequence> 
+      con.print("########   Consecuencia ValidarPagoATiempo  concurso: " + con.getOidConcurso() + " , cliente: " + cli.getOidCliente());
+      cli.setRechazado(con.getOidConcurso(), ConstantesINC.OID_REGLA_PAGO_TIEMPO);            
+      cli.getClientePremiacionConcurso(con.getOidConcurso()).setUltimoPeriodoEvaluado(cli.getPeriodo());
+      cli.getClientePremiacionConcurso(con.getOidConcurso()).setOidBaseIncumplida(ConstantesINC.BASE_INCUMPLIDA_PAGO_A_TIEMPO);
+      cli.getClientePremiacionConcurso(con.getOidConcurso()).setActualizarCandidataGanadora(true);
+      drools.modifyObject( cli ); 
+	</java:consequence>
+  </rule>
+    
+  <!--
+              REGLA 7: "ValidarExigenciasPeriodoDespacho"
+              @author Sergio Platas
+              @date 30/05/2005
+  -->
+  <rule name="ValidarExigenciasPeriodoDespacho">
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+    </parameter>
+    <parameter identifier="cli">
+      <java:class>es.indra.sicc.logicanegocio.inc.ClientePremiacion</java:class>
+    </parameter>
+    <java:condition> 
+      con.print("ValidarExigenciasPeriodoDespacho")
+    </java:condition>
+    <java:condition> 
+      !(cli.isRechazadoPeriodoDespacho(con.getOidConcurso()))
+    </java:condition>
+    <java:condition> 
+      !con.getProgramaNuevas()
+    </java:condition>
+    <java:condition>
+      (ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA())   ||
+        ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA()) )
+    </java:condition>
+    <java:condition>
+      !con.getIndSorteo() 
+    </java:condition>
+    <java:condition>
+      ( 
+        (con.getIndPeriodoDespachoExigido().booleanValue() == true)   &amp;&amp; 
+        (con.getPeriodoDeDespacho() != null)  &amp;&amp; 
+        (con.getNumeroPeriodos() == null) &amp;&amp;
+        (!(
+           ((con.getPeriodoInicioDeDespacho() == null) &amp;&amp; (con.getPeriodoDeDespacho().equals(cli.getPeriodo())) ) ||
+           ((con.getPeriodoInicioDeDespacho() != null) &amp;&amp; (cli.getPeriodo().contenidoEn(con.getPeriodoInicioDeDespacho(),
+           			con.getPeriodoDeDespacho())) )
+	        )
+	      )
+      )
+    </java:condition>  
+    <java:consequence> 
+      con.print("########   Consecuencia ValidarExigenciasPeriodoDespacho  concurso: " + con.getOidConcurso() + " , cliente: " + cli.getOidCliente());
+      cli.setRechazado(con.getOidConcurso(), ConstantesINC.OID_REGLA_EXIGENCIA_PERIODO_DESPACHO);                  
+      cli.setRechazadoPeriodoDespacho(con.getOidConcurso());
+      cli.getClientePremiacionConcurso(con.getOidConcurso()).setUltimoPeriodoEvaluado(cli.getPeriodo());
+      cli.getClientePremiacionConcurso(con.getOidConcurso()).setActualizarCandidataGanadora(true);
+      cli.getClientePremiacionConcurso(con.getOidConcurso()).setOidBaseIncumplida(null);
+      drools.modifyObject( cli );
+	</java:consequence>
+  </rule>
+  
+  <!--
+              REGLA 8: "ValidarCandidataGanadora"
+              @author Sergio Platas
+              @date 30/05/2005
+  -->
+  <rule name="ValidarCandidataGanadora">
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+    </parameter>
+    <parameter identifier="cli">
+      <java:class>es.indra.sicc.logicanegocio.inc.ClientePremiacion</java:class>
+    </parameter>
+    <java:condition> 
+      con.print("ValidarCandidataGanadora")
+    </java:condition>
+    <java:condition> 
+      !(cli.isRechazado(con.getOidConcurso()))  
+    </java:condition>
+    <java:condition> 
+      !con.getProgramaNuevas()
+    </java:condition>
+    <java:condition>
+      (ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA())   ||
+       ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA()) )
+    </java:condition>
+    <java:condition>
+      !( (cli.getClientePremiacionConcurso(con.getOidConcurso()).getRequisitosPremiacionSuperado() == false)  &amp;&amp;
+         (cli.getClientePremiacionConcurso(con.getOidConcurso()).getOidBaseIncumplida() == null)    &amp;&amp;
+         (((cli.getClientePremiacionConcurso(con.getOidConcurso()).getUltimoPeriodoEvaluado() != null)    &amp;&amp;
+         (cli.getClientePremiacionConcurso(con.getOidConcurso()).getUltimoPeriodoEvaluado().antesDe(cli.getPeriodo().getFechaDesde()) ) ) ||
+	 (cli.getClientePremiacionConcurso(con.getOidConcurso()).getUltimoPeriodoEvaluado() == null)) )     
+    </java:condition>
+    <java:consequence> 
+      con.print("########   Consecuencia ValidarCandidataGanadora  concurso: " + con.getOidConcurso() + " , cliente: " + cli.getOidCliente());
+      cli.setRechazado(con.getOidConcurso(), ConstantesINC.OID_REGLA_VALIDAR_CANDIDATA_GANADORA);                                      
+      drools.modifyObject( cli );
+    </java:consequence>
+  </rule>
+  
+  <!--
+              REGLA 9: "ValidarExigenciasProductos"
+              @author Sergio Platas
+              @date 30/05/2005
+  -->
+  <rule name="ValidarExigenciasProductos">
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+    </parameter>
+    <parameter identifier="cli">
+      <java:class>es.indra.sicc.logicanegocio.inc.ClientePremiacion</java:class>
+    </parameter>
+    <java:condition> 
+      con.print("ValidarExigenciasProductos")
+    </java:condition>
+    <java:condition> 
+      !(cli.isRechazado(con.getOidConcurso()))
+    </java:condition>
+    <java:condition> 
+      !con.getProgramaNuevas()
+    </java:condition>
+    <java:condition>
+      (ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA()))
+    </java:condition>
+    <java:condition>
+      ( (con.getPedidoEnPeriodo() == true)   &amp;&amp;
+          !(con.verificaProductosExigidos(cli.getProductos())) )
+    </java:condition>
+    <java:consequence> 
+      con.print("########   Consecuencia ValidarExigenciasProductos  concurso: " + con.getOidConcurso() + " , cliente: " + cli.getOidCliente());
+      cli.setRechazado(con.getOidConcurso(), ConstantesINC.OID_REGLA_EXIGENCIA_PRODUCTOS);                                            
+      cli.getClientePremiacionConcurso(con.getOidConcurso()).setUltimoPeriodoEvaluado(cli.getPeriodo());
+      cli.getClientePremiacionConcurso(con.getOidConcurso()).setOidBaseIncumplida(ConstantesINC.BASE_INCUMPLIDA_EXIGENCIAS_PREMIACION);
+      cli.getClientePremiacionConcurso(con.getOidConcurso()).setActualizarCandidataGanadora(true);
+      drools.modifyObject( cli ); 
+ 	</java:consequence>
+  </rule>
+  
+ <!--
+              REGLA 10: "ValidarExigenciasPeriodoNumeroPeriodos"
+              @author Sergio Platas
+              @date 30/05/2005
+  -->
+  <rule name="ValidarExigenciasPeriodoNumeroPeriodos">
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+    </parameter>
+    <parameter identifier="cli">
+      <java:class>es.indra.sicc.logicanegocio.inc.ClientePremiacion</java:class>
+    </parameter>
+    <java:condition> 
+      con.print("ValidarExigenciasPeriodoNumeroPeriodos")
+    </java:condition>
+    <java:condition> 
+      !(cli.isRechazadoPeriodoDespacho(con.getOidConcurso()))
+    </java:condition>
+    <java:condition> 
+      !con.getProgramaNuevas()
+    </java:condition>
+    <java:condition>
+      (ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA())   ||
+        ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA()) )
+    </java:condition>
+    <java:condition> 
+      con.print("$$$ ValidarExigenciasPeriodoNumeroPeriodos con.getIndPeriodoDespachoExigido() " + con.getIndPeriodoDespachoExigido())
+    </java:condition>
+    <java:condition> 
+      con.print("$$$ ValidarExigenciasPeriodoNumeroPeriodos con.getNumeroPeriodos() " + con.getNumeroPeriodos())
+    </java:condition>
+    <java:condition> 
+      con.print("$$$ ValidarExigenciasPeriodoNumeroPeriodos cli.getPeriodo() " + cli.getPeriodo())
+    </java:condition>
+    <java:condition> 
+      con.print("$$$ ValidarExigenciasPeriodoNumeroPeriodos.getPeriodoDespachoDespuesObtencion() " + cli.getClientePremiacionConcurso(con.getOidConcurso()).getPeriodoDespachoDespuesObtencion())
+    </java:condition>
+    <java:condition>
+      ( (con.getIndPeriodoDespachoExigido().booleanValue() == true)  &amp;&amp;
+         (con.getNumeroPeriodos() != null)   &amp;&amp;
+         !cli.getClientePremiacionConcurso(con.getOidConcurso()).getPeriodoDespachoDespuesObtencion().equals(cli.getPeriodo()) )
+    </java:condition>
+    <java:consequence> 
+      con.print("########   Consecuencia ValidarExigenciasPeriodoNumeroPeriodos  concurso: " + con.getOidConcurso() + " , cliente: " + cli.getOidCliente());
+      if (cli.getClientePremiacionConcurso(con.getOidConcurso()).getPeriodoDespachoDespuesObtencion() != null) 
+            con.print("########   Consecuencia ValidarExigenciasPeriodoNumeroPeriodos getPeriodoDespachoDespuesObtencion " + cli.getClientePremiacionConcurso(con.getOidConcurso()).getPeriodoDespachoDespuesObtencion().getOidPeriodo());
+      if (cli.getPeriodo() != null) 
+            con.print("########   Consecuencia ValidarExigenciasPeriodoNumeroPeriodos getPeriodo " + cli.getPeriodo().getOidPeriodo());
+      cli.setRechazado(con.getOidConcurso(), ConstantesINC.OID_REGLA_EXIGENCIA_NUMERO_PERIODOS);                                                  
+      cli.setRechazadoPeriodoDespacho(con.getOidConcurso());
+      cli.getClientePremiacionConcurso(con.getOidConcurso()).setUltimoPeriodoEvaluado(cli.getPeriodo());
+      cli.getClientePremiacionConcurso(con.getOidConcurso()).setActualizarCandidataGanadora(true);
+      cli.getClientePremiacionConcurso(con.getOidConcurso()).setOidBaseIncumplida(null);
+      drools.modifyObject( cli ); 
+  	</java:consequence>
+  </rule>
+  
+
+  <!--
+              REGLA 11: "ValidarExigenciasNumeroPedidosConcursos"
+              INCIDENCIA:  18759
+              @author Sergio Platas
+              @date 30/05/2005
+  -->
+  <rule name="ValidarExigenciasNumeroPedidosConcursos">
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+    </parameter>
+    <parameter identifier="cli">
+      <java:class>es.indra.sicc.logicanegocio.inc.ClientePremiacion</java:class>
+    </parameter>
+    <java:condition> 
+      con.print("ValidarExigenciasNumeroPedidosConcursos")
+    </java:condition>
+    <java:condition> 
+      !(cli.isRechazado(con.getOidConcurso()))
+    </java:condition>
+    <java:condition> 
+      !con.getProgramaNuevas()
+    </java:condition>
+    <java:condition>
+      (ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA())   ||
+        ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA()) )
+    </java:condition>
+    <java:condition> 
+      con.print("ValidarExigenciasNumeroPedidosConcursos  con.getNumeroPedidos() " + con.getNumeroPedidos())
+    </java:condition>
+    <java:condition> 
+      con.print("ValidarExigenciasNumeroPedidosConcursos  ClientePremiacionConcurso.getCantidadPedidos() " + cli.getClientePremiacionConcurso(con.getOidConcurso()).getCantidadPedidos())
+    </java:condition>
+	<java:condition>
+      ((con.getNumeroPedidos() != null)   &amp;&amp;
+       (con.getNumeroPedidos().longValue() > new Long("0").longValue())   &amp;&amp;
+        !(cli.getClientePremiacionConcurso(con.getOidConcurso()).getCantidadPedidos() >=
+        con.getNumeroPedidos().longValue() ))
+    </java:condition>
+    <java:consequence> 
+      con.print("########   Consecuencia ValidarExigenciasNumeroPedidosConcursos  concurso: " + con.getOidConcurso() + " , cliente: " + cli.getOidCliente());
+      cli.setRechazado(con.getOidConcurso(), ConstantesINC.OID_REGLA_EXIGENCIA_NUMERO_PEDIDOS);                                                  
+      cli.getClientePremiacionConcurso(con.getOidConcurso()).setUltimoPeriodoEvaluado(cli.getPeriodo());
+      cli.getClientePremiacionConcurso(con.getOidConcurso()).setOidBaseIncumplida(ConstantesINC.BASE_INCUMPLIDA_EXIGENCIAS_CONCURSO);
+      cli.getClientePremiacionConcurso(con.getOidConcurso()).setActualizarCandidataGanadora(true);
+      drools.modifyObject( cli ); 
+	</java:consequence>
+  </rule>    
+  
+  <!--
+              REGLA 12: "ValidarExigenciasMontoMinimoPremiacion"
+              @author Sergio Platas
+              @date 30/05/2005
+  -->
+  <rule name="ValidarExigenciasMontoMinimoPremiacion">
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+    </parameter>
+    <parameter identifier="cli">
+      <java:class>es.indra.sicc.logicanegocio.inc.ClientePremiacion</java:class>
+    </parameter>
+    <java:condition> 
+      con.print("ValidarExigenciasMontoMinimoPremiacion")
+    </java:condition>
+    <java:condition> 
+      !(cli.isRechazado(con.getOidConcurso()))
+    </java:condition>
+    <java:condition> 
+      !con.getProgramaNuevas()
+    </java:condition>
+    <java:condition>
+      (ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA()))
+    </java:condition>
+	<java:condition>
+      ((con.getPedidoEnPeriodo() == true)    &amp;&amp; 
+        !(((cli.getMontoPedidoPremiacion()!=null)?cli.getMontoPedidoPremiacion().doubleValue():new Double("0").doubleValue())  >=      
+              ((con.getMontoMinimoPedidoPremiacion()!=null)?con.getMontoMinimoPedidoPremiacion().doubleValue():new Double("0").doubleValue())) )
+    </java:condition>
+    <java:consequence> 
+      con.print("########   Consecuencia ValidarExigenciasMontoMinimoPremiacion  concurso: " + con.getOidConcurso() + " , cliente: " + cli.getOidCliente());
+      cli.setRechazado(con.getOidConcurso(), ConstantesINC.OID_REGLA_EXIGENCIA_MONTO_MINIMO_PREMIACION);                                                        
+      cli.getClientePremiacionConcurso(con.getOidConcurso()).setUltimoPeriodoEvaluado(cli.getPeriodo());
+      cli.getClientePremiacionConcurso(con.getOidConcurso()).setOidBaseIncumplida(ConstantesINC.BASE_INCUMPLIDA_EXIGENCIAS_PREMIACION);
+      cli.getClientePremiacionConcurso(con.getOidConcurso()).setActualizarCandidataGanadora(true);
+      drools.modifyObject( cli ); 
+ 	</java:consequence>
+  </rule>
+    
+  <!--
+              REGLA 13: "ValidarExigenciasMontoMinimoConcursos"
+              @author Sergio Platas
+              @date 31/05/2005
+  -->
+  <rule name="ValidarExigenciasMontoMinimoConcursos">
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+    </parameter>
+    <parameter identifier="cli">
+      <java:class>es.indra.sicc.logicanegocio.inc.ClientePremiacion</java:class>
+    </parameter>
+    <java:condition> 
+      con.print("ValidarExigenciasMontoMinimoConcursos")
+    </java:condition>
+    <java:condition> 
+      con.print("## ValidarExigenciasMontoMinimoConcursos !(cli.isRechazado(con.getOidConcurso())) " + (!(cli.isRechazado(con.getOidConcurso()))) )
+    </java:condition>
+    <java:condition> 
+      con.print("## ValidarExigenciasMontoMinimoConcursos !con.getProgramaNuevas() " + (!con.getProgramaNuevas()) )
+    </java:condition>
+	<java:condition> 
+      !(cli.isRechazado(con.getOidConcurso()))
+    </java:condition>
+    <java:condition> 
+      !con.getProgramaNuevas()
+    </java:condition>
+    <java:condition>
+      (ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA())  ||
+        ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA())  )
+    </java:condition>
+    <java:condition> 
+      con.print("## ValidarExigenciasMontoMinimoConcursos con.getMontoMinimoConcurso() " + con.getMontoMinimoConcurso())
+    </java:condition>
+    <java:condition> 
+      con.print("## ValidarExigenciasMontoMinimoConcursos .getMontoPedidos() " + cli.getClientePremiacionConcurso(con.getOidConcurso()).getMontoPedidos())
+    </java:condition>
+    <java:condition>
+      ((con.getMontoMinimoConcurso() != null)   &amp;&amp;
+       (con.getMontoMinimoConcurso().doubleValue() > new Double("0").doubleValue())   &amp;&amp;
+         !(cli.getClientePremiacionConcurso(con.getOidConcurso()).getMontoPedidos()
+                  .doubleValue()  >=  con.getMontoMinimoConcurso().doubleValue() ) )
+    </java:condition>
+    <java:consequence> 
+      con.print("########   Consecuencia ValidarExigenciasMontoMinimoConcursos  concurso: " + con.getOidConcurso() + " , cliente: " + cli.getOidCliente());
+      cli.setRechazado(con.getOidConcurso(), ConstantesINC.OID_REGLA_EXIGENCIA_MONTO_MINIMO_CONCURSO);                                                              
+      cli.getClientePremiacionConcurso(con.getOidConcurso()).setUltimoPeriodoEvaluado(cli.getPeriodo());
+      cli.getClientePremiacionConcurso(con.getOidConcurso()).setOidBaseIncumplida(ConstantesINC.BASE_INCUMPLIDA_EXIGENCIAS_CONCURSO );
+      cli.getClientePremiacionConcurso(con.getOidConcurso()).setActualizarCandidataGanadora(true);
+      drools.modifyObject( cli );
+ 	</java:consequence>
+  </rule>
+      
+  <!--
+              REGLA 14: "ValidarActividad"
+              @author Sergio Platas
+              @date 01/06/2005
+  -->
+  <rule name="ValidarActividad">
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+    </parameter>
+    <parameter identifier="cli">
+      <java:class>es.indra.sicc.logicanegocio.inc.ClientePremiacion</java:class>
+    </parameter>
+    <java:condition> 
+      con.print("ValidarActividad")
+    </java:condition>
+    <java:condition> 
+      !(cli.isRechazado(con.getOidConcurso())) 
+    </java:condition>
+    <java:condition> 
+      !con.getProgramaNuevas()
+    </java:condition>
+    <java:condition>
+      (ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA()))
+    </java:condition>
+    <java:condition>
+      con.print("con.getIndActividad() " + con.getIndActividad())
+    </java:condition>
+    <java:condition>
+      con.getIndActividad()
+    </java:condition>
+    <java:condition>
+      con.print("con.esActivo(cli) " + con.esActivo(cli))
+    </java:condition>
+    <java:condition>
+      !(con.esActivo(cli))
+    </java:condition>
+    <java:condition>
+	!cli.isDescalificado(con.getOidConcurso())
+    </java:condition>
+    <java:consequence> 
+      con.print("########   Consecuencia ValidarActividad  concurso: " + con.getOidConcurso() + " , cliente: " + cli.getOidCliente());
+      cli.setRechazado(con.getOidConcurso(), ConstantesINC.OID_REGLA_VALIDACION_ACTIVIDAD);                                                                    
+      cli.getClientePremiacionConcurso(con.getOidConcurso()).setDescalificaClientePorSolicitud(ConstantesINC.CAUSA_DESCALIF_ACTIVIDAD);
+ 	</java:consequence>
+  </rule>
+      
+  <!--
+              REGLA 15: "ValidarConstancia"
+              @author Sergio Platas
+              @date 01/06/2005
+  -->
+  <rule name="ValidarConstancia">
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+    </parameter>
+    <parameter identifier="cli">
+      <java:class>es.indra.sicc.logicanegocio.inc.ClientePremiacion</java:class>
+    </parameter>
+    <java:condition> 
+      con.print("ValidarConstancia")
+    </java:condition>
+    <java:condition> 
+      (!cli.isRechazado(con.getOidConcurso()))
+    </java:condition>
+    <java:condition> 
+      !con.getProgramaNuevas()
+    </java:condition>
+    <java:condition>
+      (ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA()))
+    </java:condition>
+    <java:condition>
+      con.print("con.getIndConstancia() " + con.getIndConstancia())
+    </java:condition>
+    <java:condition>
+      con.getIndConstancia()
+    </java:condition>
+    <java:condition>
+      con.print("con.esConstante(cli) " + con.esConstante(cli))
+    </java:condition>
+    <java:condition>
+      (!con.esConstante(cli))
+    </java:condition>
+    <java:condition>
+	!cli.isDescalificado(con.getOidConcurso())
+    </java:condition>
+    <java:consequence> 
+      con.print("########   Consecuencia ValidarConstancia  concurso: " + con.getOidConcurso() + " , cliente: " + cli.getOidCliente());
+      cli.setRechazado(con.getOidConcurso(), ConstantesINC.OID_REGLA_VALIDACION_CONSTANCIA);                                                                          
+      cli.getClientePremiacionConcurso(con.getOidConcurso())
+                      .setDescalificaClientePorSolicitud(ConstantesINC.CAUSA_DESCALIF_CONSTANCIA);
+      drools.modifyObject( cli );
+ 	</java:consequence>
+  </rule>
+<!-- ************************************************************************************ -->  
+
+
+  <!--
+                REGLA 16: VeirificarClienteDescalificadoPremio 
+                @author Julian Rivas
+                @date 24/08/2005
+  -->
+  <rule name="VeirificarClienteDescalificadoPremio">
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+    </parameter>
+    <parameter identifier="cli">
+      <java:class>es.indra.sicc.logicanegocio.inc.ClientePremiacion</java:class>
+    </parameter>
+    <java:condition> 
+      con.print("VeirificarClienteDescalificadoPremio")
+    </java:condition>
+    <java:condition> 
+      (!cli.isRechazado(con.getOidConcurso()))
+    </java:condition>
+    <java:condition> 
+      !con.getProgramaNuevas()
+    </java:condition>
+    <java:condition>
+      (ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA()) ||
+        ConstantesINC.TIPO_GERENTE.equals(con.getDirigidoA()) )
+    </java:condition>
+    <java:condition>
+	cli.isDescalificado(con.getOidConcurso())
+    </java:condition>
+    <java:consequence>
+      con.print("########   Consecuencia VeirificarClienteDescalificadoPremio  concurso: " + con.getOidConcurso() + " , cliente: " + cli.getOidCliente());
+      cli.setRechazado(con.getOidConcurso(), ConstantesINC.OID_REGLA_VALIDACION_CLIENTE_DESCALIFICADO);                                                                                
+      drools.modifyObject(cli);
+    </java:consequence>
+  </rule>
+
+  <!--
+                REGLA 17: ValidarPremioEntregado 
+                @author Sergio Apaza
+                @date 19/08/2013
+  -->
+  <rule name="ValidarPremioEntregado" salience="100">
+    <parameter identifier="con">
+      <java:class>es.indra.sicc.logicanegocio.inc.Concurso</java:class>
+    </parameter>
+    <parameter identifier="cli">
+      <java:class>es.indra.sicc.logicanegocio.inc.ClientePremiacion</java:class>
+    </parameter>
+    <java:condition> 
+      con.print("ValidarPremioEntregado")
+    </java:condition>
+    <java:condition> 
+      (!cli.isRechazado(con.getOidConcurso()))
+    </java:condition>
+    <java:condition> 
+      !con.getProgramaNuevas()
+    </java:condition>
+    <java:condition>
+      (ConstantesINC.TIPO_CONSULTORA.equals(con.getDirigidoA()))
+    </java:condition>
+    <java:condition>
+      ((con.getIndDespachoPremio()!=null &amp;&amp; con.getIndDespachoPremio().intValue()==2) ||
+       ((con.getIndDespachoPremio()==null || con.getIndDespachoPremio().intValue()==0) 
+       		&amp;&amp;
+       	(ConstantesINC.OID_BASE_CALCULO_MONTO.equals(con.getBaseCalculo()) || 
+         ConstantesINC.OID_BASE_CALCULO_UNIDADES.equals(con.getBaseCalculo()))
+          &amp;&amp;
+       		cli.getClientePremiacionConcurso(con.getOidConcurso()).isPremioDespachado()
+       ))
+    </java:condition>
+    <java:consequence>
+      con.print("########   Consecuencia ValidarPremioEntregado  concurso: " + con.getOidConcurso() + " , cliente: " + cli.getOidCliente());
+      cli.setRechazado(con.getOidConcurso());                                                                                
+      drools.modifyObject(cli);
+    </java:consequence>
+  </rule>
+  
+</rule-set>

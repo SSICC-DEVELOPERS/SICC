@@ -1,0 +1,455 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by a (a) -->  
+<ReportSourceDefinition Id="RSD_REP-094" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="PAIS" Description="1019" DataType="STRING" Calculated="false" Expression="" ExternalData="PAIS"/>  
+		<DimensionSourceDefinition Name="SUBACCESO" Description="1468" DataType="STRING" Calculated="false" Expression="" ExternalData="SUBACCESO"/>  
+		<DimensionSourceDefinition Name="DOCU" Description="1076" DataType="STRING" Calculated="false" Expression="" ExternalData="DOCU"/>  
+		<DimensionSourceDefinition Name="TIP_MED_PAGO" Description="2004" DataType="STRING" Calculated="false" Expression="" ExternalData="TIP_MED_PAGO"/>  
+		<DimensionSourceDefinition Name="TIPO_DOC" Description="2005" DataType="STRING" Calculated="false" Expression="" ExternalData="TIPO_DOC"/>  
+		<DimensionSourceDefinition Name="RANGO" Description="1586" DataType="STRING" Calculated="false" Expression="" ExternalData="RANGO"/>  
+		<DimensionSourceDefinition Name="MONE" Description="2002" DataType="STRING" Calculated="false" Expression="" ExternalData="MONE"/>  
+		<DimensionSourceDefinition Name="MONE_ALT" Description="2003" DataType="STRING" Calculated="false" Expression="" ExternalData="MONE_ALT"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="VAL_MONE" Description="2010" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="VAL_MONE" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="VAL_MONE_ALT" Description="2011" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="VAL_MONE_ALT" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="REP-094" SourceType="SQL" Expression="(  
+SELECT PAIS,  
+	   SUBACCESO,  
+	   'DOCUMENTOS EMITIDOS' AS DOCU,  
+ 	   NULL AS TIP_MED_PAGO,  
+	   DES_TIPO_DOCU TIPO_DOC,  
+ 	   NULL AS RANGO ,  
+	   (SELECT GEN_MONEDA.VAL_I18N  
+	   FROM SEG_MONED MONE,  
+   		(  
+		SELECT GEN.VAL_OID, GEN.VAL_I18N  
+		FROM V_GEN_I18N_SICC GEN  
+		WHERE GEN.ATTR_ENTI = 'SEG_MONED'  
+			  AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%  
+		) GEN_MONEDA  
+ 	   WHERE MONE.OID_MONE = MONE_OID_MONE  
+	   		 AND MONE.OID_MONE = GEN_MONEDA.VAL_OID(+)  
+	   ) AS MONE,  
+	   (SELECT  GEN_MONEDA.VAL_I18N  
+	   FROM SEG_MONED MONE,  
+	   		(  
+			SELECT GEN.VAL_OID, GEN.VAL_I18N  
+			FROM V_GEN_I18N_SICC GEN  
+			WHERE GEN.ATTR_ENTI = 'SEG_MONED'  
+				  AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%  
+			) GEN_MONEDA  
+ 	   WHERE MONE.OID_MONE = MONE_OID_MONE_ALT  
+   	   		 AND MONE.OID_MONE = GEN_MONEDA.VAL_OID(+)  
+	   ) MONE_ALT,  
+	    NVL(SUM(VAL_MONE), 0) AS VAL_MONE,        
+	   NVL(SUM(VAL_MONE_ALT), 0) AS VAL_MONE_ALT	     
+FROM  
+	(  
+	SELECT GEN_PAIS.VAL_I18N PAIS,   
+		   GEN_SUBA.VAL_I18N SUBACCESO,  
+		   PAIS.MONE_OID_MONE,  
+		   PAIS.MONE_OID_MONE_ALT,  
+		   TIP_DOC.DES_TIPO_DOCU,  
+	      (   
+		  SELECT DOC_CON_CAB.VAL_TOTA_PAGA_LOCA   
+		  FROM SEG_MONED MONE  
+	 	  WHERE MONE.OID_MONE = PAIS.MONE_OID_MONE  
+		  		AND DOC_CON_CAB.MONE_OID_MONE = PAIS.MONE_OID_MONE			  
+		  )	AS VAL_MONE,  
+	      (   
+		  SELECT DOC_CON_CAB.VAL_TOTA_PAGA_DOCU   
+		  FROM SEG_MONED MONE  
+	 	  WHERE MONE.OID_MONE = PAIS.MONE_OID_MONE_ALT  
+		  		AND DOC_CON_CAB.MONE_OID_MONE = PAIS.MONE_OID_MONE_ALT  
+		  )	AS VAL_MONE_ALT       
+	FROM  SEG_PAIS PAIS,  
+		 FAC_DOCUM_CONTA_CABEC DOC_CON_CAB,  
+		 FAC_TIPO_DOCUM TIP_DOC,  
+		 SEG_CANAL CANAL,  
+		 SEG_ACCES ACCE,  
+		 SEG_SUBAC SUBA,  
+		 (	   
+		 SELECT GEN.VAL_OID, GEN.VAL_I18N  
+		 FROM V_GEN_I18N_SICC GEN  
+		 WHERE GEN.ATTR_ENTI = 'SEG_PAIS'  
+		 	   AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%  
+		 ) GEN_PAIS,  
+		 (  
+		 SELECT GEN.VAL_OID, GEN.VAL_I18N  
+		 FROM V_GEN_I18N_SICC GEN  
+		 WHERE GEN.ATTR_ENTI = 'SEG_SUBAC'  
+		 	   AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%  
+		 ) GEN_SUBA	  
+	WHERE PAIS.OID_PAIS = GEN_PAIS.VAL_OID(+)  
+		  AND CANAL.OID_CANA = ACCE.CANA_OID_CANA  
+		  AND ACCE.OID_ACCE = SUBA.ACCE_OID_ACCE  
+		  AND DOC_CON_CAB.SBAC_OID_SBAC = SUBA.OID_SBAC  
+		  AND DOC_CON_CAB.PAIS_OID_PAIS = PAIS.OID_PAIS  
+	      AND TIP_DOC.OID_TIPO_DOCU = DOC_CON_CAB.TIDO_OID_TIPO_DOCU  
+		  AND DOC_CON_CAB.MONE_OID_MONE IS NOT NULL  
+		  AND SUBA.OID_SBAC = GEN_SUBA.VAL_OID  
+		  AND TO_DATE(DOC_CON_CAB.FEC_EMIS) = TO_DATE(%value_FECHACIERREVALUE%, %value_FORMATOFECHAVALUE%)  
+		  AND PAIS.OID_PAIS = %value_PAISVALUE%  
+		  AND OID_CANA = %value_CANALVALUE%  
+		  AND ACCE.OID_ACCE = %value_ACCESOVALUE%  
+		  AND SUBA.OID_SBAC = %value_SUBACCESOVALUE%  
+		)  
+	GROUP BY PAIS,  
+		  	 SUBACCESO,  
+		  	 'DOCUMENTOS EMITIDOS',  
+		     DES_TIPO_DOCU,	  
+	         MONE_OID_MONE,  
+	  		 MONE_OID_MONE_ALT  
+	)  
+	UNION ALL  
+	(  
+	SELECT PAIS,  
+		   SUBACCESO,  
+		   DOCU,  
+           TIPO_MED_PAGO,  
+		   MED_PAGO,   
+		   RANGO,   
+  		   MONE,  
+		   MONE_ALT,  
+		   NVL(SUM(VAL_MONE), 0) AS VAL_MONE,  
+		   NVL(SUM(vAL_MONE_ALT), 0) AS VAL_MONE_ALT  
+	FROM  
+	(  
+		SELECT GEN_PAIS.VAL_I18N PAIS,  
+			   GEN_SUBA.VAL_I18N SUBACCESO,  
+			   'COBROS POR MEDIOS DE PAGO' DOCU,  
+			   GEN_TIP_MED_PAGO.VAL_I18N TIPO_MED_PAGO,  
+			   GEN_MED_PAGO.VAL_I18N MED_PAGO,   
+			   NULL AS RANGO,   
+			   (  
+			   SELECT GEN_MONEDA.VAL_I18N  
+				FROM SEG_MONED M,  
+					 (  
+					 SELECT GEN.VAL_OID, GEN.VAL_I18N  
+					 FROM V_GEN_I18N_SICC GEN  
+					 WHERE GEN.ATTR_ENTI = 'SEG_MONED'  
+						   AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%  
+					) GEN_MONEDA  
+				WHERE M.OID_MONE = DOC.MONE_OID_MONE  
+								AND M.OID_MONE = GEN_MONEDA.VAL_OID(+)  
+				) AS MONE,  
+				(  
+					SELECT  GEN_MONEDA.VAL_I18N  
+					 FROM SEG_MONED M,  
+						  (  
+						  SELECT GEN.VAL_OID, GEN.VAL_I18N  
+						  FROM V_GEN_I18N_SICC GEN  
+						  WHERE GEN.ATTR_ENTI = 'SEG_MONED'  
+								AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%  
+						  ) GEN_MONEDA  
+					WHERE M.OID_MONE = DOC.MONE_OID_MONE_ALT  
+						  AND M.OID_MONE = GEN_MONEDA.VAL_OID(+)  
+				) MONE_ALT,  
+			   MONE VAL_MONE,	  
+			   MONE_ALT VAL_MONE_ALT  
+		FROM  
+		(  
+			(   
+			SELECT PAIS.OID_PAIS,  
+				   SUBA.OID_SBAC,  
+				   PAIS.MONE_OID_MONE,  
+				   PAIS.MONE_OID_MONE_ALT,  
+				   TIP_MED_PAG.OID_TIPO_MEDI_PAGO,  
+				   MED_PAG.OID_MEDI_PAGO,  
+				   (  
+				   SELECT MOV_CAJA_DET.IMP_MOVI  
+				   FROM	SEG_MONED MONE	   		   
+				   WHERE MOV_CAJA_DET.MONE_OID_MONE = MONE.OID_MONE  
+						 AND MONE.OID_MONE = PAIS.MONE_OID_MONE  
+				   ) MONE,  
+			   	   (  
+				   SELECT MOV_CAJA_DET.IMP_DIVI  
+				   FROM	SEG_MONED MONE	   		   
+				   WHERE MOV_CAJA_DET.MONE_OID_MONE = MONE.OID_MONE  
+						 AND MONE.OID_MONE = PAIS.MONE_OID_MONE_ALT  
+				   ) MONE_ALT  
+			FROM SEG_PAIS PAIS,  
+				 SEG_CANAL CANAL,  
+				 SEG_ACCES ACCE,  
+				 SEG_SUBAC SUBA,  
+				 PED_SOLIC_CABEC SOL_CAB,  
+				 BEL_MOVIM_CAJA_CABEC MOV_CAJA_CAB,  
+				 BEL_MOVIM_CAJA_DETAL MOV_CAJA_DET,  
+				 BEL_MEDIO_PAGO_BELCE MED_PAG_BEL,  
+				 BEL_MEDIO_PAGO MED_PAG,  
+				 BEL_TIPO_MEDIO_PAGO TIP_MED_PAG  
+			WHERE CANAL.OID_CANA = ACCE.CANA_OID_CANA  
+				  AND ACCE.OID_ACCE = SUBA.ACCE_OID_ACCE  
+				  AND SOL_CAB.PAIS_OID_PAIS = PAIS.OID_PAIS  
+				  AND SOL_CAB.SBAC_OID_SBAC = SUBA.OID_SBAC  
+				  AND MOV_CAJA_CAB.SOCA_OID_SOLI_CABE = SOL_CAB.OID_SOLI_CABE  
+				  AND SOL_CAB.VAL_NUME_SOLI IS NOT NULL  
+				  AND MOV_CAJA_DET.MCAC_OID_CABE = MOV_CAJA_CAB.OID_CABE  
+				  AND MOV_CAJA_DET.MPBC_OID_MEDI_PAGO_BELC = MED_PAG_BEL.OID_MEDI_PAGO_BELC  
+				  AND MED_PAG_BEL.MPAB_OID_MEDI_PAGO = MED_PAG.OID_MEDI_PAGO  
+				  AND TIP_MED_PAG.OID_TIPO_MEDI_PAGO = MED_PAG.TMEP_OID_TIPO_MEDI_PAGO  
+				  AND MED_PAG.PAIS_OID_PAIS = PAIS.OID_PAIS  
+			      AND TIP_MED_PAG.OID_TIPO_MEDI_PAGO = 1  
+				  AND PAIS.OID_PAIS = %value_PAISVALUE%  
+		  		  AND OID_CANA = %value_CANALVALUE%  
+		  		  AND ACCE.OID_ACCE = %value_ACCESOVALUE%  
+		  	  	  AND SUBA.OID_SBAC = %value_SUBACCESOVALUE%  
+		  		  AND TO_DATE(MOV_CAJA_CAB.FEC_MOVI) = TO_DATE(%value_FECHACIERREVALUE%, %value_FORMATOFECHAVALUE%) 	  
+			)  
+		UNION ALL  
+			(   
+			SELECT PAIS.OID_PAIS,  
+				   SUBA.OID_SBAC,  
+				   PAIS.MONE_OID_MONE,  
+				   PAIS.MONE_OID_MONE_ALT,  
+				   TIP_MED_PAG.OID_TIPO_MEDI_PAGO,  
+				   MED_PAG.OID_MEDI_PAGO,  
+				   (  
+				   SELECT MOV_CAJA_DET.IMP_MOVI  
+				   FROM	SEG_MONED MONE	   		   
+				   WHERE MOV_CAJA_DET.MONE_OID_MONE = MONE.OID_MONE  
+						 AND MONE.OID_MONE = PAIS.MONE_OID_MONE  
+				   ) MONE,  
+			   	   (  
+				   SELECT MOV_CAJA_DET.IMP_DIVI  
+				   FROM	SEG_MONED MONE	   		   
+				   WHERE MOV_CAJA_DET.MONE_OID_MONE = MONE.OID_MONE  
+						 AND MONE.OID_MONE = PAIS.MONE_OID_MONE_ALT  
+				   ) MONE_ALT  
+			FROM SEG_PAIS PAIS,  
+				 SEG_CANAL CANAL,  
+				 SEG_ACCES ACCE,  
+				 SEG_SUBAC SUBA,  
+				 PED_SOLIC_CABEC SOL_CAB,  
+				 BEL_MOVIM_CAJA_CABEC MOV_CAJA_CAB,  
+				 BEL_MOVIM_CAJA_DETAL MOV_CAJA_DET,  
+				 BEL_MEDIO_PAGO_BELCE MED_PAG_BEL,  
+				 BEL_MEDIO_PAGO MED_PAG,  
+				 BEL_TIPO_MEDIO_PAGO TIP_MED_PAG  
+			 WHERE CANAL.OID_CANA = ACCE.CANA_OID_CANA  
+				  AND ACCE.OID_ACCE = SUBA.ACCE_OID_ACCE  
+				  AND SOL_CAB.PAIS_OID_PAIS = PAIS.OID_PAIS  
+				  AND SOL_CAB.SBAC_OID_SBAC = SUBA.OID_SBAC  
+				  AND MOV_CAJA_CAB.SOCA_OID_SOLI_CABE = SOL_CAB.OID_SOLI_CABE  
+				  AND SOL_CAB.VAL_NUME_SOLI IS NOT NULL  
+				  AND MOV_CAJA_DET.MCAC_OID_CABE = MOV_CAJA_CAB.OID_CABE  
+				  AND MOV_CAJA_DET.MPBC_OID_MEDI_PAGO_BELC = MED_PAG_BEL.OID_MEDI_PAGO_BELC  
+				  AND MED_PAG_BEL.MPAB_OID_MEDI_PAGO = MED_PAG.OID_MEDI_PAGO  
+				  AND TIP_MED_PAG.OID_TIPO_MEDI_PAGO = MED_PAG.TMEP_OID_TIPO_MEDI_PAGO  
+				  AND MED_PAG.PAIS_OID_PAIS = PAIS.OID_PAIS  
+				  AND TIP_MED_PAG.OID_TIPO_MEDI_PAGO = 2  
+				  AND PAIS.OID_PAIS = %value_PAISVALUE%  
+				  AND OID_CANA = %value_CANALVALUE%  
+				  AND ACCE.OID_ACCE = %value_ACCESOVALUE%  
+				  AND SUBA.OID_SBAC = %value_SUBACCESOVALUE%  
+				  AND TO_DATE(MOV_CAJA_CAB.FEC_MOVI) = TO_DATE(%value_FECHACIERREVALUE%, %value_FORMATOFECHAVALUE%)	  
+			)  
+		UNION ALL  
+			(  
+			SELECT PAIS.OID_PAIS,  
+				   SUBA.OID_SBAC,  
+				   PAIS.MONE_OID_MONE,  
+				   PAIS.MONE_OID_MONE_ALT,  
+				   TIP_MED_PAG.OID_TIPO_MEDI_PAGO,  
+				   MED_PAG.OID_MEDI_PAGO,  
+				   (  
+				   SELECT MOV_CAJA_DET.IMP_MOVI  
+				   FROM	SEG_MONED MONE	   		   
+				   WHERE MOV_CAJA_DET.MONE_OID_MONE = MONE.OID_MONE  
+						 AND MONE.OID_MONE = PAIS.MONE_OID_MONE  
+				   ) MONE,  
+			   	   (  
+				   SELECT MOV_CAJA_DET.IMP_DIVI  
+				   FROM	SEG_MONED MONE	   		   
+				   WHERE MOV_CAJA_DET.MONE_OID_MONE = MONE.OID_MONE  
+						 AND MONE.OID_MONE = PAIS.MONE_OID_MONE_ALT  
+				   ) MONE_ALT	     	     
+			FROM SEG_PAIS PAIS,  
+				 SEG_CANAL CANAL,  
+				 SEG_ACCES ACCE,  
+				 SEG_SUBAC SUBA,  
+				 PED_SOLIC_CABEC SOL_CAB,  
+				 BEL_MOVIM_CAJA_CABEC MOV_CAJA_CAB,  
+				 BEL_MOVIM_CAJA_DETAL MOV_CAJA_DET,  
+				 BEL_MEDIO_PAGO_BELCE MED_PAG_BEL,  
+				 BEL_MEDIO_PAGO MED_PAG,  
+				 BEL_TIPO_MEDIO_PAGO TIP_MED_PAG  
+			WHERE CANAL.OID_CANA = ACCE.CANA_OID_CANA  
+				  AND ACCE.OID_ACCE = SUBA.ACCE_OID_ACCE  
+				  AND SOL_CAB.PAIS_OID_PAIS = PAIS.OID_PAIS  
+				  AND SOL_CAB.SBAC_OID_SBAC = SUBA.OID_SBAC  
+				  AND MOV_CAJA_CAB.SOCA_OID_SOLI_CABE = SOL_CAB.OID_SOLI_CABE  
+				  AND SOL_CAB.VAL_NUME_SOLI IS NOT NULL  
+				  AND MOV_CAJA_DET.MCAC_OID_CABE = MOV_CAJA_CAB.OID_CABE  
+				  AND MOV_CAJA_DET.MPBC_OID_MEDI_PAGO_BELC = MED_PAG_BEL.OID_MEDI_PAGO_BELC  
+				  AND MED_PAG_BEL.MPAB_OID_MEDI_PAGO = MED_PAG.OID_MEDI_PAGO  
+				  AND TIP_MED_PAG.OID_TIPO_MEDI_PAGO = MED_PAG.TMEP_OID_TIPO_MEDI_PAGO  
+				  AND MED_PAG.PAIS_OID_PAIS = PAIS.OID_PAIS  
+			      AND TIP_MED_PAG.OID_TIPO_MEDI_PAGO = 3  
+				  AND PAIS.OID_PAIS = %value_PAISVALUE%  
+				  AND OID_CANA = %value_CANALVALUE%  
+		  		  AND ACCE.OID_ACCE = %value_ACCESOVALUE%  
+		  		  AND SUBA.OID_SBAC = %value_SUBACCESOVALUE%  
+				  AND TO_DATE(MOV_CAJA_CAB.FEC_MOVI) = TO_DATE(%value_FECHACIERREVALUE%, %value_FORMATOFECHAVALUE%)	  
+			)  
+		UNION ALL  
+			(  
+			SELECT PAIS.OID_PAIS,  
+				   SUBA.OID_SBAC,  
+				   PAIS.MONE_OID_MONE,  
+				   PAIS.MONE_OID_MONE_ALT,  
+				   TIP_MED_PAG.OID_TIPO_MEDI_PAGO,  
+				   MED_PAG.OID_MEDI_PAGO,  
+			  	   (  
+				   SELECT MOV_CAJA_DET.IMP_MOVI  
+				   FROM SEG_MONED MONE	   		   
+				   WHERE MOV_CAJA_DET.MONE_OID_MONE = MONE.OID_MONE  
+						 AND MONE.OID_MONE = PAIS.MONE_OID_MONE  
+				   ) MONE,  
+			   	   (  
+				   SELECT MOV_CAJA_DET.IMP_DIVI  
+				   FROM	 SEG_MONED MONE	   		   
+				   WHERE MOV_CAJA_DET.MONE_OID_MONE = MONE.OID_MONE  
+						 AND MONE.OID_MONE = PAIS.MONE_OID_MONE_ALT  
+				   ) MONE_ALT  
+			FROM SEG_PAIS PAIS,  
+				 SEG_CANAL CANAL,  
+				 SEG_ACCES ACCE,  
+				 SEG_SUBAC SUBA,  
+				 PED_SOLIC_CABEC SOL_CAB,  
+				 BEL_MOVIM_CAJA_CABEC MOV_CAJA_CAB,  
+				 BEL_MOVIM_CAJA_DETAL MOV_CAJA_DET,  
+				 BEL_MEDIO_PAGO_BELCE MED_PAG_BEL,  
+				 BEL_MEDIO_PAGO MED_PAG,  
+				 BEL_TIPO_MEDIO_PAGO TIP_MED_PAG  
+			WHERE CANAL.OID_CANA = ACCE.CANA_OID_CANA  
+				  AND ACCE.OID_ACCE = SUBA.ACCE_OID_ACCE  
+				  AND SOL_CAB.PAIS_OID_PAIS = PAIS.OID_PAIS  
+				  AND SOL_CAB.SBAC_OID_SBAC = SUBA.OID_SBAC  
+				  AND MOV_CAJA_CAB.SOCA_OID_SOLI_CABE = SOL_CAB.OID_SOLI_CABE  
+				  AND SOL_CAB.VAL_NUME_SOLI IS NOT NULL  
+				  AND MOV_CAJA_DET.MCAC_OID_CABE = MOV_CAJA_CAB.OID_CABE  
+				  AND MOV_CAJA_DET.MPBC_OID_MEDI_PAGO_BELC = MED_PAG_BEL.OID_MEDI_PAGO_BELC  
+				  AND MED_PAG_BEL.MPAB_OID_MEDI_PAGO = MED_PAG.OID_MEDI_PAGO  
+				  AND TIP_MED_PAG.OID_TIPO_MEDI_PAGO = MED_PAG.TMEP_OID_TIPO_MEDI_PAGO  
+				  AND MED_PAG.PAIS_OID_PAIS = PAIS.OID_PAIS  
+			      AND TIP_MED_PAG.OID_TIPO_MEDI_PAGO = 4  
+		  		  AND PAIS.OID_PAIS = %value_PAISVALUE%  
+		  		  AND OID_CANA = %value_CANALVALUE%  
+		  		  AND ACCE.OID_ACCE = %value_ACCESOVALUE%  
+		  		  AND SUBA.OID_SBAC = %value_SUBACCESOVALUE%  
+				  AND TO_DATE(MOV_CAJA_CAB.FEC_MOVI) = TO_DATE(%value_FECHACIERREVALUE%, %value_FORMATOFECHAVALUE%)	  
+			)  
+		UNION ALL  
+			(  
+			SELECT PAIS.OID_PAIS,  
+				   SUBA.OID_SBAC,  
+				   PAIS.MONE_OID_MONE,  
+				   PAIS.MONE_OID_MONE_ALT,  
+				   TIP_MED_PAG.OID_TIPO_MEDI_PAGO,  
+				   MED_PAG.OID_MEDI_PAGO,  
+			   	   (  
+				   SELECT MOV_CAJA_DET.IMP_MOVI  
+				   FROM	SEG_MONED MONE	   		   
+				   WHERE MOV_CAJA_DET.MONE_OID_MONE = MONE.OID_MONE  
+						 AND MONE.OID_MONE = PAIS.MONE_OID_MONE  
+				   ) MONE,  
+			   	   (  
+				   SELECT MOV_CAJA_DET.IMP_DIVI  
+				   FROM	SEG_MONED MONE	   		   
+				   WHERE MOV_CAJA_DET.MONE_OID_MONE = MONE.OID_MONE  
+						 AND MONE.OID_MONE = PAIS.MONE_OID_MONE_ALT  
+				   ) MONE_ALT	   
+			FROM SEG_PAIS PAIS,  
+				 SEG_CANAL CANAL,  
+				 SEG_ACCES ACCE,  
+				 SEG_SUBAC SUBA,  
+				 PED_SOLIC_CABEC SOL_CAB,  
+				 BEL_MOVIM_CAJA_CABEC MOV_CAJA_CAB,  
+				 BEL_MOVIM_CAJA_DETAL MOV_CAJA_DET,  
+				 BEL_MEDIO_PAGO_BELCE MED_PAG_BEL,  
+				 BEL_MEDIO_PAGO MED_PAG,  
+				 BEL_TIPO_MEDIO_PAGO TIP_MED_PAG		 	  
+			WHERE CANAL.OID_CANA = ACCE.CANA_OID_CANA  
+				  AND ACCE.OID_ACCE = SUBA.ACCE_OID_ACCE  
+				  AND SOL_CAB.PAIS_OID_PAIS = PAIS.OID_PAIS  
+				  AND SOL_CAB.SBAC_OID_SBAC = SUBA.OID_SBAC  
+				  AND MOV_CAJA_CAB.SOCA_OID_SOLI_CABE = SOL_CAB.OID_SOLI_CABE  
+				  AND SOL_CAB.VAL_NUME_SOLI IS NOT NULL  
+				  AND MOV_CAJA_DET.MCAC_OID_CABE = MOV_CAJA_CAB.OID_CABE  
+				  AND MOV_CAJA_DET.MPBC_OID_MEDI_PAGO_BELC = MED_PAG_BEL.OID_MEDI_PAGO_BELC  
+				  AND MED_PAG_BEL.MPAB_OID_MEDI_PAGO = MED_PAG.OID_MEDI_PAGO  
+				  AND TIP_MED_PAG.OID_TIPO_MEDI_PAGO = MED_PAG.TMEP_OID_TIPO_MEDI_PAGO  
+				  AND MED_PAG.PAIS_OID_PAIS = PAIS.OID_PAIS  
+  	      		  AND TIP_MED_PAG.OID_TIPO_MEDI_PAGO NOT IN (1,2,3,4)  
+		  		  AND PAIS.OID_PAIS = %value_PAISVALUE%  
+		  		  AND OID_CANA = %value_CANALVALUE%  
+		  		  AND ACCE.OID_ACCE = %value_ACCESOVALUE%  
+		  		  AND SUBA.OID_SBAC = %value_SUBACCESOVALUE%  
+				  AND TO_DATE(MOV_CAJA_CAB.FEC_MOVI) = TO_DATE(%value_FECHACIERREVALUE%, %value_FORMATOFECHAVALUE%)	  
+			)  
+		) DOC,  
+		(  
+	    SELECT GEN.VAL_OID, GEN.VAL_I18N  
+		FROM V_GEN_I18N_SICC GEN  
+		WHERE GEN.ATTR_ENTI = 'SEG_PAIS'  
+		     AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%  
+	    ) GEN_PAIS,  
+        (  
+	    SELECT GEN.VAL_OID, GEN.VAL_I18N  
+		FROM V_GEN_I18N_SICC GEN  
+		WHERE GEN.ATTR_ENTI = 'SEG_SUBAC'  
+		      AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%  
+	    ) GEN_SUBA,		 	  
+		(  
+		SELECT GEN.VAL_OID, GEN.VAL_I18N  
+		FROM V_GEN_I18N_SICC GEN  
+		WHERE GEN.ATTR_ENTI = 'BEL_TIPO_MEDIO_PAGO'  
+		      AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%  
+	    ) GEN_TIP_MED_PAGO,  
+		(  
+		SELECT GEN.VAL_OID, GEN.VAL_I18N  
+		FROM V_GEN_I18N_SICC GEN  
+		WHERE GEN.ATTR_ENTI = 'BEL_MEDIO_PAGO'  
+			   AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%  
+        ) GEN_MED_PAGO  
+		WHERE DOC.OID_PAIS = GEN_PAIS.VAL_OID(+)  
+			  AND DOC.OID_SBAC = GEN_SUBA.VAL_OID(+)  
+			  AND DOC.OID_TIPO_MEDI_PAGO = GEN_TIP_MED_PAGO.VAL_OID(+)  
+			  AND DOC.OID_MEDI_PAGO = GEN_MED_PAGO.VAL_OID(+)  
+  )  
+		GROUP BY PAIS,  
+		   SUBACCESO,  
+		   DOCU,  
+          TIPO_MED_PAGO,  
+		   MED_PAGO,   
+		  RANGO,   
+  		 MONE,  
+			MONE_ALT  
+)  
+order by pais, subacceso, docu desc" ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.106:1523:SICCV3D" ExternalConnectionDistributedUrl="" ExternalConnectionUser="usu_peru" ExternalConnectionPassword="peru" DatePattern="dd/MM/yyyy" DateTimePattern=""/>  
+	</DataSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="IDIOMA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PAIS" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="CANAL" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="ACCESO" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="SUBACCESO" Visual="FALSE"/>  
+		<FilterDefinition DataType="DATE" FilterType="EQUALTO" Name="FECHACIERRE" Visual="FALSE"/>  
+		<FilterDefinition DataType="STRING" FilterType="EQUALTO" Name="FORMATOFECHA" Visual="FALSE"/>  
+	</FilterDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="IDIOMA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="PAIS" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="CANAL" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="ACCESO" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="8" FilterDefinitionName="SUBACCESO" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="30/12/2004" FilterDefinitionName="FECHACIERRE" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="dd/MM/yyyy" FilterDefinitionName="FORMATOFECHA" FilterParameter="VALUE"/>  
+	</ParameterValues>  
+</ReportSourceDefinition>  
+

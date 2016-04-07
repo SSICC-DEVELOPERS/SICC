@@ -1,0 +1,288 @@
+<?xm2l version="1.0" encoding="ISO-8859-1"?>
+<rule-set xmlns="http://drools.org/rules"
+          xmlns:java="http://drools.org/semantics/java"
+          xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
+          name="ReglasTransformarPuntosAPremios"
+          xs:schemaLocation="http://drools.org/rules rules.xsd 
+          http://drools.org/semantics/java java.xsd">
+   <java:import>es.indra.sicc.logicanegocio.inc.ConstantesINC</java:import>
+   <java:import>java.math.BigDecimal</java:import>  
+   <!--
+               REGLA 1: ValidarPremioMonetarioCantidadFija
+               @author Sergio Platas 
+               @date 06/06/2005
+     -->
+   <rule name="ValidarPremioMonetarioCantidadFija" salience="100">
+      <parameter identifier="preMone">
+         <java:class>es.indra.sicc.logicanegocio.inc.PremioMonetario</java:class>
+      </parameter>
+      <parameter identifier="cliePre">
+         <java:class>es.indra.sicc.logicanegocio.inc.ClientePremiacionConcurso</java:class>
+      </parameter>
+      <java:condition> 
+        cliePre.print("ValidarPremioMonetarioCantidadFija")
+      </java:condition>
+      <java:condition> 
+        cliePre.print("preMone.getPuntosObtenerProdExigidos() " + preMone.getPuntosObtenerProdExigidos())
+      </java:condition>
+      <java:condition> 
+        cliePre.print("cliePre.getSaldoPuntosExigidos() " + cliePre.getSaldoPuntosExigidos())
+      </java:condition>
+      <java:condition>
+      (((preMone.getPuntosObtenerProdExigidos() != null) &amp;&amp;
+        (cliePre.getSaldoPuntosExigidos().doubleValue()  >= 
+                    preMone.getPuntosObtenerProdExigidos().doubleValue()))   ||
+        (preMone.getPuntosObtenerProdExigidos() == null))
+    </java:condition>
+      <java:condition>
+      (ConstantesINC.OID_TIPO_PREM_MONET_CANT_FIJA.equals(preMone.getTipoPremioMonetario()))
+    </java:condition>
+      <java:consequence> 
+      cliePre.print("########   Consecuencia ValidarPremioMonetarioCantidadFija Gerente: " + cliePre.getGerente());
+      preMone.setImportePremio(preMone.getCantidad());
+      preMone.setUnidades(preMone.getImportePremio());
+      preMone.setActualizarGanadora(true); 
+ 	</java:consequence>
+   </rule>
+  
+   <!--
+              REGLA 2: ValidarPremioArticulo
+              @author Sergio Platas 
+              @date 06/06/2005
+     -->
+   <rule name="ValidarPremioArticulo">
+      <parameter identifier="preArti">
+         <java:class>es.indra.sicc.logicanegocio.inc.PremioArticuloLote</java:class>
+      </parameter>
+      <parameter identifier="cliePre">
+         <java:class>es.indra.sicc.logicanegocio.inc.ClientePremiacionConcurso</java:class>
+      </parameter>
+      <java:condition> 
+        cliePre.print("ValidarPremioArticulo")
+      </java:condition>
+      <java:condition> 
+        cliePre.print("preArti.getPuntosObtenerProdExigidos() " + preArti.getPuntosObtenerProdExigidos())
+      </java:condition>
+      <java:condition> 
+        cliePre.print("cliePre.getSaldoPuntosExigidos() " + cliePre.getSaldoPuntosExigidos())
+      </java:condition>
+      <java:condition>
+       (((preArti.getPuntosObtenerProdExigidos() != null)    &amp;&amp;  
+                       ( cliePre.getSaldoPuntosExigidos().doubleValue()   >=  
+                         preArti.getPuntosObtenerProdExigidos().doubleValue()))   || 
+                       (preArti.getPuntosObtenerProdExigidos() == null) )
+    </java:condition>
+      <java:consequence> 
+      cliePre.print("########   Consecuencia ValidarPremioArticulo Gerente: " + cliePre.getGerente());
+      preArti.setUnidades(new BigDecimal(preArti.getPremio().getNumeroUnidades().longValue()));
+      preArti.setActualizarGanadora(true);
+
+ 	</java:consequence>
+   </rule>
+  
+   <!--
+              REGLA 3: 'ValidarPremioPuntuacionCantidadFija' 
+              @author Sergio Platas
+              @date 18/05/2005            
+     -->
+   <rule name="ValidarPremioPuntuacionCantidadFija">
+      <parameter identifier="cliePre">
+         <java:class>es.indra.sicc.logicanegocio.inc.ClientePremiacionConcurso</java:class>
+      </parameter>
+      <parameter identifier="prePunt">
+         <java:class>es.indra.sicc.logicanegocio.inc.PremioPuntos</java:class>
+      </parameter>
+      <java:condition> 
+        cliePre.print("ValidarPremioPuntuacionCantidadFija")
+      </java:condition>
+      <java:condition> 
+        cliePre.print("prePunt.getPuntosObtenerProdExigidos() " + prePunt.getPuntosObtenerProdExigidos())
+      </java:condition>
+      <java:condition> 
+        cliePre.print("cliePre.getSaldoPuntosExigidos() " + cliePre.getSaldoPuntosExigidos())
+      </java:condition>
+      <java:condition> 
+        cliePre.print("prePunt.getOidTipoPremioPuntos() " + prePunt.getOidTipoPremioPuntos())
+      </java:condition>
+      <java:condition> 
+      (((prePunt.getPuntosObtenerProdExigidos() != null) &amp;&amp;
+         (cliePre.getSaldoPuntosExigidos().doubleValue() >= 
+                   prePunt.getPuntosObtenerProdExigidos().doubleValue())) ||
+        (prePunt.getPuntosObtenerProdExigidos() == null))
+      </java:condition>
+      <java:condition> 
+      (ConstantesINC.OID_TIPO_PREM_PTOS_CANT_FIJA.equals(prePunt.getOidTipoPremioPuntos()))
+  	</java:condition>
+      <java:consequence>
+      cliePre.print("########   Consecuencia ValidarPremioPuntuacionCantidadFija Gerente: " + cliePre.getGerente());
+      prePunt.setImportePremio(prePunt.getCantidad());
+      prePunt.setUnidades(prePunt.getImportePremio());
+      prePunt.setActualizarGanadora(true);
+  	</java:consequence>
+   </rule>
+ 
+   <!--
+              REGLA 4: 'ValidarPremioMonetarioPuntajeObtenido' 
+              @author Sergio Platas
+              @date 18/05/2005
+     -->
+   <rule name="ValidarPremioMonetarioPuntajeObtenido" salience="100">
+      <parameter identifier="preMone">
+         <java:class>es.indra.sicc.logicanegocio.inc.PremioMonetario</java:class>
+      </parameter>
+      <parameter identifier="cliePre">
+         <java:class>es.indra.sicc.logicanegocio.inc.ClientePremiacionConcurso</java:class>
+      </parameter>
+      <java:condition> 
+        cliePre.print("ValidarPremioMonetarioPuntajeObtenido")
+      </java:condition>
+      <java:condition> 
+      ( (  preMone.getPuntosObtenerProdExigidos() != null  ) &amp;&amp; 
+        (  cliePre.getSaldoPuntosExigidos().doubleValue() >= 
+           preMone.getPuntosObtenerProdExigidos().doubleValue()  )  ||
+        (  preMone.getPuntosObtenerProdExigidos() == null) )
+  	</java:condition>
+      <java:condition> 
+      (ConstantesINC.OID_TIPO_PREM_MONET_PUNTAJE_OBT.equals(preMone.getTipoPremioMonetario()))
+  	</java:condition>
+      <java:consequence>
+      cliePre.print("########   Consecuencia ValidarPremioMonetarioPuntajeObtenido Gerente: " + cliePre.getGerente());
+      preMone.setImportePremio(new java.math.BigDecimal( cliePre.getSaldoPuntos().doubleValue() ));
+      preMone.setUnidades(preMone.getImportePremio());
+      preMone.setActualizarGanadora(true);
+      </java:consequence>
+   </rule>
+ 
+   <!--
+              REGLA 5: ValidarPremioMonetarioPorcentajePuntaje
+              @author Sergio Platas 
+              @date 06/06/2005
+     -->
+   <rule name="ValidarPremioMonetarioPorcentajePuntaje" salience="100">
+      <parameter identifier="preMone">
+         <java:class>es.indra.sicc.logicanegocio.inc.PremioMonetario</java:class>
+      </parameter>
+      <parameter identifier="cliePre">
+         <java:class>es.indra.sicc.logicanegocio.inc.ClientePremiacionConcurso</java:class>
+      </parameter>
+      <java:condition> 
+        cliePre.print("ValidarPremioMonetarioPorcentajePuntaje")
+      </java:condition>
+      <java:condition>
+      (((preMone.getPuntosObtenerProdExigidos() != null)    &amp;&amp;
+        (cliePre.getSaldoPuntosExigidos().doubleValue() >= 
+                        preMone.getPuntosObtenerProdExigidos().doubleValue()))  ||
+        (preMone.getPuntosObtenerProdExigidos() == null))
+    </java:condition>
+      <java:condition>
+      (ConstantesINC.OID_TIPO_PREM_MONET_PORC_PUNTAJE_OBT.equals(preMone.getTipoPremioMonetario()))
+    </java:condition>
+      <java:consequence> 
+      cliePre.print("########   Consecuencia ValidarPremioMonetarioPorcentajePuntaje Gerente: " + cliePre.getGerente());
+      preMone.setImportePremio(new BigDecimal(cliePre.getSaldoPuntos().doubleValue()   *
+                                                preMone.getPorcentaje().doubleValue() /  100 ));
+      preMone.setUnidades(preMone.getImportePremio());
+      preMone.setActualizarGanadora(true);
+  	</java:consequence>
+   </rule>
+ 
+   <!--
+              REGLA 6: ValidarPremioPuntuacionPuntajeObtenido
+              @author Sergio Platas 
+              @date 08/06/2005              
+     -->
+   <rule name="ValidarPremioPuntuacionPuntajeObtenido">
+      <parameter identifier="cliePre">
+         <java:class>es.indra.sicc.logicanegocio.inc.ClientePremiacionConcurso</java:class>
+      </parameter>
+      <parameter identifier="prePunt">
+         <java:class>es.indra.sicc.logicanegocio.inc.PremioPuntos</java:class>
+      </parameter>
+      <java:condition> 
+        cliePre.print("ValidarPremioPuntuacionPuntajeObtenido")
+      </java:condition>
+      <java:condition>
+      ( ((prePunt.getPuntosObtenerProdExigidos() != null) &amp;&amp;
+         (cliePre.getSaldoPuntosExigidos().doubleValue() >= 
+                  prePunt.getPuntosObtenerProdExigidos().doubleValue()))   ||
+        (prePunt.getPuntosObtenerProdExigidos() == null) )
+    </java:condition>
+      <java:condition>
+      (ConstantesINC.OID_TIPO_PREM_PTOS_PUNTAJE_OBT.equals(prePunt.getOidTipoPremioPuntos()) )
+    </java:condition>
+      <java:consequence> 
+      cliePre.print("########   Consecuencia ValidarPremioPuntuacionPuntajeObtenido Gerente: " + cliePre.getGerente());
+      prePunt.setImportePremio(new BigDecimal(cliePre.getSaldoPuntos().doubleValue()));
+      prePunt.setUnidades(prePunt.getImportePremio());
+      prePunt.setActualizarGanadora(true);
+	</java:consequence>
+   </rule>
+ 
+   <!--
+              REGLA 7: ValidarPremioPuntuacionPorcentajePuntaje
+              @author Sergio Platas 
+              @date 07/06/2005
+     -->
+   <rule name="ValidarPremioPuntuacionPorcentajePuntaje">
+      <parameter identifier="prePunt">
+         <java:class>es.indra.sicc.logicanegocio.inc.PremioPuntos</java:class>
+      </parameter>
+      <parameter identifier="cliePre">
+         <java:class>es.indra.sicc.logicanegocio.inc.ClientePremiacionConcurso</java:class>
+      </parameter>
+      <java:condition> 
+        cliePre.print("ValidarPremioPuntuacionPorcentajePuntaje")
+      </java:condition>
+      <java:condition>
+      (((prePunt.getPuntosObtenerProdExigidos()!= null)  &amp;&amp;
+        ( cliePre.getSaldoPuntosExigidos().doubleValue()  >=  
+          prePunt.getPuntosObtenerProdExigidos().doubleValue()) )   ||
+       (prePunt.getPuntosObtenerProdExigidos() == null) )
+    </java:condition>
+      <java:condition>
+      (ConstantesINC.OID_TIPO_PREM_PTOS_PORC_PUNTAJE_OBT.equals(prePunt.getOidTipoPremioPuntos()))
+    </java:condition>
+      <java:consequence> 
+      cliePre.print("########   Consecuencia ValidarPremioPuntuacionPorcentajePuntaje Gerente: " + cliePre.getGerente());
+      prePunt.setImportePremio(new BigDecimal(cliePre.getSaldoPuntos().doubleValue()   *
+                                        prePunt.getPorcentaje().doubleValue() /  100  ));
+      prePunt.setUnidades(prePunt.getImportePremio());
+      prePunt.setActualizarGanadora(true); 
+	</java:consequence>
+   </rule>
+
+   <!--
+              REGLA 8: ValidarPremioDescuento
+              @author Sergio Platas 
+              @date 06/06/2005
+     -->
+   <rule name="ValidarPremioDescuento">
+      <parameter identifier="cliePre">
+         <java:class>es.indra.sicc.logicanegocio.inc.ClientePremiacionConcurso</java:class>
+      </parameter>
+      <parameter identifier="preDesc">
+         <java:class>es.indra.sicc.logicanegocio.inc.PremioDescuento</java:class>
+      </parameter>
+      <java:condition> 
+        cliePre.print("ValidarPremioDescuento")
+      </java:condition>
+      <java:condition> 
+        cliePre.print("preDesc.getPuntosObtenerProdExigidos() " + preDesc.getPuntosObtenerProdExigidos())
+      </java:condition>
+      <java:condition> 
+        cliePre.print("cliePre.getSaldoPuntosExigidos() " + cliePre.getSaldoPuntosExigidos())
+      </java:condition>
+      <java:condition> 
+      (((preDesc.getPuntosObtenerProdExigidos() != null)    &amp;&amp;
+       (cliePre.getSaldoPuntosExigidos().doubleValue()  >= 
+           preDesc.getPuntosObtenerProdExigidos().doubleValue()))   ||
+       (preDesc.getPuntosObtenerProdExigidos() == null ))
+    </java:condition>
+      <java:consequence> 
+      cliePre.print("########   Consecuencia ValidarPremioDescuento Gerente: " + cliePre.getGerente());
+      preDesc.setUnidades(new BigDecimal(0));
+      preDesc.setActualizarGanadora(true);
+ 	</java:consequence>
+   </rule>
+ 
+</rule-set>

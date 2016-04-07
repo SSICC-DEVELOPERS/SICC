@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by a (a) -->  
+<ReportSourceDefinition Id="RSD_REP-109_01" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="OPERACION" Description="1951" DataType="STRING" Calculated="false" Expression="" ExternalData="OPERACION"/>  
+		<DimensionSourceDefinition Name="SOCIEDAD" Description="1618" DataType="STRING" Calculated="false" Expression="" ExternalData="SOCIEDAD"/>  
+		<DimensionSourceDefinition Name="VAL_NOMB_PERI" Description="1078" DataType="STRING" Calculated="false" Expression="" ExternalData="VAL_NOMB_PERI"/>  
+		<DimensionSourceDefinition Name="TIPO_SOL" Description="1251		" DataType="STRING" Calculated="false" Expression="" ExternalData="TIPO_SOL"/>  
+		<DimensionSourceDefinition Name="OID_REGI" Description="2072" DataType="STRING" Calculated="false" Expression="" ExternalData="OID_REGI"/>  
+		<DimensionSourceDefinition Name="DES_REGI" Description="2073" DataType="STRING" Calculated="false" Expression="" ExternalData="DES_REGI"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="CANTIDAD" Description="1332" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="CANTIDAD" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="TOTAL_CANTIDAD" Description="TOTAL_CANTIDAD" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="TOTAL_CANTIDAD" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="IDIOMA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PAIS" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="CANAL" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="MARCA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PERIODOINICIAL" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PERIODOFINAL" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="OPERACION" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="REGION" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="ZONA" Visual="FALSE"/>  
+		<FilterDefinition DataType="STRING" FilterType="EQUALTO" Name="ZONEUSER" Visual="FALSE"/>  
+	</FilterDefinitions>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="REP-109_01" SourceType="SQL" Expression="  
+		select   
+	   gen_op.operacion,  
+	   s.soc sociedad,  
+	   per.val_nomb_peri,  
+	   gen_t_sol.tipo_sol,  
+	   reg.oid_regi,  
+	   reg.DES_REGI,  
+ 	   count(distinct lin_rec.OID_LINE_OPER_RECL) as cantidad,  
+ 	   SUM(COUNT(DISTINCT LIN_REC.OID_LINE_OPER_RECL)) OVER (PARTITION BY GEN_OP.OPERACION,PER.VAL_NOMB_PERI,REG.OID_REGI) TOTAL_CANTIDAD  
+from  
+	rec_cabec_recla cab_rec,  
+	rec_opera_recla op_rec,  
+	rec_linea_opera_recla lin_rec,  
+	rec_opera op,  
+	rec_tipos_opera t_op,  
+	rec_tipo_movim t_mov,	  
+	ped_tipo_solic_pais t_sol_p,  
+	ped_tipo_solic t_sol,  
+	cra_perio per,  
+	zon_regio reg,  
+	zon_zona zon,  
+	zon_terri_admin ter_adm,  
+	zon_secci sec,  
+	   	   (  
+		    SELECT  SOCI.VAL_DENO soc  
+		   from principals pri,  
+		   	SEG_SOCIE SOCI,	  
+		   		propertyvalues pro			  
+		   where pri.name = %value_ZONEUSERVALUE%	    
+		   		 and pro.idproperty = 48  
+				 and pro.idprincipal = pri.idprincipal  
+				  AND pro.stringvalue = SOCI.OID_SOCI  
+	   ) s,  
+	(  
+	 select val_oid, val_i18n tipo_sol  
+	 from v_gen_i18n_sicc  
+	 where attr_enti= 'PED_TIPO_SOLIC'  
+	 	   and idio_oid_idio = %value_IDIOMAVALUE%	  
+  
+	)gen_t_sol,  
+	(  
+	 select fec_inic  
+	 from cra_perio  
+	 where oid_peri = %value_PERIODOINICIALVALUE%  
+	)per_ini,  
+	(  
+	 select fec_fina  
+	 from cra_perio  
+	 where oid_peri = decode(%value_PERIODOFINALVALUE%,-1,%value_PERIODOINICIALVALUE%,%value_PERIODOFINALVALUE%)   
+	)per_fin,  
+	(  
+	 select val_oid, val_i18n operacion  
+	 from v_gen_i18n_sicc  
+	 where attr_enti = 'REC_OPERA'  
+	 	   and idio_oid_idio = %value_IDIOMAVALUE%	  
+	)gen_op		  
+where  
+	 cab_rec.OID_CABE_RECL = op_rec.CARE_OID_CABE_RECL  
+	 and op_rec.OID_OPER_RECL = lin_rec.OPRE_OID_OPER_RECL  
+	 and lin_rec.TSPA_OID_TIPO_SOLI_PAIS = t_sol_p.OID_TIPO_SOLI_PAIS  
+	 and t_sol_p.TSOL_OID_TIPO_SOLI = t_sol.oid_tipo_soli  
+	 and t_sol.oid_tipo_soli = gen_t_sol.val_oid(+)  
+	 and op_rec.TIOP_OID_TIPO_OPER = t_op.OID_TIPO_OPER  
+ 	 and t_op.ROPE_OID_OPER = op.OID_OPER  
+	 and op.OID_OPER = gen_op.val_oid(+)  
+ 	 and lin_rec.TIMO_OID_TIPO_MOVI = t_mov.OID_TIPO_MOVI  
+	 and t_mov.COD_TIPO_MOVI = 'E'  
+	 and op_rec.PERD_OID_PERI_RECL = per.oid_peri  
+ 	 and per_ini.fec_inic &lt;= per.fec_inic  
+	 and per.fec_fina &lt;= per_fin.fec_fina  
+ and cab_rec.ZTAD_OID_TERR_ADMI = ter_adm.OID_TERR_ADMI(+)  
+	 and ter_adm.ZSCC_OID_SECC = sec.OID_SECC(+)  
+	 and sec.ZZON_OID_ZONA = zon.oid_zona(+)  
+	 and zon.ZORG_OID_REGI = reg.oid_regi(+)  
+	and cab_rec.pais_oid_pais = %value_PAISVALUE%	  
+ and per.marc_oid_marc = %value_MARCAVALUE%	  
+ and per.cana_oid_cana = %value_CANALVALUE%	  
+ %start_OPERACIONVALUES%   and op.OID_OPER in  (%value_OPERACIONVALUES%)  %end_OPERACIONVALUES%   
+	  %start_REGIONVALUES%   and reg.oid_regi in  (%value_REGIONVALUES%)  %end_REGIONVALUES%   
+      %start_ZONAVALUES%   and zon.oid_zona in  (%value_ZONAVALUES%)  %end_ZONAVALUES%   
+ group by  
+	   gen_op.operacion,  
+	   s.soc,  
+	   per.val_nomb_peri,  
+	   gen_t_sol.tipo_sol,  
+	   reg.oid_regi,  
+	   reg.DES_REGI  
+   	   
+	 " ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.106:1523:SICCV3D" ExternalConnectionDistributedUrl="" ExternalConnectionUser="usu_peru" ExternalConnectionPassword="peru" DatePattern="" DateTimePattern=""/>  
+	</DataSourceDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="IDIOMA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="PAIS" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="CANAL" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="MARCA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="57" FilterDefinitionName="PERIODOINICIAL" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="-1" FilterDefinitionName="PERIODOFINAL" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="OPERACION" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="REGION" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="ZONA" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="USUARIO2V" FilterDefinitionName="ZONEUSER" FilterParameter="VALUE"/>  
+	</ParameterValues>  
+	<Localizations/>  
+</ReportSourceDefinition>  
+

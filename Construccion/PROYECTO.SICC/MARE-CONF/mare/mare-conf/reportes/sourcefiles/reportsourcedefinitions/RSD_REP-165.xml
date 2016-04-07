@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by tito (tito) -->  
+<ReportSourceDefinition Id="RSD_REP-165" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="SOCIEDAD" Description="SOCIEDAD" DataType="STRING" Calculated="false" Expression="" ExternalData="SOCIEDAD"/>  
+		<DimensionSourceDefinition Name="CODIGO_RECLAMO" Description="CODIGO_RECLAMO" DataType="STRING" Calculated="false" Expression="" ExternalData="CODIGO_RECLAMO"/>  
+		<DimensionSourceDefinition Name="VAL_TIPO_OPER" Description="VAL_TIPO_OPER" DataType="STRING" Calculated="false" Expression="" ExternalData="VAL_TIPO_OPER"/>  
+		<DimensionSourceDefinition Name="COD_RESPONSABLE" Description="COD_RESPONSABLE" DataType="STRING" Calculated="false" Expression="" ExternalData="COD_RESPONSABLE"/>  
+		<DimensionSourceDefinition Name="NOMBRE_RESPONSABLE" Description="NOMBRE_RESPONSABLE" DataType="STRING" Calculated="false" Expression="" ExternalData="NOMBRE_RESPONSABLE"/>  
+		<DimensionSourceDefinition Name="ASUME_PERDIDA" Description="ASUME_PERDIDA" DataType="STRING" Calculated="false" Expression="" ExternalData="ASUME_PERDIDA"/>  
+		<DimensionSourceDefinition Name="FECHA_REGISTRO" Description="FECHA_REGISTRO" DataType="DATETIME" Calculated="false" Expression="" ExternalData="FECHA_REGISTRO"/>  
+		<DimensionSourceDefinition Name="PERIODO_REGISTRO" Description="PERIODO_REGISTRO" DataType="STRING" Calculated="false" Expression="" ExternalData="PERIODO_REGISTRO"/>  
+		<DimensionSourceDefinition Name="COD_CLIENTE" Description="COD_CLIENTE" DataType="STRING" Calculated="false" Expression="" ExternalData="COD_CLIENTE"/>  
+		<DimensionSourceDefinition Name="IMP_MONT_PERD" Description="IMP_MONT_PERD" DataType="STRING" Calculated="false" Expression="" ExternalData="IMP_MONT_PERD"/>  
+		<DimensionSourceDefinition Name="FECHA_SOL" Description="FECHA_SOL" DataType="DATETIME" Calculated="false" Expression="" ExternalData="FECHA_SOL"/>  
+		<DimensionSourceDefinition Name="TIPO_SOLICITUD_PERDIDA" Description="TIPO_SOLICITUD_PERDIDA" DataType="STRING" Calculated="false" Expression="" ExternalData="TIPO_SOLICITUD_PERDIDA"/>  
+		<DimensionSourceDefinition Name="NUME_SOLI" Description="NUME_SOLI" DataType="STRING" Calculated="false" Expression="" ExternalData="NUME_SOLI"/>  
+		<DimensionSourceDefinition Name="DOCU_REFER" Description="DOCU_REFER" DataType="STRING" Calculated="false" Expression="" ExternalData="DOCU_REFER"/>  
+		<DimensionSourceDefinition Name="PERIODO_REFERENCIA" Description="PERIODO_REFERENCIA" DataType="STRING" Calculated="false" Expression="" ExternalData="PERIODO_REFERENCIA"/>  
+		<DimensionSourceDefinition Name="VAL_CODI_VENT" Description="VAL_CODI_VENT" DataType="STRING" Calculated="false" Expression="" ExternalData="VAL_CODI_VENT"/>  
+		<DimensionSourceDefinition Name="COD_SAP" Description="COD_SAP" DataType="STRING" Calculated="false" Expression="" ExternalData="COD_SAP"/>  
+		<DimensionSourceDefinition Name="DESCRIPCION" Description="DESCRIPCION" DataType="STRING" Calculated="false" Expression="" ExternalData="DESCRIPCION"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="UNIDADES" Description="UNIDADES" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="UNIDADES" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="MONTO_FACTURA" Description="MONTO_FACTURA" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="MONTO_FACTURA" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="TOTAL_UNIDADES" Description="TOTAL_UNIDADES" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="TOTAL_UNIDADES" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="TOTAL_MONTO" Description="TOTAL_MONTO" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="TOTAL_MONTO" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="REP-165" SourceType="SQL" Expression="   
+select sociedad.sociedad,  
+	   cab_rec.NUM_ATEN as codigo_reclamo,  
+	   t_op.VAL_TIPO_OPER,  
+	   cli.COD_CLIE cod_responsable,  
+	   cli.val_ape1||' '||cli.val_ape2||' '||cli.val_nom1||' '||cli.val_nom2 as nombre_responsable,	    
+	   gen_asu_per.ASUME_PERDIDA,  
+	   cab_rec.FEC_INGR as fecha_registro,  
+	   per2.val_nomb_peri as periodo_registro,  
+	   cli2.cod_clie as cod_cliente,  
+	   op_rec.IMP_MONT_PERD,  
+	   sol_cab.fec_cron as fecha_sol,  
+	   gen_t_sol.tipo_solicitud as TIPO_SOLICITUD_PERDIDA,  
+  	   (  
+			SELECT PSC2.VAL_NUME_SOLI  
+			FROM REC_SOLIC_OPERA RSO,  
+						  PED_SOLIC_CABEC PSC2  
+			WHERE RSO.SOCA_OID_SOLI_CABE = PSC2.OID_SOLI_CABE  
+							AND RSO.TSPA_OID_TIPO_SOLI_PAIS =  RO.TSPA_OID_SOLI_PAIS_PERD  
+							AND RSO.OPRE_OID_OPER_RECL = OP_REC.OID_OPER_RECL  
+	   ) AS NUME_SOLI,  
+       CASE  
+          WHEN ((SUM (1) OVER (PARTITION BY cab_rec.num_aten, gen_asu_per.asume_perdida, per.val_nomb_peri ORDER BY DET_OF.VAL_CODI_VENT, PROD.COD_SAP,lin_rec.oid_line_oper_recl)  
+                ) = 1  
+               )  
+             THEN sol_cab.val_nume_soli  
+       END AS docu_refer,  
+       CASE  
+          WHEN ((SUM (1) OVER (PARTITION BY cab_rec.num_aten, gen_asu_per.asume_perdida, per.val_nomb_peri ORDER BY DET_OF.VAL_CODI_VENT, PROD.COD_SAP,lin_rec.oid_line_oper_recl)  
+                ) = 1  
+               )  
+             THEN per.val_nomb_peri  
+       END AS periodo_referencia,  
+	   det_of.VAL_CODI_VENT,  
+	   prod.cod_sap,  
+	   gen_prod.descripcion,  
+	   lin_rec.NUM_UNID_RECL as unidades,  
+	   lin_rec.IMP_MONT_PERD as monto_factura,  
+	   SUM(lin_rec.NUM_UNID_RECL) OVER (PARTITION BY CAB_REC.NUM_ATEN) TOTAL_UNIDADES,  
+	   sum(lin_rec.imp_mont_perd) OVER (PARTITION BY CAB_REC.NUM_ATEN) TOTAL_MONTO  
+from rec_cabec_recla cab_rec,  
+	 rec_opera_recla op_rec,  
+	 rec_linea_opera_recla lin_rec,  
+	 rec_tipo_movim tip_mov,  
+	 rec_tipos_opera t_op,  
+	 mae_produ prod,  
+	 pre_matri_factu mat_fac,  
+	 pre_ofert_detal det_of,  
+	 ped_solic_cabec sol_cab,  
+	 ped_tipo_solic_pais t_sol_p,  
+	 cra_perio per,  
+	 cra_perio per2,  
+	 mae_clien cli,  
+	 mae_clien cli2,   
+ 	 rec_opera ro,   
+	 %start_PERIODODESDEVALUE% (  
+	   select oid_peri, fec_inic   
+	   from cra_perio  
+	   where oid_peri = %value_PERIODODESDEVALUE%  
+	 )per_desde, %end_PERIODODESDEVALUE%  
+	 %start_PERIODOHASTAVALUE% (  
+	   select oid_peri, fec_fina  
+	   from cra_perio  
+	   where oid_peri = %value_PERIODOHASTAVALUE%  
+	 )per_hasta, %end_PERIODOHASTAVALUE%  
+	 (  
+	  select val_oid, val_i18n descripcion  
+	  from v_gen_i18n_sicc  
+	  where attr_enti = 'MAE_PRODU'  
+	  		and idio_oid_idio = %value_IDIOMAVALUE%  
+	 )gen_prod,  
+	 (  
+	  select val_oid, val_i18n tipo_solicitud  
+	  from v_gen_i18n_sicc  
+	  where attr_enti = 'PED_TIPO_SOLIC'  
+	  		and idio_oid_idio = %value_IDIOMAVALUE%  
+	 )gen_t_sol,  
+	 (  
+	  select val_oid, val_i18n asume_perdida  
+	  from v_gen_i18n_sicc  
+	  where attr_enti = 'REC_ASUME_PERDI'  
+	  		and idio_oid_idio = %value_IDIOMAVALUE%  
+	 )gen_asu_per,  
+	 (  
+	  	select soc.val_deno as sociedad  
+		from principals pri,  
+			propertyvalues pro,  
+			seg_socie soc			  
+		where pri.name =  %value_ZONEUSERVALUE%  
+			 and pro.idproperty = 48  
+			 and pro.idprincipal = pri.idprincipal  
+			 and soc.oid_soci = pro.stringvalue  
+	  )sociedad  
+where cab_rec.OID_CABE_RECL = op_rec.CARE_OID_CABE_RECL  
+	  and op_rec.OID_OPER_RECL = lin_rec.OPRE_OID_OPER_RECL  
+	  and lin_rec.TIMO_OID_TIPO_MOVI = tip_mov.OID_TIPO_MOVI   
+	  and tip_mov.COD_TIPO_MOVI = 'D'  
+	  and lin_rec.prod_oid_prod = prod.oid_prod  
+	  and prod.oid_prod = gen_prod.val_oid(+)  
+	  and lin_rec.MAFA_OID_MATR_FACT = mat_fac.OID_MATR_FACT(+)  
+	  and mat_fac.OFDE_OID_DETA_OFER = det_of.OID_DETA_OFER(+)  
+	  and lin_rec.prod_oid_prod = det_of.prod_oid_prod  
+	  and cab_rec.soca_oid_soli_cabe = sol_cab.oid_soli_cabe  
+	  and sol_cab.PERD_OID_PERI = per.oid_peri  
+	  and op_rec.TIOP_OID_TIPO_OPER = t_op.OID_TIPO_OPER  
+	  and op_rec.CLIE_OID_RESP_PERD = cli.oid_clie  
+	  and cab_rec.PERD_OID_PERI_RECL = per2.oid_peri  
+	  and cab_rec.clie_oid_clie = cli2.oid_clie  
+	  and op_rec.TSPA_OID_TIPO_SOLI_PAIS = t_sol_p.OID_TIPO_SOLI_PAIS(+)  
+	  and t_sol_p.TSOL_OID_TIPO_SOLI = gen_t_sol.val_oid(+)  
+  	  and op_rec.ASPE_OID_ASUM_PERD = gen_asu_per.val_oid(+)  
+ 	  AND RO.VAL_PERD = 1  
+	  AND T_OP.ROPE_OID_OPER = RO.OID_OPER  
+	  and cab_rec.pais_oid_pais = %value_PAISVALUE%  
+	  %start_TIPOOPERACIONVALUES% and t_op.OID_TIPO_OPER in (%value_TIPOOPERACIONVALUES%) %end_TIPOOPERACIONVALUES%  
+	  %start_NUMEROPROPUESTOVALUES% and cab_rec.NUM_ATEN IN (%value_NUMEROPROPUESTOVALUES%) %end_NUMEROPROPUESTOVALUES%  
+	  %start_MARCAVALUE% and per2.marc_oid_marc = %value_MARCAVALUE% %end_MARCAVALUE%  
+	  %start_CANALVALUE% and per2.cana_oid_cana = %value_CANALVALUE% %end_CANALVALUE%  
+	  %start_FECHADESDEVALUE% and cab_rec.FEC_INGR >= TO_DATE(%value_FECHADESDEVALUE%,%value_FORMATOFECHAVALUE%)  %end_FECHADESDEVALUE%  
+  	  %start_FECHAHASTAVALUE% and cab_rec.FEC_INGR &lt;= TO_DATE(%value_FECHAHASTAVALUE%,%value_FORMATOFECHAVALUE%)  %end_FECHAHASTAVALUE%  
+	  %start_ASUMEPERDIDAVALUES% and op_rec.ASPE_OID_ASUM_PERD in (%value_ASUMEPERDIDAVALUES%) %end_ASUMEPERDIDAVALUES%  
+	  %start_TIPOSOLICITUDVALUES% and t_sol_p.OID_TIPO_SOLI_PAIS in (%value_TIPOSOLICITUDVALUES%) %end_TIPOSOLICITUDVALUES%  
+	  %start_RESPONSABLEPERDIDAVALUES% and op_rec.CLIE_OID_RESP_PERD in (%value_RESPONSABLEPERDIDAVALUES%) %end_RESPONSABLEPERDIDAVALUES%  
+	  %start_PERIODODESDEVALUE% and per_desde.fec_inic &lt;= per2.fec_inic %end_PERIODODESDEVALUE%  
+	  %start_PERIODOHASTAVALUE% and per_hasta.fec_fina >= per2.fec_fina %end_PERIODOHASTAVALUE%   " ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.106:1523:SICCV3D" ExternalConnectionDistributedUrl="" ExternalConnectionUser="own_peru" ExternalConnectionPassword="peru_own" DatePattern="dd/MM/yyyy" DateTimePattern=""/>  
+	</DataSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PAIS" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="IDIOMA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="NUMEROPROPUESTO" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="TIPOOPERACION" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="RESPONSABLEPERDIDA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="ASUMEPERDIDA" Visual="FALSE"/>  
+		<FilterDefinition DataType="STRING" FilterType="EQUALTO" Name="FORMATOFECHA" Visual="FALSE"/>  
+		<FilterDefinition DataType="DATE" FilterType="EQUALTO" Name="FECHADESDE" Visual="FALSE"/>  
+		<FilterDefinition DataType="DATE" FilterType="EQUALTO" Name="FECHAHASTA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="MARCA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="CANAL" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PERIODODESDE" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PERIODOHASTA" Visual="FALSE"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="TIPOSOLICITUD" Visual="FALSE"/>  
+		<FilterDefinition DataType="STRING" FilterType="EQUALTO" Name="ZONEUSER" Visual="FALSE"/>  
+	</FilterDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="PAIS" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="IDIOMA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="NUMEROPROPUESTO" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="TIPOOPERACION" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="RESPONSABLEPERDIDA" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="ASUMEPERDIDA" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="dd/MM/yyyy" FilterDefinitionName="FORMATOFECHA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="FECHADESDE" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="FECHAHASTA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="MARCA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="CANAL" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="PERIODODESDE" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="PERIODOHASTA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="TIPOSOLICITUD" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="USUARIO1" FilterDefinitionName="ZONEUSER" FilterParameter="VALUE"/>  
+	</ParameterValues>  
+</ReportSourceDefinition>  
+

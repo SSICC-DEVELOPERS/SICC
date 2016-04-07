@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by tito (tito) -->  
+<ReportSourceDefinition Id="RSD_REP-146" Cached="false" Expiration="0" IncrementalDimension="" Multilanguage="false" MaxRowsDimensionReference="" >  
+	<DimensionSourceDefinitions>  
+		<DimensionSourceDefinition Name="COMISION" Description="COMISION" DataType="STRING" Calculated="false" Expression="" ExternalData="COMISION"/>  
+		<DimensionSourceDefinition Name="SUBGEREN" Description="SUBGEREN" DataType="STRING" Calculated="false" Expression="" ExternalData="SUBGEREN"/>  
+		<DimensionSourceDefinition Name="REGION" Description="REGION" DataType="STRING" Calculated="false" Expression="" ExternalData="REGION"/>  
+		<DimensionSourceDefinition Name="PERIODO" Description="PERIODO" DataType="STRING" Calculated="false" Expression="" ExternalData="PERIODO"/>  
+		<DimensionSourceDefinition Name="COD_ZONA" Description="COD_ZONA" DataType="STRING" Calculated="false" Expression="" ExternalData="COD_ZONA"/>  
+		<DimensionSourceDefinition Name="DES_ZONA" Description="DES_ZONA" DataType="STRING" Calculated="false" Expression="" ExternalData="DES_ZONA"/>  
+		<DimensionSourceDefinition Name="NOMBRE" Description="NOMBRE" DataType="STRING" Calculated="false" Expression="" ExternalData="NOMBRE"/>  
+	</DimensionSourceDefinitions>  
+	<MetricSourceDefinitions>  
+		<MetricSourceDefinition Name="VAL_PORC_COMI" Description="VAL_PORC_COMI" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="VAL_PORC_COMI" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="IMPORTE_PAGAR" Description="IMPORTE_PAGAR" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="IMPORTE_PAGAR" ExternalCalculated="false"/>  
+		<MetricSourceDefinition Name="MONTO_ABONAR" Description="MONTO_ABONAR" AggregateType="SUM" GroupFooterType="NONE" Calculated="false" AggregateFunction="" GroupFooterFunction="" ExternalData="MONTO_ABONAR" ExternalCalculated="false"/>  
+	</MetricSourceDefinitions>  
+	<FilterDefinitions>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="IDIOMA" Visual="false"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PAIS" Visual="false"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="MARCA" Visual="false"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="CANAL" Visual="false"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="PERIODO" Visual="false"/>  
+		<FilterDefinition DataType="STRING" FilterType="EQUALTO" Name="TIPOCOMISION" Visual="false"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="EQUALTO" Name="COMISION" Visual="false"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="SUBGERENCIAVENTA" Visual="false"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="REGION" Visual="false"/>  
+		<FilterDefinition DataType="INTEGER" FilterType="IN" Name="ZONA" Visual="false"/>  
+	</FilterDefinitions>  
+	<ParameterValues>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="IDIOMA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="PAIS" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="MARCA" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="CANAL" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="61" FilterDefinitionName="PERIODO" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="C" FilterDefinitionName="TIPOCOMISION" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1319" FilterDefinitionName="COMISION" FilterParameter="VALUE"/>  
+		<ParameterValue DefaultValue="1" FilterDefinitionName="SUBGERENCIAVENTA" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="REGION" FilterParameter="VALUES"/>  
+		<ParameterValue DefaultValue="NULL_VALUE" FilterDefinitionName="ZONA" FilterParameter="VALUES"/>  
+	</ParameterValues>  
+	<DataSourceDefinitions>  
+		<DataSourceDefinition Name="REP-146" SourceType="SQL" Expression="  
+SELECT GEN_COMI.VAL_I18N COMISION,  
+	   SUBG.DES_SUBG_VENT SUBGEREN,  
+	   REG.DES_REGI REGION,  
+	   PERI.VAL_NOMB_PERI PERIODO,  
+	   ZONA.COD_ZONA,  
+	   ZONA.DES_ZONA,  
+	   CLI.VAL_NOM1||' '||CLI.VAL_APE1 NOMBRE,  
+	   COM_CAL.VAL_PORC_COMI,  
+	   COM_CAL.IMP_COMI IMPORTE_PAGAR,  
+         DECODE(NVL(SUM(COM_CLI.VAL_PORC_COMI),0),0,0,(SUM(COM_CLI.IMP_MONT_PAGA) * SUM(COM_CLI.VAL_PORC_COMI) / 100)) MONTO_ABONAR  
+FROM ZON_SUB_GEREN_VENTA SUBG,  
+	 ZON_REGIO REG,  
+	 ZON_ZONA ZONA,  
+	 COM_COMIS_CALCU COM_CAL,  
+	 COM_COMIS_COBRA_ACUMU_CLIEN COM_CLI,  
+	 COM_COMIS_COBRA_ACUMU COM_ACU,  
+	 CRA_PERIO PERI,  
+	 MAE_CLIEN CLI,  
+	 COM_COMIS COM,  
+	 (  
+		 SELECT GEN.VAL_OID, GEN.VAL_I18N  
+		 FROM V_GEN_I18N_SICC GEN  
+		 WHERE GEN.ATTR_ENTI = 'COM_COMIS'  
+		 	   AND GEN.IDIO_OID_IDIO = %value_IDIOMAVALUE%  
+	 ) GEN_COMI  
+WHERE SUBG.OID_SUBG_VENT = REG.ZSGV_OID_SUBG_VENT  
+	  AND REG.OID_REGI = ZONA.ZORG_OID_REGI  
+	  AND ZONA.CLIE_OID_CLIE = COM_CAL.CLIE_OID_CLIE  
+	  AND COM_CAL.COMI_OID_COMI = GEN_COMI.VAL_OID(+)	   
+      AND PERI.OID_PERI = COM_CAL.PERD_OID_PERI  
+        AND COM_CAL.PERD_OID_PERI = %value_PERIODOVALUE%  
+	  AND COM.OID_COMI = COM_CAL.COMI_OID_COMI  
+	  AND ZONA.CLIE_OID_CLIE = CLI.OID_CLIE  
+	  AND COM_CLI.COC2_OID_COMI_COBR_ACUM = COM_ACU.OID_COMI_COBR_ACUM  
+	  AND COM_ACU.COMI_OID_COMI = COM_CAL.COMI_OID_COMI  
+	  AND COM_ACU.CLIE_OID_CLIE = COM_CAL.CLIE_OID_CLIE  
+	    AND (INSTR(  
+	    (  
+		    CASE WHEN (ZONA.PERD_OID_PERI_FINA IS NOT NULL) THEN  
+	   		 	 (  
+				  	 SELECT PQ_APL_REP.FN_013_FACDTR_CONCAT_PERI(ZONA.PERD_OID_PERI_INIC, ZONA.PERD_OID_PERI_FINA)  
+					 FROM DUAL  
+				 ) 	  
+		  	ELSE  
+	   		 	 (  
+				  	 SELECT PQ_APL_REP.FN_013_FACDTR_CONCAT_PERI(ZONA.PERD_OID_PERI_INIC,(  
+																		SELECT *  
+																		FROM  
+																			(		  
+																			SELECT P.OID_PERI      
+																				FROM CRA_PERIO P         
+																				WHERE P.MARC_OID_MARC =  1            
+																				AND P.CANA_OID_CANA = 1      
+																				AND  P.PAIS_OID_PAIS =  1     
+																				AND SYSDATE &lt;= P.FEC_FINA          
+																				AND SYSDATE >= P.FEC_INIC  
+																			ORDER BY FEC_FINA DESC 	  
+																			)  
+																		WHERE ROWNUM = 1  
+																		))  
+					 FROM DUAL  
+				 ) 	  
+			END  
+		),  
+			 	    	  	 ','||%value_PERIODOVALUE%||','					  
+		) > 0)  
+      AND SUBG.PAIS_OID_PAIS = %value_PAISVALUE%  
+	  AND SUBG.MARC_OID_MARC = %value_MARCAVALUE%  
+	  AND SUBG.CANA_OID_CANA = %value_CANALVALUE%  
+	  AND COM_CAL.PERD_OID_PERI = %value_PERIODOVALUE%  
+	  AND COM.IND_VENT_COBR = %value_TIPOCOMISIONVALUE%  
+	  AND COM_CAL.COMI_OID_COMI = %value_COMISIONVALUE%  
+	  AND SUBG.OID_SUBG_VENT IN (%value_SUBGERENCIAVENTAVALUES%)  
+	  %start_REGIONVALUES% AND REG.OID_REGI IN  (%value_REGIONVALUES%) %end_REGIONVALUES%  
+	  %start_ZONAVALUES% AND ZONA.OID_ZONA IN (%value_ZONAVALUES%) %end_ZONAVALUES%   
+GROUP BY GEN_COMI.VAL_I18N ,  
+	   SUBG.DES_SUBG_VENT ,  
+	   REG.DES_REGI,  
+	   PERI.VAL_NOMB_PERI ,  
+	   ZONA.COD_ZONA,  
+	   ZONA.DES_ZONA,  
+	   CLI.VAL_NOM1||' '||CLI.VAL_APE1 ,  
+	   COM_CAL.VAL_PORC_COMI,  
+	   COM_CAL.IMP_COMI   
+  
+  " ExternalClassName="oracle.jdbc.driver.OracleDriver" ExternalSourceData="" ExternalConnectionString="" ExternalConnectionClassName="oracle.jdbc.driver.OracleDriver" ExternalConnectionLocalUrl="jdbc:oracle:thin:@192.168.118.106:1523:SICCV3D" ExternalConnectionDistributedUrl="" ExternalConnectionUser="usu_peru" ExternalConnectionPassword="peru" DatePattern="" DateTimePattern=""/>  
+	</DataSourceDefinitions>  
+</ReportSourceDefinition>  
+
